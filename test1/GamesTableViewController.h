@@ -1,0 +1,72 @@
+//
+//  GamesTableViewController.h
+//  test1
+//
+//  Created by rainwolf on 12/12/12.
+//  Copyright (c) 2012 Triade. All rights reserved.
+//
+
+#import <UIKit/UIKit.h>
+#import "PentePlayer.h"
+#import "BoardViewController.h"
+#import "MessagesViewController.h"
+#import "UIPullToReloadTableViewController.h"
+#import "IASKAppSettingsViewController.h"
+#import "SettingsViewController.h"
+#import "InvitationsViewController.h"
+#import <GoogleMobileAds/GoogleMobileAds.h>
+
+
+
+@interface GameTableViewCell : UITableViewCell {}
+
+@end
+
+@interface GamesTableViewController : UIPullToReloadTableViewController <GADBannerViewDelegate, UIGestureRecognizerDelegate, GADBannerViewDelegate, GADInterstitialDelegate> {
+    PentePlayer *player;
+    Game *selectedGame;
+    BoardViewController *boardController;
+    MessagesViewController *messagesViewController;
+    InvitationsViewController *invitationsViewController;
+    NSString *username, *password;
+    NSIndexPath *selectedInvitationIndexPath, *selectedPublicInvitationIndexPath;
+    UIButton *acceptButton, *cancelButton, *rejectButton;
+    GADBannerView *bannerView;
+    BOOL messagesCollapsed, invitationsReceivedCollapsed, activeGamesCollapsed, publicInvitationsCollapsed, sentInvitationsCollapsed, nonActiveGamesCollapsed;
+    GameTableViewCell *selectedInvitationCell, *selectedPublicInvitationCell;
+    UIBarButtonItem *inviteButton, *messageButton;
+    BOOL alreadyAskedAboutInvitations;
+    GADInterstitial *interstitial;
+    int gamesLimit;
+    BOOL showAds;
+}
+@property(nonatomic,retain) PentePlayer *player;
+@property(nonatomic,retain) Game *selectedGame;
+@property(nonatomic,retain) BoardViewController *boardController;
+@property(nonatomic,retain) MessagesViewController *messagesViewController;
+@property(nonatomic,retain) InvitationsViewController *invitationsViewController;
+@property(nonatomic,retain) NSString *username;
+@property(nonatomic,retain) NSString *password;
+@property(nonatomic,retain) NSIndexPath *selectedInvitationIndexPath, *selectedPublicInvitationIndexPath;
+@property(nonatomic,retain) UIButton *acceptButton;
+@property(nonatomic,retain) UIButton *rejectButton;
+@property(nonatomic,retain) UIButton *cancelButton;
+@property(nonatomic,retain) GADBannerView *bannerView;
+@property(atomic) BOOL messagesCollapsed, invitationsReceivedCollapsed, activeGamesCollapsed, publicInvitationsCollapsed, sentInvitationsCollapsed, nonActiveGamesCollapsed, alreadyAskedAboutInvitations, showAds;
+@property(atomic) int gamesLimit;
+@property(nonatomic,retain) GameTableViewCell *selectedInvitationCell, *selectedPublicInvitationCell;
+@property(nonatomic,retain) UIBarButtonItem *inviteButton, *messageButton;
+@property(nonatomic, strong) GADInterstitial *interstitial;
+
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath;
+- (void) sectionTap:(UIGestureRecognizer *)gestureRecognizer;
+//- (void) addSectionTapRecogniser: (UITapGestureRecognizer *) sectionTapRecogniser toSubViewsOf: (UIView *) headerView;
+//- (void) headerTapped: (UIButton*) sender;
+- (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section;
+//- (void)adViewWillLeaveApplication:(GADBannerView *)bannerView;
+
+
+@end
+
+

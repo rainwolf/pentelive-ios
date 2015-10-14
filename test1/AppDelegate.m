@@ -7,14 +7,33 @@
 //
 
 #import "AppDelegate.h"
+#import "AVFoundation/AVFoundation.h"
 
 @implementation AppDelegate
 
 @synthesize window = _window;
+@synthesize notification;
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
     // Override point for customization after application launch.
+    
+    [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryAmbient error:nil];
+    
+    if ([application respondsToSelector:@selector(registerUserNotificationSettings:)]) {
+        [application registerUserNotificationSettings:[UIUserNotificationSettings settingsForTypes:(UIUserNotificationTypeSound | UIUserNotificationTypeAlert | UIUserNotificationTypeBadge) categories:nil]];
+        [application registerForRemoteNotifications];
+    } else {
+        [[UIApplication sharedApplication] registerForRemoteNotificationTypes:
+         (UIRemoteNotificationTypeBadge | UIRemoteNotificationTypeSound | UIRemoteNotificationTypeAlert)];
+    }
+    
+    notification = [launchOptions objectForKey:UIApplicationLaunchOptionsRemoteNotificationKey];
+//    NSLog(@"kitty1");
+//    if (notification)
+//    {
+//        NSLog(@"Launched from push notification: %@", notification);
+//    }
     return YES;
 }
 							
@@ -43,6 +62,38 @@
 - (void)applicationWillTerminate:(UIApplication *)application
 {
     // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
+}
+
+
+
+- (void)application:(UIApplication*)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData*)deviceToken
+{
+    if (deviceToken) {
+        NSString *tokenString = [[[[NSString stringWithFormat:@"%@", deviceToken] stringByReplacingOccurrencesOfString:@" " withString:@""] stringByReplacingOccurrencesOfString:@">" withString:@""] stringByReplacingOccurrencesOfString:@"<" withString:@""];
+//NSLog(@"My token is: %@", tokenString);
+        NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+        NSString *storedTokenString = [defaults objectForKey: @"deviceToken"];
+        if (storedTokenString) {
+            if (![storedTokenString isEqualToString:tokenString]) {
+                [defaults setObject:tokenString forKey:@"deviceToken"];
+                [defaults removeObjectForKey:@"lastPing"];
+           }
+        } else {
+            [defaults setObject:tokenString forKey:@"deviceToken"];
+        }
+    }
+}
+
+- (void)application:(UIApplication*)application didFailToRegisterForRemoteNotificationsWithError:(NSError*)error
+{
+    NSLog(@"Failed to get token, error: %@", error);
+}
+
+
+- (void)application:(UIApplication*)application didReceiveRemoteNotification:(NSDictionary*)userInfo
+{
+//    NSLog(@"Received notification: %@", [userInfo objectForKey:@"gameID"]);
+//    [self addMessageFromRemoteNotification:userInfo updateUI:YES];
 }
 
 @end
