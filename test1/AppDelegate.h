@@ -8,10 +8,15 @@
 
 #import <UIKit/UIKit.h>
 #import "PenteNavigationViewController.h"
+#import "TSMessage.h"
+#import "TSMessageView.h"
+#import "AudioToolbox/AudioServices.h"
+
 
 @interface AppDelegate : UIResponder <UIApplicationDelegate>
 
 @property (strong, nonatomic) UIWindow *window;
 @property (retain, nonatomic, readwrite) NSDictionary *notification;
+@property (atomic) SystemSoundID sndID;
 
 @end

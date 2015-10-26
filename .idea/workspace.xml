@@ -1,0 +1,491 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="8b6c1aa2-dcab-44eb-a498-d8ca88018e06" name="Default" comment="">
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/GoogleAdMobAdsSdkiOS/GoogleMobileAds.framework/Versions/Current" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/Default-568h@2x.png" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/penteLive/Images.xcassets/LaunchImage.launchimage/Default-568h@2x.png" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/Default.png" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/Default@2x.png" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/penteLive/Images.xcassets/LaunchImage.launchimage/Default@2x.png" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/GoogleAdMobAdsSdkiOS/GoogleMobileAds.framework/GoogleMobileAds" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/GoogleAdMobAdsSdkiOS/GoogleMobileAds.framework/Versions/A/GoogleMobileAds" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/GoogleAdMobAdsSdkiOS/GoogleMobileAds.framework/Headers" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/IMG_1051.jpg" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/IMG_1052.jpg" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/Icon-76.png" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/penteLive/Images.xcassets/AppIcon.appiconset/Icon-76.png" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/Icon-76@2x.png" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/penteLive/Images.xcassets/AppIcon.appiconset/Icon-76@2x.png" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/images/PlainTableViewSectionHeader.png" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/images/PlainTableViewSectionHeader@2x.png" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/penteLive.xcodeproj/project.xcworkspace/xcuserdata/waliedothman.xcuserdatad/UserInterfaceState.xcuserstate" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/images/arrow.png" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/images/arrow@2x.png" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/images/blackStone.png" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/images/blackStone@2x.png" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/images/cancel.png" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/images/cancel@2x.png" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/images/facebook.png" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/images/facebook@2x.png" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/images/icon114x114.png" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/images/icon144x144.png" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/icon_120x120.png" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/penteLive/Images.xcassets/AppIcon.appiconset/icon_120x120.png" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/images/icon_57x57.png" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/icon_58x58.png" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/penteLive/Images.xcassets/AppIcon.appiconset/icon_58x58.png" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/images/icon_72x72.png" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/icon_80x80.png" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/penteLive/Images.xcassets/AppIcon.appiconset/icon_80x80.png" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/images/messageBubble0.png" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/images/messageBubble0@2x.png" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/images/messageBubble1.png" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/images/messageBubble1@2x.png" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/penteLiveNotificationSound.caf" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/images/splash_320x480.png" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/images/splash_640x960.png" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/images/twitter.png" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/images/twitter@2x.png" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/images/whiteStone.png" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/images/whiteStone@2x.png" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/BoardView.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/BoardView.m" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/BoardViewController.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/BoardViewController.m" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/penteLive.xcodeproj/xcuserdata/waliedothman.xcuserdatad/xcdebugger/Breakpoints.xcbkptlist" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/penteLive.xcodeproj/xcuserdata/waliedothman.xcuserdatad/xcdebugger/Breakpoints_v2.xcbkptlist" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/penteLive/Images.xcassets/AppIcon.appiconset/Contents.json" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/penteLive/Images.xcassets/LaunchImage.launchimage/Contents.json" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/GoogleAdMobAdsSdkiOS/GoogleMobileAds.framework/Versions/A/Headers/DFPBannerView.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/GoogleAdMobAdsSdkiOS/GoogleMobileAds.framework/Versions/A/Headers/DFPCustomRenderedAd.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/GoogleAdMobAdsSdkiOS/GoogleMobileAds.framework/Versions/A/Headers/DFPCustomRenderedBannerViewDelegate.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/GoogleAdMobAdsSdkiOS/GoogleMobileAds.framework/Versions/A/Headers/DFPCustomRenderedInterstitialDelegate.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/GoogleAdMobAdsSdkiOS/GoogleMobileAds.framework/Versions/A/Headers/DFPInterstitial.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/GoogleAdMobAdsSdkiOS/GoogleMobileAds.framework/Versions/A/Headers/DFPRequest.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/GoogleAdMobAdsSdkiOS/GoogleMobileAds.framework/Versions/A/Headers/GADAdNetworkExtras.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/GoogleAdMobAdsSdkiOS/GoogleMobileAds.framework/Versions/A/Headers/GADAdSize.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/GoogleAdMobAdsSdkiOS/GoogleMobileAds.framework/Versions/A/Headers/GADAdSizeDelegate.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/GoogleAdMobAdsSdkiOS/GoogleMobileAds.framework/Versions/A/Headers/GADAppEventDelegate.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/GoogleAdMobAdsSdkiOS/GoogleMobileAds.framework/Versions/A/Headers/GADBannerView.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/GoogleAdMobAdsSdkiOS/GoogleMobileAds.framework/Versions/A/Headers/GADBannerViewDelegate.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/GoogleAdMobAdsSdkiOS/GoogleMobileAds.framework/Versions/A/Headers/Mediation/GADCustomEventBanner.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/GoogleAdMobAdsSdkiOS/GoogleMobileAds.framework/Versions/A/Headers/Mediation/GADCustomEventBannerDelegate.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/GoogleAdMobAdsSdkiOS/GoogleMobileAds.framework/Versions/A/Headers/Mediation/GADCustomEventExtras.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/GoogleAdMobAdsSdkiOS/GoogleMobileAds.framework/Versions/A/Headers/Mediation/GADCustomEventInterstitial.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/GoogleAdMobAdsSdkiOS/GoogleMobileAds.framework/Versions/A/Headers/Mediation/GADCustomEventInterstitialDelegate.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/GoogleAdMobAdsSdkiOS/GoogleMobileAds.framework/Versions/A/Headers/Mediation/GADCustomEventRequest.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/GoogleAdMobAdsSdkiOS/GoogleMobileAds.framework/Versions/A/Headers/GADExtras.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/GoogleAdMobAdsSdkiOS/GoogleMobileAds.framework/Versions/A/Headers/GADInAppPurchase.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/GoogleAdMobAdsSdkiOS/GoogleMobileAds.framework/Versions/A/Headers/GADInAppPurchaseDelegate.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/GoogleAdMobAdsSdkiOS/GoogleMobileAds.framework/Versions/A/Headers/GADInterstitial.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/GoogleAdMobAdsSdkiOS/GoogleMobileAds.framework/Versions/A/Headers/GADInterstitialDelegate.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/GoogleAdMobAdsSdkiOS/GoogleMobileAds.framework/Versions/A/Headers/GADRequest.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/GoogleAdMobAdsSdkiOS/GoogleMobileAds.framework/Versions/A/Headers/GADRequestError.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/GoogleAdMobAdsSdkiOS/GoogleMobileAds.framework/Versions/A/Headers/Search/GADSearchBannerView.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/GoogleAdMobAdsSdkiOS/GoogleMobileAds.framework/Versions/A/Headers/Search/GADSearchRequest.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/GamesTableViewController.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/GamesTableViewController.m" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/GoogleAdMobAdsSdkiOS/GoogleMobileAds.framework/Versions/A/Headers/GoogleMobileAds.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/InAppSettingsKit/Controllers/IASKAppSettingsViewController.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/InAppSettingsKit/Controllers/IASKAppSettingsViewController.m" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/InAppSettingsKit/Controllers/IASKAppSettingsWebViewController.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/InAppSettingsKit/Controllers/IASKAppSettingsWebViewController.m" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/InAppSettingsKit/Resources/Base.lproj/IASKLocalizable.strings" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/InAppSettingsKit/Resources/de.lproj/IASKLocalizable.strings" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/InAppSettingsKit/Resources/el.lproj/IASKLocalizable.strings" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/InAppSettingsKit/Resources/en.lproj/IASKLocalizable.strings" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/InAppSettingsKit/Resources/es.lproj/IASKLocalizable.strings" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/InAppSettingsKit/Resources/fr.lproj/IASKLocalizable.strings" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/InAppSettingsKit/Resources/it.lproj/IASKLocalizable.strings" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/InAppSettingsKit/Resources/ja.lproj/IASKLocalizable.strings" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/InAppSettingsKit/Resources/nl.lproj/IASKLocalizable.strings" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/InAppSettingsKit/Resources/pt-PT.lproj/IASKLocalizable.strings" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/InAppSettingsKit/Resources/pt.lproj/IASKLocalizable.strings" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/InAppSettingsKit/Resources/ru.lproj/IASKLocalizable.strings" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/InAppSettingsKit/Resources/sv.lproj/IASKLocalizable.strings" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/InAppSettingsKit/Resources/th.lproj/IASKLocalizable.strings" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/InAppSettingsKit/Resources/tr.lproj/IASKLocalizable.strings" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/InAppSettingsKit/Controllers/IASKMultipleValueSelection.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/InAppSettingsKit/Controllers/IASKMultipleValueSelection.m" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/InAppSettingsKit/Views/IASKPSSliderSpecifierViewCell.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/InAppSettingsKit/Views/IASKPSSliderSpecifierViewCell.m" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/InAppSettingsKit/Views/IASKPSTextFieldSpecifierViewCell.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/InAppSettingsKit/Views/IASKPSTextFieldSpecifierViewCell.m" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/InAppSettingsKit/Models/IASKSettingsReader.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/InAppSettingsKit/Models/IASKSettingsReader.m" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/InAppSettingsKit/Models/IASKSettingsStore.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/InAppSettingsKit/Models/IASKSettingsStore.m" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/InAppSettingsKit/Models/IASKSettingsStoreFile.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/InAppSettingsKit/Models/IASKSettingsStoreFile.m" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/InAppSettingsKit/Models/IASKSettingsStoreUserDefaults.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/InAppSettingsKit/Models/IASKSettingsStoreUserDefaults.m" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/InAppSettingsKit/Views/IASKSlider.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/InAppSettingsKit/Views/IASKSlider.m" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/InAppSettingsKit/Models/IASKSpecifier.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/InAppSettingsKit/Models/IASKSpecifier.m" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/InAppSettingsKit/Controllers/IASKSpecifierValuesViewController.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/InAppSettingsKit/Controllers/IASKSpecifierValuesViewController.m" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/InAppSettingsKit/Views/IASKSwitch.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/InAppSettingsKit/Views/IASKSwitch.m" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/InAppSettingsKit/Views/IASKTextField.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/InAppSettingsKit/Views/IASKTextField.m" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/InAppSettingsKit/Controllers/IASKViewController.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/InvitationsViewController.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/InvitationsViewController.m" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/MessagesViewController.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/MessagesViewController.m" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/PenteNavigationViewController.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/PenteNavigationViewController.m" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/PentePlayer.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/PentePlayer.m" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/PickerInputTableViewCell.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/PickerInputTableViewCell.m" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/PopoverView/PopoverView.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/PopoverView/PopoverView.m" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/PopoverView/PopoverViewCompatibility.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/PopoverView/PopoverView_Configuration.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/GoogleAdMobAdsSdkiOS/README.txt" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/Settings.bundle/Root.inApp.plist" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/Settings.bundle/Root.plist" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/Settings.bundle/en.lproj/Root.strings" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/SettingsViewController.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/SettingsViewController.m" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/SimplePickerInputTableViewCell.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/SimplePickerInputTableViewCell.m" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/StringInputTableViewCell.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/StringInputTableViewCell.m" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/UIPullToReloadHeaderView.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/UIPullToReloadHeaderView.m" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/UIPullToReloadTableViewController.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/UIPullToReloadTableViewController.m" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/penteLive.xcodeproj/project.xcworkspace/xcuserdata/waliedothman.xcuserdatad/WorkspaceSettings.xcsettings" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/penteLive.xcodeproj/project.xcworkspace/contents.xcworkspacedata" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/GoogleAdMobAdsSdkiOS/GoogleMobileAds.framework/Modules/module.modulemap" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/penteLive-Info.plist" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/penteLive.xcodeproj/project.pbxproj" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/rootViewController.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test1/rootViewController.m" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/penteLive.xcodeproj/xcuserdata/waliedothman.xcuserdatad/xcschemes/test1.xcscheme" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/penteLive.xcodeproj/xcuserdata/waliedothman.xcuserdatad/xcschemes/xcschememanagement.plist" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/test1.xcodeproj/project.pbxproj" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/test1/GoogleAdMobAdsSdkiOS-6.2.1/Add-ons/GoogleAnalyticsiOS_2.0beta3/Examples/CuteAnimals/CuteAnimals-Info.plist" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/test1/ViewController.h" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/test1/ViewController.m" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/test1Tests/en.lproj/InfoPlist.strings" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/test1Tests/test1Tests-Info.plist" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/test1Tests/test1Tests.h" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/test1Tests/test1Tests.m" afterPath="" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/test1/test1-Prefix.pch" afterPath="$PROJECT_DIR$/test1/penteLive-Prefix.pch" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test1/AppDelegate.h" afterPath="$PROJECT_DIR$/test1/AppDelegate.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test1/AppDelegate.m" afterPath="$PROJECT_DIR$/test1/AppDelegate.m" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test1/en.lproj/MainStoryboard.storyboard" afterPath="$PROJECT_DIR$/test1/en.lproj/MainStoryboard.storyboard" />
+    </list>
+    <ignored path="penteLive.iws" />
+    <ignored path=".idea/workspace.xml" />
+    <option name="TRACKING_ENABLED" value="true" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ChangesViewManager" flattened_view="true" show_ignored="false" />
+  <component name="CreatePatchCommitExecutor">
+    <option name="PATCH_PATH" value="" />
+  </component>
+  <component name="DaemonCodeAnalyzer">
+    <disable_hints />
+  </component>
+  <component name="ExecutionTargetManager" SELECTED_TARGET="iphoneos_c6fec2cb0765cc740b77b464ba5ab1533d58dbeb" />
+  <component name="FavoritesManager">
+    <favorites_list name="penteLive" />
+  </component>
+  <component name="FileEditorManager">
+    <leaf>
+      <file leaf-file-name="BoardViewController.m" pinned="false" current="true" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/test1/BoardViewController.m">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="557" column="0" selection-start="22876" selection-end="22876" vertical-scroll-proportion="0.0" vertical-offset="7241" max-vertical-offset="22659">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+    </leaf>
+  </component>
+  <component name="FindManager">
+    <FindUsagesManager>
+      <setting name="OPEN_NEW_TAB" value="false" />
+    </FindUsagesManager>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitLogSettings">
+    <option name="myDateState">
+      <MyDateState />
+    </option>
+  </component>
+  <component name="IdeDocumentHistory">
+    <option name="changedFiles">
+      <list>
+        <option value="$PROJECT_DIR$/test1/PenteNavigationViewController.m" />
+      </list>
+    </option>
+  </component>
+  <component name="ProjectFrameBounds">
+    <option name="y" value="23" />
+    <option name="width" value="1680" />
+    <option name="height" value="1024" />
+  </component>
+  <component name="ProjectLevelVcsManager" settingsEditedManually="false">
+    <OptionsSetting value="true" id="Add" />
+    <OptionsSetting value="true" id="Remove" />
+    <OptionsSetting value="true" id="Checkout" />
+    <OptionsSetting value="true" id="Update" />
+    <OptionsSetting value="true" id="Status" />
+    <OptionsSetting value="true" id="Edit" />
+    <ConfirmationsSetting value="0" id="Add" />
+    <ConfirmationsSetting value="0" id="Remove" />
+  </component>
+  <component name="ProjectReloadState">
+    <option name="STATE" value="0" />
+  </component>
+  <component name="ProjectView">
+    <navigator currentView="ProjectPane" proportions="" version="1" splitterProportion="0.5">
+      <flattenPackages />
+      <showMembers />
+      <showModules />
+      <showLibraryContents />
+      <hideEmptyPackages />
+      <abbreviatePackageNames />
+      <autoscrollToSource />
+      <autoscrollFromSource />
+      <sortByType />
+    </navigator>
+    <panes>
+      <pane id="ProjectPane">
+        <subPane>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" />
+              <option name="myItemType" value="com.jetbrains.cidr.projectView.XcodeRootNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="penteLive" />
+              <option name="myItemType" value="com.jetbrains.cidr.projectView.XcodeProjectNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" />
+              <option name="myItemType" value="com.jetbrains.cidr.projectView.XcodeRootNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="penteLive" />
+              <option name="myItemType" value="com.jetbrains.cidr.projectView.XcodeProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="penteLive" />
+              <option name="myItemType" value="com.jetbrains.cidr.projectView.XcodeViewNode" />
+            </PATH_ELEMENT>
+          </PATH>
+        </subPane>
+      </pane>
+      <pane id="Cidr.FilesView" />
+      <pane id="DirectoryView.Xcode" />
+    </panes>
+  </component>
+  <component name="PropertiesComponent">
+    <property name="options.splitter.main.proportions" value="0.3" />
+    <property name="options.lastSelected" value="XcodeSettings" />
+    <property name="recentsLimit" value="5" />
+    <property name="FullScreen" value="false" />
+    <property name="options.searchVisible" value="true" />
+    <property name="options.splitter.details.proportions" value="0.2" />
+  </component>
+  <component name="RunManager" selected="Application.test1">
+    <configuration default="true" type="AppleRunConfiguration" factoryName="Application" PROJECT_NAME="penteLive" TARGET_NAME="penteLive" CONFIG_NAME="Debug" PASS_PARENT_ENVS="FALSE" RUN_TARGET_PROJECT_NAME="penteLive" RUN_TARGET_NAME="penteLive" MAKE_ACTIVE="TRUE" WAIT_FOR="FALSE">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="test1" type="AppleRunConfiguration" factoryName="Application" SCHEME_NAME="test1" PROJECT_NAME="penteLive" TARGET_NAME="penteLive" CONFIG_NAME="Debug" WORKING_DIR="" PASS_PARENT_ENVS="FALSE" RUN_TARGET_PROJECT_NAME="penteLive" RUN_TARGET_NAME="penteLive" MAKE_ACTIVE="TRUE" WAIT_FOR="FALSE">
+      <envs />
+      <RunnerSettings RunnerId="AppRunner" />
+      <ConfigurationWrapper RunnerId="AppRunner" />
+      <method />
+    </configuration>
+    <list size="1">
+      <item index="0" class="java.lang.String" itemvalue="Application.test1" />
+    </list>
+  </component>
+  <component name="ShelveChangesManager" show_recycled="false" />
+  <component name="SvnConfiguration" maxAnnotateRevisions="500" myUseAcceleration="nothing" myAutoUpdateAfterCommit="false" cleanupOnStartRun="false">
+    <option name="USER" value="" />
+    <option name="PASSWORD" value="" />
+    <option name="mySSHConnectionTimeout" value="30000" />
+    <option name="mySSHReadTimeout" value="30000" />
+    <option name="LAST_MERGED_REVISION" />
+    <option name="MERGE_DRY_RUN" value="false" />
+    <option name="MERGE_DIFF_USE_ANCESTRY" value="true" />
+    <option name="UPDATE_LOCK_ON_DEMAND" value="false" />
+    <option name="IGNORE_SPACES_IN_MERGE" value="false" />
+    <option name="DETECT_NESTED_COPIES" value="true" />
+    <option name="CHECK_NESTED_FOR_QUICK_MERGE" value="false" />
+    <option name="IGNORE_SPACES_IN_ANNOTATE" value="true" />
+    <option name="SHOW_MERGE_SOURCES_IN_ANNOTATE" value="true" />
+    <option name="FORCE_UPDATE" value="false" />
+    <option name="IGNORE_EXTERNALS" value="false" />
+    <myIsUseDefaultProxy>false</myIsUseDefaultProxy>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="8b6c1aa2-dcab-44eb-a498-d8ca88018e06" name="Default" comment="" />
+      <created>1361136021257</created>
+      <updated>1361136021257</updated>
+    </task>
+    <servers />
+  </component>
+  <component name="TodoView" selected-index="0">
+    <todo-panel id="selected-file">
+      <are-packages-shown value="false" />
+      <are-modules-shown value="false" />
+      <flatten-packages value="false" />
+      <is-autoscroll-to-source value="false" />
+    </todo-panel>
+    <todo-panel id="all">
+      <are-packages-shown value="false" />
+      <are-modules-shown value="false" />
+      <flatten-packages value="false" />
+      <is-autoscroll-to-source value="false" />
+    </todo-panel>
+    <todo-panel id="default-changelist">
+      <are-packages-shown value="false" />
+      <are-modules-shown value="false" />
+      <flatten-packages value="false" />
+      <is-autoscroll-to-source value="false" />
+    </todo-panel>
+  </component>
+  <component name="ToolWindowManager">
+    <frame x="0" y="23" width="1680" height="1024" extended-state="0" />
+    <editor active="false" />
+    <layout>
+      <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32903227" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32903227" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
+      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="true" content_ui="tabs" />
+      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.19166666" sideWeight="0.6706136" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32938644" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
+      <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32903227" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
+      <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
+    </layout>
+  </component>
+  <component name="VcsContentAnnotationSettings">
+    <option name="myLimit" value="2678400000" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <option name="myTodoPanelSettings">
+      <TodoPanelSettings />
+    </option>
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <option name="time" value="10" />
+    </breakpoint-manager>
+  </component>
+  <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/test1/BoardViewController.m">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="557" column="0" selection-start="22876" selection-end="22876" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="22659">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test1/BoardViewController.m">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test1/BoardViewController.m">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test1/BoardView.m">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="0" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test1/BoardView.m">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="0" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test1/BoardView.m">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="0" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test1/BoardView.m">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="0" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test1/GamesTableViewController.m">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="-1.0786517" vertical-offset="0" max-vertical-offset="0" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test1/Settings.bundle/Root.inApp.plist">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="0" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test1/Settings.bundle/Root.plist">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="0" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test1/BoardView.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="0" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test1/PenteNavigationViewController.m">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="1" column="0" selection-start="3" selection-end="3" vertical-scroll-proportion="0.016611295" vertical-offset="0" max-vertical-offset="0" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test1/InvitationsViewController.m">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="0" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test1/BoardView.m">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="0" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test1/BoardViewController.m">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="557" column="0" selection-start="22876" selection-end="22876" vertical-scroll-proportion="0.0" vertical-offset="7241" max-vertical-offset="22659">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+  </component>
+</project>
+

@@ -65,6 +65,8 @@
 //- (void) headerTapped: (UIButton*) sender;
 - (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section;
 //- (void)adViewWillLeaveApplication:(GADBannerView *)bannerView;
+-(void) dashboardParse;
+-(void) parseMessages;
 
 
 @end

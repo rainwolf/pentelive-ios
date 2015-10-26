@@ -8,11 +8,14 @@
 
 #import "AppDelegate.h"
 #import "AVFoundation/AVFoundation.h"
+#import "GamesTableViewController.h"
+
 
 @implementation AppDelegate
 
 @synthesize window = _window;
 @synthesize notification;
+@synthesize sndID;
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
@@ -34,6 +37,28 @@
 //    {
 //        NSLog(@"Launched from push notification: %@", notification);
 //    }
+    
+    NSString *penteSndPath = [[NSBundle mainBundle] pathForResource:@"penteLiveNotificationSound" ofType:@"caf"];
+    NSURL *penteSndURL = [NSURL fileURLWithPath:penteSndPath];
+    AudioServicesCreateSystemSoundID((__bridge CFURLRef)penteSndURL, &sndID);
+    
+    [[TSMessageView appearance] setContentTextColor:[UIColor blackColor]];
+    [[TSMessageView appearance] setTitleTextColor:[UIColor blackColor]];
+
+    
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    if (![defaults boolForKey:@"termsAccepted"]) {
+        NSString *message =
+        @"This app uses device identifiers to personalise content and ads, delivered by Google's Adsense network.";
+        UIAlertView *alert =
+        [[UIAlertView alloc] initWithTitle:@"Cookies"
+                                   message:message
+                                  delegate:self
+                         cancelButtonTitle:nil
+                         otherButtonTitles:@"Close message", nil];
+        [alert show];
+    }
+    
     return YES;
 }
 							
@@ -94,6 +119,70 @@
 {
 //    NSLog(@"Received notification: %@", [userInfo objectForKey:@"gameID"]);
 //    [self addMessageFromRemoteNotification:userInfo updateUI:YES];
+    AudioServicesPlaySystemSound(self.sndID);
+
+    if ([((PenteNavigationViewController *)self.window.rootViewController).visibleViewController respondsToSelector:@selector(dashboardParse)]) {
+        [((GamesTableViewController *)((PenteNavigationViewController *)self.window.rootViewController).visibleViewController) dashboardParse];
+    } else {
+        [(PenteNavigationViewController *)self.window.rootViewController setDidMove:YES];
+    }
+
+    NSString *message = [[userInfo objectForKey:@"aps"] objectForKey:@"alert"];
+    NSString *title = @"";
+    if ([message rangeOfString:@"your move"].location != NSNotFound) {
+        title = @"It's your turn";
+    }
+    if ([message rangeOfString:@"new message"].location != NSNotFound) {
+        title = @"New Message";
+    }
+    if ([message rangeOfString:@"invited you"].location != NSNotFound) {
+        title = @"New invitation";
+    }
+    if ([message rangeOfString:@"device has been registered for notifications"].location == NSNotFound) {
+        [TSMessage showNotificationInViewController:self.window.rootViewController
+                                              title: title
+                                           subtitle: message
+                                              image:nil
+                                               type:TSMessageNotificationTypeMessage
+                                           duration:TSMessageNotificationDurationAutomatic
+                                           callback:^{
+                                               [(PenteNavigationViewController *)self.window.rootViewController setReceivedNotification:userInfo];
+                                               if ([((PenteNavigationViewController *)self.window.rootViewController).visibleViewController respondsToSelector:@selector(parseMessages)]) {
+                                                   [((GamesTableViewController *)((PenteNavigationViewController *)self.window.rootViewController).visibleViewController) parseMessages];
+                                               } else {
+                                                   [(PenteNavigationViewController *)self.window.rootViewController setDidMove:YES];
+                                                   [(PenteNavigationViewController *)self.window.rootViewController popToRootViewControllerAnimated:YES];
+                                               }
+                                           }
+                                        buttonTitle:@"dismiss"
+                                     buttonCallback:^{
+                                         [TSMessage dismissActiveNotification];
+                                     }
+                                         atPosition:TSMessageNotificationPositionBottom
+                               canBeDismissedByUser:YES];
+    } else {
+        [TSMessage showNotificationInViewController:self.window.rootViewController
+                                              title: title
+                                           subtitle: message
+                                              image:nil
+                                               type:TSMessageNotificationTypeMessage
+                                           duration:TSMessageNotificationDurationAutomatic
+                                           callback:nil
+                                        buttonTitle:@"dismiss"
+                                     buttonCallback:^{
+                                         [TSMessage dismissActiveNotification];
+                                     }
+                                         atPosition:TSMessageNotificationPositionBottom
+                               canBeDismissedByUser:YES];
+    }
+
+}
+
+
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    [defaults setBool:YES forKey:@"termsAccepted"];
+    [defaults synchronize];
 }
 
 @end

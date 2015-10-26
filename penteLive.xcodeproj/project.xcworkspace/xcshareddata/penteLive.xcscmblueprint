@@ -1,0 +1,29 @@
+{
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyRepositoryLocationsKey" : {
+
+  },
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyStatesKey" : {
+    "A09197BDEFE5DB329169B5000201B999A865BEA1" : 0,
+    "7F6719F1314E6B51016DB1EC166C64F051B42C2E" : 0
+  },
+  "DVTSourceControlWorkspaceBlueprintIdentifierKey" : "42041DE0-9B71-4AD7-A181-83A496133610",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyPathsKey" : {
+    "A09197BDEFE5DB329169B5000201B999A865BEA1" : "TSMessages\/Submodules\/HexColors\/",
+    "7F6719F1314E6B51016DB1EC166C64F051B42C2E" : "TSMessages\/"
+  },
+  "DVTSourceControlWorkspaceBlueprintNameKey" : "penteLive",
+  "DVTSourceControlWorkspaceBlueprintVersion" : 204,
+  "DVTSourceControlWorkspaceBlueprintRelativePathToProjectKey" : "penteLive.xcodeproj",
+  "DVTSourceControlWorkspaceBlueprintRemoteRepositoriesKey" : [
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/github.com\/KrauseFx\/TSMessages.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "7F6719F1314E6B51016DB1EC166C64F051B42C2E"
+    },
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/github.com\/mRs-\/HexColors.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "A09197BDEFE5DB329169B5000201B999A865BEA1"
+    }
+  ]
+}

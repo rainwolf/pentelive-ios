@@ -8,6 +8,7 @@
 
 #import "SettingsViewController.h"
 #import "IASKSettingsReader.h"
+#import "GamesTableViewController.h"
 
 #define usernameKey @"username"
 #define passwordKey @"password"
