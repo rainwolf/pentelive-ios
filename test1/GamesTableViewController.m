@@ -213,12 +213,13 @@
     PenteNavigationViewController *navControllor = (PenteNavigationViewController *) self.navigationController;
     if (navControllor.didMove) {
         [navControllor setDidMove: NO];
-        int i;
-        for( i = 0; i < [[player activeGames] count]; ++i) {
-            if ([navControllor.activeGameToRemove isEqualToString:[[[player activeGames] objectAtIndex:i] gameID]]) {
-                [[player activeGames] removeObjectAtIndex:i];
-                [self.tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject:[NSIndexPath indexPathForRow:i inSection:2]] withRowAnimation:UITableViewRowAnimationFade];
-                break;
+        if (!activeGamesCollapsed) {
+            for( int i = 0; i < [[player activeGames] count]; ++i) {
+                if ([navControllor.activeGameToRemove isEqualToString:[[[player activeGames] objectAtIndex:i] gameID]]) {
+                    [[player activeGames] removeObjectAtIndex:i];
+                    [self.tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject:[NSIndexPath indexPathForRow:i inSection:2]] withRowAnimation:UITableViewRowAnimationFade];
+                    break;
+                }
             }
         }
         [self dashboardParse];
@@ -1791,8 +1792,10 @@
     int dashIDX = 0;
     while ((dashIDX < [splitDash count]) && (![[splitDash objectAtIndex:dashIDX] isEqualToString: @"EndOfSettingsParameters"])) {
         if ([[splitDash objectAtIndex:dashIDX] rangeOfString:@"tbGamesLimit"].location != NSNotFound) {
+            dashLine = [splitDash objectAtIndex:dashIDX];
             splitLine = [dashLine componentsSeparatedByString:@";"];
             gamesLimit = [[splitLine objectAtIndex:1] intValue];
+//            NSLog(@"kitty %u %@", gamesLimit, splitLine);
         }
         dashIDX++;
     }
