@@ -16,6 +16,7 @@
 @synthesize loggedIn;
 @synthesize didMove;
 @synthesize messageDeleted;
+@synthesize needHelp;
 @synthesize deletedMessageRow;
 @synthesize bannerView;
 @synthesize activeGameToRemove;
@@ -48,6 +49,7 @@
     didMove = NO;
     messageDeleted = NO;
     challengeCancelled = NO;
+    needHelp = NO;
 //    NSLog(@"kitty2");
 
     AppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];

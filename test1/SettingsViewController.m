@@ -37,7 +37,7 @@
     return ((interfaceOrientation != UIInterfaceOrientationPortraitUpsideDown)
             && (interfaceOrientation != UIInterfaceOrientationLandscapeLeft) && (interfaceOrientation != UIInterfaceOrientationLandscapeRight));
 }
--(NSUInteger)supportedInterfaceOrientations {
+-(UIInterfaceOrientationMask)supportedInterfaceOrientations {
     return UIInterfaceOrientationMaskPortrait;
     //    return UIInterfaceOrientationLandscapeLeft | UIInterfaceOrientationLandscapeRight | UIInterfaceOrientationPortrait;
 }
@@ -78,6 +78,7 @@
 
 
 - (void)settingsViewController:(IASKAppSettingsViewController*)sender buttonTappedForSpecifier:(IASKSpecifier*)specifier {
+    PenteNavigationViewController *navControllor = (PenteNavigationViewController *) self.navigationController;
     if ([specifier.key isEqualToString:@"LoginButton"]) {
             NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
             username = [defaults objectForKey:usernameKey];
@@ -178,7 +179,6 @@
 
 //                        NSLog(@"kittyyyyyyString -%@-", dashboardString);
         
-            PenteNavigationViewController *navControllor = (PenteNavigationViewController *) self.navigationController;
             if ([dashboardString isEqualToString:@""]) {
                 [navControllor setLoggedIn: NO];
                 UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:@"pente.org appears to be down, please try again later." delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
@@ -200,10 +200,53 @@
                 [self.navigationController popToRootViewControllerAnimated:YES];
             }
     }
+    if ([specifier.key isEqualToString:@"HelpButton"]) {
+        if (![navControllor loggedIn]) {
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:@"You need to be logged in to send a help message. Send an email instead?" delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Email",nil];
+            [alert setTag:1];
+            [alert show];
+            return;
+        }
+        
+        [navControllor setNeedHelp:YES];
+        [self.navigationController popToRootViewControllerAnimated:YES];
+    }
     if ([[specifier type] isEqualToString:kIASKOpenURLSpecifier]) {
         [[UIApplication sharedApplication] openURL:[NSURL URLWithString:specifier.file]];
     }
 //        [[NSUserDefaults standardUserDefaults] setObject:newTitle forKey:specifier.key];
+}
+
+
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
+    if (alertView.tag == 1) {
+        if (buttonIndex == 1) {
+            if ([MFMailComposeViewController canSendMail]) {
+                MFMailComposeViewController *mailer = [[MFMailComposeViewController alloc] init];
+                mailer.mailComposeDelegate = self;
+                [mailer setSubject:[NSString stringWithFormat:@"penteLive help for %@", [[NSUserDefaults standardUserDefaults] objectForKey:@"username"]]];
+                NSArray *toRecipients = [NSArray arrayWithObjects:@"rainwolf@submanifold.be", nil];
+                [mailer setToRecipients:toRecipients];
+                
+//                UIImage *myImage = [UIImage imageNamed:@"mobiletuts-logo.png"];
+//                NSData *imageData = UIImagePNGRepresentation(myImage);
+//                [mailer addAttachmentData:imageData mimeType:@"image/png" fileName:@"mobiletutsImage"];
+//                
+//                NSString *emailBody = @"Have you seen the MobileTuts+ web site?";
+//                [mailer setMessageBody:emailBody isHTML:NO];
+                
+                [self presentViewController:mailer animated:YES completion:nil];
+            } else {
+                UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error"
+                                                                message:@"Your device is not configured to send mail"
+                                                               delegate:nil
+                                                      cancelButtonTitle:@"OK"
+                                                      otherButtonTitles:nil];
+                [alert show];
+            }
+        }
+    }
+
 }
 
 

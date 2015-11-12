@@ -86,6 +86,14 @@
 			<key>IASKTextAlignment</key>
 			<string>IASKUITextAlignmentCenter</string>
 		</dict>
+		<dict>
+			<key>Key</key>
+			<string>HelpButton</string>
+			<key>Title</key>
+			<string>Get help</string>
+			<key>Type</key>
+			<string>IASKButtonSpecifier</string>
+		</dict>
 	</array>
 	<key>StringsTable</key>
 	<string>Root</string>

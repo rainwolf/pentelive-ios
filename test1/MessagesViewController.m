@@ -191,6 +191,12 @@ InvitationsViewController *invitationVC;
         [replyMessageView setFrame:frame];
         [self.view addSubview:replyMessageView];
 
+        if ([navController needHelp]) {
+            [navController setNeedHelp:NO];
+            [toField setText:@"rainwolf"];
+            [subjectField setText:[NSString stringWithFormat:@"penteLive help for %@", [[NSUserDefaults standardUserDefaults] objectForKey:@"username"]]];
+        }
+        
 //        [replyMessageView setFrame:CGRectMake(5, 5, self.view.bounds.size.width - 10, 44)];
     }
 }

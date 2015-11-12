@@ -28,7 +28,6 @@
 		637CC49516BAB32D00C4F10A /* PlainTableViewSectionHeader@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 637CC49316BAB32D00C4F10A /* PlainTableViewSectionHeader@2x.png */; };
 		637EA04216F645EF00DD499A /* MessagesViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 637EA04116F645EF00DD499A /* MessagesViewController.m */; };
 		637F43FA167F49CF00D5BF83 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 637F43F9167F49CF00D5BF83 /* Security.framework */; };
-		63893CC31B90B088009093F0 /* GoogleMobileAds.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 63893CC21B90B088009093F0 /* GoogleMobileAds.framework */; };
 		638DAF981AECA7A60086AD19 /* CoreMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 638DAF971AECA7A60086AD19 /* CoreMedia.framework */; };
 		638DAF991AECA8C20086AD19 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 63674A57188979E500C21C48 /* AVFoundation.framework */; };
 		6391953719D91B55007FBEE7 /* EventKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6391953619D91B55007FBEE7 /* EventKit.framework */; };
@@ -319,9 +318,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				63FEFCCE168CB0270070E9AA /* MessageUI.framework in Frameworks */,
 				63E118241BD68E1200779030 /* libAdapterIAd.a in Frameworks */,
 				63E1181E1BD6444A00779030 /* GoogleMobileAds.framework in Frameworks */,
-				63893CC31B90B088009093F0 /* GoogleMobileAds.framework in Frameworks */,
 				63CA93A01B1E18810080664B /* iAd.framework in Frameworks */,
 				638DAF991AECA8C20086AD19 /* AVFoundation.framework in Frameworks */,
 				63FA911E16A0C6FE00ED66D1 /* SystemConfiguration.framework in Frameworks */,
@@ -334,7 +333,6 @@
 				63A6C22116C5142200718708 /* QuartzCore.framework in Frameworks */,
 				63FA912516A0C77100ED66D1 /* AdSupport.framework in Frameworks */,
 				63FA911A16A0C6A700ED66D1 /* AudioToolbox.framework in Frameworks */,
-				63FEFCCE168CB0270070E9AA /* MessageUI.framework in Frameworks */,
 				637F43FA167F49CF00D5BF83 /* Security.framework in Frameworks */,
 				633C9D1D15BD5B98009AD00A /* UIKit.framework in Frameworks */,
 				633C9D1F15BD5B98009AD00A /* Foundation.framework in Frameworks */,
@@ -708,7 +706,7 @@
 		633C9D0F15BD5B98009AD00A /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0700;
+				LastUpgradeCheck = 0710;
 				ORGANIZATIONNAME = Triade;
 				TargetAttributes = {
 					633C9D1715BD5B98009AD00A = {

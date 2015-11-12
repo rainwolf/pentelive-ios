@@ -52,17 +52,17 @@
 //}
 
 - (BOOL)shouldAutorotate {
-    UIInterfaceOrientation interfaceOrientation = [[UIApplication sharedApplication] statusBarOrientation];
+//    UIInterfaceOrientation interfaceOrientation = [[UIApplication sharedApplication] statusBarOrientation];
     //    return ((interfaceOrientation != UIInterfaceOrientationPortraitUpsideDown) && (interfaceOrientation != UIInterfaceOrientationLandscapeLeft) && (interfaceOrientation != UIInterfaceOrientationLandscapeRight));
     return YES;
-    if (((1 << interfaceOrientation) & [self supportedInterfaceOrientations]) == 0) {
-        return YES;
-    } else {
-        return NO;
-    }
-    return (interfaceOrientation != UIInterfaceOrientationPortrait);
+//    if (((1 << interfaceOrientation) & [self supportedInterfaceOrientations]) == 0) {
+//        return YES;
+//    } else {
+//        return NO;
+//    }
+//    return (interfaceOrientation != UIInterfaceOrientationPortrait);
 }
--(NSUInteger)supportedInterfaceOrientations {
+-(UIInterfaceOrientationMask)supportedInterfaceOrientations {
     return UIInterfaceOrientationMaskPortrait;
 //    return UIInterfaceOrientationLandscapeLeft | UIInterfaceOrientationLandscapeRight | UIInterfaceOrientationPortrait;
 }
@@ -186,6 +186,7 @@
         [self.tableView bringSubviewToFront:bannerView];
         [self scrollViewDidScroll: self.tableView];
     }
+
     
 //    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
 //    int numberAppearances = 0;
@@ -211,6 +212,12 @@
 
 - (void)viewWillAppear:(BOOL)animated {
     PenteNavigationViewController *navControllor = (PenteNavigationViewController *) self.navigationController;
+    if (navControllor.needHelp) {
+        [self performSegueWithIdentifier:@"messagesTap" sender:self];
+        [messagesViewController setPlayer:player];
+        [messagesViewController setGamesLimit: gamesLimit];
+        return;
+    }
     if (navControllor.didMove) {
         [navControllor setDidMove: NO];
         if (!activeGamesCollapsed) {
@@ -264,7 +271,7 @@
         
         // connect to the game server
         request = [[NSMutableURLRequest alloc] init];
-        url = [NSString stringWithFormat:@"http://www.pente.org/gameServer/index.jsp?name2=%@&password2=%@",username,password];
+        url = [NSString stringWithFormat:@"http://www.pente.org/gameServer/login.jsp?name2=%@&password2=%@",username,password];
 //        url = [NSString stringWithFormat:@"http://www.pente.org/gameServer/mobile/index.jsp?name=%@&password=%@",username,password];
         [request setURL:[NSURL URLWithString:url]];
         [request setHTTPMethod:@"POST"];
@@ -1795,7 +1802,10 @@
             dashLine = [splitDash objectAtIndex:dashIDX];
             splitLine = [dashLine componentsSeparatedByString:@";"];
             gamesLimit = [[splitLine objectAtIndex:1] intValue];
-//            NSLog(@"kitty %u %@", gamesLimit, splitLine);
+            if (gamesLimit == 0) {
+                gamesLimit = 200;
+            }
+//            NSLog(@"kitty");
         }
         dashIDX++;
     }

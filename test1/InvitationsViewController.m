@@ -55,7 +55,7 @@
     return ((interfaceOrientation != UIInterfaceOrientationPortraitUpsideDown)
             && (interfaceOrientation != UIInterfaceOrientationLandscapeLeft) && (interfaceOrientation != UIInterfaceOrientationLandscapeRight));
 }
--(NSUInteger)supportedInterfaceOrientations {
+-(UIInterfaceOrientationMask)supportedInterfaceOrientations {
     return UIInterfaceOrientationMaskPortrait;
     //    return UIInterfaceOrientationLandscapeLeft | UIInterfaceOrientationLandscapeRight | UIInterfaceOrientationPortrait;
 }
@@ -75,7 +75,7 @@
 
     games = [[NSArray alloc] initWithObjects:@"Pente",@"Keryo-Pente",@"Gomoku",@"D-Pente",@"G-Pente",@"Poof-Pente",@"Connect6",@"Boat-Pente", nil];
     colors = [[NSArray alloc] initWithObjects:@"White",@"Black", nil];
-    restrictions = [[NSArray alloc] initWithObjects:@"any rating",@"lower rating",@"higher rating",@"similar rating",@"same rating class", nil];
+    restrictions = [[NSArray alloc] initWithObjects:@"any rating",@"new opponents",@"lower rating",@"higher rating",@"similar rating",@"same rating class", nil];
     moveDurations = [[NSMutableArray alloc] init];
     for ( int i = 1; i < 31; ++i) {
         [moveDurations addObject:[NSString stringWithFormat:@"%i",i]];
@@ -160,6 +160,9 @@
     }
     if ([defaults objectForKey:@"lastInvitedTimeLimit"]) {
         [timeCell.detailTextLabel setText:[defaults objectForKey:@"lastInvitedTimeLimit"]];
+    }
+    if ([defaults objectForKey:@"lastInvitationRestriction"]) {
+        [restrictionCell.detailTextLabel setText:[defaults objectForKey:@"lastInvitationRestriction"]];
     }
     [ratedSwitch setOn:![defaults boolForKey:@"lastInvitationRated"] animated:YES];
     if (!ratedSwitch.on) {
@@ -435,6 +438,9 @@
     if ([restrictionCell.detailTextLabel.text isEqualToString:@"any rating"]) {
         restrictString = @"A";
     }
+    if ([restrictionCell.detailTextLabel.text isEqualToString:@"new opponents"]) {
+        restrictString = @"N";
+    }
     if ([restrictionCell.detailTextLabel.text isEqualToString:@"lower rating"]) {
         restrictString = @"L";
     }
@@ -495,6 +501,7 @@
             [opponentCell setInvitedHistory:invitedHistory];
         }
         [defaults setObject:gameCell.detailTextLabel.text forKey:@"lastInvitedGame"];
+        [defaults setObject:restrictionCell.detailTextLabel.text forKey:@"lastInvitationRestriction"];
         [defaults setObject:timeCell.detailTextLabel.text forKey:@"lastInvitedTimeLimit"];
         [defaults setBool:!ratedSwitch.on forKey:@"lastInvitationRated"];
         [defaults setObject:playAsCell.detailTextLabel.text forKey:@"lastInvitedColor"];
