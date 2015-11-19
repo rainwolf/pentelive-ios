@@ -1166,7 +1166,8 @@
         [boardController setActiveGame:NO];
         [boardController setGame:selectedGame];
         [boardController replayGame];
-        [[boardController boardTapRecognizer] setEnabled: NO];
+        [[boardController boardTapRecognizer] setEnabled:YES];
+//        [[boardController boardTapRecognizer] setEnabled: NO];
     }
     [self performSelector:@selector(scrollViewDidScroll:) withObject: self.tableView afterDelay:0.305];
 }

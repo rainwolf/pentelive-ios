@@ -260,6 +260,10 @@ struct Capture {
         }
         [self replayGame:lastMove];
         [board setNeedsDisplay];
+        if (!activeGame) {
+            [zoomedBoard setAbstractBoard: abstractBoard];
+            [zoomedBoard setNeedsDisplay];
+        }
     }
 }
 
@@ -309,6 +313,10 @@ struct Capture {
         }
         [self replayGame:lastMove];
         [board setNeedsDisplay];
+        if (!activeGame) {
+            [zoomedBoard setAbstractBoard: abstractBoard];
+            [zoomedBoard setNeedsDisplay];
+        }
     }
 }
 
@@ -349,7 +357,7 @@ struct Capture {
     switch ([recognizer state]) {
         case UIGestureRecognizerStateBegan:
 //            NSLog(@"hi start %i %i \n %@", lastMove, [movesList count], movesList);
-            if (lastMove != [movesList count]) {
+            if (lastMove != [movesList count] && activeGame ) {
                 whiteCaptures = 0;
                 blackCaptures = 0;
                 isLastMove = YES;
@@ -383,7 +391,7 @@ struct Capture {
             }
             [zoomedBoard setHidden: YES];
 //            if (![zoomedStone isHidden]) {
-            if (abstractBoard[i][j] == 0) {
+            if (abstractBoard[i][j] == 0 && activeGame) {
                 stone.center = CGPointMake(cellSize*j + cellSize/2, cellSize*i + cellSize/2);
                 [zoomedStone setHidden: YES];
                 [horizontalLine setHidden:YES];
@@ -481,11 +489,20 @@ struct Capture {
     } else {
 //        NSLog(@"hi oopsie kitty %i %i", i, j);
         if ([zoomedBoard isHidden] && ([recognizer state] != UIGestureRecognizerStateEnded) && (abstractBoard[i][j] == 0)) {
-            [zoomedBoard setHidden: NO];
-            [zoomedStone setHidden: NO];
-            [stone setHidden: YES];
-            [horizontalLine setHidden:NO];
-            [verticalLine setHidden:NO];
+//            [zoomedBoard setHidden: NO];
+//            [zoomedStone setHidden: NO];
+//            [stone setHidden: YES];
+//            [horizontalLine setHidden:NO];
+//            [verticalLine setHidden:NO];
+            if (activeGame) {
+                [zoomedBoard setHidden: NO];
+                [zoomedStone setHidden: NO];
+                [stone setHidden: YES];
+                [horizontalLine setHidden:NO];
+                [verticalLine setHidden:NO];
+            } else {
+                [zoomedBoard setHidden: NO];
+            }
         }
         // re-center the zoomed board.
         zoomedBoard.center = CGPointMake(board.center.x - (currentPoint.x-board.center.x),board.center.y - (currentPoint.y-board.center.y));
@@ -496,7 +513,7 @@ struct Capture {
             zoomedStone.center = CGPointMake(cellSize*j + cellSize/2, cellSize*i + cellSize/2);
             verticalLine.center = CGPointMake(cellSize*j + cellSize/2, zoomedBoard.bounds.size.width/2);
             horizontalLine.center = CGPointMake(zoomedBoard.bounds.size.height/2, cellSize*i + cellSize/2);
-            if (abstractBoard[i][j] == 0) {
+            if (abstractBoard[i][j] == 0 && activeGame) {
                 [zoomedStone setHidden:NO];
                 [horizontalLine setHidden:NO];
                 [verticalLine setHidden:NO];
