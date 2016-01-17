@@ -129,6 +129,7 @@
 
     NSString *message = [[userInfo objectForKey:@"aps"] objectForKey:@"alert"];
     NSString *title = @"";
+    NSString *buttonTitle = @"close";
     if ([message rangeOfString:@"your move"].location != NSNotFound) {
         title = @"It's your turn";
     }
@@ -154,7 +155,7 @@
                                                    [(PenteNavigationViewController *)self.window.rootViewController popToRootViewControllerAnimated:YES];
                                                }
                                            }
-                                        buttonTitle:@"dismiss"
+                                        buttonTitle:buttonTitle
                                      buttonCallback:^{
                                          [TSMessage dismissActiveNotification];
                                      }
@@ -168,7 +169,7 @@
                                                type:TSMessageNotificationTypeMessage
                                            duration:TSMessageNotificationDurationAutomatic
                                            callback:nil
-                                        buttonTitle:@"dismiss"
+                                        buttonTitle:buttonTitle
                                      buttonCallback:^{
                                          [TSMessage dismissActiveNotification];
                                      }

@@ -38,14 +38,14 @@
     CGContextRef context = UIGraphicsGetCurrentContext();
     CGContextSetLineWidth(context, 1.2);
     CGContextSetStrokeColorWithColor(context, [UIColor blackColor].CGColor);
-    float margin = self.bounds.size.height / 38;
+    float margin = self.bounds.size.width / 38;
         // draw the grid
     for (int i = 0; i < 19; ++i) {
         CGContextMoveToPoint(context, margin, margin + i*margin*2);
         CGContextAddLineToPoint(context, self.bounds.size.width - margin,  margin + i*margin*2);
         CGContextStrokePath(context);
         CGContextMoveToPoint(context, margin + i*margin*2, margin);
-        CGContextAddLineToPoint(context, margin + i*margin*2, self.bounds.size.height - margin);
+        CGContextAddLineToPoint(context, margin + i*margin*2, self.bounds.size.width - margin);
         CGContextStrokePath(context);
     }
         // draw the 5 little special circles
@@ -56,15 +56,15 @@
     CGContextAddEllipseInRect(context, circle);
     CGContextStrokePath(context);
     circle.origin.x = self.bounds.size.width - margin - 12*margin - margin/2;
-    circle.origin.y = self.bounds.size.height - margin - 12*margin - margin/2;
+    circle.origin.y = self.bounds.size.width - margin - 12*margin - margin/2;
     CGContextAddEllipseInRect(context, circle);
     CGContextStrokePath(context);
     circle.origin.x = margin + 12*margin - margin/2;
-    circle.origin.y = self.bounds.size.height - margin - 12*margin - margin/2;
+    circle.origin.y = self.bounds.size.width - margin - 12*margin - margin/2;
     CGContextAddEllipseInRect(context, circle);
     CGContextStrokePath(context);
     circle.origin.x = self.bounds.size.width/2 - margin/2;
-    circle.origin.y = self.bounds.size.height/2 - margin/2;
+    circle.origin.y = self.bounds.size.width/2 - margin/2;
     CGContextAddEllipseInRect(context, circle);
     CGContextStrokePath(context);
         // draw the game

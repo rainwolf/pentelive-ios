@@ -135,7 +135,7 @@ InvitationsViewController *invitationVC;
         NSData *responseData;
         
         // load the message
-        url = [NSString stringWithFormat:@"http://www.pente.org/gameServer/mymessages?command=view&mid=%@", messageID];
+        url = [NSString stringWithFormat:@"https://www.pente.org/gameServer/mymessages?command=view&mid=%@", messageID];
         [request setURL:[NSURL URLWithString:url]];
         [request setHTTPMethod:@"GET"];
         [request setTimeoutInterval:7.0];
@@ -355,7 +355,7 @@ InvitationsViewController *invitationVC;
     NSString *postLength = [NSString stringWithFormat:@"%lu", (unsigned long)[postData length]];
     
     NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
-    [request setURL:[NSURL URLWithString:@"http://www.pente.org/gameServer/mymessages"]];
+    [request setURL:[NSURL URLWithString:@"https://www.pente.org/gameServer/mymessages"]];
     [request setHTTPMethod:@"POST"];
     [request setValue:postLength forHTTPHeaderField:@"Content-Length"];
     [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
@@ -377,7 +377,7 @@ InvitationsViewController *invitationVC;
         if ([toField.text length] > 0) {
             NSString *opponent = [toField.text lowercaseString];
             NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-            toHistory = [defaults objectForKey:@"invitedHistory"];
+            toHistory = [[defaults objectForKey:@"invitedHistory"] mutableCopy];
             if (toHistory) {
                 int i = 0;
                 for ( i = 0; i < [toHistory count]; ++i) {
@@ -422,7 +422,7 @@ InvitationsViewController *invitationVC;
     
     NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
     
-    [request setURL:[NSURL URLWithString:@"http://pente.org/gameServer/mymessages"]];
+    [request setURL:[NSURL URLWithString:@"https://pente.org/gameServer/mymessages"]];
     [request setHTTPMethod:@"POST"];
     [request setValue:postLength forHTTPHeaderField:@"Content-Length"];
     [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];

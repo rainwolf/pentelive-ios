@@ -86,7 +86,7 @@
             //        NSLog(@"kittyyyyyy %@ %@", username, password);
             if (!((username == nil) || (password == nil) || [username isEqualToString:@""] || [password isEqualToString:@""])) {
                 NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
-                NSString *url = @"http://www.pente.org/gameServer/logout";
+                NSString *url = @"https://www.pente.org/gameServer/logout";
                 [request setURL:[NSURL URLWithString:url]];
                 [request setHTTPMethod:@"GET"];
                 [request setTimeoutInterval:7.0];
@@ -96,7 +96,7 @@
     
                 // connect to the game server
                 request = [[NSMutableURLRequest alloc] init];
-                url = [NSString stringWithFormat:@"http://www.pente.org/gameServer/index.jsp?name2=%@&password2=%@",username,password];
+                url = [NSString stringWithFormat:@"https://www.pente.org/gameServer/index.jsp?name2=%@&password2=%@",username,password];
                 [request setURL:[NSURL URLWithString:url]];
                 [request setHTTPMethod:@"POST"];
                 [request setTimeoutInterval:7.0];
@@ -154,8 +154,8 @@
             return;
         }
 
-        NSString *url = @"http://www.pente.org/join";
-//        NSString *url = @"http://development.pente.org/join";
+        NSString *url = @"https://www.pente.org/join";
+//        NSString *url = @"https://development.pente.org/join";
         NSString *postString = [NSString stringWithFormat:@"name=%@&registerPassword=%@&registerPasswordConfirm=%@&registerEmail=%@&agreePolicy=Y",username, password, passwordVerification, [self URLEncodedString_ch:emailAddress]];
         
         NSData *postData = [postString dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];

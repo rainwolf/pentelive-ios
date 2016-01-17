@@ -135,7 +135,7 @@
     if (self.openInvitationOnly) {
         NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
         if (![defaults boolForKey:@"stopGamesLimitHassle"]) {
-            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Free account limit reached." message:@"You can only post open invitations until the number of (non-)active games drops below the limit.\n To remove this limit, log in at pente.org and upgrade your account." delegate:self cancelButtonTitle:@"Got it." otherButtonTitles:@"Do not remind me again.", nil];
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"New account limit reached." message:@"You cannot accept more games. You can, however, play more games by posting open invitations. \n This limit will gradually increase as you finish more games." delegate:self cancelButtonTitle:@"Got it." otherButtonTitles:@"Do not remind me again.", nil];
             [alert setTag: 0];
             [alert show];
         }
@@ -454,13 +454,17 @@
         restrictString = @"C";
     }
     
+    if (opponentCell.textField.text.length == 0) {
+            [[NSUserDefaults standardUserDefaults] setInteger: 3 forKey:@"openInvitationsLimit"];
+    }
+    
 //    NSLog(@"kitty hi? %@", opponentCell.textField.text);
     NSString *post = [NSString stringWithFormat:@"invitationRestriction=%@&invitee=%@&game=%@&daysPerMove=%@&rated=%@&playAs=%@&privateGame=%@&inviterMessage=%@&mobile=", restrictString, opponentCell.textField.text ,gameString,timeCell.detailTextLabel.text,(ratedSwitch.on) ? @"Y" : @"N",([playAsDetailLabel.text isEqualToString:@"White"]) ? @"1" : @"2",(privateSwitch.on) ? @"Y" : @"N",[self URLEncodedString_ch: invitationMessage]];
     NSData *postData = [post dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
     NSString *postLength = [NSString stringWithFormat:@"%lu", (unsigned long)[postData length]];
     
     NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
-    [request setURL:[NSURL URLWithString:@"http://www.pente.org/gameServer/tb/newGame"]];
+    [request setURL:[NSURL URLWithString:@"https://www.pente.org/gameServer/tb/newGame"]];
     [request setHTTPMethod:@"POST"];
     [request setValue:postLength forHTTPHeaderField:@"Content-Length"];
     [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];

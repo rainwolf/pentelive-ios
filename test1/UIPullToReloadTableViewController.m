@@ -39,7 +39,7 @@
     [super viewDidLoad];
 	
 	pullToReloadHeaderView = [[UIPullToReloadHeaderView alloc] initWithFrame: CGRectMake(0.0f, 0.0f - self.view.bounds.size.height,
-																						 320.0f, self.view.bounds.size.height)];
+																						 self.view.bounds.size.width, self.view.bounds.size.height)];
 	[self.tableView addSubview:pullToReloadHeaderView];
 }
 

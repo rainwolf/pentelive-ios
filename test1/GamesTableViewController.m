@@ -101,30 +101,36 @@
 
     
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-    if ([defaults boolForKey:@"messagesCollapsed"])
+    if ([defaults boolForKey:@"messagesCollapsed"]) {
         messagesCollapsed = [defaults boolForKey:@"messagesCollapsed"];
-    else
+    } else {
         messagesCollapsed = NO;
-    if ([defaults boolForKey:@"invitationsReceivedCollapsed"])
+    }
+    if ([defaults boolForKey:@"invitationsReceivedCollapsed"]) {
         invitationsReceivedCollapsed = [defaults boolForKey:@"invitationsReceivedCollapsed"];
-    else
+    } else {
         invitationsReceivedCollapsed = NO;
-    if ([defaults boolForKey:@"activeGamesCollapsed"])
+    }
+    if ([defaults boolForKey:@"activeGamesCollapsed"]) {
         activeGamesCollapsed = [defaults boolForKey:@"activeGamesCollapsed"];
-    else
+    } else {
         activeGamesCollapsed = NO;
-    if ([defaults boolForKey:@"publicInvitationsCollapsed"])
+    }
+    if ([defaults boolForKey:@"publicInvitationsCollapsed"]) {
         publicInvitationsCollapsed = [defaults boolForKey:@"publicInvitationsCollapsed"];
-    else
+    } else {
         publicInvitationsCollapsed = NO;
-    if ([defaults boolForKey:@"sentInvitationsCollapsed"])
+    }
+    if ([defaults boolForKey:@"sentInvitationsCollapsed"]) {
         sentInvitationsCollapsed = [defaults boolForKey:@"sentInvitationsCollapsed"];
-    else
+    } else {
         sentInvitationsCollapsed = NO;
-    if ([defaults boolForKey:@"nonActiveGamesCollapsed"])
+    }
+    if ([defaults boolForKey:@"nonActiveGamesCollapsed"]) {
         nonActiveGamesCollapsed = [defaults boolForKey:@"nonActiveGamesCollapsed"];
-    else
+    } else {
         nonActiveGamesCollapsed = NO;
+    }
     self.tableView.layer.borderColor = [UIColor redColor].CGColor;
     
     alreadyAskedAboutInvitations = NO;
@@ -140,6 +146,11 @@
     
     showAds = YES;
     gamesLimit = 200;
+    
+    long openInvitationsLimit = [[NSUserDefaults standardUserDefaults] integerForKey:@"openInvitationsLimit"];
+    if (openInvitationsLimit == 0) {
+        [[NSUserDefaults standardUserDefaults] setInteger: 3 forKey:@"openInvitationsLimit"];
+    }
 }
 
 
@@ -261,7 +272,7 @@
     password = [defaults objectForKey:passwordKey];
     if (!((username == nil) || (password == nil) || [username isEqualToString:@""] || [password isEqualToString:@""])) {
         NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
-        NSString *url = @"http://www.pente.org/gameServer/logout";
+        NSString *url = @"https://www.pente.org/gameServer/logout";
         [request setURL:[NSURL URLWithString:url]];
         [request setHTTPMethod:@"GET"];
         [request setTimeoutInterval:7.0];
@@ -271,8 +282,8 @@
         
         // connect to the game server
         request = [[NSMutableURLRequest alloc] init];
-        url = [NSString stringWithFormat:@"http://www.pente.org/gameServer/login.jsp?name2=%@&password2=%@",username,password];
-//        url = [NSString stringWithFormat:@"http://www.pente.org/gameServer/mobile/index.jsp?name=%@&password=%@",username,password];
+        url = [NSString stringWithFormat:@"https://www.pente.org/gameServer/login.jsp?mobile=&name2=%@&password2=%@",username,password];
+//        url = [NSString stringWithFormat:@"https://development.pente.org/gameServer/login.jsp?mobile=&name2=%@&password2=%@",username,password];
         [request setURL:[NSURL URLWithString:url]];
         [request setHTTPMethod:@"POST"];
         [request setTimeoutInterval:7.0];
@@ -318,7 +329,7 @@
         }
         
         NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
-        NSString *url = [NSString stringWithFormat:@"http://pente.org/gameServer/notifications/registerDevice.jsp?name=%@&password=%@&token=%@",username,password,storedTokenString];
+        NSString *url = [NSString stringWithFormat:@"https://pente.org/gameServer/notifications/registerDevice.jsp?name=%@&password=%@&token=%@",username,password,storedTokenString];
         [request setURL:[NSURL URLWithString:url]];
         [request setHTTPMethod:@"GET"];
         [request setTimeoutInterval:7.0];
@@ -1216,7 +1227,7 @@
         }
     }
     if (count > gamesLimit) {
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Free account limit reached." message:@"Try again after you finish some games.\n To remove this limit, login at pente.org and upgrade your account\n or \n post an open invitation." delegate:self cancelButtonTitle:@"Got it." otherButtonTitles: nil];
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"New account limit reached." message:@"You cannot accept more games. You can, however, play more games by posting open invitations. \n This limit will gradually increase as you finish more games." delegate:self cancelButtonTitle:@"Got it." otherButtonTitles: nil];
         [alert setTag: 2];
         [alert show];
         return;
@@ -1226,7 +1237,7 @@
 
     NSIndexPath *tmpPath = selectedInvitationIndexPath;
     
-    NSString *url = @"http://www.pente.org/gameServer/tb/replyInvitation";
+    NSString *url = @"https://www.pente.org/gameServer/tb/replyInvitation";
     NSString *postString = [NSString stringWithFormat:@"sid=%@&inviteeMessage=&command=Accept&mobile=",[[player.invitations objectAtIndex:tmpPath.row] gameID]];
     NSDictionary *urlAndPostString = [NSDictionary dictionaryWithObjects:[NSArray arrayWithObjects:url,postString,nil] forKeys: [NSArray arrayWithObjects:@"url",@"postString",nil]];
     [NSThread detachNewThreadSelector:@selector(postToPenteOrgUrl:) toTarget:self withObject:urlAndPostString];
@@ -1271,7 +1282,7 @@
     NSString *postLength = [NSString stringWithFormat:@"%lu", (unsigned long)[postData length]];
     
     NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
-    [request setURL:[NSURL URLWithString:@"http://www.pente.org/gameServer/tb/replyInvitation"]];
+    [request setURL:[NSURL URLWithString:@"https://www.pente.org/gameServer/tb/replyInvitation"]];
     [request setHTTPMethod:@"POST"];
     [request setValue:postLength forHTTPHeaderField:@"Content-Length"];
     [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
@@ -1373,6 +1384,18 @@
 
 
 -(void) acceptPublicInvitation: (UIButton *) sender {
+    long openInvitationsLimit = [[NSUserDefaults standardUserDefaults] integerForKey:@"openInvitationsLimit"];
+    if (openInvitationsLimit <= 1) {
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Open invitations limit reached" message:@"After taking 2 open invitations, you have to post one before you can accept 2 more.\n To post an open invitation, press \"Play?\" and leave the opponent field blank." delegate:self cancelButtonTitle:@"Got it." otherButtonTitles: nil];
+        [alert setTag: 2];
+        [alert show];
+        return;
+    }
+    if (openInvitationsLimit > 1) {
+        --openInvitationsLimit;
+        [[NSUserDefaults standardUserDefaults] setInteger: openInvitationsLimit forKey:@"openInvitationsLimit"];
+    }
+    
     long count = [[player activeGames] count] + [[player nonActiveGames] count];
     for (Game *game in [player sentInvitations]) {
         if ([[game ratedNot] isEqualToString:@"rated"]) {
@@ -1382,7 +1405,7 @@
         }
     }
     if (count > gamesLimit) {
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Free account limit reached." message:@"Try again after you finish some games.\n To remove this limit, login at pente.org and upgrade your account\n or \n post an open invitation." delegate:self cancelButtonTitle:@"Got it." otherButtonTitles: nil];
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"New account limit reached." message:@"You cannot accept more games. You can, however, play more games by posting open invitations. \n This limit will gradually increase as you finish more games." delegate:self cancelButtonTitle:@"Got it." otherButtonTitles: nil];
         [alert setTag: 2];
         [alert show];
         return;
@@ -1391,7 +1414,7 @@
     self.tableView.layer.borderWidth = 1.5;
     [self performSelector:@selector(scrollViewDidScroll:) withObject: self.tableView];
 
-    NSString *url = @"http://www.pente.org/gameServer/tb/replyInvitation";
+    NSString *url = @"https://www.pente.org/gameServer/tb/replyInvitation";
     NSString *postString = [NSString stringWithFormat:@"sid=%@&inviteeMessage=&command=Accept&mobile=",[[player.publicInvitations objectAtIndex:selectedPublicInvitationIndexPath.row] gameID]];
     NSDictionary *urlAndPostString = [NSDictionary dictionaryWithObjects:[NSArray arrayWithObjects:url,postString,nil] forKeys: [NSArray arrayWithObjects:@"url",@"postString",nil]];
     [NSThread detachNewThreadSelector:@selector(postToPenteOrgUrl:) toTarget:self withObject:urlAndPostString];
@@ -1440,6 +1463,14 @@
 }
 
 -(void) cancelPublicInvitation: (UIButton *) sender {
+    long openInvitationsLimit = [[NSUserDefaults standardUserDefaults] integerForKey:@"openInvitationsLimit"];
+    if (openInvitationsLimit > 2) {
+        openInvitationsLimit -= 2;
+    } else if (openInvitationsLimit == 2) {
+        openInvitationsLimit = 1;
+    }
+    [[NSUserDefaults standardUserDefaults] setInteger: openInvitationsLimit forKey:@"openInvitationsLimit"];
+
     [CATransaction begin];
     [self.tableView beginUpdates];
     [CATransaction setCompletionBlock: ^{
@@ -1559,7 +1590,7 @@
         
         NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
         
-        [request setURL:[NSURL URLWithString:@"http://pente.org/gameServer/mymessages"]];
+        [request setURL:[NSURL URLWithString:@"https://pente.org/gameServer/mymessages"]];
         [request setHTTPMethod:@"POST"];
         [request setValue:postLength forHTTPHeaderField:@"Content-Length"];
         [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
@@ -1599,7 +1630,7 @@
         
         NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
         
-        [request setURL:[NSURL URLWithString:@"http://www.pente.org/gameServer/tb/resign"]];
+        [request setURL:[NSURL URLWithString:@"https://www.pente.org/gameServer/tb/resign"]];
         [request setHTTPMethod:@"POST"];
         [request setValue:postLength forHTTPHeaderField:@"Content-Length"];
         [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
@@ -1634,7 +1665,7 @@
         
         NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
         
-        [request setURL:[NSURL URLWithString:@"http://www.pente.org/gameServer/tb/cancelInvitation"]];
+        [request setURL:[NSURL URLWithString:@"https://www.pente.org/gameServer/tb/cancelInvitation"]];
         [request setHTTPMethod:@"POST"];
         [request setValue:postLength forHTTPHeaderField:@"Content-Length"];
         [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
@@ -1663,7 +1694,7 @@
         self.tableView.layer.borderWidth = 1.5;
         [self performSelector:@selector(scrollViewDidScroll:) withObject: self.tableView];
 
-        NSString *tmpStr = [NSString stringWithFormat:@"http://www.pente.org/gameServer/tb/game?gid=%@&command=load",[[player.nonActiveGames objectAtIndex:indexPath.row] gameID]];
+        NSString *tmpStr = [NSString stringWithFormat:@"https://www.pente.org/gameServer/tb/game?gid=%@&command=load",[[player.nonActiveGames objectAtIndex:indexPath.row] gameID]];
         NSURL *url = [NSURL URLWithString: tmpStr];
         NSError *error;
         NSString *htmlString = [NSString stringWithContentsOfURL:url encoding:NSASCIIStringEncoding error:&error];
@@ -1681,8 +1712,8 @@
         
         NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
         
-//        [request setValue:[NSString stringWithFormat:@"http://www.pente.org/gameServer/tb/cancel?command=confirm&sid=%@&gid=%@&message=", [[player.nonActiveGames objectAtIndex:indexPath.row] setID], [[player.nonActiveGames objectAtIndex:indexPath.row] gameID]]  forHTTPHeaderField:@"referer"];
-        [request setURL:[NSURL URLWithString:@"http://www.pente.org/gameServer/tb/cancel"]];
+//        [request setValue:[NSString stringWithFormat:@"https://www.pente.org/gameServer/tb/cancel?command=confirm&sid=%@&gid=%@&message=", [[player.nonActiveGames objectAtIndex:indexPath.row] setID], [[player.nonActiveGames objectAtIndex:indexPath.row] gameID]]  forHTTPHeaderField:@"referer"];
+        [request setURL:[NSURL URLWithString:@"https://www.pente.org/gameServer/tb/cancel"]];
         [request setHTTPMethod:@"POST"];
         [request setValue:postLength forHTTPHeaderField:@"Content-Length"];
         [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
@@ -1754,8 +1785,8 @@
     NSData *responseData;
     
     // connect to the game server
-    url =  [NSString stringWithFormat:@"http://www.pente.org/gameServer/mobile/index.jsp?name=%@&password=%@",username,password];
-//    url =  [NSString stringWithFormat:@"http://development.pente.org/gameServer/mobile/index.jsp?name=%@&password=%@",username,password];
+    url =  [NSString stringWithFormat:@"https://www.pente.org/gameServer/mobile/index.jsp?name=%@&password=%@",username,password];
+//    url =  [NSString stringWithFormat:@"https://development.pente.org/gameServer/mobile/index.jsp?name=%@&password=%@",username,password];
     [request setURL:[NSURL URLWithString:url]];
     [request setHTTPMethod:@"GET"];
     [request setTimeoutInterval:7.0];
@@ -2307,6 +2338,17 @@
     NSString *tmpStrConfused = [tmpStrCry stringByReplacingOccurrencesOfString:@"<img border=\"0\" src=\"http://[host]/gameServer/forums/images/emoticons/confused.gif\" alt=\"\">" withString: @"?:|"];
     NSString *tmpStrShocked = [tmpStrConfused stringByReplacingOccurrencesOfString:@"<img border=\"0\" src=\"http://[host]/gameServer/forums/images/emoticons/shocked.gif\" alt=\"\">" withString: @":O"];
     return [tmpStrShocked stringByReplacingOccurrencesOfString:@"<img border=\"0\" src=\"http://[host]/gameServer/forums/images/emoticons/plain.gif\" alt=\"\">" withString: @":|"];
+}
+
+- (void)connection:(NSURLConnection *)connection didReceiveAuthenticationChallenge:(NSURLAuthenticationChallenge *)challenge {
+    NSArray *trustedHosts = [NSArray arrayWithObjects:@"mytrustedhost",nil];
+    
+    if ([challenge.protectionSpace.authenticationMethod isEqualToString:NSURLAuthenticationMethodServerTrust]){
+        if ([trustedHosts containsObject:challenge.protectionSpace.host]) {
+            [challenge.sender useCredential:[NSURLCredential credentialForTrust:challenge.protectionSpace.serverTrust] forAuthenticationChallenge:challenge];
+        }
+    }
+    [challenge.sender continueWithoutCredentialForAuthenticationChallenge:challenge];
 }
 
 

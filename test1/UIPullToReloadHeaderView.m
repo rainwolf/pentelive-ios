@@ -60,7 +60,7 @@
 		self.autoresizingMask = UIViewAutoresizingFlexibleWidth;
 		
 		lastUpdatedLabel = [[UILabel alloc] initWithFrame: CGRectMake(0.0f, frame.size.height - 30.0f,
-																	  320.0f, 20.0f)];
+																	  frame.size.width, 20.0f)];
 		lastUpdatedLabel.font = [UIFont systemFontOfSize:12.0f];
 		lastUpdatedLabel.textColor = TEXT_COLOR;
 		lastUpdatedLabel.shadowColor = [UIColor colorWithWhite:0.9f alpha:1.0f];
@@ -72,7 +72,7 @@
 		[self addSubview:lastUpdatedLabel];
 		
 		statusLabel = [[UILabel alloc] initWithFrame:CGRectMake(0.0f, frame.size.height - 48.0f, 
-																320.0f, 20.0f)];
+																frame.size.width, 20.0f)];
 		statusLabel.font = [UIFont boldSystemFontOfSize:13.0f];
 		statusLabel.textColor = TEXT_COLOR;
 		statusLabel.shadowColor = [UIColor colorWithWhite:0.9f alpha:1.0f];

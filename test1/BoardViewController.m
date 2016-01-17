@@ -89,11 +89,54 @@ struct Capture {
     [messageButton addTarget:self action:@selector(messageTap:) forControlEvents:UIControlEventTouchUpInside];
     
     
-    if (showAds) {
-        playerStats = [[UIWebView alloc] initWithFrame:CGRectMake(2, submitButton.frame.origin.y + submitButton.frame.size.height + 3, self.view.bounds.size.width - 4, 84)];
-    } else {
-        playerStats = [[UIWebView alloc] initWithFrame:CGRectMake(2, submitButton.frame.origin.y + submitButton.frame.size.height + 3, self.view.bounds.size.width - 4, 135)];
-    }
+    [board setLastConnect6Move: -1];
+    [zoomedBoard setLastConnect6Move: -1];
+
+//    [self.navigationController.navigationBar setTranslucent:NO];
+//    [self.navigationController setEdgesForExtendedLayout:UIRectEdgeNone];
+    [board setFrame:CGRectMake(0, 0, self.view.bounds.size.width, self.view.bounds.size.width)];
+    [zoomedBoard setFrame:CGRectMake(0, 0, 2*self.view.bounds.size.width, 2*self.view.bounds.size.width)];
+    CGRect rect;
+    rect = submitButton.frame;
+    rect.origin.y = board.frame.size.height + 2 + submitButton.frame.size.height;
+    rect.origin.x = (board.frame.size.width - submitButton.frame.size.width)/2;
+    submitButton.frame = rect;
+
+    rect = whiteCapturesCountLabel.frame;
+    rect.origin.y = board.frame.size.height + 2;
+    whiteCapturesCountLabel.frame = rect;
+    rect = whiteStoneCaptures.frame;
+    rect.origin.y = board.frame.size.height + 2 + 2;
+    whiteStoneCaptures.frame = rect;
+    rect = blackCapturesCountLabel.frame;
+    rect.origin.y = whiteCapturesCountLabel.frame.size.height + whiteCapturesCountLabel.frame.origin.y + 1;
+    blackCapturesCountLabel.frame = rect;
+    rect = blackStoneCaptures.frame;
+    rect.origin.y = whiteCapturesCountLabel.frame.size.height + whiteCapturesCountLabel.frame.origin.y + 1 + 2;
+    blackStoneCaptures.frame = rect;
+
+    rect = player1Button.frame;
+    rect.origin.y = board.frame.size.height + 2 ;
+    //    rect.origin.x = (board.frame.size.width - submitButton.frame.size.width)/2;
+    player1Button.frame = rect;
+    [player1Button setTitle:@"white" forState:UIControlStateNormal];
+    rect = player2Button.frame;
+    rect.origin.y = board.frame.size.height + 2;
+    //    rect.origin.x = (board.frame.size.width - submitButton.frame.size.width)/2;
+    player2Button.frame = rect;
+    [player2Button setTitle:@"black" forState:UIControlStateNormal];
+    rect = dPenteChoiceLabel.frame;
+    rect.origin.y = (player1Button.frame.origin.y +3);
+    dPenteChoiceLabel.frame = rect;
+
+//    dPenteChoiceLabel.hidden = NO;
+//    player1Button.hidden = NO;
+//    player1Button.alpha = 0.5f;
+//    player2Button.hidden = NO;
+//    player2Button.alpha = 0.5f;
+
+    
+    playerStats = [[UIWebView alloc] initWithFrame:CGRectMake(2, submitButton.frame.origin.y + 3, self.view.bounds.size.width - 4,  submitButton.frame.origin.y - 3)];
     [playerStats setDelegate:self];
     [playerStats setAlpha:0.90];
     [playerStats setBackgroundColor:[UIColor colorWithRed:0.98f green:0.98f blue:0.98f alpha:0.95]];
@@ -105,9 +148,17 @@ struct Capture {
     [playerStats setDataDetectorTypes:UIDataDetectorTypeLink];
     [playerStats setUserInteractionEnabled:YES];
     [playerStats.scrollView setScrollEnabled:NO];
-//    playerStats.contentInset = UIEdgeInsetsMake(-5.0,0.0,0,0.0);
-    [board setLastConnect6Move: -1];
-    [zoomedBoard setLastConnect6Move: -1];
+    //    playerStats.contentInset = UIEdgeInsetsMake(-5.0,0.0,0,0.0);
+    CGFloat screenHeight = UIScreen.mainScreen.bounds.size.height;
+    CGFloat newOriginY = screenHeight - self.navigationController.navigationBar.frame.size.height - [UIApplication sharedApplication].statusBarFrame.size.height;
+    if (showAds) {
+        //        playerStats = [[UIWebView alloc] initWithFrame:CGRectMake(2, submitButton.frame.origin.y + submitButton.frame.size.height + 3, self.view.bounds.size.width - 4, 84)];
+        playerStats.frame = CGRectMake(2, submitButton.frame.origin.y + 3, self.view.bounds.size.width - 4,  newOriginY - submitButton.frame.origin.y - GAD_SIZE_320x50.height -5);
+    } else {
+        playerStats.frame = CGRectMake(2, submitButton.frame.origin.y +  3, self.view.bounds.size.width - 4, newOriginY - submitButton.frame.origin.y - 5);
+//        playerStats = [[UIWebView alloc] initWithFrame:CGRectMake(2, submitButton.frame.origin.y + 3, self.view.bounds.size.width - 4, 135)];
+    }
+
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -598,9 +649,9 @@ struct Capture {
     NSData *responseData;
     //    NSLog(@"kittyLog %@", replyMessage);
     if ([replyMessage isEqualToString:@""]) {
-        url = [NSString stringWithFormat:@"http://www.pente.org/gameServer/tb/game?command=move&mobile=&gid=%@&moves=%@&message=",[game gameID],moveString];
+        url = [NSString stringWithFormat:@"https://www.pente.org/gameServer/tb/game?command=move&mobile=&gid=%@&moves=%@&message=",[game gameID],moveString];
     } else {
-        url = [NSString stringWithFormat:@"http://www.pente.org/gameServer/tb/game?command=move&mobile=&gid=%@&moves=%@&message=%@",[game gameID],moveString,[self URLEncodedString_ch:replyMessage]];
+        url = [NSString stringWithFormat:@"https://www.pente.org/gameServer/tb/game?command=move&mobile=&gid=%@&moves=%@&message=%@",[game gameID],moveString,[self URLEncodedString_ch:replyMessage]];
     }
     //    NSLog(@"kitty %@", url);
     [request setURL:[NSURL URLWithString:url]];
@@ -652,9 +703,9 @@ struct Capture {
     messagesHistory = [[NSMutableDictionary alloc] init];
     isLastMove = YES;
 
-    //    NSString *tmpStr = [NSString stringWithFormat:@"http://www.pente.org/gameServer/tbpgn.jsp?g=%@",[game gameID]];
-//    NSString *tmpStr = [NSString stringWithFormat:@"http://www.pente.org/gameServer/tb/game?gid=%@&command=load",[game gameID]];
-    NSString *tmpStr = [NSString stringWithFormat:@"http://www.pente.org/gameServer/mobile/game.jsp?gid=%@",[game gameID]];
+    //    NSString *tmpStr = [NSString stringWithFormat:@"https://www.pente.org/gameServer/tbpgn.jsp?g=%@",[game gameID]];
+//    NSString *tmpStr = [NSString stringWithFormat:@"https://www.pente.org/gameServer/tb/game?gid=%@&command=load",[game gameID]];
+    NSString *tmpStr = [NSString stringWithFormat:@"https://www.pente.org/gameServer/mobile/game.jsp?gid=%@",[game gameID]];
     NSURL *url = [NSURL URLWithString: tmpStr];
     NSError *error;
     NSString *htmlString = [NSString stringWithContentsOfURL:url encoding:NSASCIIStringEncoding error:&error];
@@ -809,7 +860,7 @@ struct Capture {
     replyMessageView.layer.borderColor = [[UIColor grayColor] CGColor];
 
 
-    playerStatsBaseString = [NSString stringWithFormat:@"<font size=\"3.5\">Opponent: <a href=\"http://pente.org/gameServer/profile?viewName=%@\">%@</a>, rating: %@ <br> Remaining time: %@ <br> %@ and %@ game.</font><hr>",[game opponentName],[game opponentName],[game opponentRating],[game remainingTime],[game ratedNot],[game privateGame]];
+    playerStatsBaseString = [NSString stringWithFormat:@"<font size=\"3.5\">Opponent: <a href=\"https://pente.org/gameServer/profile?viewName=%@\">%@</a>, rating: %@ <br> Remaining time: %@ <br> %@ and %@ game.</font><hr>",[game opponentName],[game opponentName],[game opponentRating],[game remainingTime],[game ratedNot],[game privateGame]];
 
     
 //    NSLog(@"kitty message %@", message);
@@ -924,7 +975,7 @@ struct Capture {
             NSData *postData = [post dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
             NSString *postLength = [NSString stringWithFormat:@"%lu", (unsigned long)[postData length]];
             
-            [request setURL:[NSURL URLWithString:@"http://www.pente.org/gameServer/tb/cancel"]];
+            [request setURL:[NSURL URLWithString:@"https://www.pente.org/gameServer/tb/cancel"]];
             [request setHTTPMethod:@"POST"];
             [request setValue:postLength forHTTPHeaderField:@"Content-Length"];
             [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
@@ -950,7 +1001,7 @@ struct Capture {
             
             NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
             
-            [request setURL:[NSURL URLWithString:@"http://www.pente.org/gameServer/tb/resign"]];
+            [request setURL:[NSURL URLWithString:@"https://www.pente.org/gameServer/tb/resign"]];
             [request setHTTPMethod:@"POST"];
             [request setValue:postLength forHTTPHeaderField:@"Content-Length"];
             [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
@@ -968,7 +1019,7 @@ struct Capture {
             [navControllor popToRootViewControllerAnimated:YES];
 
         } else if (((buttonIndex == 2) && activeGame) || (!activeGame && (buttonIndex == 1))) {
-            NSString *tmpStr = [NSString stringWithFormat:@"http://www.pente.org/gameServer/tb/game?gid=%@&command=load",[game gameID]];
+            NSString *tmpStr = [NSString stringWithFormat:@"https://www.pente.org/gameServer/tb/game?gid=%@&command=load",[game gameID]];
             NSURL *url = [NSURL URLWithString: tmpStr];
             NSError *error;
             NSString *htmlString = [NSString stringWithContentsOfURL:url encoding:NSASCIIStringEncoding error:&error];
@@ -986,8 +1037,8 @@ struct Capture {
             
             NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
             
-            //        [request setValue:[NSString stringWithFormat:@"http://www.pente.org/gameServer/tb/cancel?command=confirm&sid=%@&gid=%@&message=", [[player.nonActiveGames objectAtIndex:indexPath.row] setID], [[player.nonActiveGames objectAtIndex:indexPath.row] gameID]]  forHTTPHeaderField:@"referer"];
-            [request setURL:[NSURL URLWithString:@"http://www.pente.org/gameServer/tb/cancel"]];
+            //        [request setValue:[NSString stringWithFormat:@"https://www.pente.org/gameServer/tb/cancel?command=confirm&sid=%@&gid=%@&message=", [[player.nonActiveGames objectAtIndex:indexPath.row] setID], [[player.nonActiveGames objectAtIndex:indexPath.row] gameID]]  forHTTPHeaderField:@"referer"];
+            [request setURL:[NSURL URLWithString:@"https://www.pente.org/gameServer/tb/cancel"]];
             [request setHTTPMethod:@"POST"];
             [request setValue:postLength forHTTPHeaderField:@"Content-Length"];
             [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];

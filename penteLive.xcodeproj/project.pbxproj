@@ -67,6 +67,8 @@
 		63B53C011B9B2625003970ED /* IASKSwitch.m in Sources */ = {isa = PBXBuildFile; fileRef = 63B53BF11B9B2625003970ED /* IASKSwitch.m */; };
 		63B53C021B9B2625003970ED /* IASKTextField.m in Sources */ = {isa = PBXBuildFile; fileRef = 63B53BF31B9B2625003970ED /* IASKTextField.m */; };
 		63B5EDA816F0B18300A4BC8F /* MediaPlayer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 63B5EDA716F0B18300A4BC8F /* MediaPlayer.framework */; };
+		63B625FA1C138E42000AC164 /* splash_1242x2208.png in Resources */ = {isa = PBXBuildFile; fileRef = 63B625F81C138E42000AC164 /* splash_1242x2208.png */; };
+		63B625FB1C138E42000AC164 /* splash_750x1334.png in Resources */ = {isa = PBXBuildFile; fileRef = 63B625F91C138E42000AC164 /* splash_750x1334.png */; };
 		63C4198B17B0E03200983B57 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 63C4198A17B0E03200983B57 /* Images.xcassets */; };
 		63C4199517B0FD2000983B57 /* icon_58x58.png in Resources */ = {isa = PBXBuildFile; fileRef = 63C4199217B0FD2000983B57 /* icon_58x58.png */; };
 		63C4199617B0FD2000983B57 /* icon_80x80.png in Resources */ = {isa = PBXBuildFile; fileRef = 63C4199317B0FD2000983B57 /* icon_80x80.png */; };
@@ -233,6 +235,8 @@
 		63B53BF21B9B2625003970ED /* IASKTextField.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IASKTextField.h; sourceTree = "<group>"; };
 		63B53BF31B9B2625003970ED /* IASKTextField.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = IASKTextField.m; sourceTree = "<group>"; };
 		63B5EDA716F0B18300A4BC8F /* MediaPlayer.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MediaPlayer.framework; path = System/Library/Frameworks/MediaPlayer.framework; sourceTree = SDKROOT; };
+		63B625F81C138E42000AC164 /* splash_1242x2208.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = splash_1242x2208.png; sourceTree = "<group>"; };
+		63B625F91C138E42000AC164 /* splash_750x1334.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = splash_750x1334.png; sourceTree = "<group>"; };
 		63C4198A17B0E03200983B57 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = penteLive/Images.xcassets; sourceTree = SOURCE_ROOT; };
 		63C4199217B0FD2000983B57 /* icon_58x58.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = icon_58x58.png; sourceTree = "<group>"; };
 		63C4199317B0FD2000983B57 /* icon_80x80.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = icon_80x80.png; sourceTree = "<group>"; };
@@ -346,6 +350,8 @@
 		633C9D0D15BD5B98009AD00A = {
 			isa = PBXGroup;
 			children = (
+				63B625F81C138E42000AC164 /* splash_1242x2208.png */,
+				63B625F91C138E42000AC164 /* splash_750x1334.png */,
 				63AB65731B0A031200514D52 /* penteLiveNotificationSound.caf */,
 				63DFFEB816D4DE5F00B81B3D /* Default-568h@2x.png */,
 				6379451316AB75A000EA4ACA /* penteLive-Info.plist */,
@@ -763,6 +769,7 @@
 				63AEDF001875C756006892F7 /* messageBubble0@2x.png in Resources */,
 				63C4199517B0FD2000983B57 /* icon_58x58.png in Resources */,
 				63FEFC92168CAAC50070E9AA /* arrow@2x.png in Resources */,
+				63B625FA1C138E42000AC164 /* splash_1242x2208.png in Resources */,
 				63E117B31BD52B9600779030 /* NotificationBackgroundErrorIcon.png in Resources */,
 				63FEFC93168CAAC50070E9AA /* blackStone.png in Resources */,
 				63FEFC94168CAAC50070E9AA /* blackStone@2x.png in Resources */,
@@ -810,6 +817,7 @@
 				63E117BC1BD52B9600779030 /* NotificationBackgroundWarning@2x.png in Resources */,
 				63AB65741B0A031200514D52 /* penteLiveNotificationSound.caf in Resources */,
 				63E117AF1BD52B9600779030 /* LICENSE in Resources */,
+				63B625FB1C138E42000AC164 /* splash_750x1334.png in Resources */,
 				63E117B91BD52B9600779030 /* NotificationBackgroundSuccessIcon.png in Resources */,
 				63E117C01BD52B9600779030 /* NotificationButtonBackground@2x.png in Resources */,
 				634832CB172FEB9300044FBC /* trash.png in Resources */,

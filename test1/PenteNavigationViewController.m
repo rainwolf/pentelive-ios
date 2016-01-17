@@ -62,9 +62,9 @@
     bannerView.adUnitID = @"ca-app-pub-3326997956703582/8641559446";
     bannerView.rootViewController = self;
     GADRequest *request = [GADRequest request];
-//    [request setTesting:YES];
-//    request.testDevices = [NSArray arrayWithObjects:kGADSimulatorID, nil];
+    request.testDevices = [NSArray arrayWithObjects:kGADSimulatorID, nil];
     [bannerView loadRequest:request];
+    
     self.navigationBar.tintColor = [UIColor grayColor];
 }
 
