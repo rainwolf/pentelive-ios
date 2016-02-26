@@ -19,6 +19,7 @@
 @synthesize ratedNot;
 @synthesize privateGame;
 @synthesize nameColor;
+@synthesize crown;
 
 @end
 
@@ -29,6 +30,7 @@
 @synthesize timeStamp;
 @synthesize unread;
 @synthesize nameColor;
+@synthesize crown;
 
 @end
 

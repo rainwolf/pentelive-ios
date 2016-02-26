@@ -17,6 +17,7 @@ alpha:1.0]
 @interface Game : NSObject {
     NSString *gameID, *setID, *gameType, *opponentName, *opponentRating, *myColor, *remainingTime, *ratedNot, *privateGame;
     UIColor *nameColor;
+    int crown;
 }
 @property(nonatomic,retain) NSString *gameID;
 @property(nonatomic,retain) NSString *setID;
@@ -28,11 +29,13 @@ alpha:1.0]
 @property(nonatomic,retain) NSString *ratedNot;
 @property(nonatomic,retain) NSString *privateGame;
 @property(nonatomic,retain) UIColor *nameColor;
+@property(atomic, assign) int crown;
 @end
 
 @interface Message : NSObject {
     NSString *messageID, *author, *subject, *timeStamp, *unread;
     UIColor *nameColor;
+    int crown;
 }
 @property(nonatomic,retain) NSString *messageID;
 @property(nonatomic,retain) NSString *author;
@@ -40,6 +43,7 @@ alpha:1.0]
 @property(nonatomic,retain) NSString *timeStamp;
 @property(nonatomic,retain) NSString *unread;
 @property(nonatomic,retain) UIColor *nameColor;
+@property(atomic, assign) int crown;
 
 @end
 

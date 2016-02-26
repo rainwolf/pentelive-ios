@@ -306,8 +306,9 @@
                         break;
                     }
                 }
-            } else
+            } else {
                 [gameCell.picker selectRow: 0 inComponent:0 animated:NO];
+            }
             [tableView deselectRowAtIndexPath:indexPath animated:NO];
 
             [tableView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:YES];
@@ -331,8 +332,9 @@
                         break;
                     }
                 }
-            } else
+            } else {
                 [timeCell.picker selectRow: 6 inComponent:0 animated:NO];
+            }
             
             [tableView deselectRowAtIndexPath:indexPath animated:NO];
 

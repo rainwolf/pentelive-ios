@@ -6,6 +6,21 @@
 //  Copyright (c) 2012 __MyCompanyName__. All rights reserved.
 //
 
+#define IS_IPAD (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad)
+#define IS_IPHONE (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone)
+#define IS_RETINA ([[UIScreen mainScreen] scale] >= 2.0)
+
+#define SCREEN_WIDTH ([[UIScreen mainScreen] bounds].size.width)
+#define SCREEN_HEIGHT ([[UIScreen mainScreen] bounds].size.height)
+#define SCREEN_MAX_LENGTH (MAX(SCREEN_WIDTH, SCREEN_HEIGHT))
+#define SCREEN_MIN_LENGTH (MIN(SCREEN_WIDTH, SCREEN_HEIGHT))
+
+#define IS_IPHONE_4_OR_LESS (IS_IPHONE && SCREEN_MAX_LENGTH < 568.0)
+#define IS_IPHONE_5 (IS_IPHONE && SCREEN_MAX_LENGTH == 568.0)
+#define IS_IPHONE_6 (IS_IPHONE && SCREEN_MAX_LENGTH == 667.0)
+#define IS_IPHONE_6P (IS_IPHONE && SCREEN_MAX_LENGTH == 736.0)
+
+
 #import "BoardViewController.h"
 #import "BoardView.h"
 #import <GoogleMobileAds/GoogleMobileAds.h>
@@ -98,7 +113,8 @@ struct Capture {
     [zoomedBoard setFrame:CGRectMake(0, 0, 2*self.view.bounds.size.width, 2*self.view.bounds.size.width)];
     CGRect rect;
     rect = submitButton.frame;
-    rect.origin.y = board.frame.size.height + 2 + submitButton.frame.size.height;
+//    rect.origin.y = board.frame.size.height + 2 + submitButton.frame.size.height;
+    rect.origin.y = board.frame.size.height + 2;
     rect.origin.x = (board.frame.size.width - submitButton.frame.size.width)/2;
     submitButton.frame = rect;
 
@@ -153,9 +169,9 @@ struct Capture {
     CGFloat newOriginY = screenHeight - self.navigationController.navigationBar.frame.size.height - [UIApplication sharedApplication].statusBarFrame.size.height;
     if (showAds) {
         //        playerStats = [[UIWebView alloc] initWithFrame:CGRectMake(2, submitButton.frame.origin.y + submitButton.frame.size.height + 3, self.view.bounds.size.width - 4, 84)];
-        playerStats.frame = CGRectMake(2, submitButton.frame.origin.y + 3, self.view.bounds.size.width - 4,  newOriginY - submitButton.frame.origin.y - GAD_SIZE_320x50.height -5);
+        playerStats.frame = CGRectMake(2, submitButton.frame.origin.y + 3 + submitButton.frame.size.height, self.view.bounds.size.width - 4,  newOriginY - submitButton.frame.origin.y - GAD_SIZE_320x50.height -5 -  submitButton.frame.size.height);
     } else {
-        playerStats.frame = CGRectMake(2, submitButton.frame.origin.y +  3, self.view.bounds.size.width - 4, newOriginY - submitButton.frame.origin.y - 5);
+        playerStats.frame = CGRectMake(2, submitButton.frame.origin.y +  3 + submitButton.frame.size.height, self.view.bounds.size.width - 4, newOriginY - submitButton.frame.origin.y - 5 -  submitButton.frame.size.height);
 //        playerStats = [[UIWebView alloc] initWithFrame:CGRectMake(2, submitButton.frame.origin.y + 3, self.view.bounds.size.width - 4, 135)];
     }
 
@@ -921,17 +937,66 @@ struct Capture {
     }
     [zoomedStone setStoneColor:[stone stoneColor]];
 
-    if (lastMove > 18) {
+    int visibleMoves;
+    if ([[game gameType] isEqualToString:@"Connect6"]) {
+        visibleMoves = 15;
+        if (IS_IPHONE_6) {
+            if (showAds) {
+                visibleMoves = 16;
+            } else {
+                visibleMoves = 36;
+            }
+        } else if (IS_IPHONE_6P) {
+            if (showAds) {
+                visibleMoves = 28;
+            } else {
+                visibleMoves = 60;
+            }
+        }
+    } else {
+        visibleMoves = 11;
+        if (IS_IPHONE_6) {
+            if (showAds) {
+                visibleMoves = 14;
+            } else {
+                visibleMoves = 28;
+            }
+        } else if (IS_IPHONE_6P) {
+            if (showAds) {
+                visibleMoves = 24;
+            } else {
+                visibleMoves = 50;
+            }
+        }
+    }
+    if (lastMove > visibleMoves) {
         moveStatsString = [[NSMutableString alloc] initWithString:@"... "];
     } else {
         moveStatsString = [[NSMutableString alloc] init];
     }
     for (int i = 0; i < lastMove; ++i) {
-        if (lastMove - i > 18) {
+        if (lastMove - i > visibleMoves) {
             continue;
         }
         int rowCol = [self parseMove:[movesList objectAtIndex:i]];
-        [moveStatsString appendString:[NSString stringWithFormat:@"%c%d ", coordinateLetters[rowCol % 19], 19 - (rowCol / 19)]];
+        if (i == 0) {
+            [moveStatsString appendString: @"<b>1.</b> "];
+        } else if ([[game gameType] isEqualToString:@"Connect6"]) {
+            if (((i-1)%4) == 0) {
+                [moveStatsString appendString: [NSString stringWithFormat:@"&nbsp; <b>%i.</b> ", (i >> 2) + 2]];
+            } else if (((i-1)%4) == 2) {
+                [moveStatsString appendString: @" - "];
+            } else {
+                [moveStatsString appendString: @"-"];
+            }
+        } else {
+            if ((i%2) == 0) {
+                [moveStatsString appendString: [NSString stringWithFormat:@"&nbsp; <b>%i.</b> ", (i >> 1) + 1]];
+            } else {
+                [moveStatsString appendString: @" - "];
+            }
+        }
+        [moveStatsString appendString:[NSString stringWithFormat:@"%c%d", coordinateLetters[rowCol % 19], 19 - (rowCol / 19)]];
     }
     [playerStats loadHTMLString: [playerStatsBaseString stringByAppendingString:moveStatsString] baseURL:nil];
 
@@ -1136,17 +1201,66 @@ struct Capture {
     [receivedMessageView removeFromSuperview];
     [receivedMessageView setFrame:frame];
     
-    if (untilMove > 18) {
+    int visibleMoves;
+    if ([[game gameType] isEqualToString:@"Connect6"]) {
+        visibleMoves = 15;
+        if (IS_IPHONE_6) {
+            if (showAds) {
+                visibleMoves = 16;
+            } else {
+                visibleMoves = 36;
+            }
+        } else if (IS_IPHONE_6P) {
+            if (showAds) {
+                visibleMoves = 28;
+            } else {
+                visibleMoves = 60;
+            }
+        }
+    } else {
+        visibleMoves = 11;
+        if (IS_IPHONE_6) {
+            if (showAds) {
+                visibleMoves = 14;
+            } else {
+                visibleMoves = 28;
+            }
+        } else if (IS_IPHONE_6P) {
+            if (showAds) {
+                visibleMoves = 24;
+            } else {
+                visibleMoves = 50;
+            }
+        }
+    }
+    if (lastMove > visibleMoves) {
         moveStatsString = [[NSMutableString alloc] initWithString:@"... "];
     } else {
         moveStatsString = [[NSMutableString alloc] init];
     }
-    for (int i = 0; i < untilMove; ++i) {
-        if (untilMove - i > 18) {
+    for (int i = 0; i < lastMove; ++i) {
+        if (lastMove - i > visibleMoves) {
             continue;
         }
         int rowCol = [self parseMove:[movesList objectAtIndex:i]];
-        [moveStatsString appendString:[NSString stringWithFormat:@"%c%d ", coordinateLetters[rowCol % 19], 19 - (rowCol / 19)]];
+        if (i == 0) {
+            [moveStatsString appendString: @"<b>1.</b> "];
+        } else if ([[game gameType] isEqualToString:@"Connect6"]) {
+            if (((i-1)%4) == 0) {
+                [moveStatsString appendString: [NSString stringWithFormat:@"&nbsp; <b>%i.</b> ", (i >> 2) + 2]];
+            } else if (((i-1)%4) == 2) {
+                [moveStatsString appendString: @" - "];
+            } else {
+                [moveStatsString appendString: @"-"];
+            }
+        } else {
+            if ((i%2) == 0) {
+                [moveStatsString appendString: [NSString stringWithFormat:@"&nbsp; <b>%i.</b> ", (i >> 1) + 1]];
+            } else {
+                [moveStatsString appendString: @" - "];
+            }
+        }
+        [moveStatsString appendString:[NSString stringWithFormat:@"%c%d", coordinateLetters[rowCol % 19], 19 - (rowCol / 19)]];
     }
     [playerStats loadHTMLString: [playerStatsBaseString stringByAppendingString:moveStatsString] baseURL:nil];
 

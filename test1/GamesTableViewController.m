@@ -480,8 +480,27 @@
                 cell = [[GameTableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:CellIdentifier];
             }
         }
-        tmpStr = [[NSMutableAttributedString alloc] initWithString:[[[player messages] objectAtIndex:indexPath.row] author]];
+        txtStr = [[NSMutableString alloc] initWithString:[[[player messages] objectAtIndex:indexPath.row] author]];
+        int crown = [[[player messages] objectAtIndex:indexPath.row] crown];
+        if (crown) {
+            if (crown == 4) {
+                [txtStr appendString:@" \u2655"];
+            } else if (crown == 1) {
+                [txtStr appendString:@" \u2654"];
+            } else {
+                [txtStr appendString:@" \u265B"];
+            }
+            //            [txtStr appendString:@" \u2656"];
+            //            [txtStr appendString:@" \u265A"];
+            //            [txtStr appendString:@" \u265C"];
+        }
+        tmpStr = [[NSMutableAttributedString alloc] initWithString:txtStr];
         [tmpStr addAttribute:NSForegroundColorAttributeName value:[[[player messages] objectAtIndex:indexPath.row] nameColor] range:NSMakeRange(0, [[[[player messages] objectAtIndex:indexPath.row] author] length])];
+        if (![[[[player messages] objectAtIndex:indexPath.row] nameColor] isEqual:UIColorFromRGB(0)]) {
+            [tmpStr addAttribute:NSFontAttributeName value: [UIFont fontWithName:@"HelveticaNeue-Bold" size:16] range:NSMakeRange(0, [[[[player messages] objectAtIndex:indexPath.row] author] length])];
+        } else {
+            [tmpStr addAttribute:NSFontAttributeName value:[UIFont fontWithName:@"HelveticaNeue" size:16.f] range:NSMakeRange(0, [[[[player messages] objectAtIndex:indexPath.row] author] length])];
+        }
 //        [tmpStr appendString:@" ("];
 //        [tmpStr appendString: [[[player messages] objectAtIndex:indexPath.row] timeStamp]];
 //        [tmpStr appendString:@")"];
@@ -503,11 +522,28 @@
         [cell setAccessoryType:UITableViewCellAccessoryDisclosureIndicator];
         [cell.imageView removeFromSuperview];
         txtStr = [[NSMutableString alloc] initWithString:[[[player invitations] objectAtIndex:indexPath.row] opponentName]];
+        int crown = [[[player invitations] objectAtIndex:indexPath.row] crown];
+        if (crown) {
+            if (crown == 4) {
+                [txtStr appendString:@" \u2655"];
+            } else if (crown == 1) {
+                [txtStr appendString:@" \u2654"];
+            } else {
+                [txtStr appendString:@" \u265B"];
+            }
+            //            [txtStr appendString:@" \u2656"];
+            //            [txtStr appendString:@" \u265A"];
+            //            [txtStr appendString:@" \u265C"];
+        }
         [txtStr appendString:@" ("];
         [txtStr appendString: [[[player invitations] objectAtIndex:indexPath.row] opponentRating]];
         [txtStr appendString:@")"];
         tmpStr = [[NSMutableAttributedString alloc] initWithString:txtStr];
         [tmpStr addAttribute:NSForegroundColorAttributeName value:[[[player invitations] objectAtIndex:indexPath.row] nameColor] range:NSMakeRange(0, [[[[player invitations] objectAtIndex:indexPath.row] opponentName] length])];
+        [tmpStr addAttribute:NSFontAttributeName value:[UIFont fontWithName:@"HelveticaNeue" size:16.f] range:NSMakeRange(0, [tmpStr length])];
+        if (![[[[player invitations] objectAtIndex:indexPath.row] nameColor] isEqual:UIColorFromRGB(0)]) {
+            [tmpStr addAttribute:NSFontAttributeName value: [UIFont fontWithName:@"HelveticaNeue-Bold" size:16] range:NSMakeRange(0, [[[[player invitations] objectAtIndex:indexPath.row] opponentName] length])];
+        }
         cell.textLabel.attributedText = tmpStr;
         if ([[[[player invitations] objectAtIndex:indexPath.row] ratedNot] isEqualToString:@"Rated"]) {
             txtStr = (NSMutableString *) [NSString stringWithFormat:@"%@ (%@) - %@", [[[player invitations] objectAtIndex:indexPath.row] gameType], [[[player invitations] objectAtIndex:indexPath.row] ratedNot], [[[player invitations] objectAtIndex:indexPath.row] remainingTime]];
@@ -524,11 +560,28 @@
             cell = [[GameTableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:tmpIdentifier];
         }
         txtStr = [[NSMutableString alloc] initWithString:[[[player activeGames] objectAtIndex:indexPath.row] opponentName]];
+        int crown = [[[player activeGames] objectAtIndex:indexPath.row] crown];
+        if (crown) {
+            if (crown == 4) {
+                [txtStr appendString:@" \u2655"];
+            } else if (crown == 1) {
+                [txtStr appendString:@" \u2654"];
+            } else {
+                [txtStr appendString:@" \u265B"];
+            }
+            //            [txtStr appendString:@" \u2656"];
+            //            [txtStr appendString:@" \u265A"];
+            //            [txtStr appendString:@" \u265C"];
+        }
         [txtStr appendString:@" ("];
         [txtStr appendString: [[[player activeGames] objectAtIndex:indexPath.row] opponentRating]];
         [txtStr appendString:@")"];
         tmpStr = [[NSMutableAttributedString alloc] initWithString:txtStr];
         [tmpStr addAttribute:NSForegroundColorAttributeName value:[[[player activeGames] objectAtIndex:indexPath.row] nameColor] range:NSMakeRange(0, [[[[player activeGames] objectAtIndex:indexPath.row] opponentName] length])];
+        [tmpStr addAttribute:NSFontAttributeName value:[UIFont fontWithName:@"HelveticaNeue" size:16.f] range:NSMakeRange(0, [tmpStr length])];
+        if (![[[[player activeGames] objectAtIndex:indexPath.row] nameColor] isEqual:UIColorFromRGB(0)]) {
+            [tmpStr addAttribute:NSFontAttributeName value: [UIFont fontWithName:@"HelveticaNeue-Bold" size:16] range:NSMakeRange(0, [[[[player activeGames] objectAtIndex:indexPath.row] opponentName] length])];
+        }
         cell.textLabel.attributedText = tmpStr;
         txtStr = [[NSMutableString alloc] initWithString:[[[player activeGames] objectAtIndex:indexPath.row] gameType]];
         [txtStr appendString:@" ("];
@@ -553,11 +606,28 @@
         [cell setAccessoryType:UITableViewCellAccessoryDisclosureIndicator];
         [cell.imageView removeFromSuperview];
         txtStr = [[NSMutableString alloc] initWithString:[[[player publicInvitations] objectAtIndex:indexPath.row] opponentName]];
+        int crown = [[[player publicInvitations] objectAtIndex:indexPath.row] crown];
+        if (crown) {
+            if (crown == 4) {
+                [txtStr appendString:@" \u2655"];
+            } else if (crown == 1) {
+                [txtStr appendString:@" \u2654"];
+            } else {
+                [txtStr appendString:@" \u265B"];
+            }
+            //            [txtStr appendString:@" \u2656"];
+            //            [txtStr appendString:@" \u265A"];
+            //            [txtStr appendString:@" \u265C"];
+        }
         [txtStr appendString:@" ("];
         [txtStr appendString: [[[player publicInvitations] objectAtIndex:indexPath.row] opponentRating]];
         [txtStr appendString:@")"];
         tmpStr = [[NSMutableAttributedString alloc] initWithString:txtStr];
         [tmpStr addAttribute:NSForegroundColorAttributeName value:[[[player publicInvitations] objectAtIndex:indexPath.row] nameColor] range:NSMakeRange(0, [[[[player publicInvitations] objectAtIndex:indexPath.row] opponentName] length])];
+        [tmpStr addAttribute:NSFontAttributeName value:[UIFont fontWithName:@"HelveticaNeue" size:16.f] range:NSMakeRange(0, [tmpStr length])];
+        if (![[[[player publicInvitations] objectAtIndex:indexPath.row] nameColor] isEqual:UIColorFromRGB(0)]) {
+            [tmpStr addAttribute:NSFontAttributeName value: [UIFont fontWithName:@"HelveticaNeue-Bold" size:16] range:NSMakeRange(0, [[[[player publicInvitations] objectAtIndex:indexPath.row] opponentName] length])];
+        }
         cell.textLabel.attributedText = tmpStr;
         if ([[[[player publicInvitations] objectAtIndex:indexPath.row] ratedNot] isEqualToString:@"Rated"]) {
             txtStr = (NSMutableString *) [NSString stringWithFormat:@"%@ (%@) - %@", [[[player publicInvitations] objectAtIndex:indexPath.row] gameType], [[[player publicInvitations] objectAtIndex:indexPath.row] ratedNot], [[[player publicInvitations] objectAtIndex:indexPath.row] remainingTime]];
@@ -581,11 +651,28 @@
 //        cell = [[GameTableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:CellIdentifier];
         [cell.imageView removeFromSuperview];
         txtStr = [[NSMutableString alloc] initWithString:[[[player sentInvitations] objectAtIndex:indexPath.row] opponentName]];
+        int crown = [[[player sentInvitations] objectAtIndex:indexPath.row] crown];
+        if (crown) {
+            if (crown == 4) {
+                [txtStr appendString:@" \u2655"];
+            } else if (crown == 1) {
+                [txtStr appendString:@" \u2654"];
+            } else {
+                [txtStr appendString:@" \u265B"];
+            }
+            //            [txtStr appendString:@" \u2656"];
+            //            [txtStr appendString:@" \u265A"];
+            //            [txtStr appendString:@" \u265C"];
+        }
         [txtStr appendString:@" ("];
         [txtStr appendString: [[[player sentInvitations] objectAtIndex:indexPath.row] opponentRating]];
         [txtStr appendString:@")"];
         tmpStr = [[NSMutableAttributedString alloc] initWithString:txtStr];
         [tmpStr addAttribute:NSForegroundColorAttributeName value:[[[player sentInvitations] objectAtIndex:indexPath.row] nameColor] range:NSMakeRange(0, [[[[player sentInvitations] objectAtIndex:indexPath.row] opponentName] length])];
+        [tmpStr addAttribute:NSFontAttributeName value:[UIFont fontWithName:@"HelveticaNeue" size:16.f] range:NSMakeRange(0, [tmpStr length])];
+        if (![[[[player sentInvitations] objectAtIndex:indexPath.row] nameColor] isEqual:UIColorFromRGB(0)]) {
+            [tmpStr addAttribute:NSFontAttributeName value: [UIFont fontWithName:@"HelveticaNeue-Bold" size:16] range:NSMakeRange(0, [[[[player sentInvitations] objectAtIndex:indexPath.row] opponentName] length])];
+        }
         cell.textLabel.attributedText = tmpStr;
         txtStr = [[NSMutableString alloc] initWithString:[[[player sentInvitations] objectAtIndex:indexPath.row] gameType]];
         [txtStr appendString:@" ("];
@@ -605,11 +692,28 @@
             cell = [[GameTableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:tmpIdentifier];
         }
         txtStr = [[NSMutableString alloc] initWithString:[[[player nonActiveGames] objectAtIndex:indexPath.row] opponentName]];
+        int crown = [[[player nonActiveGames] objectAtIndex:indexPath.row] crown];
+        if (crown) {
+            if (crown == 4) {
+                [txtStr appendString:@" \u2655"];
+            } else if (crown == 1) {
+                [txtStr appendString:@" \u2654"];
+            } else {
+                [txtStr appendString:@" \u265B"];
+            }
+//            [txtStr appendString:@" \u2656"];
+//            [txtStr appendString:@" \u265A"];
+//            [txtStr appendString:@" \u265C"];
+        }
         [txtStr appendString:@" ("];
         [txtStr appendString: [[[player nonActiveGames] objectAtIndex:indexPath.row] opponentRating]];
         [txtStr appendString:@")"];
         tmpStr = [[NSMutableAttributedString alloc] initWithString:txtStr];
         [tmpStr addAttribute:NSForegroundColorAttributeName value:[[[player nonActiveGames] objectAtIndex:indexPath.row] nameColor] range:NSMakeRange(0, [[[[player nonActiveGames] objectAtIndex:indexPath.row] opponentName] length])];
+        [tmpStr addAttribute:NSFontAttributeName value:[UIFont fontWithName:@"HelveticaNeue" size:16.f] range:NSMakeRange(0, [tmpStr length])];
+        if (![[[[player nonActiveGames] objectAtIndex:indexPath.row] nameColor] isEqual:UIColorFromRGB(0)]) {
+            [tmpStr addAttribute:NSFontAttributeName value: [UIFont fontWithName:@"HelveticaNeue-Bold" size:16] range:NSMakeRange(0, [[[[player nonActiveGames] objectAtIndex:indexPath.row] opponentName] length])];
+        }
         cell.textLabel.attributedText = tmpStr;
         txtStr = [[NSMutableString alloc] initWithString:[[[player nonActiveGames] objectAtIndex:indexPath.row] gameType]];
         [txtStr appendString:@" ("];
@@ -623,7 +727,7 @@
     }
     
 //    NSLog(@"kittyfontcell %@",cell.textLabel.font);
-    [cell.textLabel setFont:[UIFont fontWithName:@"Helvetica Neue" size:17.f]];
+//    [cell.textLabel setFont:[UIFont fontWithName:@"Helvetica Neue" size:17.f]];
     [cell.detailTextLabel setFont:[UIFont fontWithName:@"Helvetica Neue" size:14.f]];
     [cell.detailTextLabel setTextColor:[UIColor grayColor]];
 //    [cell.detailTextLabel setAlpha:0.7];
@@ -636,6 +740,9 @@
 }
 
 - (void) sectionTap:(UIGestureRecognizer *)gestureRecognizer {
+    
+    [TSMessage dismissActiveNotification];
+
 //    NSLog(@"kittySection %i",gestureRecognizer.view.tag);
     int section = (int) gestureRecognizer.view.tag;
     NSMutableArray *indexSet = [[NSMutableArray alloc] init];
@@ -971,6 +1078,9 @@
      // Pass the selected object to the new view controller.
      [self.navigationController pushViewController:detailViewController animated:YES];
      */
+    
+    [TSMessage dismissActiveNotification];
+    
     
     if (indexPath.section == 0) {
         [CATransaction begin];
@@ -1785,6 +1895,7 @@
     NSData *responseData;
     
     // connect to the game server
+//    url =  [NSString stringWithFormat:@"https://www.pente.org/gameServer/mobile/index.jsp?name=%@&password=%@&checkname=cruglife",username,password];
     url =  [NSString stringWithFormat:@"https://www.pente.org/gameServer/mobile/index.jsp?name=%@&password=%@",username,password];
 //    url =  [NSString stringWithFormat:@"https://development.pente.org/gameServer/mobile/index.jsp?name=%@&password=%@",username,password];
     [request setURL:[NSURL URLWithString:url]];
@@ -1858,6 +1969,7 @@
             [game setRemainingTime:[splitLine objectAtIndex:5]];
             [game setRatedNot:[splitLine objectAtIndex:6]];
             [game setNameColor: UIColorFromRGB([[splitLine objectAtIndex:7] intValue])];
+            [game setCrown:[[splitLine objectAtIndex:8] intValue]];
             [sectionItems addObject:game];
             dashIDX++;
         }
@@ -1899,6 +2011,7 @@
             [game setRemainingTime:[splitLine objectAtIndex:5]];
             [game setRatedNot:[splitLine objectAtIndex:6]];
             [game setNameColor: UIColorFromRGB([[splitLine objectAtIndex:7] intValue])];
+            [game setCrown:[[splitLine objectAtIndex:8] intValue]];
             [sectionItems addObject:game];
             dashIDX++;
         }
@@ -1949,6 +2062,7 @@
             [game setRemainingTime:[splitLine objectAtIndex:6]];
             [game setRatedNot:[splitLine objectAtIndex:7]];
             [game setNameColor: UIColorFromRGB([[splitLine objectAtIndex:8] intValue])];
+            [game setCrown:[[splitLine objectAtIndex:9] intValue]];
             [sectionItems addObject:game];
             dashIDX++;
         }
@@ -1991,6 +2105,7 @@
             [game setRemainingTime:[splitLine objectAtIndex:6]];
             [game setRatedNot:[splitLine objectAtIndex:7]];
             [game setNameColor: UIColorFromRGB([[splitLine objectAtIndex:8] intValue])];
+            [game setCrown:[[splitLine objectAtIndex:9] intValue]];
             [sectionItems addObject:game];
             dashIDX++;
         }
@@ -2047,6 +2162,7 @@
             [game setRemainingTime:[splitLine objectAtIndex:5]];
             [game setRatedNot:[splitLine objectAtIndex:6]];
             [game setNameColor: UIColorFromRGB([[splitLine objectAtIndex:7] intValue])];
+            [game setCrown:[[splitLine objectAtIndex:8] intValue]];
             [sectionItems addObject:game];
             dashIDX++;
         }
@@ -2100,6 +2216,7 @@
             [message setAuthor: [splitLine objectAtIndex:3]];
             [message setTimeStamp: [splitLine objectAtIndex:4]];
             [message setNameColor: UIColorFromRGB([[splitLine objectAtIndex:5] intValue])];
+            [message setCrown:[[splitLine objectAtIndex:6] intValue]];
             [sectionItems addObject:message];
             dashIDX++;
         }
@@ -2377,7 +2494,7 @@
     [self.imageView setFrame:CGRectMake(0, 0, imageWidth, imageWidth)];
     
     //    NSLog(@"kittenfont ");
-        [self.textLabel setFont:[UIFont fontWithName:@"HelveticaNeue" size:16.f]];
+//        [self.textLabel setFont:[UIFont fontWithName:@"HelveticaNeue" size:16.f]];
 }
 
 //- (void) replaceButton {
