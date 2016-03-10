@@ -12,7 +12,7 @@
 #import <GoogleMobileAds/GoogleMobileAds.h>
 #import "PopoverView.h"
 
-#define IS_IPHONE_5 ( fabs( ( double )[ [ UIScreen mainScreen ] bounds ].size.height - ( double )568 ) < DBL_EPSILON )
+//#define IS_IPHONE_5 ( fabs( ( double )[ [ UIScreen mainScreen ] bounds ].size.height - ( double )568 ) < DBL_EPSILON )
 
 @interface BoardViewController : UIViewController <GADBannerViewDelegate, UITextViewDelegate, PopoverViewDelegate, UIWebViewDelegate, UIAlertViewDelegate> {
     Game *game;

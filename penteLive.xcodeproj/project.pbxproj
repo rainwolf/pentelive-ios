@@ -1002,8 +1002,8 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
-				CODE_SIGN_IDENTITY = "iPhone Distribution: Walied Othman";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution: Walied Othman";
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1021,8 +1021,8 @@
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_BUNDLE_IDENTIFIER = "be.submanifold.${PRODUCT_NAME:rfc1034identifier}";
 				PRODUCT_NAME = penteLive;
-				PROVISIONING_PROFILE = "6ffeaaa9-fac8-4c07-a509-b742b0ce0c6b";
-				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "6ffeaaa9-fac8-4c07-a509-b742b0ce0c6b";
+				PROVISIONING_PROFILE = "6ea8bf66-aa8d-4414-ad2e-2988df9647e5";
+				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Debug;
@@ -1032,8 +1032,8 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
-				CODE_SIGN_IDENTITY = "iPhone Distribution: Walied Othman";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution: Walied Othman";
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1051,8 +1051,8 @@
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_BUNDLE_IDENTIFIER = "be.submanifold.${PRODUCT_NAME:rfc1034identifier}";
 				PRODUCT_NAME = penteLive;
-				PROVISIONING_PROFILE = "6ffeaaa9-fac8-4c07-a509-b742b0ce0c6b";
-				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "6ffeaaa9-fac8-4c07-a509-b742b0ce0c6b";
+				PROVISIONING_PROFILE = "6ea8bf66-aa8d-4414-ad2e-2988df9647e5";
+				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Release;

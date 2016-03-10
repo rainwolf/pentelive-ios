@@ -18,7 +18,10 @@
 
 
 
-@interface GameTableViewCell : UITableViewCell {}
+@interface GameTableViewCell : UITableViewCell {
+    UILabel *ratingLabel;
+}
+@property(nonatomic, retain, readwrite) UILabel *ratingLabel;
 
 @end
 

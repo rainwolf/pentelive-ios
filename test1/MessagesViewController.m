@@ -61,7 +61,6 @@ InvitationsViewController *invitationVC;
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillShow:) name:UIKeyboardWillShowNotification object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillHide) name:UIKeyboardWillHideNotification object:nil];
     
-    
     [super viewWillAppear:animated];
 }
 
@@ -207,7 +206,6 @@ InvitationsViewController *invitationVC;
     [replyMessageView removeFromSuperview];
     [subjectField removeFromSuperview];
     [sendButton removeFromSuperview];
-    [spinner removeFromSuperview];
     [toField removeFromSuperview];
     messageID = nil;
     [bannerView removeFromSuperview];
