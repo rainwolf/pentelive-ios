@@ -1,0 +1,26 @@
+//
+//  RatingStatsView.h
+//  penteLive
+//
+//  Created by rainwolf on 23/05/16.
+//  Copyright © 2016 Triade. All rights reserved.
+//
+
+#import <UIKit/UIKit.h>
+#import "PentePlayer.h"
+
+
+@interface RatingStatCell : UITableViewCell {
+    UILabel *ratingLabel;
+}
+@property(nonatomic, retain, readwrite) UILabel *ratingLabel;
+
+@end
+
+
+@interface RatingStatsView : UITableView <UITableViewDelegate, UITableViewDataSource> {
+    NSArray<RatingStat *> *ratingStats;
+}
+@property(retain, nonatomic, readwrite) NSArray<RatingStat *> *ratingStats;
+
+@end

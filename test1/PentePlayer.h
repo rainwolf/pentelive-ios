@@ -47,16 +47,22 @@ alpha:1.0]
 
 @end
 
+@interface RatingStat : NSObject {
+    NSString *game, *rating, *lastPlayed, *totalGames;
+    int crown;
+}
+@property(nonatomic,retain) NSString *game, *rating, *lastPlayed, *totalGames;
+@property(atomic, assign) int crown;
+
+@end
+
 
 @interface PentePlayer : NSObject {
     NSString *playerName;
-    NSMutableArray *invitations, *sentInvitations, *activeGames, *nonActiveGames, *publicInvitations, *messages;
+    NSMutableArray *invitations, *sentInvitations, *activeGames, *nonActiveGames, *publicInvitations, *messages, *ratingStats;
+    BOOL showAds, subscriber;
 }
 @property(nonatomic,retain) NSString *playerName;
-@property(nonatomic,retain) NSMutableArray *invitations;
-@property(nonatomic,retain) NSMutableArray *sentInvitations;
-@property(nonatomic,retain) NSMutableArray *activeGames;
-@property(nonatomic,retain) NSMutableArray *nonActiveGames;
-@property(nonatomic,retain) NSMutableArray *publicInvitations;
-@property(nonatomic,retain) NSMutableArray *messages;
+@property(nonatomic,retain) NSMutableArray *invitations, *sentInvitations, *activeGames, *nonActiveGames, *publicInvitations, *messages, *ratingStats;
+@property(atomic, assign) BOOL showAds, subscriber;
 @end

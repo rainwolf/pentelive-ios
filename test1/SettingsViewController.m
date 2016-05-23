@@ -211,6 +211,25 @@
         [navControllor setNeedHelp:YES];
         [self.navigationController popToRootViewControllerAnimated:YES];
     }
+    if ([specifier.key isEqualToString:@"inviteFriendsButton"]) {
+        if ([MFMailComposeViewController canSendMail]) {
+            MFMailComposeViewController *mailer = [[MFMailComposeViewController alloc] init];
+            mailer.mailComposeDelegate = self;
+            [mailer setSubject: @"Play Pente with me?"];
+//            NSArray *toRecipients = [NSArray arrayWithObjects:@"rainwolf@submanifold.be", nil];
+//            [mailer setToRecipients:toRecipients];
+            [mailer setMessageBody: [NSString stringWithFormat:@"<p>You can play with me on your <a href=\"https://itunes.apple.com/us/app/pente-live/id595426592?ls=1&mt=8\">iPhone</a> or <a href=\"https://play.google.com/store/apps/details?id=be.submanifold.pentelive\">Android Phone</a> <br> My username is %@", [[NSUserDefaults standardUserDefaults] objectForKey:@"username"]] isHTML:YES];
+            [self presentViewController:mailer animated:YES completion:nil];
+        } else {
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error"
+                                                            message:@"Your device is not configured to send mail"
+                                                           delegate:nil
+                                                  cancelButtonTitle:@"OK"
+                                                  otherButtonTitles:nil];
+            [alert show];
+        }
+        return;
+    }
     if ([[specifier type] isEqualToString:kIASKOpenURLSpecifier]) {
         [[UIApplication sharedApplication] openURL:[NSURL URLWithString:specifier.file]];
     }
@@ -224,7 +243,7 @@
             if ([MFMailComposeViewController canSendMail]) {
                 MFMailComposeViewController *mailer = [[MFMailComposeViewController alloc] init];
                 mailer.mailComposeDelegate = self;
-                [mailer setSubject:[NSString stringWithFormat:@"penteLive help for %@", [[NSUserDefaults standardUserDefaults] objectForKey:@"username"]]];
+                [mailer setSubject:[NSString stringWithFormat:@"iOS penteLive help for %@", [[NSUserDefaults standardUserDefaults] objectForKey:@"username"]]];
                 NSArray *toRecipients = [NSArray arrayWithObjects:@"rainwolf@submanifold.be", nil];
                 [mailer setToRecipients:toRecipients];
                 

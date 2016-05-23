@@ -457,7 +457,10 @@
     }
     
     if (opponentCell.textField.text.length == 0) {
-            [[NSUserDefaults standardUserDefaults] setInteger: 3 forKey:@"openInvitationsLimit"];
+        long openInvitationsLimit = [[NSUserDefaults standardUserDefaults] integerForKey:@"openInvitationsLimit"];
+        openInvitationsLimit += 2;
+        [[NSUserDefaults standardUserDefaults] setInteger: openInvitationsLimit forKey:@"openInvitationsLimit"];
+//            [[NSUserDefaults standardUserDefaults] setInteger: 3 forKey:@"openInvitationsLimit"];
     }
     
 //    NSLog(@"kitty hi? %@", opponentCell.textField.text);

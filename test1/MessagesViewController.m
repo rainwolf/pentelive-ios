@@ -87,7 +87,7 @@ InvitationsViewController *invitationVC;
 
     [UIView animateWithDuration:0.3f animations:^ {
         if (messageID) {
-            [self.navigationItem setRightBarButtonItems:[NSArray arrayWithObjects: [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"trash"] style:UIBarButtonItemStylePlain target:self action:@selector(deleteMessageTap)], [[UIBarButtonItem alloc] initWithTitle:@"Play?" style:UIBarButtonItemStylePlain target:self action:@selector(challengeTap)], nil]];
+            [self.navigationItem setRightBarButtonItems:[NSArray arrayWithObjects: [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemTrash target:self action:@selector(deleteMessageTap)], [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemPlay target:self action:@selector(challengeTap)], nil]];
         } else {
             [self.navigationItem setRightBarButtonItem:nil];
             [self.navigationItem setRightBarButtonItems:nil];
@@ -193,7 +193,7 @@ InvitationsViewController *invitationVC;
         if ([navController needHelp]) {
             [navController setNeedHelp:NO];
             [toField setText:@"rainwolf"];
-            [subjectField setText:[NSString stringWithFormat:@"penteLive help for %@", [[NSUserDefaults standardUserDefaults] objectForKey:@"username"]]];
+            [subjectField setText:[NSString stringWithFormat:@"iOS penteLive help for %@", [[NSUserDefaults standardUserDefaults] objectForKey:@"username"]]];
         }
         
 //        [replyMessageView setFrame:CGRectMake(5, 5, self.view.bounds.size.width - 10, 44)];

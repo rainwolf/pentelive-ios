@@ -25,7 +25,7 @@
 
 @end
 
-@interface GamesTableViewController : UIPullToReloadTableViewController <GADBannerViewDelegate, UIGestureRecognizerDelegate, GADBannerViewDelegate, GADInterstitialDelegate, NSURLConnectionDelegate    > {
+@interface GamesTableViewController : UIPullToReloadTableViewController <GADBannerViewDelegate, UIGestureRecognizerDelegate, GADBannerViewDelegate, GADInterstitialDelegate, NSURLConnectionDelegate, PopoverViewDelegate> {
     PentePlayer *player;
     Game *selectedGame;
     BoardViewController *boardController;
@@ -37,11 +37,12 @@
     GADBannerView *bannerView;
     BOOL messagesCollapsed, invitationsReceivedCollapsed, activeGamesCollapsed, publicInvitationsCollapsed, sentInvitationsCollapsed, nonActiveGamesCollapsed;
     GameTableViewCell *selectedInvitationCell, *selectedPublicInvitationCell;
-    UIBarButtonItem *inviteButton, *messageButton;
+    UIBarButtonItem *inviteButton;
     BOOL alreadyAskedAboutInvitations;
     GADInterstitial *interstitial;
     int gamesLimit;
     BOOL showAds;
+    PopoverView *actionPopoverView;
 }
 @property(nonatomic,retain) PentePlayer *player;
 @property(nonatomic,retain) Game *selectedGame;
@@ -58,8 +59,9 @@
 @property(atomic) BOOL messagesCollapsed, invitationsReceivedCollapsed, activeGamesCollapsed, publicInvitationsCollapsed, sentInvitationsCollapsed, nonActiveGamesCollapsed, alreadyAskedAboutInvitations, showAds;
 @property(atomic) int gamesLimit;
 @property(nonatomic,retain) GameTableViewCell *selectedInvitationCell, *selectedPublicInvitationCell;
-@property(nonatomic,retain) UIBarButtonItem *inviteButton, *messageButton;
+@property(nonatomic,retain) UIBarButtonItem *inviteButton;
 @property(nonatomic, strong) GADInterstitial *interstitial;
+@property(nonatomic, retain, readwrite) PopoverView *actionPopoverView;
 
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath;

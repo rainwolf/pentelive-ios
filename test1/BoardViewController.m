@@ -1084,17 +1084,18 @@ struct Capture {
             [navControllor popToRootViewControllerAnimated:YES];
 
         } else if (((buttonIndex == 2) && activeGame) || (!activeGame && (buttonIndex == 1))) {
-            NSString *tmpStr = [NSString stringWithFormat:@"https://www.pente.org/gameServer/tb/game?gid=%@&command=load",[game gameID]];
-            NSURL *url = [NSURL URLWithString: tmpStr];
+//            NSString *tmpStr = [NSString stringWithFormat:@"https://www.pente.org/gameServer/tb/game?gid=%@&command=load",[game gameID]];
+//            NSURL *url = [NSURL URLWithString: tmpStr];
             NSError *error;
-            NSString *htmlString = [NSString stringWithContentsOfURL:url encoding:NSASCIIStringEncoding error:&error];
-            NSRange movesRange = NSMakeRange(0,[htmlString length]);
-            movesRange = [htmlString rangeOfString: @"     sid=\"" options:0 range:movesRange];
-            movesRange.length = [htmlString length] - movesRange.location - 10;
-            movesRange.location = movesRange.location + 10;
-            NSRange movesRangeEnd = [[htmlString substringWithRange:movesRange] rangeOfString:@"\""];
-            movesRange.length = movesRangeEnd.location;
-            [game setSetID:[htmlString substringWithRange:movesRange]];
+//            NSString *htmlString = [NSString stringWithContentsOfURL:url encoding:NSASCIIStringEncoding error:&error];
+//            NSRange movesRange = NSMakeRange(0,[htmlString length]);
+//            movesRange = [htmlString rangeOfString: @"     sid=\"" options:0 range:movesRange];
+//            movesRange.length = [htmlString length] - movesRange.location - 10;
+//            movesRange.location = movesRange.location + 10;
+//            NSRange movesRangeEnd = [[htmlString substringWithRange:movesRange] rangeOfString:@"\""];
+//            movesRange.length = movesRangeEnd.location;
+//            [game setSetID:[htmlString substringWithRange:movesRange]];
+            NSRange movesRange;
             
             NSString *post = [NSString stringWithFormat:@"sid=%@&command=request&mobile=",[game setID]];
             NSData *postData = [post dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];

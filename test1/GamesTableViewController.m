@@ -11,9 +11,7 @@
 #import "BoardViewController.h"
 #import <QuartzCore/QuartzCore.h>
 #import "BoardView.h"
-//#import <GoogleMobileAds/GADInterstitial.h>
-//#import <iAd/iAd.h>
-
+#import "RatingStatsView.h"
 
 #define usernameKey @"username"
 #define passwordKey @"password"
@@ -40,10 +38,11 @@
 @synthesize messagesCollapsed, invitationsReceivedCollapsed, activeGamesCollapsed, publicInvitationsCollapsed, sentInvitationsCollapsed, nonActiveGamesCollapsed,
             alreadyAskedAboutInvitations;
 @synthesize selectedInvitationCell, selectedPublicInvitationCell;
-@synthesize inviteButton, messageButton;
+@synthesize inviteButton;
 @synthesize interstitial;
 @synthesize gamesLimit;
 @synthesize showAds;
+@synthesize actionPopoverView;
 
 
 //- (void)adViewWillLeaveApplication:(GADBannerView *)bannerView {
@@ -93,11 +92,15 @@
     selectedInvitationCell = nil;
     selectedPublicInvitationCell = nil;
     
-    messageButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"messageBubble0.png"] style:UIBarButtonItemStylePlain target:self action:@selector(messageTap)];
+//    messageButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"messageBubble0.png"] style:UIBarButtonItemStylePlain target:self action:@selector(messageTap)];
 //    [messageButton setImage:[UIImage imageNamed:@"messageBubbleEnd.png"]];
-    inviteButton = [self.navigationItem rightBarButtonItem];
+//    inviteButton = [self.navigationItem rightBarButtonItem];
+    inviteButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemPlay target:self action: @selector(invite)];
+    UIBarButtonItem *moreButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAction target:self action: @selector(showActions)];
+//    statsButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem: UIBarButtonSystemItem target:self action: @selector(showStats)];
+//    friendsButton = [[UIBarButtonItem alloc] initWithImage: [UIImage imageNamed:@"friends.png"] style: UIBarButtonItemStylePlain target:self action:@selector(toFriends)];
     [self.navigationItem setRightBarButtonItem:nil];
-    [self.navigationItem setRightBarButtonItems:[NSArray arrayWithObjects:messageButton, inviteButton, nil]];
+    [self.navigationItem setRightBarButtonItems:[NSArray arrayWithObjects:moreButton, inviteButton, nil]];
 
     
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
@@ -556,6 +559,9 @@
             //            [txtStr appendString:@" \u265C"];
         }
         NSMutableString *ratingStr = [NSMutableString stringWithString:@"\u25A0 "];
+        if ([[[[player invitations] objectAtIndex:indexPath.row] opponentRating] length] == 3) {
+            [ratingStr appendString:@"  "];
+        }
         [ratingStr appendString: [[[player invitations] objectAtIndex:indexPath.row] opponentRating]];
         tmpStr = [[NSMutableAttributedString alloc] initWithString: ratingStr];
         [self addColorOfRating: [[[player invitations] objectAtIndex: indexPath.row] opponentRating] toString: tmpStr];
@@ -599,6 +605,9 @@
         }
         
         NSMutableString *ratingStr = [NSMutableString stringWithString:@"\u25A0 "];
+        if ([[[[player activeGames] objectAtIndex:indexPath.row] opponentRating] length] == 3) {
+            [ratingStr appendString:@"  "];
+        }
         [ratingStr appendString: [[[player activeGames] objectAtIndex:indexPath.row] opponentRating]];
         tmpStr = [[NSMutableAttributedString alloc] initWithString: ratingStr];
         [self addColorOfRating: [[[player activeGames] objectAtIndex: indexPath.row] opponentRating] toString: tmpStr];
@@ -647,6 +656,9 @@
             //            [txtStr appendString:@" \u265C"];
         }
         NSMutableString *ratingStr = [NSMutableString stringWithString:@"\u25A0 "];
+        if ([[[[player publicInvitations] objectAtIndex:indexPath.row] opponentRating] length] == 3) {
+            [ratingStr appendString:@"  "];
+        }
         [ratingStr appendString: [[[player publicInvitations] objectAtIndex:indexPath.row] opponentRating]];
         tmpStr = [[NSMutableAttributedString alloc] initWithString: ratingStr];
         [self addColorOfRating: [[[player publicInvitations] objectAtIndex: indexPath.row] opponentRating] toString: tmpStr];
@@ -699,6 +711,9 @@
             cell.ratingLabel.text = @"";
         } else {
             NSMutableString *ratingStr = [NSMutableString stringWithString:@"\u25A0 "];
+            if ([[[[player sentInvitations] objectAtIndex:indexPath.row] opponentRating] length] == 3) {
+                [ratingStr appendString:@"  "];
+            }
             [ratingStr appendString: [[[player sentInvitations] objectAtIndex:indexPath.row] opponentRating]];
             tmpStr = [[NSMutableAttributedString alloc] initWithString: ratingStr];
             [self addColorOfRating: [[[player sentInvitations] objectAtIndex: indexPath.row] opponentRating] toString: tmpStr];
@@ -744,6 +759,9 @@
 //            [txtStr appendString:@" \u265C"];
         }
         NSMutableString *ratingStr = [NSMutableString stringWithString:@"\u25A0 "];
+        if ([[[[player nonActiveGames] objectAtIndex:indexPath.row] opponentRating] length] == 3) {
+            [ratingStr appendString:@"  "];
+        }
         [ratingStr appendString: [[[player nonActiveGames] objectAtIndex:indexPath.row] opponentRating]];
         tmpStr = [[NSMutableAttributedString alloc] initWithString: ratingStr];
         [self addColorOfRating: [[[player nonActiveGames] objectAtIndex: indexPath.row] opponentRating] toString: tmpStr];
@@ -900,7 +918,7 @@
         headerLabel.textColor = [UIColor whiteColor];
         headerLabel.shadowColor = [UIColor darkGrayColor];
         headerLabel.shadowOffset = CGSizeMake(0, 1);
-        headerLabel.font = [UIFont systemFontOfSize:17.0f];
+        headerLabel.font = [UIFont systemFontOfSize:15.0f];
         headerLabel.text = [self tableView:tableView titleForHeaderInSection:section];
         headerLabel.tag = 0;
         collapsedLabel = [[UILabel alloc] initWithFrame:CGRectMake(tableView.bounds.size.width-40, 2, 40, 18)];
@@ -974,7 +992,7 @@
     } else if ((section == 2) && ([[player activeGames] count] > 0)) {
         [sectionHeaderView setBackgroundColor:[UIColor blueColor]];
     } else {
-        [sectionHeaderView setBackgroundColor:[UIColor brownColor]];
+        [sectionHeaderView setBackgroundColor:[UIColor colorWithRed:(8.0/255) green:(52.0/255) blue:(29.0/255) alpha:1.0]];
     }
     
     return sectionHeaderView;
@@ -1052,6 +1070,10 @@
     return YES;
 }
 */
+
+-(void) invite {
+    [self performSegueWithIdentifier:@"addInvitationsTap" sender: self];
+}
 
 -(void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender{
     self.tableView.layer.borderWidth = 0.0;
@@ -1536,32 +1558,34 @@
 
 
 -(void) acceptPublicInvitation: (UIButton *) sender {
-    long openInvitationsLimit = [[NSUserDefaults standardUserDefaults] integerForKey:@"openInvitationsLimit"];
-    if (openInvitationsLimit <= 1) {
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Open invitations limit reached" message:@"After taking 2 open invitations, you have to post one before you can accept 2 more.\n To post an open invitation, press \"Play?\" and leave the opponent field blank." delegate:self cancelButtonTitle:@"Got it." otherButtonTitles: nil];
-        [alert setTag: 2];
-        [alert show];
-        return;
-    }
-    if (openInvitationsLimit > 1) {
-        --openInvitationsLimit;
-        [[NSUserDefaults standardUserDefaults] setInteger: openInvitationsLimit forKey:@"openInvitationsLimit"];
-    }
-    
-    long count = [[player activeGames] count] + [[player nonActiveGames] count];
-    for (Game *game in [player sentInvitations]) {
-        if ([[game ratedNot] isEqualToString:@"rated"]) {
-            count += 2;
-        } else {
-            ++count;
+    if (!player.subscriber) {
+        long openInvitationsLimit = [[NSUserDefaults standardUserDefaults] integerForKey:@"openInvitationsLimit"];
+        if (openInvitationsLimit <= 1) {
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Open invitations limit reached" message:@"After taking 2 open invitations, you have to post one before you can accept 2 more.\n To post an open invitation, press \"Play?\" and leave the opponent field blank." delegate:self cancelButtonTitle:@"Got it." otherButtonTitles: nil];
+            [alert setTag: 2];
+            [alert show];
+            return;
+        }
+        if (openInvitationsLimit > 1) {
+            --openInvitationsLimit;
+            [[NSUserDefaults standardUserDefaults] setInteger: openInvitationsLimit forKey:@"openInvitationsLimit"];
         }
     }
-    if (count > gamesLimit) {
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"New account limit reached." message:@"You cannot accept more games. You can, however, play more games by posting open invitations. \n This limit will gradually increase as you finish more games." delegate:self cancelButtonTitle:@"Got it." otherButtonTitles: nil];
-        [alert setTag: 2];
-        [alert show];
-        return;
-    }
+    
+//    long count = [[player activeGames] count] + [[player nonActiveGames] count];
+//    for (Game *game in [player sentInvitations]) {
+//        if ([[game ratedNot] isEqualToString:@"rated"]) {
+//            count += 2;
+//        } else {
+//            ++count;
+//        }
+//    }
+//    if (count > gamesLimit) {
+//        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"New account limit reached." message:@"You cannot accept more games. You can, however, play more games by posting open invitations. \n This limit will gradually increase as you finish more games." delegate:self cancelButtonTitle:@"Got it." otherButtonTitles: nil];
+//        [alert setTag: 2];
+//        [alert show];
+//        return;
+//    }
     
     self.tableView.layer.borderWidth = 1.5;
     [self performSelector:@selector(scrollViewDidScroll:) withObject: self.tableView];
@@ -1966,6 +1990,8 @@
     }
 
     showAds = ([dashboardString rangeOfString:@"No Ads"].location == NSNotFound) || ([dashboardString rangeOfString:@"No Ads"].location > 30);
+    [player setShowAds: showAds];
+    [player setSubscriber: ([dashboardString rangeOfString:@"tb GamesLimit"].location == NSNotFound) || ([dashboardString rangeOfString:@"tb GamesLimit"].location > 30)];
     if (([dashboardString rangeOfString:@"Unlimited Games"].location != NSNotFound) && ([dashboardString rangeOfString:@"Unlimited Games"].location < 30)) {
         gamesLimit = INT_MAX;
     }
@@ -1993,6 +2019,25 @@
 //            NSLog(@"kitty");
         }
         dashIDX++;
+    }
+    while ((dashIDX < [splitDash count]) && (![[splitDash objectAtIndex:dashIDX] isEqualToString: @"Rating Stats"])) {
+        dashIDX++;
+    }
+    if ([[splitDash objectAtIndex:dashIDX] isEqualToString: @"Rating Stats"] && (dashIDX+1 < [splitDash count])) {
+        [[player ratingStats] removeAllObjects];
+        dashIDX++;
+        while ((![[splitDash objectAtIndex:dashIDX] isEqualToString: @"Invitations received"]) && (dashIDX < [splitDash count])) {
+            dashLine = [splitDash objectAtIndex:dashIDX];
+            splitLine = [dashLine componentsSeparatedByString:@";"];
+            RatingStat *ratingStat = [[RatingStat alloc] init];
+            [ratingStat setGame: [splitLine objectAtIndex: 0]];
+            [ratingStat setRating: [splitLine objectAtIndex: 1]];
+            [ratingStat setTotalGames: [splitLine objectAtIndex: 2]];
+            [ratingStat setLastPlayed: [splitLine objectAtIndex: 4]];
+            [ratingStat setCrown: [[splitLine objectAtIndex: 3] intValue]];
+            [[player ratingStats] addObject:ratingStat];
+            dashIDX++;
+        }
     }
     while ((dashIDX < [splitDash count]) && (![[splitDash objectAtIndex:dashIDX] isEqualToString: @"Invitations received"])) {
         dashIDX++;
@@ -2454,6 +2499,52 @@
 }
 
 
+-(void) showActions {
+    NSMutableArray *buttonsArray = [[NSMutableArray alloc] init];
+    CGRect frame = CGRectMake(0, 0, self.view.bounds.size.width/2, 35);
+    UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
+    button.backgroundColor = [UIColor clearColor];
+    button.titleLabel.font = [UIFont boldSystemFontOfSize:17];
+    [button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+    [button setTitle: NSLocalizedString(@"compose message", nil) forState:UIControlStateNormal];
+    [button addTarget:self action:@selector(toComposer) forControlEvents:UIControlEventTouchUpInside];
+    [button.titleLabel setTextAlignment:NSTextAlignmentCenter];
+    //    [sendButton setAutoresizingMask:UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleWidth];
+    [button setFrame:frame];
+    [buttonsArray addObject: button];
+    button = [UIButton buttonWithType:UIButtonTypeCustom];
+    button.backgroundColor = [UIColor clearColor];
+    button.titleLabel.font = [UIFont boldSystemFontOfSize:17];
+    [button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+    [button setTitle: NSLocalizedString(@"show stats", nil) forState:UIControlStateNormal];
+    [button addTarget:self action:@selector(showStats) forControlEvents:UIControlEventTouchUpInside];
+    [button.titleLabel setTextAlignment:NSTextAlignmentCenter];
+    //    [sendButton setAutoresizingMask:UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleWidth];
+    [button setFrame:frame];
+    [buttonsArray addObject: button];
+    
+    actionPopoverView = [PopoverView showPopoverAtPoint: CGPointMake(self.view.bounds.size.width - 20, 0) inView:self.view withViewArray: buttonsArray delegate:self];
+    
+}
+
+-(void) toComposer {
+    [actionPopoverView dismiss];
+    [self performSegueWithIdentifier:@"messagesTap" sender:self];
+}
+
+-(void) showStats {
+    [actionPopoverView dismiss];
+    
+    RatingStatsView *ratingView = [[RatingStatsView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width*4/5, 44*[[player ratingStats] count])];
+    [ratingView setDelegate: ratingView];
+    [ratingView setDataSource: ratingView];
+    [ratingView setRatingStats: [player ratingStats]];
+    [ratingView setUserInteractionEnabled:NO];
+    
+    actionPopoverView = [PopoverView showPopoverAtPoint: CGPointMake(self.view.bounds.size.width - 20, 0) inView:self.view withTitle: @"rating stats" withContentView: ratingView delegate:self];
+    [actionPopoverView layoutSubviews];
+//    [ratingView setFrame: frame];
+}
 
 
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex

@@ -9,7 +9,7 @@
 #import "AppDelegate.h"
 #import "AVFoundation/AVFoundation.h"
 #import "GamesTableViewController.h"
-
+@import Firebase;
 
 @implementation AppDelegate
 
@@ -58,6 +58,8 @@
                          otherButtonTitles:@"Close message", nil];
         [alert show];
     }
+    
+    [FIRApp configure];
     
     return YES;
 }

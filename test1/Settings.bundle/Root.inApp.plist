@@ -88,9 +88,25 @@
 		</dict>
 		<dict>
 			<key>Key</key>
+			<string>inviteFriendsButton</string>
+			<key>Title</key>
+			<string>Invite Friends</string>
+			<key>IASKCellImage</key>
+			<string>friends</string>
+			<key>IASKTextAlignment</key>
+			<string>IASKUITextAlignmentCenter</string>
+			<key>Type</key>
+			<string>IASKButtonSpecifier</string>
+		</dict>
+		<dict>
+			<key>Key</key>
 			<string>HelpButton</string>
 			<key>Title</key>
 			<string>Get help</string>
+			<key>IASKCellImage</key>
+			<string>help</string>
+			<key>IASKTextAlignment</key>
+			<string>IASKUITextAlignmentCenter</string>
 			<key>Type</key>
 			<string>IASKButtonSpecifier</string>
 		</dict>

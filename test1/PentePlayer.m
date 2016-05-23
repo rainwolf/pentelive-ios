@@ -34,15 +34,17 @@
 
 @end
 
+@implementation RatingStat
+@synthesize game, rating, totalGames, lastPlayed;
+@synthesize crown;
+
+@end
+
 
 @implementation PentePlayer
 @synthesize playerName;
-@synthesize invitations;
-@synthesize sentInvitations;
-@synthesize activeGames;
-@synthesize nonActiveGames;
-@synthesize publicInvitations;
-@synthesize messages;
+@synthesize invitations, sentInvitations, activeGames, nonActiveGames, publicInvitations, messages, ratingStats;
+@synthesize showAds, subscriber;
 
 -(id) init {
     self = [super init];
@@ -53,6 +55,9 @@
         nonActiveGames = [[NSMutableArray alloc] init];
         publicInvitations = [[NSMutableArray alloc] init];
         messages = [[NSMutableArray alloc] init];
+        ratingStats = [[NSMutableArray alloc] init];
+        showAds = YES;
+        subscriber = NO;
     }
     return self;
 }
