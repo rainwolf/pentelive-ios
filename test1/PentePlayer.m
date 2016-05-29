@@ -20,7 +20,6 @@
 @synthesize privateGame;
 @synthesize nameColor;
 @synthesize crown;
-
 @end
 
 @implementation Message
@@ -31,19 +30,21 @@
 @synthesize unread;
 @synthesize nameColor;
 @synthesize crown;
-
 @end
 
 @implementation RatingStat
 @synthesize game, rating, totalGames, lastPlayed;
 @synthesize crown;
+@end
 
+@implementation Tournament
+@synthesize name, tournamentID, tournamentState, date, round, game;
 @end
 
 
 @implementation PentePlayer
 @synthesize playerName;
-@synthesize invitations, sentInvitations, activeGames, nonActiveGames, publicInvitations, messages, ratingStats;
+@synthesize invitations, sentInvitations, activeGames, nonActiveGames, publicInvitations, messages, ratingStats, tournaments;
 @synthesize showAds, subscriber;
 
 -(id) init {
@@ -56,6 +57,7 @@
         publicInvitations = [[NSMutableArray alloc] init];
         messages = [[NSMutableArray alloc] init];
         ratingStats = [[NSMutableArray alloc] init];
+        tournaments = [[NSMutableArray alloc] init];
         showAds = YES;
         subscriber = NO;
     }

@@ -63,12 +63,14 @@
 			<string>SignUpButton</string>
 		</dict>
 		<dict>
+			<key>Key</key>
+			<string>GameRulesButton</string>
 			<key>File</key>
 			<string>GameRules</string>
 			<key>Title</key>
 			<string>Game rules</string>
 			<key>Type</key>
-			<string>PSChildPaneSpecifier</string>
+			<string>IASKButtonSpecifier</string>
 			<key>IASKTextAlignment</key>
 			<string>IASKUITextAlignmentCenter</string>
 		</dict>
@@ -92,7 +94,7 @@
 			<key>Title</key>
 			<string>Invite Friends</string>
 			<key>IASKCellImage</key>
-			<string>friends</string>
+			<string>sharewithfriends</string>
 			<key>IASKTextAlignment</key>
 			<string>IASKUITextAlignmentCenter</string>
 			<key>Type</key>

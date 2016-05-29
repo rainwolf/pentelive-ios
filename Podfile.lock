@@ -20,6 +20,7 @@ PODS:
     - GoogleSymbolUtilities (~> 1.0)
   - HexColors (2.3.0)
   - PopoverView (0.0.2)
+  - SVWebViewController (HEAD based on 1.0)
   - TSMessages (0.9.13):
     - HexColors (~> 2.3.0)
 
@@ -27,6 +28,7 @@ DEPENDENCIES:
   - Firebase/AdMob
   - Firebase/Core
   - PopoverView
+  - SVWebViewController (HEAD)
   - TSMessages (from `https://github.com/rainwolf/TSMessages.git`)
 
 EXTERNAL SOURCES:
@@ -48,6 +50,7 @@ SPEC CHECKSUMS:
   GoogleUtilities: 56c5ac05b7aa5dc417a1bb85221a9516e04d7032
   HexColors: 6ad3947c3447a055a3aa8efa859def096351fe5f
   PopoverView: 62e83ffda75944d6cf2de9c6593489f3097dc1a3
+  SVWebViewController: c36dda7326e81fcae0abf5d02bf7bbf7e41be901
   TSMessages: 6e403b790139636c15ab4f51946537095e03e79c
 
 COCOAPODS: 0.39.0

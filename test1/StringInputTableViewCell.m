@@ -18,7 +18,7 @@
 - (void)initalizeInputView {
 	// Initialization code
 	self.selectionStyle = UITableViewCellSelectionStyleNone;
-	self.textField = [[HTAutocompleteTextField alloc] initWithFrame:CGRectMake(2*self.frame.size.width/3, (self.frame.size.height - [UIFont systemFontOfSize:17.0f].lineHeight) / 2 , self.frame.size.width/3-20, [UIFont systemFontOfSize:17.0f].lineHeight)];
+	self.textField = [[HTAutocompleteTextField alloc] initWithFrame:CGRectMake(self.frame.size.width/3, (self.frame.size.height - [UIFont systemFontOfSize:17.0f].lineHeight) / 2 , 2*self.frame.size.width/3-20, [UIFont systemFontOfSize:17.0f].lineHeight)];
 	[self addSubview:self.textField];
 //    [self.textField setBounds:CGRectMake(self.frame.size.width/2, 0, self.frame.size.width/2, [UIFont systemFontOfSize:17.0f].lineHeight)];
 	self.textField.autocorrectionType = UITextAutocorrectionTypeNo;
@@ -27,6 +27,7 @@
 	self.textField.textAlignment = NSTextAlignmentLeft;
 	self.textField.textColor = [UIColor blueColor];
 	self.textField.font = [UIFont systemFontOfSize:17.0f];
+    self.textField.placeholder = @"blank to invite anyone";
 	self.textField.clearButtonMode = UITextFieldViewModeNever;
 //	self.textField.autoresizingMask = UIViewAutoresizingFlexibleWidth;
 	self.accessoryType = UITableViewCellAccessoryNone;

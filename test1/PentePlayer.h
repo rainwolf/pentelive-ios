@@ -44,7 +44,6 @@ alpha:1.0]
 @property(nonatomic,retain) NSString *unread;
 @property(nonatomic,retain) UIColor *nameColor;
 @property(atomic, assign) int crown;
-
 @end
 
 @interface RatingStat : NSObject {
@@ -53,16 +52,21 @@ alpha:1.0]
 }
 @property(nonatomic,retain) NSString *game, *rating, *lastPlayed, *totalGames;
 @property(atomic, assign) int crown;
+@end
 
+@interface Tournament : NSObject {
+    NSString *game, *name, *tournamentID, *round, *tournamentState, *date;
+}
+@property(nonatomic,retain) NSString *game, *name, *tournamentID, *round, *tournamentState, *date;
 @end
 
 
 @interface PentePlayer : NSObject {
     NSString *playerName;
-    NSMutableArray *invitations, *sentInvitations, *activeGames, *nonActiveGames, *publicInvitations, *messages, *ratingStats;
+    NSMutableArray *invitations, *sentInvitations, *activeGames, *nonActiveGames, *publicInvitations, *messages, *ratingStats, *tournaments;
     BOOL showAds, subscriber;
 }
 @property(nonatomic,retain) NSString *playerName;
-@property(nonatomic,retain) NSMutableArray *invitations, *sentInvitations, *activeGames, *nonActiveGames, *publicInvitations, *messages, *ratingStats;
+@property(nonatomic,retain) NSMutableArray *invitations, *sentInvitations, *activeGames, *nonActiveGames, *publicInvitations, *messages, *ratingStats, *tournaments;
 @property(atomic, assign) BOOL showAds, subscriber;
 @end

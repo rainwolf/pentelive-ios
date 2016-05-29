@@ -12,11 +12,19 @@
 #import <QuartzCore/QuartzCore.h>
 #import "BoardView.h"
 #import "RatingStatsView.h"
+#import "SVWebViewController.h"
+
 
 #define usernameKey @"username"
 #define passwordKey @"password"
 
-
+#define MESSAGESSECTION 0
+#define INVITATIONSSECTION 1
+#define ACTIVEGAMESSECTION 2
+#define PUBLICINVITATIONSSECTION 3
+#define SENTINVITATIONSSECTION 5
+#define NONACTIVEGAMESSECTION 6
+#define TOURNAMENTSSECTION 4
 
 @interface GamesTableViewController ()
 
@@ -36,7 +44,7 @@
 @synthesize cancelButton;
 @synthesize bannerView;
 @synthesize messagesCollapsed, invitationsReceivedCollapsed, activeGamesCollapsed, publicInvitationsCollapsed, sentInvitationsCollapsed, nonActiveGamesCollapsed,
-            alreadyAskedAboutInvitations;
+            alreadyAskedAboutInvitations, tournamentsCollapsed;
 @synthesize selectedInvitationCell, selectedPublicInvitationCell;
 @synthesize inviteButton;
 @synthesize interstitial;
@@ -96,12 +104,15 @@
 //    [messageButton setImage:[UIImage imageNamed:@"messageBubbleEnd.png"]];
 //    inviteButton = [self.navigationItem rightBarButtonItem];
     inviteButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemPlay target:self action: @selector(invite)];
-    UIBarButtonItem *moreButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAction target:self action: @selector(showActions)];
+    UIBarButtonItem *moreButton = [[UIBarButtonItem alloc] initWithImage: [UIImage imageNamed:@"showpopup.png"] style: UIBarButtonItemStylePlain target:self action: @selector(showActions)];
 //    statsButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem: UIBarButtonSystemItem target:self action: @selector(showStats)];
 //    friendsButton = [[UIBarButtonItem alloc] initWithImage: [UIImage imageNamed:@"friends.png"] style: UIBarButtonItemStylePlain target:self action:@selector(toFriends)];
     [self.navigationItem setRightBarButtonItem:nil];
     [self.navigationItem setRightBarButtonItems:[NSArray arrayWithObjects:moreButton, inviteButton, nil]];
 
+    UIBarButtonItem *leftBarButton = [self.navigationItem leftBarButtonItem];
+    [leftBarButton setImage:[UIImage imageNamed:@"settings.png"]];
+    [leftBarButton setTitle: nil];
     
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
     if ([defaults boolForKey:@"messagesCollapsed"]) {
@@ -133,6 +144,11 @@
         nonActiveGamesCollapsed = [defaults boolForKey:@"nonActiveGamesCollapsed"];
     } else {
         nonActiveGamesCollapsed = NO;
+    }
+    if ([defaults boolForKey:@"tournamentsCollapsed"]) {
+        tournamentsCollapsed = [defaults boolForKey:@"tournamentsCollapsed"];
+    } else {
+        tournamentsCollapsed = NO;
     }
     self.tableView.layer.borderColor = [UIColor redColor].CGColor;
     
@@ -389,7 +405,7 @@
 {
     //#warning Potentially incomplete method implementation.
     // Return the number of sections.
-    return 6;
+    return 7;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
@@ -400,41 +416,47 @@
         return 0;
     }
     switch (section) {
-        case 0:
+        case MESSAGESSECTION:
             if (messagesCollapsed) {
                 return 0;
             }
             return [[player messages] count];
             break;
-        case 1:
+        case INVITATIONSSECTION:
             if (invitationsReceivedCollapsed) {
                 return 0;
             }
             return [[player invitations] count];
             break;
-        case 2:
+        case ACTIVEGAMESSECTION:
             if (activeGamesCollapsed) {
                 return 0;
             }
             return [[player activeGames] count];
             break;
-        case 3:
+        case PUBLICINVITATIONSSECTION:
             if (publicInvitationsCollapsed) {
                 return 0;
             }
             return [[player publicInvitations] count];
             break;
-        case 4:
+        case SENTINVITATIONSSECTION:
             if (sentInvitationsCollapsed) {
                 return 0;
             }
             return [[player sentInvitations] count];
             break;
-        case 5:
+        case NONACTIVEGAMESSECTION:
             if (nonActiveGamesCollapsed) {
                 return 0;
             }
             return [[player nonActiveGames] count];
+            break;
+        case TOURNAMENTSSECTION:
+            if (tournamentsCollapsed) {
+                return 0;
+            }
+            return [[player tournaments] count];
             break;
         default:
             return 0;
@@ -443,13 +465,13 @@
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    if (selectedInvitationIndexPath && (indexPath.section == 1)) {
-        if ((selectedInvitationIndexPath.section == 1) && (indexPath.row == selectedInvitationIndexPath.row)) {
+    if (selectedInvitationIndexPath && (indexPath.section == INVITATIONSSECTION)) {
+        if ((selectedInvitationIndexPath.section == INVITATIONSSECTION) && (indexPath.row == selectedInvitationIndexPath.row)) {
             return 88;
         }
     }
-    if (selectedPublicInvitationIndexPath && (indexPath.section == 3)) {
-        if ((selectedPublicInvitationIndexPath.section == 3) && (indexPath.row == selectedPublicInvitationIndexPath.row)) {
+    if (selectedPublicInvitationIndexPath && (indexPath.section == PUBLICINVITATIONSSECTION)) {
+        if ((selectedPublicInvitationIndexPath.section == PUBLICINVITATIONSSECTION) && (indexPath.row == selectedPublicInvitationIndexPath.row)) {
             return 88;
         }
     }
@@ -489,7 +511,7 @@
     NSMutableAttributedString *tmpStr;
     NSMutableString *txtStr;
     
-    if (indexPath.section == 0) {
+    if (indexPath.section == MESSAGESSECTION) {
         if ([[[[player messages] objectAtIndex:indexPath.row] unread] isEqualToString:@"unread"]) {
             cell = (GameTableViewCell *) [tableView dequeueReusableCellWithIdentifier: CellWithUnreadImageIdentifier];
             if (!cell) {
@@ -504,18 +526,25 @@
         }
         txtStr = [[NSMutableString alloc] initWithString:[[[player messages] objectAtIndex:indexPath.row] author]];
         int crown = [[[player messages] objectAtIndex:indexPath.row] crown];
-        if (crown) {
-            if (crown == 4) {
-                [txtStr appendString:@" \u2655"];
-            } else if (crown == 1) {
-                [txtStr appendString:@" \u2654"];
-            } else {
-                [txtStr appendString:@" \u265B"];
-            }
-            //            [txtStr appendString:@" \u2656"];
-            //            [txtStr appendString:@" \u265A"];
-            //            [txtStr appendString:@" \u265C"];
+        NSTextAttachment *textAttachment = [[NSTextAttachment alloc] init];
+        switch (crown) {
+            case 1:
+                textAttachment.image = [UIImage imageNamed:@"crown.gif"];
+                break;
+            case 2:
+                textAttachment.image = [UIImage imageNamed:@"scrown.gif"];
+                break;
+            case 3:
+                textAttachment.image = [UIImage imageNamed:@"bcrown.gif"];
+                break;
+            case 4:
+                textAttachment.image = [UIImage imageNamed:@"kothcrown.gif"];
+                break;
+                
+            default:
+                break;
         }
+        NSAttributedString *crownStr = [NSAttributedString attributedStringWithAttachment:textAttachment];
         cell.ratingLabel.text = @"";
         tmpStr = [[NSMutableAttributedString alloc] initWithString:txtStr];
         [tmpStr addAttribute:NSForegroundColorAttributeName value:[[[player messages] objectAtIndex:indexPath.row] nameColor] range:NSMakeRange(0, [[[[player messages] objectAtIndex:indexPath.row] author] length])];
@@ -524,17 +553,20 @@
         } else {
             [tmpStr addAttribute:NSFontAttributeName value:[UIFont fontWithName:@"HelveticaNeue" size:16.f] range:NSMakeRange(0, [[[[player messages] objectAtIndex:indexPath.row] author] length])];
         }
+        [tmpStr appendAttributedString:[[NSMutableAttributedString alloc] initWithString:@" "]];
+        [tmpStr appendAttributedString:crownStr];
 //        [tmpStr appendString:@" ("];
 //        [tmpStr appendString: [[[player messages] objectAtIndex:indexPath.row] timeStamp]];
 //        [tmpStr appendString:@")"];
+        cell.ratingLabel.text = [[[player messages] objectAtIndex:indexPath.row] timeStamp];
         cell.textLabel.attributedText = tmpStr;
         cell.detailTextLabel.text = [[[player messages] objectAtIndex:indexPath.row] subject];
         [cell setAccessoryType:UITableViewCellAccessoryDisclosureIndicator];
         [cell setUserInteractionEnabled:YES];
     }
-    if (indexPath.section == 1) {
+    if (indexPath.section == INVITATIONSSECTION) {
         if (selectedInvitationIndexPath) {
-            if ((selectedInvitationIndexPath.section == 1) && (indexPath.row == selectedInvitationIndexPath.row)) {
+            if ((selectedInvitationIndexPath.section == INVITATIONSSECTION) && (indexPath.row == selectedInvitationIndexPath.row)) {
                 return selectedInvitationCell;
             }
         }
@@ -546,18 +578,25 @@
         [cell.imageView removeFromSuperview];
         txtStr = [[NSMutableString alloc] initWithString:[[[player invitations] objectAtIndex:indexPath.row] opponentName]];
         int crown = [[[player invitations] objectAtIndex:indexPath.row] crown];
-        if (crown) {
-            if (crown == 4) {
-                [txtStr appendString:@" \u2655"];
-            } else if (crown == 1) {
-                [txtStr appendString:@" \u2654"];
-            } else {
-                [txtStr appendString:@" \u265B"];
-            }
-            //            [txtStr appendString:@" \u2656"];
-            //            [txtStr appendString:@" \u265A"];
-            //            [txtStr appendString:@" \u265C"];
+        NSTextAttachment *textAttachment = [[NSTextAttachment alloc] init];
+        switch (crown) {
+            case 1:
+                textAttachment.image = [UIImage imageNamed:@"crown.gif"];
+                break;
+            case 2:
+                textAttachment.image = [UIImage imageNamed:@"scrown.gif"];
+                break;
+            case 3:
+                textAttachment.image = [UIImage imageNamed:@"bcrown.gif"];
+                break;
+            case 4:
+                textAttachment.image = [UIImage imageNamed:@"kothcrown.gif"];
+                break;
+                
+            default:
+                break;
         }
+        NSAttributedString *crownStr = [NSAttributedString attributedStringWithAttachment:textAttachment];
         NSMutableString *ratingStr = [NSMutableString stringWithString:@"\u25A0 "];
         if ([[[[player invitations] objectAtIndex:indexPath.row] opponentRating] length] == 3) {
             [ratingStr appendString:@"  "];
@@ -573,6 +612,8 @@
         if (![[[[player invitations] objectAtIndex:indexPath.row] nameColor] isEqual:UIColorFromRGB(0)]) {
             [tmpStr addAttribute:NSFontAttributeName value: [UIFont fontWithName:@"HelveticaNeue-Bold" size:16] range:NSMakeRange(0, [[[[player invitations] objectAtIndex:indexPath.row] opponentName] length])];
         }
+        [tmpStr appendAttributedString:[[NSMutableAttributedString alloc] initWithString:@" "]];
+        [tmpStr appendAttributedString:crownStr];
         cell.textLabel.attributedText = tmpStr;
         if ([[[[player invitations] objectAtIndex:indexPath.row] ratedNot] isEqualToString:@"Rated"]) {
             txtStr = (NSMutableString *) [NSString stringWithFormat:@"%@ (%@) - %@", [[[player invitations] objectAtIndex:indexPath.row] gameType], [[[player invitations] objectAtIndex:indexPath.row] ratedNot], [[[player invitations] objectAtIndex:indexPath.row] remainingTime]];
@@ -583,7 +624,7 @@
         [cell setUserInteractionEnabled: YES];
         [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
     }
-    if (indexPath.section == 2) {
+    if (indexPath.section == ACTIVEGAMESSECTION) {
         tmpIdentifier = [[[[player activeGames] objectAtIndex:indexPath.row] myColor] isEqualToString:@"white"] ? CellWithWhiteStoneImageIdentifier : CellWithBlackStoneImageIdentifier;
         cell = (GameTableViewCell *) [tableView dequeueReusableCellWithIdentifier: tmpIdentifier];
         if (!cell) {
@@ -591,18 +632,25 @@
         }
         txtStr = [[NSMutableString alloc] initWithString:[[[player activeGames] objectAtIndex:indexPath.row] opponentName]];
         int crown = [[[player activeGames] objectAtIndex:indexPath.row] crown];
-        if (crown) {
-            if (crown == 4) {
-                [txtStr appendString:@" \u2655"];
-            } else if (crown == 1) {
-                [txtStr appendString:@" \u2654"];
-            } else {
-                [txtStr appendString:@" \u265B"];
-            }
-            //            [txtStr appendString:@" \u2656"];
-            //            [txtStr appendString:@" \u265A"];
-            //            [txtStr appendString:@" \u265C"];
+        NSTextAttachment *textAttachment = [[NSTextAttachment alloc] init];
+        switch (crown) {
+            case 1:
+                textAttachment.image = [UIImage imageNamed:@"crown.gif"];
+                break;
+            case 2:
+                textAttachment.image = [UIImage imageNamed:@"scrown.gif"];
+                break;
+            case 3:
+                textAttachment.image = [UIImage imageNamed:@"bcrown.gif"];
+                break;
+            case 4:
+                textAttachment.image = [UIImage imageNamed:@"kothcrown.gif"];
+                break;
+                
+            default:
+                break;
         }
+        NSAttributedString *crownStr = [NSAttributedString attributedStringWithAttachment:textAttachment];
         
         NSMutableString *ratingStr = [NSMutableString stringWithString:@"\u25A0 "];
         if ([[[[player activeGames] objectAtIndex:indexPath.row] opponentRating] length] == 3) {
@@ -619,6 +667,8 @@
         if (![[[[player activeGames] objectAtIndex:indexPath.row] nameColor] isEqual:UIColorFromRGB(0)]) {
             [tmpStr addAttribute:NSFontAttributeName value: [UIFont fontWithName:@"HelveticaNeue-Bold" size:16] range:NSMakeRange(0, [[[[player activeGames] objectAtIndex:indexPath.row] opponentName] length])];
         }
+        [tmpStr appendAttributedString:[[NSMutableAttributedString alloc] initWithString:@" "]];
+        [tmpStr appendAttributedString:crownStr];
         cell.textLabel.attributedText = tmpStr;
         txtStr = [[NSMutableString alloc] initWithString:[[[player activeGames] objectAtIndex:indexPath.row] gameType]];
         [txtStr appendString:@" ("];
@@ -630,9 +680,9 @@
         [cell setUserInteractionEnabled:YES];
         cell.imageView.image = [UIImage imageNamed:[NSString stringWithFormat:@"%@Stone.png",[[[player activeGames] objectAtIndex:indexPath.row] myColor]]];
     }
-    if (indexPath.section == 3) {
+    if (indexPath.section == PUBLICINVITATIONSSECTION) {
         if (selectedPublicInvitationIndexPath) {
-            if ((selectedPublicInvitationIndexPath.section == 3) && (indexPath.row == selectedPublicInvitationIndexPath.row)) {
+            if ((selectedPublicInvitationIndexPath.section == PUBLICINVITATIONSSECTION) && (indexPath.row == selectedPublicInvitationIndexPath.row)) {
                 return selectedPublicInvitationCell;
             }
         }
@@ -643,18 +693,25 @@
                 [cell.imageView removeFromSuperview];
         txtStr = [[NSMutableString alloc] initWithString:[[[player publicInvitations] objectAtIndex:indexPath.row] opponentName]];
         int crown = [[[player publicInvitations] objectAtIndex:indexPath.row] crown];
-        if (crown) {
-            if (crown == 4) {
-                [txtStr appendString:@" \u2655"];
-            } else if (crown == 1) {
-                [txtStr appendString:@" \u2654"];
-            } else {
-                [txtStr appendString:@" \u265B"];
-            }
-            //            [txtStr appendString:@" \u2656"];
-            //            [txtStr appendString:@" \u265A"];
-            //            [txtStr appendString:@" \u265C"];
+        NSTextAttachment *textAttachment = [[NSTextAttachment alloc] init];
+        switch (crown) {
+            case 1:
+                textAttachment.image = [UIImage imageNamed:@"crown.gif"];
+                break;
+            case 2:
+                textAttachment.image = [UIImage imageNamed:@"scrown.gif"];
+                break;
+            case 3:
+                textAttachment.image = [UIImage imageNamed:@"bcrown.gif"];
+                break;
+            case 4:
+                textAttachment.image = [UIImage imageNamed:@"kothcrown.gif"];
+                break;
+                
+            default:
+                break;
         }
+        NSAttributedString *crownStr = [NSAttributedString attributedStringWithAttachment:textAttachment];
         NSMutableString *ratingStr = [NSMutableString stringWithString:@"\u25A0 "];
         if ([[[[player publicInvitations] objectAtIndex:indexPath.row] opponentRating] length] == 3) {
             [ratingStr appendString:@"  "];
@@ -670,6 +727,8 @@
         if (![[[[player publicInvitations] objectAtIndex:indexPath.row] nameColor] isEqual:UIColorFromRGB(0)]) {
             [tmpStr addAttribute:NSFontAttributeName value: [UIFont fontWithName:@"HelveticaNeue-Bold" size:16] range:NSMakeRange(0, [[[[player publicInvitations] objectAtIndex:indexPath.row] opponentName] length])];
         }
+        [tmpStr appendAttributedString:[[NSMutableAttributedString alloc] initWithString:@" "]];
+        [tmpStr appendAttributedString:crownStr];
         cell.textLabel.attributedText = tmpStr;
         if ([[[[player publicInvitations] objectAtIndex:indexPath.row] ratedNot] isEqualToString:@"Rated"]) {
             txtStr = (NSMutableString *) [NSString stringWithFormat:@"%@ (%@) - %@", [[[player publicInvitations] objectAtIndex:indexPath.row] gameType], [[[player publicInvitations] objectAtIndex:indexPath.row] ratedNot], [[[player publicInvitations] objectAtIndex:indexPath.row] remainingTime]];
@@ -685,7 +744,7 @@
         [cell setAccessoryType:UITableViewCellAccessoryDisclosureIndicator];
         [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
     }
-    if (indexPath.section == 4) {
+    if (indexPath.section == SENTINVITATIONSSECTION) {
         cell = (GameTableViewCell *) [tableView dequeueReusableCellWithIdentifier: CellIdentifier];
         if (!cell) {
             cell = [[GameTableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:CellIdentifier];
@@ -695,18 +754,25 @@
         [cell.imageView removeFromSuperview];
         txtStr = [[NSMutableString alloc] initWithString:[[[player sentInvitations] objectAtIndex:indexPath.row] opponentName]];
         int crown = [[[player sentInvitations] objectAtIndex:indexPath.row] crown];
-        if (crown) {
-            if (crown == 4) {
-                [txtStr appendString:@" \u2655"];
-            } else if (crown == 1) {
-                [txtStr appendString:@" \u2654"];
-            } else {
-                [txtStr appendString:@" \u265B"];
-            }
-            //            [txtStr appendString:@" \u2656"];
-            //            [txtStr appendString:@" \u265A"];
-            //            [txtStr appendString:@" \u265C"];
+        NSTextAttachment *textAttachment = [[NSTextAttachment alloc] init];
+        switch (crown) {
+            case 1:
+                textAttachment.image = [UIImage imageNamed:@"crown.gif"];
+                break;
+            case 2:
+                textAttachment.image = [UIImage imageNamed:@"scrown.gif"];
+                break;
+            case 3:
+                textAttachment.image = [UIImage imageNamed:@"bcrown.gif"];
+                break;
+            case 4:
+                textAttachment.image = [UIImage imageNamed:@"kothcrown.gif"];
+                break;
+                
+            default:
+                break;
         }
+        NSAttributedString *crownStr = [NSAttributedString attributedStringWithAttachment:textAttachment];
         if ([txtStr rangeOfString:@"Anyone"].location != NSNotFound) {
             cell.ratingLabel.text = @"";
         } else {
@@ -726,6 +792,8 @@
         if (![[[[player sentInvitations] objectAtIndex:indexPath.row] nameColor] isEqual:UIColorFromRGB(0)]) {
             [tmpStr addAttribute:NSFontAttributeName value: [UIFont fontWithName:@"HelveticaNeue-Bold" size:16] range:NSMakeRange(0, [[[[player sentInvitations] objectAtIndex:indexPath.row] opponentName] length])];
         }
+        [tmpStr appendAttributedString:[[NSMutableAttributedString alloc] initWithString:@" "]];
+        [tmpStr appendAttributedString:crownStr];
         cell.textLabel.attributedText = tmpStr;
         txtStr = [[NSMutableString alloc] initWithString:[[[player sentInvitations] objectAtIndex:indexPath.row] gameType]];
         [txtStr appendString:@" ("];
@@ -738,7 +806,7 @@
         [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
         [cell setAccessoryType:UITableViewCellAccessoryDisclosureIndicator];
     }
-    if (indexPath.section == 5) {
+    if (indexPath.section == NONACTIVEGAMESSECTION) {
         tmpIdentifier = [[[[player nonActiveGames] objectAtIndex:indexPath.row] myColor] isEqualToString:@"white"] ? CellWithWhiteStoneImageIdentifier : CellWithBlackStoneImageIdentifier;
         cell = (GameTableViewCell *) [tableView dequeueReusableCellWithIdentifier: tmpIdentifier];
         if (!cell) {
@@ -746,18 +814,25 @@
         }
         txtStr = [[NSMutableString alloc] initWithString:[[[player nonActiveGames] objectAtIndex:indexPath.row] opponentName]];
         int crown = [[[player nonActiveGames] objectAtIndex:indexPath.row] crown];
-        if (crown) {
-            if (crown == 4) {
-                [txtStr appendString:@" \u2655"];
-            } else if (crown == 1) {
-                [txtStr appendString:@" \u2654"];
-            } else {
-                [txtStr appendString:@" \u265B"];
-            }
-//            [txtStr appendString:@" \u2656"];
-//            [txtStr appendString:@" \u265A"];
-//            [txtStr appendString:@" \u265C"];
+        NSTextAttachment *textAttachment = [[NSTextAttachment alloc] init];
+        switch (crown) {
+            case 1:
+                textAttachment.image = [UIImage imageNamed:@"crown.gif"];
+                break;
+            case 2:
+                textAttachment.image = [UIImage imageNamed:@"scrown.gif"];
+                break;
+            case 3:
+                textAttachment.image = [UIImage imageNamed:@"bcrown.gif"];
+                break;
+            case 4:
+                textAttachment.image = [UIImage imageNamed:@"kothcrown.gif"];
+                break;
+                
+            default:
+                break;
         }
+        NSAttributedString *crownStr = [NSAttributedString attributedStringWithAttachment:textAttachment];
         NSMutableString *ratingStr = [NSMutableString stringWithString:@"\u25A0 "];
         if ([[[[player nonActiveGames] objectAtIndex:indexPath.row] opponentRating] length] == 3) {
             [ratingStr appendString:@"  "];
@@ -774,6 +849,8 @@
         if (![[[[player nonActiveGames] objectAtIndex:indexPath.row] nameColor] isEqual:UIColorFromRGB(0)]) {
             [tmpStr addAttribute:NSFontAttributeName value: [UIFont fontWithName:@"HelveticaNeue-Bold" size:16] range:NSMakeRange(0, [[[[player nonActiveGames] objectAtIndex:indexPath.row] opponentName] length])];
         }
+        [tmpStr appendAttributedString:[[NSMutableAttributedString alloc] initWithString:@" "]];
+        [tmpStr appendAttributedString:crownStr];
         cell.textLabel.attributedText = tmpStr;
         txtStr = [[NSMutableString alloc] initWithString:[[[player nonActiveGames] objectAtIndex:indexPath.row] gameType]];
         [txtStr appendString:@" ("];
@@ -785,7 +862,34 @@
         [cell setAccessoryType:UITableViewCellAccessoryDisclosureIndicator];
         cell.imageView.image = [UIImage imageNamed:[NSString stringWithFormat:@"%@Stone.png",[[[player nonActiveGames] objectAtIndex:indexPath.row] myColor]]];
     }
-    
+    if (indexPath.section == TOURNAMENTSSECTION) {
+        cell = [tableView dequeueReusableCellWithIdentifier: @"tournament"];
+        if (!cell) {
+            cell = [[GameTableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:@"tournament"];
+        }
+        tmpStr = [[NSMutableAttributedString alloc] initWithString: [NSString stringWithFormat:@"\u25CF  %@ - (%@)", [[[player tournaments] objectAtIndex: indexPath.row] name], [[[player tournaments] objectAtIndex: indexPath.row] game]]];
+        [tmpStr addAttribute:NSFontAttributeName value: [UIFont fontWithName:@"HelveticaNeue-Bold" size:25] range:NSMakeRange(0, 1)];
+        long len = [[[[player tournaments] objectAtIndex: indexPath.row] game] length];
+        [tmpStr addAttribute:NSFontAttributeName value: [UIFont fontWithName:@"HelveticaNeue" size: 14] range:NSMakeRange([tmpStr length] - 2 - len, len + 2)];
+        UIColor *statusColor;
+        if ([[[[player tournaments] objectAtIndex: indexPath.row] tournamentState] isEqualToString:@"2"]) {
+            statusColor = [UIColor orangeColor];
+            cell.detailTextLabel.text = [NSString stringWithFormat: @"Registration closed. Starts %@", [[[player tournaments] objectAtIndex: indexPath.row] date]];
+        } else {
+            statusColor = [UIColor greenColor];
+            if ([[[[player tournaments] objectAtIndex: indexPath.row] tournamentState] isEqualToString:@"1"]) {
+                cell.detailTextLabel.text = [NSString stringWithFormat: @"Registration is open until %@", [[[player tournaments] objectAtIndex: indexPath.row] date]];
+            } else {
+                cell.detailTextLabel.text = [NSString stringWithFormat: @"Tournament started. Current round: %@", [[[player tournaments] objectAtIndex: indexPath.row] round]];
+            }
+        }
+        [tmpStr addAttribute:NSForegroundColorAttributeName value:statusColor range:NSMakeRange(0, 1)];
+//        [tmpStr addAttribute:NSFontAttributeName value:[UIFont fontWithName:@"HelveticaNeue" size:16.f] range:NSMakeRange(0, [tmpStr length])];
+        cell.textLabel.attributedText = tmpStr;
+        [cell setUserInteractionEnabled:YES];
+        [cell setAccessoryType:UITableViewCellAccessoryDisclosureIndicator];
+    }
+
 //    NSLog(@"kittyfontcell %@",cell.textLabel.font);
 //    [cell.textLabel setFont:[UIFont fontWithName:@"Helvetica Neue" size:17.f]];
     [cell.detailTextLabel setFont:[UIFont fontWithName:@"Helvetica Neue" size:14.f]];
@@ -813,13 +917,13 @@
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
 
     switch (gestureRecognizer.view.tag) {
-        case 0:
+        case MESSAGESSECTION:
             messagesCollapsed = !messagesCollapsed;
             [defaults setBool:messagesCollapsed forKey:@"messagesCollapsed"];
             collapse = messagesCollapsed;
             sectionArray = [player messages];
             break;
-        case 1:
+        case INVITATIONSSECTION:
             if (selectedInvitationIndexPath && !invitationsReceivedCollapsed) {
                 [[self.tableView cellForRowAtIndexPath:selectedInvitationIndexPath] setAccessoryType:UITableViewCellAccessoryDisclosureIndicator];
                 [self.tableView beginUpdates];
@@ -833,13 +937,13 @@
             collapse = invitationsReceivedCollapsed;
             sectionArray = [player invitations];
             break;
-        case 2:
+        case ACTIVEGAMESSECTION:
             activeGamesCollapsed = !activeGamesCollapsed;
             [defaults setBool:activeGamesCollapsed forKey:@"activeGamesCollapsed"];
             collapse = activeGamesCollapsed;
             sectionArray = [player activeGames];
             break;
-        case 3:
+        case PUBLICINVITATIONSSECTION:
             if (selectedPublicInvitationIndexPath && !publicInvitationsCollapsed) {
                 [[self.tableView cellForRowAtIndexPath:selectedPublicInvitationIndexPath] setAccessoryType:UITableViewCellAccessoryDisclosureIndicator];
                 [self.tableView beginUpdates];
@@ -853,17 +957,23 @@
             collapse = publicInvitationsCollapsed;
             sectionArray = [player publicInvitations];
             break;
-        case 4:
+        case SENTINVITATIONSSECTION:
             sentInvitationsCollapsed = !sentInvitationsCollapsed;
             [defaults setBool:sentInvitationsCollapsed forKey:@"sentInvitationsCollapsed"];
             collapse = sentInvitationsCollapsed;
             sectionArray = [player sentInvitations];
             break;
-        case 5:
+        case NONACTIVEGAMESSECTION:
             nonActiveGamesCollapsed = !nonActiveGamesCollapsed;
             [defaults setBool:nonActiveGamesCollapsed forKey:@"nonActiveGamesCollapsed"];
             collapse = nonActiveGamesCollapsed;
             sectionArray = [player nonActiveGames];
+            break;
+        case TOURNAMENTSSECTION:
+            tournamentsCollapsed = !tournamentsCollapsed;
+            [defaults setBool:tournamentsCollapsed forKey:@"tournamentsCollapsed"];
+            collapse = tournamentsCollapsed;
+            sectionArray = [player tournaments];
             break;
         default:
             break;
@@ -954,23 +1064,26 @@
     
     
     switch (section) {
-        case 0:
+        case MESSAGESSECTION:
             if (messagesCollapsed) collapsedLabel.text = @"(+)"; else collapsedLabel.text = @"(-)";
             break;
-        case 1:
+        case INVITATIONSSECTION:
             if (invitationsReceivedCollapsed) collapsedLabel.text = @"(+)"; else collapsedLabel.text = @"(-)";
             break;
-        case 2:
+        case ACTIVEGAMESSECTION:
             if (activeGamesCollapsed) collapsedLabel.text = @"(+)"; else collapsedLabel.text = @"(-)";
             break;
-        case 3:
+        case PUBLICINVITATIONSSECTION:
             if (publicInvitationsCollapsed) collapsedLabel.text = @"(+)"; else collapsedLabel.text = @"(-)";
             break;
-        case 4:
+        case SENTINVITATIONSSECTION:
             if (sentInvitationsCollapsed) collapsedLabel.text = @"(+)"; else collapsedLabel.text = @"(-)";
             break;
-        case 5:
+        case NONACTIVEGAMESSECTION:
             if (nonActiveGamesCollapsed) collapsedLabel.text = @"(+)"; else collapsedLabel.text = @"(-)";
+            break;
+        case TOURNAMENTSSECTION:
+            if (tournamentsCollapsed) collapsedLabel.text = @"(+)"; else collapsedLabel.text = @"(-)";
             break;
             
         default:
@@ -985,11 +1098,11 @@
             break;
         }
     }
-    if ((section == 0) && (unread)) {
+    if ((section == MESSAGESSECTION) && (unread)) {
         [sectionHeaderView setBackgroundColor:[UIColor blueColor]];
-    } else if ((section == 1) && ([[player invitations] count] > 0)) {
+    } else if ((section == INVITATIONSSECTION) && ([[player invitations] count] > 0)) {
         [sectionHeaderView setBackgroundColor:[UIColor blueColor]];
-    } else if ((section == 2) && ([[player activeGames] count] > 0)) {
+    } else if ((section == ACTIVEGAMESSECTION) && ([[player activeGames] count] > 0)) {
         [sectionHeaderView setBackgroundColor:[UIColor blueColor]];
     } else {
         [sectionHeaderView setBackgroundColor:[UIColor colorWithRed:(8.0/255) green:(52.0/255) blue:(29.0/255) alpha:1.0]];
@@ -1000,33 +1113,26 @@
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section
 {
-    if(section == 0)
-    {
+    if(section == MESSAGESSECTION)    {
         return [NSString stringWithFormat: @"Messages (%lu)",(unsigned long)[[player messages] count]];
     }
-    else if(section == 1)
-    {
+    else if(section == INVITATIONSSECTION)    {
         return [NSString stringWithFormat: @"Invitations (%lu)",(unsigned long)[[player invitations] count]];
     }
-    else if(section == 2)
-    {
+    else if(section == ACTIVEGAMESSECTION)    {
         return [NSString stringWithFormat: @"Active Games (%lu)",(unsigned long)[[player activeGames] count]];
-        return @"Active Games";
     }
-    else if(section == 3)
-    {
+    else if(section == PUBLICINVITATIONSSECTION)    {
         return [NSString stringWithFormat: @"Public Invitations (%lu)",(unsigned long)[[player publicInvitations] count]];
-        return @"Invitations Sent";
     }
-    else if(section == 4)
-    {
+    else if(section == SENTINVITATIONSSECTION)    {
         return [NSString stringWithFormat: @"Invitations Sent (%lu)",(unsigned long)[[player sentInvitations] count]];
-        return @"Invitations Sent";
     }
-    else
-    {
+    else if(section == NONACTIVEGAMESSECTION)    {
         return [NSString stringWithFormat: @"Non-Active Games (%lu)",(unsigned long)[[player nonActiveGames] count]];
-        return @"Non-Active Games";
+    }
+    else    {
+        return [NSString stringWithFormat: @"Tournaments (%lu)",(unsigned long)[[player tournaments] count]];
     }
 }
 
@@ -1146,7 +1252,7 @@
     [TSMessage dismissActiveNotification];
     
     
-    if (indexPath.section == 0) {
+    if (indexPath.section == MESSAGESSECTION) {
         [CATransaction begin];
         [self.tableView beginUpdates];
         [CATransaction setCompletionBlock: ^{
@@ -1184,7 +1290,7 @@
             [self.tableView reloadData];
         }
     }
-    if (indexPath.section == 1) {
+    if (indexPath.section == INVITATIONSSECTION) {
         [CATransaction begin];
         [self.tableView beginUpdates];
         [CATransaction setCompletionBlock: ^{
@@ -1236,7 +1342,7 @@
         [CATransaction commit];
 
     }
-    if (indexPath.section == 2) {
+    if (indexPath.section == ACTIVEGAMESSECTION) {
         [CATransaction begin];
         [self.tableView beginUpdates];
         [CATransaction setCompletionBlock: ^{
@@ -1266,7 +1372,7 @@
         [boardController replayGame];
         [[boardController boardTapRecognizer] setEnabled:YES];
     }
-    if (indexPath.section == 3) {
+    if (indexPath.section == PUBLICINVITATIONSSECTION) {
         [CATransaction begin];
         [self.tableView beginUpdates];
         [CATransaction setCompletionBlock: ^{
@@ -1321,7 +1427,7 @@
         
     
     }
-    if (indexPath.section == 5) {
+    if (indexPath.section == NONACTIVEGAMESSECTION) {
         [CATransaction begin];
         [self.tableView beginUpdates];
         [CATransaction setCompletionBlock: ^{
@@ -1353,6 +1459,23 @@
         [boardController replayGame];
         [[boardController boardTapRecognizer] setEnabled:YES];
 //        [[boardController boardTapRecognizer] setEnabled: NO];
+    }
+    
+    if (indexPath.section == TOURNAMENTSSECTION) {
+        NSString *url = @"https://www.google.com";
+        if ([[[[player tournaments] objectAtIndex: indexPath.row] tournamentState] isEqualToString:@"2"]) {
+            url = [NSString stringWithFormat:@"https://www.pente.org/gameServer/tournaments/status.jsp?eid=%@", [[[player tournaments] objectAtIndex: indexPath.row] tournamentID]];
+//            url = [NSString stringWithFormat:@"https://development.pente.org/gameServer/tournaments/status.jsp?eid=%@", [[[player tournaments] objectAtIndex: indexPath.row] tournamentID]];
+        } else if ([[[[player tournaments] objectAtIndex: indexPath.row] tournamentState] isEqualToString:@"1"]) {
+            url = [NSString stringWithFormat:@"https://www.pente.org/gameServer/tournaments/tournamentConfirm.jsp?eid=%@", [[[player tournaments] objectAtIndex: indexPath.row] tournamentID]];
+//            url = [NSString stringWithFormat:@"https://development.pente.org/gameServer/tournaments/tournamentConfirm.jsp?eid=%@", [[[player tournaments] objectAtIndex: indexPath.row] tournamentID]];
+        } else {
+            url = [NSString stringWithFormat:@"https://www.pente.org/gameServer/tournaments/statusRound.jsp?eid=%@&round=%@", [[[player tournaments] objectAtIndex: indexPath.row] tournamentID], [[[player tournaments] objectAtIndex: indexPath.row] round]];
+//            url = [NSString stringWithFormat:@"https://development.pente.org/gameServer/tournaments/statusRound.jsp?eid=%@&round=%@", [[[player tournaments] objectAtIndex: indexPath.row] tournamentID], [[[player tournaments] objectAtIndex: indexPath.row] round]];
+        }
+        SVWebViewController *webViewController = [[SVWebViewController alloc] initWithAddress: url];
+        [self.navigationController pushViewController:webViewController animated:YES];
+
     }
     [self performSelector:@selector(scrollViewDidScroll:) withObject: self.tableView afterDelay:0.305];
 }
@@ -1429,19 +1552,12 @@
         selectedInvitationCell = nil;
     } completion:^(BOOL finished){
             [self performSelector:@selector(scrollViewDidScroll:) withObject: self.tableView afterDelay:0.01];
-        //[self parseDashboard];
     }];
 
     [player.invitations removeObjectAtIndex:tmpPath.row];
     [UIView animateWithDuration:0.3 animations:^{[self.tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject: tmpPath] withRowAnimation:UITableViewRowAnimationFade];} completion:^(BOOL finished){
         [self dashboardParse];
-//        [self performSelector:@selector(scrollViewDidScroll:) withObject: self.tableView afterDelay:0.4];
 }];
-//    [self.tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject:tmpPath] withRowAnimation:UITableViewRowAnimationFade];
-//    [self performSelector:@selector(parseDashboard) withObject: nil afterDelay:0.7];
-//    [self.tableView performSelector:@selector(reloadData) withObject: nil afterDelay:0.7];
-//    [self performSelector:@selector(parseDashboard) withObject: nil afterDelay:0.5];
-//    [self.tableView performSelector:@selector(reloadData) withObject: nil afterDelay:0.5];
 
 }
 
@@ -1485,10 +1601,7 @@
     [player.invitations removeObjectAtIndex:tmpPath.row];
     
     [UIView animateWithDuration:0.3 animations:^{[self.tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject: tmpPath] withRowAnimation:UITableViewRowAnimationFade];} completion:^(BOOL finished){ [self dashboardParse];
-//        [self performSelector:@selector(scrollViewDidScroll:) withObject: self.tableView];
 }];
-//    [self.tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject:tmpPath] withRowAnimation:UITableViewRowAnimationFade];
-//    [self.tableView performSelector:@selector(reloadData) withObject: nil afterDelay:0.7];
 }
 
 -(void) cancelInvitation: (UIButton *) sender {
@@ -1561,7 +1674,7 @@
     if (!player.subscriber) {
         long openInvitationsLimit = [[NSUserDefaults standardUserDefaults] integerForKey:@"openInvitationsLimit"];
         if (openInvitationsLimit <= 1) {
-            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Open invitations limit reached" message:@"After taking 2 open invitations, you have to post one before you can accept 2 more.\n To post an open invitation, press \"Play?\" and leave the opponent field blank." delegate:self cancelButtonTitle:@"Got it." otherButtonTitles: nil];
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Open invitations limit reached" message:@"After taking 2 open invitations, you have to post one before you can accept 2 more.\n To post an open invitation, press the play button and leave the opponent field blank." delegate:self cancelButtonTitle:@"Got it." otherButtonTitles: nil];
             [alert setTag: 2];
             [alert show];
             return;
@@ -1705,7 +1818,7 @@
 }
 
 - (void)tableView:(UITableView *)tableView willBeginEditingRowAtIndexPath:(NSIndexPath *)indexPath {
-    if (indexPath.section == 3) {
+    if (indexPath.section == PUBLICINVITATIONSSECTION) {
         [[tableView cellForRowAtIndexPath:indexPath] layoutSubviews];
         
     }
@@ -1713,23 +1826,23 @@
 
 
 - (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
-    if (((indexPath.section >= 2) && (indexPath.section <= 5)) || (indexPath.section == 0)) {
-        return YES;
+    if ((indexPath.section == PUBLICINVITATIONSSECTION) || (indexPath.section == TOURNAMENTSSECTION)) {
+        return NO;
     }
-    return NO;
+    return YES;
 }
 
 -(NSString *)tableView:(UITableView *)tableView titleForDeleteConfirmationButtonForRowAtIndexPath:(NSIndexPath *)indexPath {
-    if (indexPath.section == 0) {
+    if (indexPath.section == MESSAGESSECTION) {
         return @"delete";
     }
-    if (indexPath.section == 2) {
+    if (indexPath.section == ACTIVEGAMESSECTION) {
         return @"resign";
     }
-    if (indexPath.section == 4) {
+    if (indexPath.section == SENTINVITATIONSSECTION) {
         return @"cancel";
     }
-    if (indexPath.section == 5) {
+    if (indexPath.section == NONACTIVEGAMESSECTION) {
         return @"cancel set";
     }
     return @"uh-oh";
@@ -1738,8 +1851,7 @@
 
 - (UITableViewCellEditingStyle)tableView:(UITableView *)tableView editingStyleForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    if ((indexPath.section == 0) || (indexPath.section == 2) || ((indexPath.section >= 4) && (indexPath.section <= 5)))
-    {
+    if ((indexPath.section != PUBLICINVITATIONSSECTION) && (indexPath.section != TOURNAMENTSSECTION)) {
         return  UITableViewCellEditingStyleDelete;
     }
     return UITableViewCellEditingStyleNone;
@@ -1751,7 +1863,7 @@
         selectedInvitationIndexPath = nil;
     selectedInvitationCell = nil;
         [self.tableView endUpdates];
-    if (indexPath.section == 0) {
+    if (indexPath.section == MESSAGESSECTION) {
         //            [self.tableView setUserInteractionEnabled: NO];
         self.tableView.layer.borderWidth = 1.5;
         [self performSelector:@selector(scrollViewDidScroll:) withObject: self.tableView];
@@ -1796,7 +1908,7 @@
         //            [self parseDashboard];
         //            [self.tableView reloadData];
     }
-    if (indexPath.section == 2) {
+    if (indexPath.section == ACTIVEGAMESSECTION) {
         //            [self.tableView setUserInteractionEnabled: NO];
         self.tableView.layer.borderWidth = 1.5;
         [self performSelector:@selector(scrollViewDidScroll:) withObject: self.tableView];
@@ -1831,7 +1943,7 @@
         //            [self.tableView reloadData];
     }
     
-    if (indexPath.section == 4) {
+    if (indexPath.section == PUBLICINVITATIONSSECTION) {
         //            [self.tableView setUserInteractionEnabled: NO];
         self.tableView.layer.borderWidth = 1.5;
         [self performSelector:@selector(scrollViewDidScroll:) withObject: self.tableView];
@@ -1865,7 +1977,7 @@
         //            [self parseDashboard];
         //            [self.tableView reloadData];
     }
-    if (indexPath.section == 5) {
+    if (indexPath.section == NONACTIVEGAMESSECTION) {
         //            [self.tableView setUserInteractionEnabled: NO];
         self.tableView.layer.borderWidth = 1.5;
         [self performSelector:@selector(scrollViewDidScroll:) withObject: self.tableView];
@@ -1908,18 +2020,7 @@
             self.tableView.layer.borderWidth = 0.0;
             [self.tableView setEditing:FALSE animated:TRUE];
         } else {
-            //        NSLog(@"kitty %@", dashboardString);
-            
-            //        [player.nonActiveGames removeObjectAtIndex:indexPath.row];
-            
             [self dashboardParse];
-            
-//            [UIView animateWithDuration:0.1 animations:^{[self.tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject: indexPath] withRowAnimation:UITableViewRowAnimationFade];} completion:^(BOOL finished){ [self dashboardParse];
-//                //                [self performSelector:@selector(scrollViewDidScroll:) withObject: self.tableView];
-//            }];
-            //            [self.tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject:indexPath] withRowAnimation:UITableViewRowAnimationFade];
-            //            [self parseDashboard];
-            //            [self.tableView reloadData];
             
         }
 
@@ -1931,11 +2032,6 @@
 
 -(void) dashboardParse {
     [self performSelector:@selector(scrollViewDidScroll:) withObject: self.tableView afterDelay:0.05];
-    
-//    PenteNavigationViewController *navController = (PenteNavigationViewController *) self.navigationController;
-//    if (navController.receivedNotification) {
-//        [self.tableView setUserInteractionEnabled: NO];
-//    }
     self.tableView.layer.borderWidth = 1.5;
     
     [NSThread detachNewThreadSelector:@selector(parseDashboard) toTarget:self withObject:nil];
@@ -2023,7 +2119,7 @@
     while ((dashIDX < [splitDash count]) && (![[splitDash objectAtIndex:dashIDX] isEqualToString: @"Rating Stats"])) {
         dashIDX++;
     }
-    if ([[splitDash objectAtIndex:dashIDX] isEqualToString: @"Rating Stats"] && (dashIDX+1 < [splitDash count])) {
+    if ((dashIDX+1 < [splitDash count]) && [[splitDash objectAtIndex:dashIDX] isEqualToString: @"Rating Stats"]) {
         [[player ratingStats] removeAllObjects];
         dashIDX++;
         while ((![[splitDash objectAtIndex:dashIDX] isEqualToString: @"Invitations received"]) && (dashIDX < [splitDash count])) {
@@ -2042,7 +2138,7 @@
     while ((dashIDX < [splitDash count]) && (![[splitDash objectAtIndex:dashIDX] isEqualToString: @"Invitations received"])) {
         dashIDX++;
     }
-    if ([[splitDash objectAtIndex:dashIDX] isEqualToString: @"Invitations received"] && (dashIDX+1 < [splitDash count])) {
+    if ((dashIDX+1 < [splitDash count]) && [[splitDash objectAtIndex:dashIDX] isEqualToString: @"Invitations received"]) {
         dashIDX++;
         while ((![[splitDash objectAtIndex:dashIDX] isEqualToString: @"Invitations sent"]) && (dashIDX < [splitDash count])) {
             dashLine = [splitDash objectAtIndex:dashIDX];
@@ -2066,7 +2162,7 @@
             if (!invitationsReceivedCollapsed) {
                 indexSet = [[NSMutableArray alloc] init];
                 for(int i = 0; i < [[player invitations] count]; ++i)
-                    [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: 1]];
+                    [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: INVITATIONSSECTION]];
                 [player setInvitations:[[NSMutableArray alloc] init]];
                 [self.tableView deleteRowsAtIndexPaths:indexSet withRowAnimation:UITableViewRowAnimationFade];
             }
@@ -2074,7 +2170,7 @@
             if (!invitationsReceivedCollapsed) {
                 indexSet = [[NSMutableArray alloc] init];
                 for(int i = 0; i < [[player invitations] count]; ++i)
-                    [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: 1]];
+                    [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: INVITATIONSSECTION]];
                 [self.tableView insertRowsAtIndexPaths:indexSet withRowAnimation:UITableViewRowAnimationFade];
             }
         } else {
@@ -2084,7 +2180,7 @@
 
     
     sectionItems = [[NSMutableArray alloc] init];
-    if ([[splitDash objectAtIndex:dashIDX] isEqualToString: @"Invitations sent"] && (dashIDX+1 < [splitDash count])) {
+    if ((dashIDX+1 < [splitDash count]) && [[splitDash objectAtIndex:dashIDX] isEqualToString: @"Invitations sent"]) {
         dashIDX++;
         while ((![[splitDash objectAtIndex:dashIDX] isEqualToString: @"Active Games - My Turn"]) && (dashIDX < [splitDash count])) {
             dashLine = [splitDash objectAtIndex:dashIDX];
@@ -2107,7 +2203,7 @@
             if (!sentInvitationsCollapsed) {
                 indexSet = [[NSMutableArray alloc] init];
                 for(int i = 0; i < [[player sentInvitations] count]; ++i)
-                    [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: 4]];
+                    [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: SENTINVITATIONSSECTION]];
                 [player setSentInvitations:[[NSMutableArray alloc] init]];
                 [self.tableView deleteRowsAtIndexPaths:indexSet withRowAnimation:UITableViewRowAnimationFade];
             }
@@ -2115,7 +2211,7 @@
             if (!sentInvitationsCollapsed) {
                 indexSet = [[NSMutableArray alloc] init];
                 for(int i = 0; i < [[player sentInvitations] count]; ++i)
-                    [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: 4]];
+                    [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: SENTINVITATIONSSECTION]];
                 [self.tableView insertRowsAtIndexPaths:indexSet withRowAnimation:UITableViewRowAnimationFade];
             }
         } else {
@@ -2134,7 +2230,7 @@
     //    [CATransaction commit];
     
     sectionItems = [[NSMutableArray alloc] init];
-    if ([[splitDash objectAtIndex:dashIDX] isEqualToString: @"Active Games - My Turn"] && (dashIDX+1 < [splitDash count])) {
+    if ((dashIDX+1 < [splitDash count]) && [[splitDash objectAtIndex:dashIDX] isEqualToString: @"Active Games - My Turn"]) {
         dashIDX++;
         while ((![[splitDash objectAtIndex:dashIDX] isEqualToString: @"Active Games - Opponents Turn"]) && (dashIDX < [splitDash count])) {
             dashLine = [splitDash objectAtIndex:dashIDX];
@@ -2158,7 +2254,7 @@
             if (!activeGamesCollapsed) {
                 indexSet = [[NSMutableArray alloc] init];
                 for(int i = 0; i < [[player activeGames] count]; ++i)
-                    [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: 2]];
+                    [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: ACTIVEGAMESSECTION]];
                 [player setActiveGames:[[NSMutableArray alloc] init]];
                 [self.tableView deleteRowsAtIndexPaths:indexSet withRowAnimation:UITableViewRowAnimationFade];
             }
@@ -2166,7 +2262,7 @@
             if (!activeGamesCollapsed) {
                 indexSet = [[NSMutableArray alloc] init];
                 for(int i = 0; i < [[player activeGames] count]; ++i)
-                    [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: 2]];
+                    [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: ACTIVEGAMESSECTION]];
                 [self.tableView insertRowsAtIndexPaths:indexSet withRowAnimation:UITableViewRowAnimationFade];
             }
         } else {
@@ -2177,7 +2273,7 @@
     //    [self performSelector:@selector(scrollViewDidScroll:) withObject: self.tableView afterDelay:.63f];
     //    [self performSelectorOnMainThread:@selector(scrollViewDidScroll:) withObject: self.tableView waitUntilDone:YES];
     sectionItems = [[NSMutableArray alloc] init];
-    if ([[splitDash objectAtIndex:dashIDX] isEqualToString: @"Active Games - Opponents Turn"] && (dashIDX+1 < [splitDash count])) {
+    if ((dashIDX+1 < [splitDash count]) && [[splitDash objectAtIndex:dashIDX] isEqualToString: @"Active Games - Opponents Turn"]) {
         dashIDX++;
         while ((![[splitDash objectAtIndex:dashIDX] isEqualToString: @"Open Invitation Games"]) && (dashIDX < [splitDash count])) {
             dashLine = [splitDash objectAtIndex:dashIDX];
@@ -2201,7 +2297,7 @@
             if (!nonActiveGamesCollapsed) {
                 indexSet = [[NSMutableArray alloc] init];
                 for(int i = 0; i < [[player nonActiveGames] count]; ++i)
-                    [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: 5]];
+                    [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: NONACTIVEGAMESSECTION]];
                 [player setNonActiveGames:[[NSMutableArray alloc] init]];
                 //    [self performSelectorOnMainThread:@selector(scrollViewDidScroll:) withObject: self.tableView waitUntilDone:YES];
                 //                dispatch_async(dispatch_get_main_queue(), ^{
@@ -2211,7 +2307,7 @@
             if (!nonActiveGamesCollapsed) {
                 indexSet = [[NSMutableArray alloc] init];
                 for(int i = 0; i < [[player nonActiveGames] count]; ++i)
-                    [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: 5]];
+                    [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: NONACTIVEGAMESSECTION]];
                 [self.tableView insertRowsAtIndexPaths:indexSet withRowAnimation:UITableViewRowAnimationFade];
             }
         } else {
@@ -2235,7 +2331,7 @@
     
     
     sectionItems = [[NSMutableArray alloc] init];
-    if ([[splitDash objectAtIndex:dashIDX] isEqualToString: @"Open Invitation Games"] && (dashIDX+1 < [splitDash count])) {
+    if ((dashIDX+1 < [splitDash count]) && [[splitDash objectAtIndex:dashIDX] isEqualToString: @"Open Invitation Games"]) {
         dashIDX++;
         while ((![[splitDash objectAtIndex:dashIDX] isEqualToString: @"Messages"]) && (dashIDX < [splitDash count])) {
             dashLine = [splitDash objectAtIndex:dashIDX];
@@ -2258,7 +2354,7 @@
             if (!publicInvitationsCollapsed) {
                 indexSet = [[NSMutableArray alloc] init];
                 for(int i = 0; i < [[player publicInvitations] count]; ++i)
-                    [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: 3]];
+                    [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: PUBLICINVITATIONSSECTION]];
                 [player setPublicInvitations:[[NSMutableArray alloc] init]];
                 [self.tableView deleteRowsAtIndexPaths:indexSet withRowAnimation:UITableViewRowAnimationFade];
             }
@@ -2266,7 +2362,7 @@
             if (!publicInvitationsCollapsed) {
                 indexSet = [[NSMutableArray alloc] init];
                 for(int i = 0; i < [[player publicInvitations] count]; ++i)
-                    [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: 3]];
+                    [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: PUBLICINVITATIONSSECTION]];
                 [self.tableView insertRowsAtIndexPaths:indexSet withRowAnimation:UITableViewRowAnimationFade];
             }
         } else {
@@ -2290,9 +2386,9 @@
     
     sectionItems = [[NSMutableArray alloc] init];
     int unreadMsgs = 0, readMsgs = 0;
-    if ([[splitDash objectAtIndex:dashIDX] isEqualToString: @"Messages"] && (dashIDX+1 < [splitDash count])) {
+    if ((dashIDX+1 < [splitDash count]) && [[splitDash objectAtIndex:dashIDX] isEqualToString: @"Messages"]) {
         dashIDX++;
-        while ((![[splitDash objectAtIndex:dashIDX] isEqualToString: @""]) && (dashIDX < [splitDash count])) {
+        while ((![[splitDash objectAtIndex:dashIDX] isEqualToString: @""]) && (dashIDX < [splitDash count]) && ![[splitDash objectAtIndex:dashIDX] isEqualToString: @"Tournaments"]) {
             dashLine = [splitDash objectAtIndex:dashIDX];
             splitLine = [dashLine componentsSeparatedByString:@";"];
             Message *message = [[Message alloc] init];
@@ -2313,7 +2409,7 @@
             if (!messagesCollapsed) {
                 indexSet = [[NSMutableArray alloc] init];
                 for(int i = 0; i < [[player messages] count]; ++i)
-                    [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: 0]];
+                    [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: MESSAGESSECTION]];
                 [player setMessages:[[NSMutableArray alloc] init]];
                 [self.tableView deleteRowsAtIndexPaths:indexSet withRowAnimation:UITableViewRowAnimationFade];
             }
@@ -2321,17 +2417,55 @@
             if (!messagesCollapsed) {
                 indexSet = [[NSMutableArray alloc] init];
                 for(int i = 0; i < [[player messages] count]; ++i)
-                    [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: 0]];
+                    [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: MESSAGESSECTION]];
                 [self.tableView insertRowsAtIndexPaths:indexSet withRowAnimation:UITableViewRowAnimationFade];
             }
         } else {
             [player setMessages:sectionItems];
         }
-        //        [self.tableView reloadData];
-    
-//    [self.tableView reloadData];
-//    [self.tableView setUserInteractionEnabled:YES];
-    
+
+    while ((dashIDX < [splitDash count]) && ![[splitDash objectAtIndex:dashIDX] isEqualToString: @"Tournaments"]) {
+        dashIDX++;
+    }
+    sectionItems = [[NSMutableArray alloc] init];
+    if ((dashIDX+1 < [splitDash count]) && [[splitDash objectAtIndex:dashIDX] isEqualToString: @"Tournaments"]) {
+        dashIDX++;
+        while ((dashIDX < [splitDash count]) && (![[splitDash objectAtIndex:dashIDX] isEqualToString: @""])) {
+            dashLine = [splitDash objectAtIndex:dashIDX];
+            splitLine = [dashLine componentsSeparatedByString:@";"];
+            Tournament *tournament = [[Tournament alloc] init];
+            [tournament setName: [splitLine objectAtIndex:0]];
+            [tournament setTournamentID: [splitLine objectAtIndex:1]];
+            [tournament setRound: [splitLine objectAtIndex:2]];
+            [tournament setGame: [splitLine objectAtIndex:3]];
+            [tournament setTournamentState: [splitLine objectAtIndex:4]];
+            [tournament setDate:[splitLine objectAtIndex:5]];
+            [sectionItems addObject: tournament];
+            dashIDX++;
+        }
+    }
+    if ([sectionItems count] != [[player tournaments] count]) {
+        NSMutableArray *indexSet;
+        if (!tournamentsCollapsed) {
+            indexSet = [[NSMutableArray alloc] init];
+            for(int i = 0; i < [[player tournaments] count]; ++i)
+                [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: TOURNAMENTSSECTION]];
+            [player setTournaments:[[NSMutableArray alloc] init]];
+            [self.tableView deleteRowsAtIndexPaths:indexSet withRowAnimation:UITableViewRowAnimationFade];
+        }
+        [player setTournaments:sectionItems];
+        if (!tournamentsCollapsed) {
+            indexSet = [[NSMutableArray alloc] init];
+            for(int i = 0; i < [[player tournaments] count]; ++i)
+                [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: TOURNAMENTSSECTION]];
+            [self.tableView insertRowsAtIndexPaths:indexSet withRowAnimation:UITableViewRowAnimationFade];
+        }
+    } else {
+        [player setTournaments: sectionItems];
+    }
+        
+        
+        
         [self.tableView endUpdates];
         [CATransaction commit];
         [self parseMessages];
@@ -2383,13 +2517,13 @@
                     [[NSUserDefaults standardUserDefaults] setBool:invitationsReceivedCollapsed forKey:@"invitationsReceivedCollapsed"];
                     NSMutableArray *indexSet = [[NSMutableArray alloc] init];
                     for(int i = 0; i < [[player invitations] count]; ++i){
-                        [indexSet addObject:[NSIndexPath indexPathForRow:i inSection:1]];
+                        [indexSet addObject:[NSIndexPath indexPathForRow:i inSection: INVITATIONSSECTION]];
                     }
                     [self.tableView insertRowsAtIndexPaths:indexSet withRowAnimation:UITableViewRowAnimationFade];
                     [self.tableView performSelector:@selector(reloadData) withObject: nil afterDelay:0.275];
                     [self performSelector:@selector(scrollViewDidScroll:) withObject: self.tableView afterDelay:0.315];
                     
-                    [[self.tableView headerViewForSection:1] setNeedsDisplay];
+                    [[self.tableView headerViewForSection: INVITATIONSSECTION] setNeedsDisplay];
                 }
                 if (selectedPublicInvitationIndexPath) {
                     [self removeButtonsFromPublicInvitationsCell];
@@ -2398,9 +2532,9 @@
                     selectedPublicInvitationCell = nil;
                     [self.tableView endUpdates];
                 }
-                GameTableViewCell *cell = (GameTableViewCell *) [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow: idx inSection: 1]];
+                GameTableViewCell *cell = (GameTableViewCell *) [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow: idx inSection: INVITATIONSSECTION]];
                 if (selectedInvitationIndexPath) {
-                    if ((selectedInvitationIndexPath.section != 1) || (selectedInvitationIndexPath.row != idx)) {
+                    if ((selectedInvitationIndexPath.section != INVITATIONSSECTION) || (selectedInvitationIndexPath.row != idx)) {
                         [self removeButtonsFromCell];
                         GameTableViewCell *tmpCell = (GameTableViewCell *) [self.tableView cellForRowAtIndexPath:selectedInvitationIndexPath];
                         [tmpCell setAccessoryType:UITableViewCellAccessoryDisclosureIndicator];
@@ -2408,7 +2542,7 @@
                         [cell setAccessoryType:UITableViewCellAccessoryNone];
                         [cell layoutSubviews];
                         [self.tableView beginUpdates];
-                        selectedInvitationIndexPath = [NSIndexPath indexPathForRow: idx inSection: 1];
+                        selectedInvitationIndexPath = [NSIndexPath indexPathForRow: idx inSection: INVITATIONSSECTION];
                         [self.tableView endUpdates];
                         
                         [self addButtonsToCell:cell];
@@ -2417,7 +2551,7 @@
                 } else {
                     [cell setAccessoryType:UITableViewCellAccessoryNone];
                     [self.tableView beginUpdates];
-                    selectedInvitationIndexPath = [NSIndexPath indexPathForRow: idx inSection: 1];
+                    selectedInvitationIndexPath = [NSIndexPath indexPathForRow: idx inSection: INVITATIONSSECTION];
                     [self.tableView endUpdates];
                     
                     [self addButtonsToCell:cell];
@@ -2501,25 +2635,18 @@
 
 -(void) showActions {
     NSMutableArray *buttonsArray = [[NSMutableArray alloc] init];
-    CGRect frame = CGRectMake(0, 0, self.view.bounds.size.width/2, 35);
+    CGRect frame = CGRectMake(0, 0, 60, 35);
     UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
     button.backgroundColor = [UIColor clearColor];
     button.titleLabel.font = [UIFont boldSystemFontOfSize:17];
-    [button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
-    [button setTitle: NSLocalizedString(@"compose message", nil) forState:UIControlStateNormal];
+    [button setImage:[UIImage imageNamed:@"newmessage.png"] forState:UIControlStateNormal];
     [button addTarget:self action:@selector(toComposer) forControlEvents:UIControlEventTouchUpInside];
-    [button.titleLabel setTextAlignment:NSTextAlignmentCenter];
-    //    [sendButton setAutoresizingMask:UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleWidth];
     [button setFrame:frame];
     [buttonsArray addObject: button];
     button = [UIButton buttonWithType:UIButtonTypeCustom];
     button.backgroundColor = [UIColor clearColor];
-    button.titleLabel.font = [UIFont boldSystemFontOfSize:17];
-    [button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
-    [button setTitle: NSLocalizedString(@"show stats", nil) forState:UIControlStateNormal];
+    [button setImage:[UIImage imageNamed:@"showstats.png"] forState:UIControlStateNormal];
     [button addTarget:self action:@selector(showStats) forControlEvents:UIControlEventTouchUpInside];
-    [button.titleLabel setTextAlignment:NSTextAlignmentCenter];
-    //    [sendButton setAutoresizingMask:UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleWidth];
     [button setFrame:frame];
     [buttonsArray addObject: button];
     
@@ -2638,10 +2765,16 @@
     } else {
         accessoryWidth = 0;
     }
-    [self.textLabel setFrame:CGRectMake(imageWidth + 10, 2, (screenWidth - imageWidth - accessoryWidth + 60)/2, 22)];
-    [self.ratingLabel setFrame:CGRectMake(imageWidth + 10 + (screenWidth - imageWidth - accessoryWidth - 20)/2, 2, (screenWidth - imageWidth - accessoryWidth - 60)/2, 22)];
-    [self.detailTextLabel setFrame:CGRectMake(imageWidth + 10, 24, screenWidth - imageWidth - accessoryWidth - 20, 18)];
-    [self.imageView setFrame:CGRectMake(0, 0, imageWidth, imageWidth)];
+    if ([self.reuseIdentifier isEqualToString: @"tournament"]) {
+        [self.textLabel setFrame:CGRectMake(10, 2, (screenWidth - accessoryWidth - 10), 22)];
+        [self.detailTextLabel setFrame:CGRectMake(10, 24, screenWidth - accessoryWidth - 20, 18)];
+//        [self.imageView setFrame:CGRectMake(0, 0, imageWidth, imageWidth)];
+    } else {
+        [self.textLabel setFrame:CGRectMake(imageWidth + 10, 2, (screenWidth - imageWidth - accessoryWidth + 60)/2, 22)];
+        [self.ratingLabel setFrame:CGRectMake(imageWidth + 10 + (screenWidth - imageWidth - accessoryWidth - 20)/2, 2, (screenWidth - imageWidth - accessoryWidth - 60)/2, 22)];
+        [self.detailTextLabel setFrame:CGRectMake(imageWidth + 10, 24, screenWidth - imageWidth - accessoryWidth - 20, 18)];
+        [self.imageView setFrame:CGRectMake(0, 0, imageWidth, imageWidth)];
+    }
     
 //        NSLog(@"kittenfont ");
 }

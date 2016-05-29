@@ -27,6 +27,9 @@
 //#import "GADBannerView.h"
 #import <QuartzCore/QuartzCore.h>
 #import "PopoverView.h"
+#import "SVWebViewController.h"
+
+
 
 #define usernameKey @"username"
 #define passwordKey @"password"
@@ -195,7 +198,7 @@ struct Capture {
 //        dPenteChoice = NO;
 //        dPenteOpening = NO;
         [submitButton setEnabled:NO];
-        [submitButton setTitle:@"Submit" forState:UIControlStateDisabled];
+        [submitButton setTitle:@"submit" forState:UIControlStateDisabled];
         [submitButton setAlpha:0.5];
         poofed = NO;
         [whiteStoneCaptures setStoneColor:[UIColor whiteColor]];
@@ -341,7 +344,7 @@ struct Capture {
 //    NSLog(@"SwipeLeft %i", lastMove);
     finalMove = -1;
     [submitButton setEnabled:NO];
-    [submitButton setTitle:@"Submit" forState:UIControlStateDisabled];
+    [submitButton setTitle:@"submit" forState:UIControlStateDisabled];
     [submitButton setAlpha:0.5];
     [stone setHidden:YES];
     if (connect6Move1 != -1) {
@@ -361,7 +364,7 @@ struct Capture {
             dPenteMove2 = -1;
             [board setNeedsDisplay];
             [zoomedBoard setNeedsDisplay];
-            [submitButton setTitle: [NSString stringWithFormat:@"Submit: %c%d", coordinateLetters[dPenteMove1 % 19], 19 - (dPenteMove1 / 19)] forState:UIControlStateDisabled];
+            [submitButton setTitle: [NSString stringWithFormat:@"submit: %c%d", coordinateLetters[dPenteMove1 % 19], 19 - (dPenteMove1 / 19)] forState:UIControlStateDisabled];
         } else if (dPenteMove1 != -1) {
             abstractBoard[dPenteMove1 / 19][dPenteMove1 % 19] = 0;
             [board setAbstractBoard: abstractBoard];
@@ -452,7 +455,7 @@ struct Capture {
 //            NSLog(@"hi ended");
             if ([zoomedBoard isHidden]) {
                 [submitButton setEnabled:NO];
-                [submitButton setTitle:@"Submit" forState:UIControlStateDisabled];
+                [submitButton setTitle:@"submit" forState:UIControlStateDisabled];
                 [submitButton setAlpha:0.5];
                 break;
             }
@@ -470,11 +473,11 @@ struct Capture {
                 if (!([[game gameType] isEqualToString:@"Connect6"] && (connect6Move1 == -1)) && !(dPenteOpening && [[game gameType] isEqualToString:@"D-Pente"] && (dPenteMove2 == -1))) {
                     [submitButton setEnabled:YES];
                     if ([[game gameType] isEqualToString:@"Connect6"]) {
-                        [submitButton setTitle: [NSString stringWithFormat:@"Submit: %c%d-%c%d", coordinateLetters[connect6Move1 % 19], 19 - (connect6Move1 / 19), coordinateLetters[finalMove % 19], 19 - (finalMove / 19)] forState:UIControlStateNormal];
+                        [submitButton setTitle: [NSString stringWithFormat:@"submit: %c%d-%c%d", coordinateLetters[connect6Move1 % 19], 19 - (connect6Move1 / 19), coordinateLetters[finalMove % 19], 19 - (finalMove / 19)] forState:UIControlStateNormal];
                     } else if ([[game gameType] isEqualToString:@"D-Pente"] && dPenteOpening) {
-                        [submitButton setTitle: [NSString stringWithFormat:@"Submit: %c%d-%c%d-%c%d", coordinateLetters[dPenteMove1 % 19], 19 - (dPenteMove1 / 19), coordinateLetters[dPenteMove2 % 19], 19 - (dPenteMove2 / 19), coordinateLetters[finalMove % 19], 19 - (finalMove / 19)] forState:UIControlStateNormal];
+                        [submitButton setTitle: [NSString stringWithFormat:@"submit: %c%d-%c%d-%c%d", coordinateLetters[dPenteMove1 % 19], 19 - (dPenteMove1 / 19), coordinateLetters[dPenteMove2 % 19], 19 - (dPenteMove2 / 19), coordinateLetters[finalMove % 19], 19 - (finalMove / 19)] forState:UIControlStateNormal];
                     } else {
-                        [submitButton setTitle: [NSString stringWithFormat:@"Submit: %c%d", coordinateLetters[finalMove % 19], 19 - (finalMove / 19)] forState:UIControlStateNormal];
+                        [submitButton setTitle: [NSString stringWithFormat:@"submit: %c%d", coordinateLetters[finalMove % 19], 19 - (finalMove / 19)] forState:UIControlStateNormal];
                     }
                     [submitButton setAlpha:1];
                 }
@@ -504,7 +507,7 @@ struct Capture {
                         [zoomedBoard setAbstractBoard: abstractBoard];
                         [board setNeedsDisplay];
                         [zoomedBoard setNeedsDisplay];
-                        [submitButton setTitle: [NSString stringWithFormat:@"Submit: %c%d", coordinateLetters[finalMove % 19], 19 - (finalMove / 19)] forState:UIControlStateDisabled];
+                        [submitButton setTitle: [NSString stringWithFormat:@"submit: %c%d", coordinateLetters[finalMove % 19], 19 - (finalMove / 19)] forState:UIControlStateDisabled];
                     } else if (dPenteMove2 == -1) {
                         dPenteMove2 = finalMove;
                         abstractBoard[i][j] = 1;
@@ -512,7 +515,7 @@ struct Capture {
                         [zoomedBoard setAbstractBoard: abstractBoard];
                         [board setNeedsDisplay];
                         [zoomedBoard setNeedsDisplay];
-                        [submitButton setTitle: [NSString stringWithFormat:@"Submit: %c%d-%c%d", coordinateLetters[dPenteMove1 % 19], 19 - (dPenteMove1 / 19), coordinateLetters[finalMove % 19], 19 - (finalMove / 19)] forState:UIControlStateDisabled];
+                        [submitButton setTitle: [NSString stringWithFormat:@"submit: %c%d-%c%d", coordinateLetters[dPenteMove1 % 19], 19 - (dPenteMove1 / 19), coordinateLetters[finalMove % 19], 19 - (finalMove / 19)] forState:UIControlStateDisabled];
                     } else {
                         dPenteMove3 = finalMove;
                         //[self detectCaptureOfOpponent:1 atPosition:finalMove];
@@ -542,7 +545,7 @@ struct Capture {
             } else {
                 finalMove = -1;
                 [submitButton setEnabled:NO];
-                [submitButton setTitle:@"Submit" forState:UIControlStateDisabled];
+                [submitButton setTitle:@"submit" forState:UIControlStateDisabled];
                 [submitButton setAlpha:0.5];
             }
             break;
@@ -2098,12 +2101,35 @@ struct Capture {
 
 -(BOOL) webView:(UIWebView *)inWeb shouldStartLoadWithRequest:(NSURLRequest *)inRequest navigationType:(UIWebViewNavigationType)inType {
     if ( inType == UIWebViewNavigationTypeLinkClicked ) {
-        [[UIApplication sharedApplication] openURL:[inRequest URL]];
+        NSString *urlString = [[inRequest URL] absoluteString];
+//        if ([urlString rangeOfString:@"mobile&g="].location != NSNotFound) {
+//            [self performSegueWithIdentifier:@"viewGameTap" sender:self];
+//            BoardViewController *boardController = [[BoardViewController alloc] init];
+//            
+//            NSString *gameStr = [urlString substringFromIndex:[urlString rangeOfString:@"="].location + 1];
+//            Game *game = [[Game alloc] init];
+//            [game setGameID: gameStr];
+////            [game setOpponentName:author];
+//            [game setRemainingTime:@"0 days"];
+//            
+//            [boardController setShowAds: showAds];
+//            [boardController setActiveGame:NO];
+//            [boardController setGame:game];
+//            [boardController replayGame];
+//            [[boardController boardTapRecognizer] setEnabled: NO];
+//            return NO;
+//            
+//        }
+        SVWebViewController *webViewController = [[SVWebViewController alloc] initWithAddress: urlString];
+//        [webViewController setDelegate:self];
+        [self.navigationController pushViewController:webViewController animated:YES];
         return NO;
     }
     
     return YES;
 }
+
+
 
 
 @end

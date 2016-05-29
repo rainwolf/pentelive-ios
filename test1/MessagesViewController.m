@@ -354,6 +354,7 @@ InvitationsViewController *invitationVC;
     
     NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
     [request setURL:[NSURL URLWithString:@"https://www.pente.org/gameServer/mymessages"]];
+//    [request setURL:[NSURL URLWithString:@"https://development.pente.org/gameServer/mymessages"]];
     [request setHTTPMethod:@"POST"];
     [request setValue:postLength forHTTPHeaderField:@"Content-Length"];
     [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];

@@ -75,7 +75,7 @@
 
     games = [[NSArray alloc] initWithObjects:@"Pente",@"Keryo-Pente",@"Gomoku",@"D-Pente",@"G-Pente",@"Poof-Pente",@"Connect6",@"Boat-Pente", nil];
     colors = [[NSArray alloc] initWithObjects:@"White",@"Black", nil];
-    restrictions = [[NSArray alloc] initWithObjects:@"any rating",@"new opponents",@"lower rating",@"higher rating",@"similar rating",@"same rating class", nil];
+    restrictions = [[NSArray alloc] initWithObjects:@"of any rating",@"not already playing",@"of lower rating",@"of higher rating",@"of similar rating",@"in the same rating class", nil];
     moveDurations = [[NSMutableArray alloc] init];
     for ( int i = 1; i < 31; ++i) {
         [moveDurations addObject:[NSString stringWithFormat:@"%i",i]];
@@ -437,22 +437,22 @@
         gameString = @"53";
     
     NSString *restrictString = @"A";
-    if ([restrictionCell.detailTextLabel.text isEqualToString:@"any rating"]) {
+    if ([restrictionCell.detailTextLabel.text isEqualToString:@"of any rating"]) {
         restrictString = @"A";
     }
-    if ([restrictionCell.detailTextLabel.text isEqualToString:@"new opponents"]) {
+    if ([restrictionCell.detailTextLabel.text isEqualToString:@"not already playing"]) {
         restrictString = @"N";
     }
-    if ([restrictionCell.detailTextLabel.text isEqualToString:@"lower rating"]) {
+    if ([restrictionCell.detailTextLabel.text isEqualToString:@"of lower rating"]) {
         restrictString = @"L";
     }
-    if ([restrictionCell.detailTextLabel.text isEqualToString:@"higher rating"]) {
+    if ([restrictionCell.detailTextLabel.text isEqualToString:@"of higher rating"]) {
         restrictString = @"H";
     }
-    if ([restrictionCell.detailTextLabel.text isEqualToString:@"similar rating"]) {
+    if ([restrictionCell.detailTextLabel.text isEqualToString:@"of similar rating"]) {
         restrictString = @"S";
     }
-    if ([restrictionCell.detailTextLabel.text isEqualToString:@"same rating class"]) {
+    if ([restrictionCell.detailTextLabel.text isEqualToString:@"of same rating class"]) {
         restrictString = @"C";
     }
     

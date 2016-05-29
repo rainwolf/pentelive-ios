@@ -9,6 +9,7 @@
 #import "SettingsViewController.h"
 #import "IASKSettingsReader.h"
 #import "GamesTableViewController.h"
+#import "SVWebViewController.h"
 
 #define usernameKey @"username"
 #define passwordKey @"password"
@@ -230,6 +231,11 @@
         }
         return;
     }
+    if ([specifier.key isEqualToString:@"GameRulesButton"]) {
+        SVWebViewController *webViewController = [[SVWebViewController alloc] initWithAddress: @"https://pente.org/help/playGameRulesMobile.jsp"];
+        [self.navigationController pushViewController:webViewController animated:YES];
+    }
+
     if ([[specifier type] isEqualToString:kIASKOpenURLSpecifier]) {
         [[UIApplication sharedApplication] openURL:[NSURL URLWithString:specifier.file]];
     }
