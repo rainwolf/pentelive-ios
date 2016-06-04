@@ -9,6 +9,7 @@
 #import "AppDelegate.h"
 #import "AVFoundation/AVFoundation.h"
 #import "GamesTableViewController.h"
+#import "BoardViewController.h"
 @import Firebase;
 
 @implementation AppDelegate
@@ -132,6 +133,16 @@
     NSString *message = [[userInfo objectForKey:@"aps"] objectForKey:@"alert"];
     NSString *title = @"";
     NSString *buttonTitle = @"close";
+    if ([message rangeOfString:@"your move"].location != NSNotFound && [message rangeOfString:@"computer"].location != NSNotFound) {
+        if ([((PenteNavigationViewController *)self.window.rootViewController).visibleViewController isKindOfClass:[BoardViewController class]] && ![[NSUserDefaults standardUserDefaults] boolForKey:@"back2DashComputerGame"]) {
+            BoardViewController *vc = (BoardViewController *) ((PenteNavigationViewController *)self.window.rootViewController).visibleViewController;
+            if ([[[vc game] gameID] isEqualToString: [userInfo objectForKey:@"gameID"]]) {
+                [vc replayGame];
+                return;
+            }
+        }
+    }
+
     if ([message rangeOfString:@"your move"].location != NSNotFound) {
         title = @"It's your turn";
     }

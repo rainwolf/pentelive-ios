@@ -45,6 +45,11 @@
 		6392B08219C354CB00916D41 /* Icon-76.png in Resources */ = {isa = PBXBuildFile; fileRef = 6392B08019C354CB00916D41 /* Icon-76.png */; };
 		6392B08319C354CB00916D41 /* Icon-76@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 6392B08119C354CB00916D41 /* Icon-76@2x.png */; };
 		6397574A1667A4F100008555 /* BoardView.m in Sources */ = {isa = PBXBuildFile; fileRef = 6362A55816677BEC00204445 /* BoardView.m */; };
+		639A9CEF1D00C2FF0065B2FA /* InviteAIViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 639A9CEE1D00C2FF0065B2FA /* InviteAIViewController.m */; };
+		639A9CF51D0168910065B2FA /* person.png in Resources */ = {isa = PBXBuildFile; fileRef = 639A9CF11D0168910065B2FA /* person.png */; };
+		639A9CF61D0168910065B2FA /* person@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 639A9CF21D0168910065B2FA /* person@2x.png */; };
+		639A9CF71D0168910065B2FA /* computer.png in Resources */ = {isa = PBXBuildFile; fileRef = 639A9CF31D0168910065B2FA /* computer.png */; };
+		639A9CF81D0168910065B2FA /* computer@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 639A9CF41D0168910065B2FA /* computer@2x.png */; };
 		63A196C116FB936800986CDF /* closedEnvelope.png in Resources */ = {isa = PBXBuildFile; fileRef = 63A196BD16FB936800986CDF /* closedEnvelope.png */; };
 		63A196C216FB936800986CDF /* closedEnvelope@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 63A196BE16FB936800986CDF /* closedEnvelope@2x.png */; };
 		63A196C316FB936800986CDF /* openEnvelope.png in Resources */ = {isa = PBXBuildFile; fileRef = 63A196BF16FB936800986CDF /* openEnvelope.png */; };
@@ -176,6 +181,12 @@
 		6391953819D91B71007FBEE7 /* EventKitUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = EventKitUI.framework; path = System/Library/Frameworks/EventKitUI.framework; sourceTree = SDKROOT; };
 		6392B08019C354CB00916D41 /* Icon-76.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Icon-76.png"; sourceTree = "<group>"; };
 		6392B08119C354CB00916D41 /* Icon-76@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Icon-76@2x.png"; sourceTree = "<group>"; };
+		639A9CEE1D00C2FF0065B2FA /* InviteAIViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = InviteAIViewController.m; sourceTree = "<group>"; };
+		639A9CF01D00C3060065B2FA /* InviteAIViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = InviteAIViewController.h; sourceTree = "<group>"; };
+		639A9CF11D0168910065B2FA /* person.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = person.png; sourceTree = "<group>"; };
+		639A9CF21D0168910065B2FA /* person@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "person@2x.png"; sourceTree = "<group>"; };
+		639A9CF31D0168910065B2FA /* computer.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = computer.png; sourceTree = "<group>"; };
+		639A9CF41D0168910065B2FA /* computer@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "computer@2x.png"; sourceTree = "<group>"; };
 		63A196BD16FB936800986CDF /* closedEnvelope.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = closedEnvelope.png; sourceTree = "<group>"; };
 		63A196BE16FB936800986CDF /* closedEnvelope@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "closedEnvelope@2x.png"; sourceTree = "<group>"; };
 		63A196BF16FB936800986CDF /* openEnvelope.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = openEnvelope.png; sourceTree = "<group>"; };
@@ -401,6 +412,8 @@
 				63DFC580169D7332006F9A3C /* PenteNavigationViewController.m */,
 				63FEFD641691CA9D0070E9AA /* InvitationsViewController.m */,
 				63FEFD631691CA9D0070E9AA /* InvitationsViewController.h */,
+				639A9CEE1D00C2FF0065B2FA /* InviteAIViewController.m */,
+				639A9CF01D00C3060065B2FA /* InviteAIViewController.h */,
 				63FEFD731693200A0070E9AA /* SimplePickerInputTableViewCell.h */,
 				63FEFD741693200B0070E9AA /* SimplePickerInputTableViewCell.m */,
 				633C9D2815BD5B98009AD00A /* main.m */,
@@ -524,6 +537,10 @@
 		63FEFC86168CAAC50070E9AA /* images */ = {
 			isa = PBXGroup;
 			children = (
+				639A9CF11D0168910065B2FA /* person.png */,
+				639A9CF21D0168910065B2FA /* person@2x.png */,
+				639A9CF31D0168910065B2FA /* computer.png */,
+				639A9CF41D0168910065B2FA /* computer@2x.png */,
 				631BF3151CFAD1C3002AB5C3 /* kothcrown.gif */,
 				631BF3161CFAD1C3002AB5C3 /* bcrown.gif */,
 				631BF3171CFAD1C3002AB5C3 /* crown.gif */,
@@ -672,11 +689,13 @@
 				63FEFC91168CAAC50070E9AA /* arrow.png in Resources */,
 				63B3AC6C1CF64C0F00362111 /* showpopup.png in Resources */,
 				63AEDF001875C756006892F7 /* messageBubble0@2x.png in Resources */,
+				639A9CF51D0168910065B2FA /* person.png in Resources */,
 				6336480B1CEDB6C600F432E2 /* help.png in Resources */,
 				63C4199517B0FD2000983B57 /* icon_58x58.png in Resources */,
 				63FEFC92168CAAC50070E9AA /* arrow@2x.png in Resources */,
 				63B625FA1C138E42000AC164 /* splash_1242x2208.png in Resources */,
 				631BF31B1CFAD1C3002AB5C3 /* crown.gif in Resources */,
+				639A9CF71D0168910065B2FA /* computer.png in Resources */,
 				63FEFC93168CAAC50070E9AA /* blackStone.png in Resources */,
 				63FEFC94168CAAC50070E9AA /* blackStone@2x.png in Resources */,
 				63B3AC6D1CF64C0F00362111 /* showpopup@2x.png in Resources */,
@@ -694,6 +713,7 @@
 				63FEFD51168CF6E10070E9AA /* twitter@2x.png in Resources */,
 				63B3AC701CF64C0F00362111 /* sharewithfriends.png in Resources */,
 				6392B08219C354CB00916D41 /* Icon-76.png in Resources */,
+				639A9CF61D0168910065B2FA /* person@2x.png in Resources */,
 				631B675E169DA7FE0098B3E1 /* Settings.bundle in Resources */,
 				63CEADCC16A5EA6F00F0D32A /* Default.png in Resources */,
 				63AEDEF91875AFAA006892F7 /* cancel.png in Resources */,
@@ -729,6 +749,7 @@
 				6322ECFA1744C93D00793511 /* preferencesBG@2x.png in Resources */,
 				633648071CEDB48700F432E2 /* friends.png in Resources */,
 				63AEDF021875C756006892F7 /* messageBubble0.png in Resources */,
+				639A9CF81D0168910065B2FA /* computer@2x.png in Resources */,
 				633648081CEDB48700F432E2 /* friends@2x.png in Resources */,
 				6322ECFB1744C93D00793511 /* preferencesBG.png in Resources */,
 			);
@@ -800,6 +821,7 @@
 				635ADAD3167880D9001041E3 /* BoardViewController.m in Sources */,
 				635ADAD9167882EC001041E3 /* GamesTableViewController.m in Sources */,
 				63B53BFC1B9B2625003970ED /* IASKSpecifier.m in Sources */,
+				639A9CEF1D00C2FF0065B2FA /* InviteAIViewController.m in Sources */,
 				63A56016167BB86D00AB91D2 /* PentePlayer.m in Sources */,
 				63B53BF61B9B2625003970ED /* IASKMultipleValueSelection.m in Sources */,
 				63B53BF91B9B2625003970ED /* IASKSettingsStore.m in Sources */,

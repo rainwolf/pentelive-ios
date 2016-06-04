@@ -593,33 +593,39 @@ InvitationsViewController *invitationVC;
         replaceRange.location -= 2; // look back one characters (length of "hi" minus one)
     }
     
-    // replace "hi" with "hello" for the inserted range
-    NSUInteger replaceCount = [updatedText replaceOccurrencesOfString:@"   " withString:@"\n" options:NSCaseInsensitiveSearch range:replaceRange];
-    
-    if (replaceCount > 0) {
-        // update the textView's text
-        textView.text = updatedText;
+    @try {
+        NSUInteger replaceCount = [updatedText replaceOccurrencesOfString:@"   " withString:@"\n" options:NSCaseInsensitiveSearch range:replaceRange];
+        // replace "hi" with "hello" for the inserted range
         
-        // leave cursor at end of inserted text
-        endRange.location += text.length + replaceCount * 3; // length diff of "hello" and "hi" is 3 characters
-        textView.selectedRange = endRange;
+        if (replaceCount > 0) {
+            // update the textView's text
+            textView.text = updatedText;
+            
+            // leave cursor at end of inserted text
+            endRange.location += text.length + replaceCount * 3; // length diff of "hello" and "hi" is 3 characters
+            textView.selectedRange = endRange;
+            
+            // let the textView know that it should ingore the inserted text
+            return NO;
+        }
         
-        // let the textView know that it should ingore the inserted text
+        // let the textView know that it should handle the inserted text
+        return YES;
+        //    NSUInteger len = [textView.text length];
+        //    if (len > 2) {
+        //        if ([[textView.text substringWithRange:NSMakeRange(len - 3, 3)] isEqualToString:@"   "]) {
+        //            text = @"\n";
+        //            return YES;
+        //        }
+        //    }
+        
+        
+        //    return YES;
+    } @catch (NSException *exception) {
         return NO;
+    } @finally {
+        
     }
-    
-    // let the textView know that it should handle the inserted text
-    return YES;
-//    NSUInteger len = [textView.text length];
-//    if (len > 2) {
-//        if ([[textView.text substringWithRange:NSMakeRange(len - 3, 3)] isEqualToString:@"   "]) {
-//            text = @"\n";
-//            return YES;
-//        }
-//    }
-
-    
-//    return YES;
 }
 
 -(void)keyboardWillShow:(NSNotification*)notification {

@@ -32,9 +32,6 @@
 @synthesize privateCell;
 @synthesize privateCellLabel;
 @synthesize spinner;
-@synthesize invitationMessageView;
-@synthesize messagePopover;
-@synthesize invitationMessage;
 @synthesize challengedOpponent;
 @synthesize game;
 @synthesize openInvitationOnly;
@@ -71,7 +68,6 @@
     // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
     // self.navigationItem.rightBarButtonItem = self.editButtonItem;
     [self setTitle:@"Send invitation"];
-    [self.navigationItem setRightBarButtonItem: [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"messageBubble1.png"] style:UIBarButtonItemStylePlain target:self action:@selector(messageTap)]];
 
     games = [[NSArray alloc] initWithObjects:@"Pente",@"Keryo-Pente",@"Gomoku",@"D-Pente",@"G-Pente",@"Poof-Pente",@"Connect6",@"Boat-Pente", nil];
     colors = [[NSArray alloc] initWithObjects:@"White",@"Black", nil];
@@ -81,26 +77,26 @@
         [moveDurations addObject:[NSString stringWithFormat:@"%i",i]];
     }
     
-    invitationMessageView = [[UITextView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width - 40, 44)];
-    [invitationMessageView setFont:[UIFont systemFontOfSize:15]];
-    CGRect frame = invitationMessageView.frame;
-    if (IS_IPHONE_5)
-        frame.size.height = invitationMessageView.font.lineHeight*13;
-    else
-        frame.size.height = invitationMessageView.font.lineHeight*8;
-    [invitationMessageView setAlpha:0.90];
-    [invitationMessageView setEditable:YES];
-    invitationMessageView.clipsToBounds = YES;
-    invitationMessageView.layer.cornerRadius = 5.0f;
-//    invitationMessageView.contentInset = UIEdgeInsetsMake(-7.0,0.0,0,0.0);
-    [invitationMessageView setFrame:frame];
-    [invitationMessageView setAutocapitalizationType:UITextAutocapitalizationTypeNone];
-    [invitationMessageView setAutocorrectionType:UITextAutocorrectionTypeNo];
-    [invitationMessageView setReturnKeyType:UIReturnKeyDone];
-    [invitationMessageView setDelegate:self];
-    invitationMessageView.layer.borderWidth = 2.0f;
-    invitationMessageView.layer.borderColor = [[UIColor grayColor] CGColor];
-    self.invitationMessage = @"";
+//    invitationMessageView = [[UITextView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width - 40, 44)];
+//    [invitationMessageView setFont:[UIFont systemFontOfSize:15]];
+//    CGRect frame = invitationMessageView.frame;
+//    if (IS_IPHONE_5)
+//        frame.size.height = invitationMessageView.font.lineHeight*13;
+//    else
+//        frame.size.height = invitationMessageView.font.lineHeight*8;
+//    [invitationMessageView setAlpha:0.90];
+//    [invitationMessageView setEditable:YES];
+//    invitationMessageView.clipsToBounds = YES;
+//    invitationMessageView.layer.cornerRadius = 5.0f;
+////    invitationMessageView.contentInset = UIEdgeInsetsMake(-7.0,0.0,0,0.0);
+//    [invitationMessageView setFrame:frame];
+//    [invitationMessageView setAutocapitalizationType:UITextAutocapitalizationTypeNone];
+//    [invitationMessageView setAutocorrectionType:UITextAutocorrectionTypeNo];
+//    [invitationMessageView setReturnKeyType:UIReturnKeyDone];
+//    [invitationMessageView setDelegate:self];
+//    invitationMessageView.layer.borderWidth = 2.0f;
+//    invitationMessageView.layer.borderColor = [[UIColor grayColor] CGColor];
+//    self.invitationMessage = @"";
     opponentCell.textField.text = @"";
     challengedOpponent = @"";
 //    game = @"";
@@ -114,7 +110,6 @@
     [timeCell resign];
     [playAsCell resign];
     [restrictionCell resign];
-    self.invitationMessage = @"";
     opponentCell.textField.text = @"";
     PenteNavigationViewController *navController = (PenteNavigationViewController *) self.navigationController;
     [navController setChallengedUser:@""];
@@ -464,7 +459,7 @@
     }
     
 //    NSLog(@"kitty hi? %@", opponentCell.textField.text);
-    NSString *post = [NSString stringWithFormat:@"invitationRestriction=%@&invitee=%@&game=%@&daysPerMove=%@&rated=%@&playAs=%@&privateGame=%@&inviterMessage=%@&mobile=", restrictString, opponentCell.textField.text ,gameString,timeCell.detailTextLabel.text,(ratedSwitch.on) ? @"Y" : @"N",([playAsDetailLabel.text isEqualToString:@"White"]) ? @"1" : @"2",(privateSwitch.on) ? @"Y" : @"N",[self URLEncodedString_ch: invitationMessage]];
+    NSString *post = [NSString stringWithFormat:@"invitationRestriction=%@&invitee=%@&game=%@&daysPerMove=%@&rated=%@&playAs=%@&privateGame=%@&inviterMessage=&mobile=", restrictString, opponentCell.textField.text ,gameString,timeCell.detailTextLabel.text,(ratedSwitch.on) ? @"Y" : @"N",([playAsDetailLabel.text isEqualToString:@"White"]) ? @"1" : @"2",(privateSwitch.on) ? @"Y" : @"N"];
     NSData *postData = [post dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
     NSString *postLength = [NSString stringWithFormat:@"%lu", (unsigned long)[postData length]];
     
@@ -609,29 +604,6 @@
 
 
 
--(void) messageTap {
-    messagePopover = [[PopoverView alloc] init];
-    [messagePopover setDelegate:self];
-    
-    [messagePopover showAtPoint:CGPointMake(self.view.frame.size.width, 0) inView:self.view withContentView:self.invitationMessageView];
-    [invitationMessageView becomeFirstResponder];
-}
-
-
-- (BOOL)textView:(UITextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text;
-{
-    if ([text isEqualToString:@"\n"] ) {
-        invitationMessage = invitationMessageView.text;
-        [messagePopover dismiss];
-        [textView resignFirstResponder];
-        return NO;
-    }
-    return YES;
-}
-
-- (void)textViewDidEndEditing:(UITextView *)textView {
-    invitationMessage = invitationMessageView.text;
-}
 
 
 

@@ -685,7 +685,21 @@ struct Capture {
     [self performSelectorOnMainThread:@selector(cleanUp) withObject:nil waitUntilDone:NO];
 }
 
+
 -(void) cleanUp {
+    if ([[game opponentName] isEqualToString:@"computer"]) {
+        NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+        if (![defaults boolForKey:@"back2DashComputerGame"]) {
+            finalMove = -1;
+            [submitButton setEnabled:NO];
+            [submitButton setTitle:@"submit" forState:UIControlStateDisabled];
+            [submitButton setAlpha:0.5];
+            [zoomedStone setHidden:YES];
+            [stone setHidden:YES];
+            [self replayGame];
+            return;
+        }
+    }
     PenteNavigationViewController *navControllor = (PenteNavigationViewController *) self.navigationController;
     [navControllor setDidMove: YES];
     [navControllor setActiveGameToRemove: [game gameID]];
@@ -715,8 +729,9 @@ struct Capture {
         replyMessageView = [[UITextView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width - 40, 44)];
     }
     [self setTitle:[game gameType]];
+    
+    BOOL iAmP1 = NO;
 
-    [self resetBoard];
     [self setReplyMessage:@""];
     [self setReceivedMessage:nil];
     messagesHistory = [[NSMutableDictionary alloc] init];
@@ -729,6 +744,8 @@ struct Capture {
     NSError *error;
     NSString *htmlString = [NSString stringWithContentsOfURL:url encoding:NSASCIIStringEncoding error:&error];
 //        NSLog(@"kitty %@", htmlString);
+    
+//    NSLog(@"kitty \n%@", htmlString);
 
     NSArray *splitDash = [htmlString componentsSeparatedByString:@"\n"];
     NSString *dashLine;
@@ -770,12 +787,14 @@ struct Capture {
             } else if ([[dashLine substringToIndex:8] isEqualToString:@"player1="]) {
                 NSArray *playerRating = [NSArray arrayWithArray:[[dashLine substringFromIndex:8] componentsSeparatedByString:@","]];
                 if (![[playerRating objectAtIndex:0] isEqualToString:myUsername]) {
+                    iAmP1 = NO;
                     [game setOpponentName: [playerRating objectAtIndex:0]];
                     [game setOpponentRating: [playerRating objectAtIndex:1]];
                 }
             } else if ([[dashLine substringToIndex:8] isEqualToString:@"player2="]) {
                 NSArray *playerRating = [NSArray arrayWithArray:[[dashLine substringFromIndex:8] componentsSeparatedByString:@","]];
                 if (![[playerRating objectAtIndex:0] isEqualToString:myUsername]) {
+                    iAmP1 = YES;
                     [game setOpponentName: [playerRating objectAtIndex:0]];
                     [game setOpponentRating: [playerRating objectAtIndex:1]];
                 }
@@ -884,6 +903,9 @@ struct Capture {
     
 //    NSLog(@"kitty message %@", message);
     dPenteOpening = NO;
+    whiteCaptures = 0;
+    blackCaptures = 0;
+    [self resetBoard];
     if ([[game gameType] isEqualToString:@"Pente"] || [[game gameType] isEqualToString:@"Boat-Pente"]) {
         [self replayPenteGame: (int) [movesList count]];
     }
@@ -935,8 +957,18 @@ struct Capture {
     // Find out your color
     if ([[game myColor] isEqualToString:@"white"]) {
         [stone setStoneColor:[UIColor whiteColor]];
+        if (iAmP1) {
+            activeGame = YES;
+        } else {
+            activeGame = NO;
+        }
     } else {
         [stone setStoneColor:[UIColor blackColor]];
+        if (!iAmP1) {
+            activeGame = YES;
+        } else {
+            activeGame = NO;
+        }
     }
     [zoomedStone setStoneColor:[stone stoneColor]];
 
@@ -1003,12 +1035,12 @@ struct Capture {
     }
     [playerStats loadHTMLString: [playerStatsBaseString stringByAppendingString:moveStatsString] baseURL:nil];
 
+    [board setNeedsDisplay];
+    [zoomedBoard setNeedsDisplay];
+
     if (cancelRequest) {
         UIAlertView *alert = [[UIAlertView alloc] initWithTitle:[NSString stringWithFormat:@"%@", [game opponentName]] message:[NSString stringWithFormat:@"is requesting that this set be cancelled. %@", cancelMsg] delegate:self cancelButtonTitle:@"Decide later" otherButtonTitles:@"Accept", @"Reject", nil];
         [alert setTag: 0];
-//        CGRect alertFrame = alert.frame;
-//        alertFrame.origin.y = self.view.frame.size.height - 300.0f;
-//        alert.frame = alertFrame;
         
         [alert show];
         return;
@@ -1267,6 +1299,9 @@ struct Capture {
         [moveStatsString appendString:[NSString stringWithFormat:@"%c%d", coordinateLetters[rowCol % 19], 19 - (rowCol / 19)]];
     }
     [playerStats loadHTMLString: [playerStatsBaseString stringByAppendingString:moveStatsString] baseURL:nil];
+    
+    [board setNeedsDisplay];
+    [zoomedBoard setNeedsDisplay];
 
 }
 

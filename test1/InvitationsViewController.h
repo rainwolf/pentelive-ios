@@ -1,5 +1,5 @@
 //
-//  InvitationsViewController.h
+//  InvitationsViewController
 //  test1
 //
 //  Created by rainwolf on 31/12/12.
@@ -11,21 +11,17 @@
 #import "SimplePickerInputTableViewCell.h"
 #import "PopoverView.h"
 
-@interface InvitationsViewController : UITableViewController <StringInputTableViewCellDelegate, SimplePickerInputTableViewCellDelegate, UITextViewDelegate, PopoverViewDelegate> {
+@interface InvitationsViewController : UITableViewController <StringInputTableViewCellDelegate, SimplePickerInputTableViewCellDelegate> {
     NSArray *games, *colors, *restrictions;
     NSMutableArray *moveDurations;
-    UITextView *invitationMessageView;
-    PopoverView *messagePopover;
-    NSString *invitationMessage, *challengedOpponent, *game;
+    NSString *challengedOpponent, *game;
     BOOL openInvitationOnly;
 }
 @property(nonatomic,retain) NSArray *games;
 @property(nonatomic,retain) NSArray *restrictions;
 @property(nonatomic,retain) NSArray *moveDurations;
 @property(nonatomic,retain) NSArray *colors;
-@property(nonatomic,retain) UITextView *invitationMessageView;
-@property(nonatomic,retain) PopoverView *messagePopover;
-@property(nonatomic,retain) NSString *invitationMessage, *challengedOpponent, *game;
+@property(nonatomic,retain) NSString *challengedOpponent, *game;
 @property(atomic) BOOL openInvitationOnly;
 @property (weak, nonatomic) IBOutlet UISwitch *ratedSwitch;
 @property (weak, nonatomic) IBOutlet UILabel *sendCell;

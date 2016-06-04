@@ -46,7 +46,6 @@
 @synthesize messagesCollapsed, invitationsReceivedCollapsed, activeGamesCollapsed, publicInvitationsCollapsed, sentInvitationsCollapsed, nonActiveGamesCollapsed,
             alreadyAskedAboutInvitations, tournamentsCollapsed;
 @synthesize selectedInvitationCell, selectedPublicInvitationCell;
-@synthesize inviteButton;
 @synthesize interstitial;
 @synthesize gamesLimit;
 @synthesize showAds;
@@ -103,7 +102,7 @@
 //    messageButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"messageBubble0.png"] style:UIBarButtonItemStylePlain target:self action:@selector(messageTap)];
 //    [messageButton setImage:[UIImage imageNamed:@"messageBubbleEnd.png"]];
 //    inviteButton = [self.navigationItem rightBarButtonItem];
-    inviteButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemPlay target:self action: @selector(invite)];
+    UIBarButtonItem *inviteButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemPlay target:self action: @selector(showInvitationActions)];
     UIBarButtonItem *moreButton = [[UIBarButtonItem alloc] initWithImage: [UIImage imageNamed:@"showpopup.png"] style: UIBarButtonItemStylePlain target:self action: @selector(showActions)];
 //    statsButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem: UIBarButtonSystemItem target:self action: @selector(showStats)];
 //    friendsButton = [[UIBarButtonItem alloc] initWithImage: [UIImage imageNamed:@"friends.png"] style: UIBarButtonItemStylePlain target:self action:@selector(toFriends)];
@@ -1177,9 +1176,6 @@
 }
 */
 
--(void) invite {
-    [self performSegueWithIdentifier:@"addInvitationsTap" sender: self];
-}
 
 -(void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender{
     self.tableView.layer.borderWidth = 0.0;
@@ -1481,12 +1477,6 @@
 }
 
 
--(void) messageTap {
-    [self performSegueWithIdentifier:@"messagesTap" sender:self];
-    
-    [messagesViewController setMessageID:nil];
-}
-
 
 -(void) postToPenteOrgUrl: (NSDictionary *) urlAndPostString {
 //    NSLog(@"kitty");
@@ -1539,6 +1529,24 @@
     NSDictionary *urlAndPostString = [NSDictionary dictionaryWithObjects:[NSArray arrayWithObjects:url,postString,nil] forKeys: [NSArray arrayWithObjects:@"url",@"postString",nil]];
     [NSThread detachNewThreadSelector:@selector(postToPenteOrgUrl:) toTarget:self withObject:urlAndPostString];
 
+    NSString *newFriend = [[player.invitations objectAtIndex:tmpPath.row] opponentName];
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    NSMutableArray<NSString *> *toHistory = [[defaults objectForKey:@"invitedHistory"] mutableCopy];
+    if (toHistory) {
+        int i = 0;
+        for ( i = 0; i < [toHistory count]; ++i) {
+            if ([[toHistory objectAtIndex:i] localizedCaseInsensitiveCompare: newFriend] == NSOrderedDescending)
+                break;
+        }
+        if (![toHistory containsObject:newFriend]) {
+            [toHistory insertObject:newFriend atIndex:i];
+        }
+    } else {
+        toHistory = [NSMutableArray arrayWithObject:newFriend];
+    }
+    [defaults setObject:toHistory forKey:@"invitedHistory"];
+
+    
     if (showAds) {
         if ([self.interstitial isReady]) {
             [self.interstitial presentFromRootViewController:self];
@@ -1707,6 +1715,23 @@
     NSString *postString = [NSString stringWithFormat:@"sid=%@&inviteeMessage=&command=Accept&mobile=",[[player.publicInvitations objectAtIndex:selectedPublicInvitationIndexPath.row] gameID]];
     NSDictionary *urlAndPostString = [NSDictionary dictionaryWithObjects:[NSArray arrayWithObjects:url,postString,nil] forKeys: [NSArray arrayWithObjects:@"url",@"postString",nil]];
     [NSThread detachNewThreadSelector:@selector(postToPenteOrgUrl:) toTarget:self withObject:urlAndPostString];
+
+    NSString *newFriend = [[player.publicInvitations objectAtIndex:selectedPublicInvitationIndexPath.row] opponentName];
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    NSMutableArray<NSString *> *toHistory = [[defaults objectForKey:@"invitedHistory"] mutableCopy];
+    if (toHistory) {
+        int i = 0;
+        for ( i = 0; i < [toHistory count]; ++i) {
+            if ([[toHistory objectAtIndex:i] localizedCaseInsensitiveCompare: newFriend] == NSOrderedDescending)
+                break;
+        }
+        if (![toHistory containsObject:newFriend]) {
+            [toHistory insertObject:newFriend atIndex:i];
+        }
+    } else {
+        toHistory = [NSMutableArray arrayWithObject:newFriend];
+    }
+    [defaults setObject:toHistory forKey:@"invitedHistory"];
 
     if (showAds) {
         if ([self.interstitial isReady]) {
@@ -2635,7 +2660,7 @@
 
 -(void) showActions {
     NSMutableArray *buttonsArray = [[NSMutableArray alloc] init];
-    CGRect frame = CGRectMake(0, 0, 60, 35);
+    CGRect frame = CGRectMake(0, 0, 60, 50);
     UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
     button.backgroundColor = [UIColor clearColor];
     button.titleLabel.font = [UIFont boldSystemFontOfSize:17];
@@ -2654,9 +2679,11 @@
     
 }
 
+
 -(void) toComposer {
     [actionPopoverView dismiss];
     [self performSegueWithIdentifier:@"messagesTap" sender:self];
+//    [self performSegueWithIdentifier:@"inviteAItap" sender:self];
 }
 
 -(void) showStats {
@@ -2672,6 +2699,38 @@
     [actionPopoverView layoutSubviews];
 //    [ratingView setFrame: frame];
 }
+
+-(void) showInvitationActions {
+    NSMutableArray *buttonsArray = [[NSMutableArray alloc] init];
+    CGRect frame = CGRectMake(0, 0, 60, 50);
+    UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
+    button.backgroundColor = [UIColor clearColor];
+    button.titleLabel.font = [UIFont boldSystemFontOfSize:17];
+    [button setImage:[UIImage imageNamed:@"computer.png"] forState:UIControlStateNormal];
+    [button addTarget:self action:@selector(toAIInvitations) forControlEvents:UIControlEventTouchUpInside];
+    [button setFrame:frame];
+    [buttonsArray addObject: button];
+    button = [UIButton buttonWithType:UIButtonTypeCustom];
+    button.backgroundColor = [UIColor clearColor];
+    [button setImage:[UIImage imageNamed:@"person.png"] forState:UIControlStateNormal];
+    [button addTarget:self action:@selector(toRegularInvitations) forControlEvents:UIControlEventTouchUpInside];
+    [button setFrame:frame];
+    [buttonsArray addObject: button];
+    
+    actionPopoverView = [PopoverView showPopoverAtPoint: CGPointMake(self.view.bounds.size.width - 80, 0) inView:self.view withViewArray: buttonsArray delegate:self];
+    
+}
+
+-(void) toRegularInvitations {
+    [actionPopoverView dismiss];
+    [self performSegueWithIdentifier:@"addInvitationsTap" sender: self];
+    //    [self performSegueWithIdentifier:@"inviteAItap" sender:self];
+}
+-(void) toAIInvitations {
+    [actionPopoverView dismiss];
+    [self performSegueWithIdentifier:@"inviteAItap" sender:self];
+}
+
 
 
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex

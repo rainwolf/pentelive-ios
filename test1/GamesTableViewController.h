@@ -37,7 +37,6 @@
     GADBannerView *bannerView;
     BOOL messagesCollapsed, invitationsReceivedCollapsed, activeGamesCollapsed, publicInvitationsCollapsed, sentInvitationsCollapsed, nonActiveGamesCollapsed, tournamentsCollapsed;
     GameTableViewCell *selectedInvitationCell, *selectedPublicInvitationCell;
-    UIBarButtonItem *inviteButton;
     BOOL alreadyAskedAboutInvitations;
     GADInterstitial *interstitial;
     int gamesLimit;
@@ -59,7 +58,6 @@
 @property(atomic) BOOL messagesCollapsed, invitationsReceivedCollapsed, activeGamesCollapsed, publicInvitationsCollapsed, sentInvitationsCollapsed, nonActiveGamesCollapsed, alreadyAskedAboutInvitations, showAds, tournamentsCollapsed;
 @property(atomic) int gamesLimit;
 @property(nonatomic,retain) GameTableViewCell *selectedInvitationCell, *selectedPublicInvitationCell;
-@property(nonatomic,retain) UIBarButtonItem *inviteButton;
 @property(nonatomic, strong) GADInterstitial *interstitial;
 @property(nonatomic, retain, readwrite) PopoverView *actionPopoverView;
 
