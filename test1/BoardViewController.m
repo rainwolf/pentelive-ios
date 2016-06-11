@@ -34,18 +34,6 @@
 #define usernameKey @"username"
 #define passwordKey @"password"
 
-int abstractBoard[19][19];
-int finalMove = -1, connect6Move1 = -1, connect6Move2 = -1, dPenteMove1 = -1, dPenteMove2 = -1, dPenteMove3 = -1,
-    whiteCaptures, blackCaptures, lastMove;
-BOOL dPenteOpening = NO;
-BOOL dPenteChoice = NO;
-BOOL poofed = NO;
-char coordinateLetters[19] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T'};
-
-struct Capture {
-    int color;
-    int position;
-};
 
 //GADBannerView *bannerView_;
 
@@ -53,6 +41,7 @@ struct Capture {
 @end
 
 @implementation BoardViewController
+@synthesize lockButton;
 @synthesize game;
 @synthesize board;
 @synthesize zoomedBoard;
@@ -91,6 +80,20 @@ struct Capture {
 @synthesize playerStatsBaseString;
 
 
+int abstractBoard[19][19];
+int finalMove = -1, connect6Move1 = -1, connect6Move2 = -1, dPenteMove1 = -1, dPenteMove2 = -1, dPenteMove3 = -1,
+whiteCaptures, blackCaptures, lastMove;
+BOOL dPenteOpening = NO;
+BOOL dPenteChoice = NO;
+BOOL poofed = NO;
+char coordinateLetters[19] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T'};
+
+struct Capture {
+    int color;
+    int position;
+};
+
+
 - (void)viewDidLoad
 {
     [super viewDidLoad];
@@ -120,6 +123,19 @@ struct Capture {
     rect.origin.y = board.frame.size.height + 2;
     rect.origin.x = (board.frame.size.width - submitButton.frame.size.width)/2;
     submitButton.frame = rect;
+    
+    lockButton = [[UIButton alloc] initWithFrame:rect];
+    rect.size.width = rect.size.height;
+    rect.origin.x = board.frame.size.width - rect.size.width - 10;
+    [lockButton setTitle:nil forState:UIControlStateNormal];
+    [lockButton setFrame:rect];
+    [lockButton addTarget: self action:@selector(toggleBoardLock:) forControlEvents: UIControlEventTouchUpInside];
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"notBack2Dash"]) {
+        [lockButton setImage:[UIImage imageNamed:@"lock.png"] forState: UIControlStateNormal];
+    } else {
+        [lockButton setImage:[UIImage imageNamed:@"unlock.png"] forState: UIControlStateNormal];
+    }
+    [self.view addSubview: lockButton];
 
     rect = whiteCapturesCountLabel.frame;
     rect.origin.y = board.frame.size.height + 2;
@@ -687,18 +703,16 @@ struct Capture {
 
 
 -(void) cleanUp {
-    if ([[game opponentName] isEqualToString:@"computer"]) {
-        NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-        if (![defaults boolForKey:@"back2DashComputerGame"]) {
-            finalMove = -1;
-            [submitButton setEnabled:NO];
-            [submitButton setTitle:@"submit" forState:UIControlStateDisabled];
-            [submitButton setAlpha:0.5];
-            [zoomedStone setHidden:YES];
-            [stone setHidden:YES];
-            [self replayGame];
-            return;
-        }
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    if ([defaults boolForKey:@"notBack2Dash"]) {
+        finalMove = -1;
+        [submitButton setEnabled:NO];
+        [submitButton setTitle:@"submit" forState:UIControlStateDisabled];
+        [submitButton setAlpha:0.5];
+        [zoomedStone setHidden:YES];
+        [stone setHidden:YES];
+        [self replayGame];
+        return;
     }
     PenteNavigationViewController *navControllor = (PenteNavigationViewController *) self.navigationController;
     [navControllor setDidMove: YES];
@@ -906,6 +920,20 @@ struct Capture {
     whiteCaptures = 0;
     blackCaptures = 0;
     [self resetBoard];
+    if ([[game gameType] isEqualToString:@"Connect6"]) {
+        if (iAmP1) {
+            activeGame = (([movesList count] % 4) == 3);
+        } else {
+            activeGame = (([movesList count] % 2) == 1);
+        }
+        [self replayConnect6Game: (int) [movesList count]];
+    } else {
+        if (iAmP1) {
+            activeGame = (([movesList count] % 2) == 0);
+        } else {
+            activeGame = (([movesList count] % 2) == 1);
+        }
+    }
     if ([[game gameType] isEqualToString:@"Pente"] || [[game gameType] isEqualToString:@"Boat-Pente"]) {
         [self replayPenteGame: (int) [movesList count]];
     }
@@ -933,6 +961,7 @@ struct Capture {
                 [whiteCapturesCountLabel setHidden:YES];
                 [blackStoneCaptures setHidden:YES];
                 [blackCapturesCountLabel setHidden:YES];
+                [lockButton setHidden: YES];
             } else {
                 [player1Button setHidden:YES];
                 [player2Button setHidden:YES];
@@ -947,9 +976,6 @@ struct Capture {
     
     [self updateCaptures];
     
-    if ([[game gameType] isEqualToString:@"Connect6"]) {
-        [self replayConnect6Game: (int) [movesList count]];
-    }
     if ([[game gameType] isEqualToString:@"Gomoku"]) {
         [self replayGomokuGame: (int) [movesList count]];
     }
@@ -957,18 +983,8 @@ struct Capture {
     // Find out your color
     if ([[game myColor] isEqualToString:@"white"]) {
         [stone setStoneColor:[UIColor whiteColor]];
-        if (iAmP1) {
-            activeGame = YES;
-        } else {
-            activeGame = NO;
-        }
     } else {
         [stone setStoneColor:[UIColor blackColor]];
-        if (!iAmP1) {
-            activeGame = YES;
-        } else {
-            activeGame = NO;
-        }
     }
     [zoomedStone setStoneColor:[stone stoneColor]];
 
@@ -1332,6 +1348,11 @@ struct Capture {
     } else {
         [board setBackgroundColor:[UIColor colorWithRed:0.984 green:0.851 blue:0.541 alpha:1]];
         [zoomedBoard setBackgroundColor:[UIColor colorWithRed:0.984 green:0.851 blue:0.541 alpha:1]];
+        if ([[game opponentName] isEqualToString:@"computer"]) {
+            if ([self detectPenteOf: 2-([movesList count]%2) atPosition: [self parseMove:[movesList lastObject]]] || whiteCaptures == 10 || blackCaptures == 10) {
+                activeGame = NO;
+            }
+        }
     }
     [board setAbstractBoard: abstractBoard];
     [board setLastMove:[self parseMove:[movesList objectAtIndex:untilMove - 1]]];
@@ -2026,6 +2047,117 @@ struct Capture {
     return poof;
 }
 
+-(BOOL) detectPenteOf: (int) color atPosition: (int) rowCol {
+    BOOL pente = NO;
+    int penteCounter = 1;
+    int row = rowCol / 19, col = rowCol % 19, i, j;
+    i = row - 1;
+    j = col;
+    while (i > 0 && i < 19 && j > 0 && j < 19 && !pente) {
+        if (color == abstractBoard[i][j]) {
+            penteCounter += 1;
+            pente = (penteCounter > 4);
+        } else {
+            break;
+        }
+        i -= 1;
+    }
+    i = row + 1;
+    j = col;
+    while (i > 0 && i < 19 && j > 0 && j < 19 && !pente) {
+        if (color == abstractBoard[i][j]) {
+            penteCounter += 1;
+            pente = (penteCounter > 4);
+        } else {
+            break;
+        }
+        i += 1;
+    }
+    if (pente) {
+        return pente;
+    }
+    penteCounter = 1;
+    i = row;
+    j = col - 1;
+    while (i > 0 && i < 19 && j > 0 && j < 19 && !pente) {
+        if (color == abstractBoard[i][j]) {
+            penteCounter += 1;
+            pente = (penteCounter > 4);
+        } else {
+            break;
+        }
+        j -= 1;
+    }
+    i = row;
+    j = col + 1;
+    while (i > 0 && i < 19 && j > 0 && j < 19 && !pente) {
+        if (color == abstractBoard[i][j]) {
+            penteCounter += 1;
+            pente = (penteCounter > 4);
+        } else {
+            break;
+        }
+        j += 1;
+    }
+    if (pente) {
+        return pente;
+    }
+    penteCounter = 1;
+    i = row - 1;
+    j = col - 1;
+    while (i > 0 && i < 19 && j > 0 && j < 19 && !pente) {
+        if (color == abstractBoard[i][j]) {
+            penteCounter += 1;
+            pente = (penteCounter > 4);
+        } else {
+            break;
+        }
+        j -= 1;
+        i -= 1;
+    }
+    i = row + 1;
+    j = col + 1;
+    while (i > 0 && i < 19 && j > 0 && j < 19 && !pente) {
+        if (color == abstractBoard[i][j]) {
+            penteCounter += 1;
+            pente = (penteCounter > 4);
+        } else {
+            break;
+        }
+        i += 1;
+        j += 1;
+    }
+    if (pente) {
+        return pente;
+    }
+    penteCounter = 1;
+    i = row - 1;
+    j = col + 1;
+    while (i > 0 && i < 19 && j > 0 && j < 19 && !pente) {
+        if (color == abstractBoard[i][j]) {
+            penteCounter += 1;
+            pente = (penteCounter > 4);
+        } else {
+            break;
+        }
+        j += 1;
+        i -= 1;
+    }
+    i = row + 1;
+    j = col - 1;
+    while (i > 0 && i < 19 && j > 0 && j < 19 && !pente) {
+        if (color == abstractBoard[i][j]) {
+            penteCounter += 1;
+            pente = (penteCounter > 4);
+        } else {
+            break;
+        }
+        i += 1;
+        j -= 1;
+    }
+    
+    return pente;
+}
 
 
 -(int) parseMove: (NSString *) move {
@@ -2051,6 +2183,18 @@ struct Capture {
     [messageButtonImageView startAnimating];
 }
 
+
+-(void) toggleBoardLock: (id) sender {
+    UIButton *button=(UIButton *)sender;
+    BOOL locked = [[NSUserDefaults standardUserDefaults] boolForKey:@"notBack2Dash"];
+    if (locked) {
+        [button setImage:[UIImage imageNamed:@"unlock.png"] forState: UIControlStateNormal];
+        [[NSUserDefaults standardUserDefaults] setBool: NO forKey:@"notBack2Dash"];
+    } else {
+        [button setImage:[UIImage imageNamed:@"lock.png"] forState: UIControlStateNormal];
+        [[NSUserDefaults standardUserDefaults] setBool: YES forKey:@"notBack2Dash"];
+    }
+}
 
 - (void)messageTap:(id)sender {
     [messageButtonImageView stopAnimating];

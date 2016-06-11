@@ -21,11 +21,20 @@
             abstractBoard[i][j] = board[i][j];
 }
 
+-(instancetype) init {
+    if (self = [super init]) {
+        lastMove = -1;
+        lastConnect6Move = -1;
+    }
+    return self;
+}
 - (id)initWithFrame:(CGRect)frame
 {
     self = [super initWithFrame:frame];
     if (self) {
         // Initialization code
+        lastMove = -1;
+        lastConnect6Move = -1;
     }
     return self;
 }
@@ -119,6 +128,7 @@
         }
     }
 //    NSLog(@"kittys %i",lastConnect6Move);
+//    NSLog(@"kittys %i",lastMove);
     CGContextSaveGState(context);
     if (lastConnect6Move > -1) {
         CGContextSetFillColorWithColor(context, [UIColor colorWithRed:1 green:0 blue:0 alpha:0.8].CGColor);
@@ -127,12 +137,15 @@
         CGContextAddEllipseInRect(context, circle);
         CGContextFillPath(context);
     }
-    CGContextSetFillColorWithColor(context, [UIColor colorWithRed:1 green:0 blue:0 alpha:0.8].CGColor);
-    int i = lastMove / 19, j = lastMove % 19;
-    circle = CGRectMake(j*2*margin + 2*margin/3,i*2*margin + 2*margin/3, 2*margin/3,2*margin/3);
-    CGContextAddEllipseInRect(context, circle);
-    CGContextFillPath(context);
-    CGContextRestoreGState(context);
+    if (lastMove > -1) {
+        CGContextSetFillColorWithColor(context, [UIColor colorWithRed:1 green:0 blue:0 alpha:0.8].CGColor);
+        int i = lastMove / 19, j = lastMove % 19;
+        circle = CGRectMake(j*2*margin + 2*margin/3,i*2*margin + 2*margin/3, 2*margin/3,2*margin/3);
+        CGContextAddEllipseInRect(context, circle);
+        CGContextFillPath(context);
+        CGContextRestoreGState(context);
+
+    }
 }
 
 

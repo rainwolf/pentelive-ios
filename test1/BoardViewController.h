@@ -27,7 +27,9 @@
     PopoverView *messagePopover;
     NSMutableDictionary *messagesHistory;
     BOOL activeGame, isLastMove, showAds;
+    UIButton *lockButton;
 }
+@property(nonatomic, retain, readwrite) UIButton *lockButton;
 @property(atomic) BOOL showedAd;
 @property(atomic) BOOL activeGame, isLastMove;
 @property(atomic) BOOL showAds;

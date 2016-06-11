@@ -19,7 +19,6 @@
 @synthesize difficulties;
 @synthesize gameCell;
 @synthesize opponentCell;
-@synthesize back2DashSwitch;
 @synthesize ratedSwitch;
 @synthesize playAsCell;
 @synthesize playAsLabel;
@@ -60,7 +59,8 @@
     [self setTitle:@"Invite the AI"];
 
 //    games = [[NSArray alloc] initWithObjects:@"Pente",@"Keryo-Pente",@"Gomoku",@"D-Pente",@"G-Pente",@"Poof-Pente",@"Connect6",@"Boat-Pente", nil];
-    games = [[NSMutableArray alloc] initWithObjects:@"Pente",@"Gomoku", nil];
+//    games = [[NSMutableArray alloc] initWithObjects:@"Pente",@"Gomoku", nil];
+    games = [[NSMutableArray alloc] initWithObjects:@"Pente", nil];
     colors = [[NSMutableArray alloc] initWithObjects:@"White",@"Black", nil];
     difficulties = [[NSMutableArray alloc] init];
     for ( int i = 1; i < 10; ++i) {
@@ -121,7 +121,6 @@
 //    if ([defaults objectForKey:@"lastInvitedColor"]) {
 //        [playAsCell.detailTextLabel setText:[defaults objectForKey:@"lastInvitedColor"]];
 //    }
-    [back2DashSwitch setOn:[[NSUserDefaults standardUserDefaults] boolForKey:@"back2DashComputerGame"]];
 }
 
 
@@ -368,10 +367,6 @@
     [playAsCell doResign];
 }
 
-- (IBAction)flipBack2DashSwitch:(id)sender {
-    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-    [defaults setBool:[back2DashSwitch isOn] forKey:@"back2DashComputerGame"];
-}
 
 
 

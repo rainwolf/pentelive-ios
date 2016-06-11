@@ -13,6 +13,7 @@
 #import "BoardView.h"
 #import "RatingStatsView.h"
 #import "SVWebViewController.h"
+#import "MMAIViewController.h"
 
 
 #define usernameKey @"username"
@@ -1225,6 +1226,10 @@
             [invitationsViewController setOpenInvitationOnly: NO];
         }
     }
+    if([segue.identifier isEqualToString:@"MMAItap"]){
+        [(MMAIViewController *)segue.destinationViewController setShowAds:showAds];
+    }
+    
 }
 
 - (BOOL)shouldPerformSegueWithIdentifier:(NSString *)identifier sender:(id)sender {
@@ -2082,8 +2087,8 @@
     NSData *responseData;
     
     // connect to the game server
-//    url =  [NSString stringWithFormat:@"https://www.pente.org/gameServer/mobile/index.jsp?name=%@&password=%@&checkname=cruglife",username,password];
     url =  [NSString stringWithFormat:@"https://www.pente.org/gameServer/mobile/index.jsp?name=%@&password=%@",username,password];
+//    url =  [NSString stringWithFormat:@"https://www.pente.org/gameServer/mobile/index.jsp?name=%@&password=%@&checkname=rbhjury",username,password];
 //    url =  [NSString stringWithFormat:@"https://development.pente.org/gameServer/mobile/index.jsp?name=%@&password=%@",username,password];
     [request setURL:[NSURL URLWithString:url]];
     [request setHTTPMethod:@"GET"];
@@ -2660,7 +2665,7 @@
 
 -(void) showActions {
     NSMutableArray *buttonsArray = [[NSMutableArray alloc] init];
-    CGRect frame = CGRectMake(0, 0, 60, 50);
+    CGRect frame = CGRectMake(0, 0, 45, 45);
     UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
     button.backgroundColor = [UIColor clearColor];
     button.titleLabel.font = [UIFont boldSystemFontOfSize:17];
@@ -2702,19 +2707,34 @@
 
 -(void) showInvitationActions {
     NSMutableArray *buttonsArray = [[NSMutableArray alloc] init];
-    CGRect frame = CGRectMake(0, 0, 60, 50);
+    CGRect frame = CGRectMake(0, 0, 45, 45);
     UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
     button.backgroundColor = [UIColor clearColor];
-    button.titleLabel.font = [UIFont boldSystemFontOfSize:17];
-    [button setImage:[UIImage imageNamed:@"computer.png"] forState:UIControlStateNormal];
+//    button.titleLabel.font = [UIFont boldSystemFontOfSize:17];
+    [button setImage:[UIImage imageNamed:@"server.png"] forState:UIControlStateNormal];
     [button addTarget:self action:@selector(toAIInvitations) forControlEvents:UIControlEventTouchUpInside];
-    [button setFrame:frame];
+//    [button setTitle: @" Bruce Cropley's AI" forState:UIControlStateNormal];
+//    [button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+//    [button sizeToFit];
+    [button setFrame: frame];
+    [buttonsArray addObject: button];
+    button = [UIButton buttonWithType:UIButtonTypeCustom];
+    button.backgroundColor = [UIColor clearColor];
+    [button setImage:[UIImage imageNamed:@"computer.png"] forState:UIControlStateNormal];
+    [button addTarget:self action:@selector(toMMAI) forControlEvents:UIControlEventTouchUpInside];
+//    [button setTitle: @" Mark Mammel's AI" forState:UIControlStateNormal];
+//    [button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+//    [button sizeToFit];
+    [button setFrame: frame];
     [buttonsArray addObject: button];
     button = [UIButton buttonWithType:UIButtonTypeCustom];
     button.backgroundColor = [UIColor clearColor];
     [button setImage:[UIImage imageNamed:@"person.png"] forState:UIControlStateNormal];
     [button addTarget:self action:@selector(toRegularInvitations) forControlEvents:UIControlEventTouchUpInside];
-    [button setFrame:frame];
+//    [button setTitle: @" Other humans" forState:UIControlStateNormal];
+//    [button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+//    [button sizeToFit];
+    [button setFrame: frame];
     [buttonsArray addObject: button];
     
     actionPopoverView = [PopoverView showPopoverAtPoint: CGPointMake(self.view.bounds.size.width - 80, 0) inView:self.view withViewArray: buttonsArray delegate:self];
@@ -2725,6 +2745,10 @@
     [actionPopoverView dismiss];
     [self performSegueWithIdentifier:@"addInvitationsTap" sender: self];
     //    [self performSegueWithIdentifier:@"inviteAItap" sender:self];
+}
+-(void) toMMAI {
+    [actionPopoverView dismiss];
+    [self performSegueWithIdentifier:@"MMAItap" sender:self];
 }
 -(void) toAIInvitations {
     [actionPopoverView dismiss];

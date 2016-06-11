@@ -16,6 +16,8 @@
 }
 @property int lastMove;
 @property int lastConnect6Move;
+-(instancetype) init;
+- (id)initWithFrame:(CGRect)frame;
 -(void) setAbstractBoard: (int[19][19]) board;
 - (void)drawRect:(CGRect)rect;
 

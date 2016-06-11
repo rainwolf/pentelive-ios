@@ -58,6 +58,7 @@
                         <segue destination="2" kind="push" identifier="gameTap" id="hWj-TH-GIE"/>
                         <segue destination="WR4-Sy-JyX" kind="push" identifier="messagesTap" id="ofa-gV-th9"/>
                         <segue destination="REu-q7-2N3" kind="push" identifier="inviteAItap" id="PVb-2X-cpn"/>
+                        <segue destination="UVe-HJ-FfO" kind="push" identifier="MMAItap" id="uao-aE-ZyL"/>
                     </connections>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Vwf-GD-IgS" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -657,36 +658,6 @@
                                     </tableViewCell>
                                 </cells>
                             </tableViewSection>
-                            <tableViewSection headerTitle="settings:" id="gJC-y5-46Y">
-                                <cells>
-                                    <tableViewCell contentMode="scaleToFill" selectionStyle="none" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="back2DashAfterSubmitCell" id="BQ1-i3-Scc">
-                                        <rect key="frame" x="0.0" y="358.5" width="320" height="44"/>
-                                        <autoresizingMask key="autoresizingMask"/>
-                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="BQ1-i3-Scc" id="YWq-CE-evp">
-                                            <rect key="frame" x="0.0" y="0.0" width="320" height="43.5"/>
-                                            <autoresizingMask key="autoresizingMask"/>
-                                            <subviews>
-                                                <switch opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" id="pbE-Ss-6Ej" userLabel="Back Switch">
-                                                    <rect key="frame" x="251" y="6" width="51" height="31"/>
-                                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                                    <connections>
-                                                        <action selector="flipBack2DashSwitch:" destination="REu-q7-2N3" eventType="valueChanged" id="qtE-4j-Dnk"/>
-                                                    </connections>
-                                                </switch>
-                                                <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="pU8-Px-lY6">
-                                                    <rect key="frame" x="15" y="0.0" width="222" height="43.5"/>
-                                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                                    <string key="text">Go back after submitting
-a move to the AI:</string>
-                                                    <fontDescription key="fontDescription" type="boldSystem" pointSize="15"/>
-                                                    <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
-                                                    <color key="highlightedColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                                                </label>
-                                            </subviews>
-                                        </tableViewCellContentView>
-                                    </tableViewCell>
-                                </cells>
-                            </tableViewSection>
                         </sections>
                         <connections>
                             <outlet property="dataSource" destination="REu-q7-2N3" id="vKo-Zx-H3t"/>
@@ -696,7 +667,6 @@ a move to the AI:</string>
                     <extendedEdge key="edgesForExtendedLayout" top="YES"/>
                     <navigationItem key="navigationItem" id="vJx-dg-DXf"/>
                     <connections>
-                        <outlet property="back2DashSwitch" destination="pbE-Ss-6Ej" id="tYr-mN-Gnm"/>
                         <outlet property="gameCell" destination="tYS-dO-QMJ" id="bm5-WL-CwX"/>
                         <outlet property="opponentCell" destination="9fi-rJ-aYu" id="6dD-FE-ubx"/>
                         <outlet property="playAsCell" destination="E0v-T7-byh" id="oY7-9D-Zd8"/>
@@ -709,6 +679,118 @@ a move to the AI:</string>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="MM2-yA-ZsB" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="-56" y="1367"/>
+        </scene>
+        <!--MMAI View Controller-->
+        <scene sceneID="qzX-6N-bYt">
+            <objects>
+                <viewController id="UVe-HJ-FfO" userLabel="MMAI View Controller" customClass="MMAIViewController" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="ubK-Yx-CCE">
+                        <rect key="frame" x="0.0" y="64" width="320" height="416"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <view clipsSubviews="YES" contentMode="scaleAspectFit" id="uef-9Q-7nl" customClass="BoardView">
+                                <rect key="frame" x="0.0" y="0.0" width="320" height="320"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMinX="YES" widthSizable="YES" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <subviews>
+                                    <view userInteractionEnabled="NO" contentMode="center" id="bfk-8E-waz" customClass="BoardView">
+                                        <rect key="frame" x="224" y="-34" width="640" height="640"/>
+                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
+                                        <subviews>
+                                            <view hidden="YES" contentMode="scaleToFill" id="dpy-FI-UYz" customClass="VerticalLine">
+                                                <rect key="frame" x="-84" y="-33" width="10" height="640"/>
+                                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                            </view>
+                                            <view hidden="YES" contentMode="scaleToFill" id="g9z-yF-EgI" customClass="HorizontalLine">
+                                                <rect key="frame" x="-84" y="0.0" width="640" height="10"/>
+                                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                            </view>
+                                            <view contentMode="scaleToFill" id="hAA-5s-apc" customClass="StoneView">
+                                                <rect key="frame" x="-173" y="41" width="49" height="49"/>
+                                                <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
+                                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                            </view>
+                                        </subviews>
+                                        <color key="backgroundColor" red="0.95777387719999996" green="1" blue="0.67507892759999999" alpha="1" colorSpace="calibratedRGB"/>
+                                    </view>
+                                    <view contentMode="scaleToFill" id="DAk-De-Ugq" customClass="StoneView">
+                                        <rect key="frame" x="152" y="116" width="16" height="16"/>
+                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
+                                        <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                    </view>
+                                    <activityIndicatorView hidden="YES" opaque="NO" contentMode="center" hidesWhenStopped="YES" style="whiteLarge" id="2n6-HE-i7t">
+                                        <rect key="frame" x="142" y="141" width="37" height="37"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                        <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                        <color key="color" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                                    </activityIndicatorView>
+                                </subviews>
+                                <color key="backgroundColor" red="0.95777387719999996" green="1" blue="0.67507892759999999" alpha="1" colorSpace="calibratedRGB"/>
+                                <gestureRecognizers/>
+                                <connections>
+                                    <outletCollection property="gestureRecognizers" destination="PeI-PD-Vlw" appends="YES" id="JZY-yC-k9H"/>
+                                    <outletCollection property="gestureRecognizers" destination="X4e-kW-1O4" appends="YES" id="zuL-GR-cJr"/>
+                                </connections>
+                            </view>
+                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="x 0" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="yhN-tl-tSw">
+                                <rect key="frame" x="24" y="322" width="35" height="21"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" type="boldSystem" pointSize="17"/>
+                                <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="x 0" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="s7W-C9-6eW">
+                                <rect key="frame" x="24" y="344" width="35" height="21"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" type="boldSystem" pointSize="17"/>
+                                <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <view contentMode="scaleToFill" id="KwD-6a-G0y" customClass="StoneView">
+                                <rect key="frame" x="8" y="325" width="16" height="16"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+                            </view>
+                            <view contentMode="scaleToFill" id="KkB-Yk-faP" customClass="StoneView">
+                                <rect key="frame" x="8" y="347" width="16" height="16"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+                            </view>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+                    </view>
+                    <extendedEdge key="edgesForExtendedLayout"/>
+                    <navigationItem key="navigationItem" id="lsq-Ux-gYR"/>
+                    <connections>
+                        <outlet property="blackCapturesCountLabel" destination="s7W-C9-6eW" id="8LC-fD-AoY"/>
+                        <outlet property="blackStoneCaptures" destination="KkB-Yk-faP" id="fga-DL-fzf"/>
+                        <outlet property="board" destination="uef-9Q-7nl" id="quG-I2-epM"/>
+                        <outlet property="boardTapRecognizer" destination="mro-VF-Zxe" id="nap-OH-sO2"/>
+                        <outlet property="horizontalLine" destination="g9z-yF-EgI" id="8rM-iO-zPd"/>
+                        <outlet property="spinner" destination="2n6-HE-i7t" id="UN0-db-FxM"/>
+                        <outlet property="stone" destination="DAk-De-Ugq" id="ipj-0h-uL8"/>
+                        <outlet property="verticalLine" destination="dpy-FI-UYz" id="s3P-LM-twp"/>
+                        <outlet property="view" destination="ubK-Yx-CCE" id="DFE-HW-FWo"/>
+                        <outlet property="whiteCapturesCountLabel" destination="yhN-tl-tSw" id="cWb-AG-1y1"/>
+                        <outlet property="whiteStoneCaptures" destination="KwD-6a-G0y" id="bvf-wy-sAK"/>
+                        <outlet property="zoomedBoard" destination="bfk-8E-waz" id="AGg-z4-zF0"/>
+                        <outlet property="zoomedStone" destination="hAA-5s-apc" id="eRh-dw-wUj"/>
+                    </connections>
+                </viewController>
+                <pongPressGestureRecognizer allowableMovement="3" minimumPressDuration="0.050000000000000003" id="PeI-PD-Vlw">
+                    <connections>
+                        <action selector="boardTap:" destination="UVe-HJ-FfO" id="Xzc-Uv-XqJ"/>
+                    </connections>
+                </pongPressGestureRecognizer>
+                <swipeGestureRecognizer direction="left" id="X4e-kW-1O4">
+                    <connections>
+                        <action selector="goBackOneMoveSwipe:" destination="UVe-HJ-FfO" id="UrA-kt-gc3"/>
+                    </connections>
+                </swipeGestureRecognizer>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="vbK-su-v0V" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="610" y="-240"/>
         </scene>
     </scenes>
     <simulatedMetricsContainer key="defaultSimulatedMetrics">
