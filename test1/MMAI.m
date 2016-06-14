@@ -654,6 +654,9 @@ short int *pAs, *pAt;//*pPbk, *pKbk, *pPNm, *pPOs, *pKNm, *pKOs;
     //pView=pDoc->pView;
     gf=0;
     Kgame=0; //1 = K-pente
+    if (game == 2) {
+        Kgame = 1;
+    }
     multipbem=0;
     np=2;
     

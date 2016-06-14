@@ -106,8 +106,13 @@
     
     [board setFrame:CGRectMake(0, 0, self.view.bounds.size.width, self.view.bounds.size.width)];
     [zoomedBoard setFrame:CGRectMake(0, 0, 2*self.view.bounds.size.width, 2*self.view.bounds.size.width)];
-    [board setBackgroundColor:[UIColor colorWithRed:0.984 green:0.851 blue:0.541 alpha:1]];
-    [zoomedBoard setBackgroundColor:[UIColor colorWithRed:0.984 green:0.851 blue:0.541 alpha:1]];
+    if ([[[NSUserDefaults standardUserDefaults] objectForKey:@"MMAIGame"] isEqualToString:@"Keryo-Pente"]) {
+        [board setBackgroundColor:[UIColor colorWithRed:0.702 green:1 blue:0.518 alpha:1]];
+        [zoomedBoard setBackgroundColor:[UIColor colorWithRed:0.702 green:1 blue:0.518 alpha:1]];
+    } else {
+        [board setBackgroundColor:[UIColor colorWithRed:0.984 green:0.851 blue:0.541 alpha:1]];
+        [zoomedBoard setBackgroundColor:[UIColor colorWithRed:0.984 green:0.851 blue:0.541 alpha:1]];
+    }
     [board setLastMove: -1];
     [board setLastConnect6Move: -1];
     [zoomedBoard setLastMove: -1];
@@ -254,14 +259,14 @@
     [aiPlayer setSeat: ([setupView.colorCell.detailTextLabel.text isEqualToString:@"white"]?2:1)];
 //    NSLog(@"kitty %@", setupView.colorCell.detailTextLabel.text);
     [aiPlayer addMove:180];
-    [aiPlayer setGame:1];
+    [aiPlayer setGame: ([setupView.gameCell.detailTextLabel.text isEqualToString:@"Pente"]?1:2)];
     if (aiPlayer.seat == 1) {
         [stone setStoneColor: [UIColor blackColor]];
         [stone setNeedsDisplay];
         [zoomedStone setStoneColor: [UIColor blackColor]];
         [zoomedStone setNeedsDisplay];
         activeGame = YES;
-        [self replayPenteGame:[[aiPlayer moves] count]];
+        [self replayGame:[[aiPlayer moves] count]];
     } else {
         [stone setStoneColor: [UIColor whiteColor]];
         [zoomedStone setStoneColor: [UIColor whiteColor]];
@@ -271,12 +276,13 @@
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
     [defaults setInteger:[aiPlayer level] forKey:@"MMAILevel"];
     [defaults setObject: setupView.colorCell.detailTextLabel.text forKey: @"MMAIColor"];
+    [defaults setObject: setupView.gameCell.detailTextLabel.text forKey: @"MMAIGame"];
 }
 
 - (IBAction)goBackOneMoveSwipe:(UISwipeGestureRecognizer *)sender {
     if ([[aiPlayer moves] count] > 1) {
         [[aiPlayer moves] removeLastObject];
-        [self replayPenteGame:[[aiPlayer moves] count]];
+        [self replayGame:[[aiPlayer moves] count]];
         if (aiPlayer.seat == 1 + [[aiPlayer moves] count]%2) {
             activeGame = NO;
         } else {
@@ -313,7 +319,7 @@
                 finalMove = 19*i + j;
                 
                 [aiPlayer addMove: finalMove];
-                [self replayPenteGame: [[aiPlayer moves] count]];
+                [self replayGame:[[aiPlayer moves] count]];
                 if (activeGame) {
                     activeGame = NO;
                     spinner.center = stone.center;
@@ -373,7 +379,7 @@
     int newMove = [aiPlayer getMove];
 //    NSLog(@"kitty move %i", newMove);
     activeGame = YES;
-    [self replayPenteGame:[[aiPlayer moves] count]];
+    [self replayGame:[[aiPlayer moves] count]];
     [spinner performSelectorOnMainThread:@selector(stopAnimating) withObject:nil waitUntilDone:NO];
 }
 
@@ -388,7 +394,13 @@
 }
 
 
-
+-(void) replayGame: (int) untilMove {
+    if (aiPlayer.game == 1) {
+        [self replayPenteGame: untilMove];
+    } else {
+        [self replayKeryoPenteGame: untilMove];
+    }
+}
 
 -(void) replayPenteGame: (int) untilMove {
     [self resetBoard];
@@ -469,6 +481,100 @@
     [playerStats loadHTMLString: moveStatsString baseURL:nil];
 
 }
+
+-(void) replayKeryoPenteGame: (int) untilMove {
+    [self resetBoard];
+    whiteCaptures = 0;
+    blackCaptures = 0;
+    for (int i = 0; i < untilMove; ++i) {
+        int rowCol = [[[aiPlayer moves] objectAtIndex:i] intValue];
+        int color = (i % 2) + 1, opponentColor = (color == 2) ? 1 : 2;
+        abstractBoard[rowCol / 19][rowCol % 19] = color;
+        [self detectCaptureOfOpponent:opponentColor atPosition:rowCol];
+        [self detectKeryoCaptureOfOpponent:opponentColor atPosition:rowCol];
+    }
+//    if ([[game ratedNot] isEqualToString:@"Rated"] && ([movesList count] == 2)) {
+//        for(int i = 7; i < 12; ++i) {
+//            for(int j = 7; j < 12; ++j) {
+//                if (abstractBoard[i][j] == 0) {
+//                    abstractBoard[i][j] = -1;
+//                }
+//            }
+//        }
+//    }
+    
+    
+    //NSLog(@" kitty moves %i",abstractBoard[0][0]);
+    [board setAbstractBoard: abstractBoard];
+    [board setAbstractBoard: abstractBoard];
+    [board setLastMove: [[[aiPlayer moves] objectAtIndex:untilMove - 1] intValue]];
+    if (lastMove == [movesList count]) {
+        [zoomedBoard setAbstractBoard: abstractBoard];
+        [zoomedBoard setLastMove: [[[aiPlayer moves] objectAtIndex:untilMove - 1] intValue]];
+    }
+    [board setNeedsDisplay];
+    [zoomedBoard setNeedsDisplay];
+    [self updateCaptures];
+
+    NSString *message = nil;
+    BOOL iWin = YES;
+    if ([self detectPenteOf: 2-([[aiPlayer moves] count]%2) atPosition: [[[aiPlayer moves] lastObject] intValue]]) {
+        if (2-([[aiPlayer moves] count]%2) == 1) {
+            message = @"White wins";
+        } else {
+            message = @"Black wins";
+        }
+    } else if (whiteCaptures >= 15) {
+        message = @"Black wins";
+    } else if (blackCaptures >= 15) {
+        message = @"White wins";
+    }
+    if (message) {
+        activeGame = NO;
+        if ([message isEqualToString:@"White wins"]) {
+            if ([setupView.colorCell.detailTextLabel.text isEqualToString:@"black"]) {
+                iWin = NO;
+            }
+        } else {
+            if ([setupView.colorCell.detailTextLabel.text isEqualToString:@"white"]) {
+                iWin = NO;
+            }
+        }
+        [TSMessage showNotificationInViewController:self.navigationController
+                                              title: @"Game Over"
+                                           subtitle: message
+                                              image:nil
+                                               type: (iWin?TSMessageNotificationTypeSuccess:TSMessageNotificationTypeError)
+                                           duration:TSMessageNotificationDurationAutomatic
+                                           callback: ^{
+                                               [TSMessage dismissActiveNotification];
+                                           }
+                                        buttonTitle: nil
+                                     buttonCallback:nil
+                                         atPosition:TSMessageNotificationPositionBottom
+                               canBeDismissedByUser:YES];
+    }
+    
+    moveStatsString = [[NSMutableString alloc] initWithString:[NSString stringWithFormat:@"<center><b>Color:</b> %@, <b>difficulty:</b> %@</center><hr>", setupView.colorCell.detailTextLabel.text, setupView.difficultyCell.detailTextLabel.text]];
+    int i = 0;
+    for (NSNumber *move in [aiPlayer moves]) {
+        int rowCol = [move intValue];
+        if (i == 0) {
+            [moveStatsString appendString: @"<b>1.</b> "];
+        } else {
+            if ((i%2) == 0) {
+                [moveStatsString appendString: [NSString stringWithFormat:@"&nbsp; <b>%i.</b> ", (i >> 1) + 1]];
+            } else {
+                [moveStatsString appendString: @" - "];
+            }
+        }
+        [moveStatsString appendString:[NSString stringWithFormat:@"%c%d", coordinateLetters[rowCol % 19], 19 - (rowCol / 19)]];
+        ++i;
+    }
+    [playerStats loadHTMLString: moveStatsString baseURL:nil];
+}
+
+
 
 -(void)webViewDidFinishLoad:(UIWebView *)webView {
     NSInteger height = [[webView stringByEvaluatingJavaScriptFromString:@"document.body.offsetHeight;"] intValue];
@@ -699,6 +805,123 @@
     return pente;
 }
 
+-(void) detectKeryoCaptureOfOpponent: (int) opponentColor atPosition: (int) rowCol {
+    int i = rowCol / 19, j = rowCol % 19, myColor = (opponentColor == 1) ? 2 : 1;
+    if ((i-4) > -1) {
+        if (abstractBoard[i-4][j] == myColor) {
+            if ((abstractBoard[i-1][j] == opponentColor) && (abstractBoard[i-2][j] == opponentColor) && (abstractBoard[i-3][j] == opponentColor)) {
+                abstractBoard[i-1][j] = 0;
+                abstractBoard[i-2][j] = 0;
+                abstractBoard[i-3][j] = 0;
+                if (opponentColor == 1) {
+                    whiteCaptures += 3;
+                } else {
+                    blackCaptures += 3;
+                }
+            }
+        }
+    }
+    if (((i-4) > -1) && ((j-4) > -1)) {
+        if (abstractBoard[i-4][j-4] == myColor) {
+            if ((abstractBoard[i-1][j-1] == opponentColor) && (abstractBoard[i-2][j-2] == opponentColor) && (abstractBoard[i-3][j-3] == opponentColor)) {
+                abstractBoard[i-1][j-1] = 0;
+                abstractBoard[i-2][j-2] = 0;
+                abstractBoard[i-3][j-3] = 0;
+                if (opponentColor == 1) {
+                    whiteCaptures += 3;
+                } else {
+                    blackCaptures += 3;
+                }
+            }
+        }
+    }
+    if ((j-4) > -1) {
+        if (abstractBoard[i][j-4] == myColor) {
+            if ((abstractBoard[i][j-1] == opponentColor) && (abstractBoard[i][j-2] == opponentColor) && (abstractBoard[i][j-3] == opponentColor)) {
+                abstractBoard[i][j-1] = 0;
+                abstractBoard[i][j-2] = 0;
+                abstractBoard[i][j-3] = 0;
+                if (opponentColor == 1) {
+                    whiteCaptures += 3;
+                } else {
+                    blackCaptures += 3;
+                }
+            }
+        }
+    }
+    if (((i+4) < 19) && ((j-4) > -1)) {
+        if (abstractBoard[i+4][j-4] == myColor) {
+            if ((abstractBoard[i+1][j-1] == opponentColor) && (abstractBoard[i+2][j-2] == opponentColor) && (abstractBoard[i+3][j-3] == opponentColor)) {
+                abstractBoard[i+1][j-1] = 0;
+                abstractBoard[i+2][j-2] = 0;
+                abstractBoard[i+3][j-3] = 0;
+                if (opponentColor == 1) {
+                    whiteCaptures += 3;
+                } else {
+                    blackCaptures += 3;
+                }
+            }
+        }
+    }
+    if ((i+4) < 19) {
+        if (abstractBoard[i+4][j] == myColor) {
+            if ((abstractBoard[i+1][j] == opponentColor) && (abstractBoard[i+2][j] == opponentColor) && (abstractBoard[i+3][j] == opponentColor)) {
+                abstractBoard[i+1][j] = 0;
+                abstractBoard[i+2][j] = 0;
+                abstractBoard[i+3][j] = 0;
+                if (opponentColor == 1) {
+                    whiteCaptures += 3;
+                } else {
+                    blackCaptures += 3;
+                }
+            }
+        }
+    }
+    if (((i+4) < 19) && ((j+4) < 19)) {
+        if (abstractBoard[i+4][j+4] == myColor) {
+            if ((abstractBoard[i+1][j+1] == opponentColor) && (abstractBoard[i+2][j+2] == opponentColor) && (abstractBoard[i+3][j+3] == opponentColor)) {
+                abstractBoard[i+1][j+1] = 0;
+                abstractBoard[i+2][j+2] = 0;
+                abstractBoard[i+3][j+3] = 0;
+                if (opponentColor == 1) {
+                    whiteCaptures += 3;
+                } else {
+                    blackCaptures += 3;
+                }
+            }
+        }
+    }
+    if ((j+4) < 19) {
+        if (abstractBoard[i][j+4] == myColor) {
+            if ((abstractBoard[i][j+1] == opponentColor) && (abstractBoard[i][j+2] == opponentColor) && (abstractBoard[i][j+3] == opponentColor)) {
+                abstractBoard[i][j+1] = 0;
+                abstractBoard[i][j+2] = 0;
+                abstractBoard[i][j+3] = 0;
+                if (opponentColor == 1) {
+                    whiteCaptures += 3;
+                } else {
+                    blackCaptures += 3;
+                }
+            }
+        }
+    }
+    if (((i-4) > -1) && ((j+4) < 19)) {
+        if (abstractBoard[i-4][j+4] == myColor) {
+            if ((abstractBoard[i-1][j+1] == opponentColor) && (abstractBoard[i-2][j+2] == opponentColor) && (abstractBoard[i-3][j+3] == opponentColor)) {
+                abstractBoard[i-1][j+1] = 0;
+                abstractBoard[i-2][j+2] = 0;
+                abstractBoard[i-3][j+3] = 0;
+                if (opponentColor == 1) {
+                    whiteCaptures += 3;
+                } else {
+                    blackCaptures += 3;
+                }
+            }
+        }
+    }
+}
+
+
 -(void) resetBoard {
     for(int i = 0; i < 19; ++i) {
         for(int j = 0; j < 19; ++j) {
@@ -710,14 +933,16 @@
 
 -(void) showSetup {
     
-    setupView = [[AISetupView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width/2, 88)];
+    setupView = [[AISetupView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width*2/3, 132)];
     [setupView setScrollEnabled:NO];
     [setupView setDelegate: setupView];
     [setupView setDataSource: setupView];
 //    [AISetupView setUserInteractionEnabled:NO];
-    
+    [setupView setBoard: board];
+    [setupView setZBoard:zoomedBoard];
     messagePopover = [PopoverView showPopoverAtPoint: CGPointMake(self.view.bounds.size.width - 20, 0) inView:self.view withTitle: @"settings" withContentView: setupView delegate:self];
     [messagePopover layoutSubviews];
+    
 }
 
 

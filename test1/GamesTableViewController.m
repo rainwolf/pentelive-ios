@@ -1973,7 +1973,7 @@
         //            [self.tableView reloadData];
     }
     
-    if (indexPath.section == PUBLICINVITATIONSSECTION) {
+    if (indexPath.section == SENTINVITATIONSSECTION) {
         //            [self.tableView setUserInteractionEnabled: NO];
         self.tableView.layer.borderWidth = 1.5;
         [self performSelector:@selector(scrollViewDidScroll:) withObject: self.tableView];
@@ -2710,30 +2710,20 @@
     CGRect frame = CGRectMake(0, 0, 45, 45);
     UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
     button.backgroundColor = [UIColor clearColor];
-//    button.titleLabel.font = [UIFont boldSystemFontOfSize:17];
     [button setImage:[UIImage imageNamed:@"server.png"] forState:UIControlStateNormal];
     [button addTarget:self action:@selector(toAIInvitations) forControlEvents:UIControlEventTouchUpInside];
-//    [button setTitle: @" Bruce Cropley's AI" forState:UIControlStateNormal];
-//    [button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
-//    [button sizeToFit];
     [button setFrame: frame];
     [buttonsArray addObject: button];
     button = [UIButton buttonWithType:UIButtonTypeCustom];
     button.backgroundColor = [UIColor clearColor];
     [button setImage:[UIImage imageNamed:@"computer.png"] forState:UIControlStateNormal];
     [button addTarget:self action:@selector(toMMAI) forControlEvents:UIControlEventTouchUpInside];
-//    [button setTitle: @" Mark Mammel's AI" forState:UIControlStateNormal];
-//    [button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
-//    [button sizeToFit];
     [button setFrame: frame];
     [buttonsArray addObject: button];
     button = [UIButton buttonWithType:UIButtonTypeCustom];
     button.backgroundColor = [UIColor clearColor];
     [button setImage:[UIImage imageNamed:@"person.png"] forState:UIControlStateNormal];
     [button addTarget:self action:@selector(toRegularInvitations) forControlEvents:UIControlEventTouchUpInside];
-//    [button setTitle: @" Other humans" forState:UIControlStateNormal];
-//    [button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
-//    [button sizeToFit];
     [button setFrame: frame];
     [buttonsArray addObject: button];
     

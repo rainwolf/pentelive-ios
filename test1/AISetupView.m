@@ -12,7 +12,8 @@
 @synthesize difficulty;
 @synthesize playAsWhite;
 @synthesize difficultyCell;
-@synthesize colorCell;
+@synthesize colorCell, gameCell;
+@synthesize board, zBoard;
 
 
 
@@ -21,12 +22,34 @@
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    return 2;
+    return 3;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
 
     if (indexPath.row == 0) {
+        UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier: @"gameCell"];
+        if (cell == nil) {
+            cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier: @"gameCell"];
+        }
+        //        NSArray *colors = [[NSArray alloc] initWithObjects:@"white",@"black", nil];
+        //        [cell setDelegate: self];
+        //        cell.datarray = colors;
+        //        [cell.picker reloadAllComponents];
+        [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
+        
+        cell.textLabel.text =  @"Game:";
+        NSString *str = [[NSUserDefaults standardUserDefaults] objectForKey: @"MMAIGame"];
+        if (str) {
+            cell.detailTextLabel.text = str;
+        } else {
+            cell.detailTextLabel.text = @"Pente";
+        }
+        
+        gameCell = cell;
+        
+        return cell;
+    } else if (indexPath.row == 1) {
         SimplePickerInputTableViewCell *cell = (SimplePickerInputTableViewCell *) [tableView dequeueReusableCellWithIdentifier: @"difficultyCell"];
         if (cell == nil) {
             cell = [[SimplePickerInputTableViewCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier: @"difficultyCell"];
@@ -51,7 +74,7 @@
         difficultyCell = cell;
         
         return cell;
-    } else if (indexPath.row == 1) {
+    } else if (indexPath.row == 2) {
         UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier: @"colorCell"];
         if (cell == nil) {
             cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier: @"colorCell"];
@@ -78,13 +101,29 @@
 }
 
 -(void) tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    if (indexPath.row == 1) {
+    if (indexPath.row == 2) {
+        [difficultyCell doResign];
         if ([colorCell.detailTextLabel.text isEqualToString:@"white"]) {
             [colorCell.detailTextLabel setText:@"black"];
         } else {
             [colorCell.detailTextLabel setText:@"white"];
         }
     }
+    if (indexPath.row == 0) {
+        [difficultyCell doResign];
+        if ([gameCell.detailTextLabel.text isEqualToString:@"Pente"]) {
+            [gameCell.detailTextLabel setText:@"Keryo-Pente"];
+            [board setBackgroundColor:[UIColor colorWithRed:0.702 green:1 blue:0.518 alpha:1]];
+            [zBoard setBackgroundColor:[UIColor colorWithRed:0.702 green:1 blue:0.518 alpha:1]];
+        } else {
+            [gameCell.detailTextLabel setText:@"Pente"];
+            [board setBackgroundColor:[UIColor colorWithRed:0.984 green:0.851 blue:0.541 alpha:1]];
+            [zBoard setBackgroundColor:[UIColor colorWithRed:0.984 green:0.851 blue:0.541 alpha:1]];
+        }
+        [board setNeedsDisplay];
+        [zBoard setNeedsDisplay];
+    }
+
 }
 
 
