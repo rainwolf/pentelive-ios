@@ -1058,7 +1058,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "be.submanifold.${PRODUCT_NAME:rfc1034identifier}";
 				PRODUCT_NAME = penteLive;
-				PROVISIONING_PROFILE = "6ea8bf66-aa8d-4414-ad2e-2988df9647e5";
+				PROVISIONING_PROFILE = "";
 				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
 				WRAPPER_EXTENSION = app;
 			};
@@ -1094,7 +1094,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "be.submanifold.${PRODUCT_NAME:rfc1034identifier}";
 				PRODUCT_NAME = penteLive;
-				PROVISIONING_PROFILE = "6ea8bf66-aa8d-4414-ad2e-2988df9647e5";
+				PROVISIONING_PROFILE = "";
 				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
 				WRAPPER_EXTENSION = app;
 			};

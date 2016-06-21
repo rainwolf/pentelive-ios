@@ -27,6 +27,7 @@
     return self;
 }
 
+
 - (id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier
 {
     self = [super initWithStyle:style reuseIdentifier:reuseIdentifier];
@@ -87,5 +88,6 @@
 		[delegate tableViewCell:self didEndEditingWithValue:self.value];
 	}
 }
+
 
 @end

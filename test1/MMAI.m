@@ -15,6 +15,9 @@
 @implementation MMAI
 @synthesize moves;
 @synthesize seat, level, game;
+@synthesize scores, table, obk;
+@synthesize pFk, pFh, pTr, pTm, pTo, pTi, pfhn;
+
 
 int game;
 int level;
@@ -51,7 +54,6 @@ int brd[18][size][size];//, ciel[7][18];
 // the computer will only consider moving to '-1'.
 int bmove, bscr;
 
-short int *scores, *table, *obk;
 
 
 const int om2[] = {181,182,162,163,164,165,144,145};
@@ -67,8 +69,6 @@ int fr, fhn, en, np, cp, Kgame, cap1, tourn;
 int mvct, lvl, ppd, vct, ferr, alpha, beta, a1, b1;
 int sco[7], mxst, plv;
 
-int *pFk, *pFh, *pTr, *pTm, *pTo, *pTi;
-int *pfhn, *pFk, *pFh;
 unsigned char *pHashD;
 short int *pHashS;
 int exfl[20], exel[20];
@@ -103,21 +103,21 @@ short int *pAs, *pAt;//*pPbk, *pKbk, *pPNm, *pPOs, *pKNm, *pKOs;
     if (self = [super init]) {
         obfl = 1;
         
-        obk = calloc(openingBookSize * 24, sizeof(short int));
-        table = calloc(tsize*4, sizeof(short int));
-        scores = calloc(bsize*14, sizeof(short int));
+        obk = malloc(openingBookSize * 24 * sizeof(short int));
+        table = malloc(tsize*4 * sizeof(short int));
+        scores = malloc(bsize*14 * sizeof(short int));
        
-        pFk = calloc(1444,sizeof(int));
-        pFh = calloc(3000,sizeof(int));
-        pTr = calloc(363,sizeof(int));
-        pTm = calloc(363,sizeof(int));
-        pTo = calloc(2541,sizeof(int));
-        pTi = calloc(363,sizeof(int));
+        pFk = malloc(1444 * sizeof(int));
+        pFh = malloc(3000 * sizeof(int));
+        pTr = malloc(363 * sizeof(int));
+        pTm = malloc(363 * sizeof(int));
+        pTo = malloc(2541 * sizeof(int));
+        pTi = malloc(363 * sizeof(int));
         
 #if HASH == 1
-        pHashY = calloc(1000000,sizeof(unsigned int));
-        pHashD = calloc(1000000,sizeof(unsigned char));
-        pHashS = calloc(2000000,sizeof(short int));
+        pHashY = malloc(1000000 * sizeof(unsigned int));
+        pHashD = malloc(1000000 * sizeof(unsigned char));
+        pHashS = malloc(2000000 * sizeof(short int));
 #endif
         
         [self reset];
@@ -155,7 +155,8 @@ short int *pAs, *pAt;//*pPbk, *pKbk, *pPNm, *pPOs, *pKNm, *pKOs;
         fileDataArray = (unsigned char *) [fileData bytes];
         fileCntr = 0;
 
-        obsize=(((int) fileDataArray[fileCntr]) << 8) | fileDataArray[fileCntr + 1];
+        obsize=(((int) fileDataArray[fileCntr + 1]) << 8) | fileDataArray[fileCntr];
+//        NSLog(@"kitty %i", obsize);
         fileCntr += 2;
         if(obsize < openingBookSize) {
             cob=0;
@@ -213,7 +214,6 @@ short int *pAs, *pAt;//*pPbk, *pKbk, *pPNm, *pPOs, *pKNm, *pKOs;
     free(pHashD);
     free(pHashS);
 #endif
-
 }
 -(void) reset {
 //    free(pFk); free(pFh); free(pTr); free(pTm); free(pTo); free(pTi);
@@ -267,6 +267,7 @@ short int *pAs, *pAt;//*pPbk, *pKbk, *pPNm, *pPOs, *pKNm, *pKOs;
     }
     TableX[361]=2031; //SET lo
     TableY[361]=3201;
+    
 }
 
 
@@ -397,6 +398,8 @@ short int *pAs, *pAt;//*pPbk, *pKbk, *pPNm, *pPOs, *pKNm, *pKOs;
     if (tn==1) {
         xoff=yoff=-size/2;
     }
+    
+
     if (tn>1 && obfl!=0) {
         //if (tn>1 && obfl) {
         rlct=0;

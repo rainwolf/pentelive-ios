@@ -27,6 +27,7 @@
     BOOL activeGame, showAds;
     MMAI *aiPlayer;
     AISetupView *setupView;
+    
 }
 @property(atomic) BOOL showedAd;
 @property(atomic) BOOL activeGame;

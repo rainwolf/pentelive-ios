@@ -15,11 +15,15 @@
 @interface MMAI : NSObject {
     NSMutableArray<NSNumber *> *moves;
     int seat, level, game;
+    short int *scores, *table, *obk;
+    int *pFk, *pFh, *pTr, *pTm, *pTo, *pTi, *pfhn;
 }
 @property(retain, nonatomic, readwrite) NSMutableArray<NSNumber *> *moves;
 @property(assign, readwrite, atomic, setter=setSeat:, getter=seat) int seat;
 @property(assign, readwrite, atomic) int game;
 @property(assign, readwrite, atomic, setter=setLevel:, getter=level) int level;
+@property short int *scores, *table, *obk;
+@property int *pFk, *pFh, *pTr, *pTm, *pTo, *pTi, *pfhn;
 
 -(void) reset;
 -(void) addMove: (int) move;

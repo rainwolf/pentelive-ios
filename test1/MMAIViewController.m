@@ -99,7 +99,6 @@
     [self.navigationItem setRightBarButtonItem:setupButton];
     
 
-    aiPlayer = [[MMAI alloc] init];
     
     [self setTitle:@"Mark Mammel's AI"];
     
@@ -254,6 +253,10 @@
 
 -(void) startGame: (id) sender {
     [((UIButton *) sender) setTitle:@"restart game" forState:UIControlStateNormal];
+    if (aiPlayer == nil) {
+//        NSLog(@"kitty");
+        aiPlayer = [[MMAI alloc] init];
+    }
     [aiPlayer reset];
     [aiPlayer setLevel:[setupView.difficultyCell.detailTextLabel.text intValue]];
     [aiPlayer setSeat: ([setupView.colorCell.detailTextLabel.text isEqualToString:@"white"]?2:1)];
@@ -262,9 +265,7 @@
     [aiPlayer setGame: ([setupView.gameCell.detailTextLabel.text isEqualToString:@"Pente"]?1:2)];
     if (aiPlayer.seat == 1) {
         [stone setStoneColor: [UIColor blackColor]];
-        [stone setNeedsDisplay];
         [zoomedStone setStoneColor: [UIColor blackColor]];
-        [zoomedStone setNeedsDisplay];
         activeGame = YES;
         [self replayGame:[[aiPlayer moves] count]];
     } else {
@@ -272,6 +273,8 @@
         [zoomedStone setStoneColor: [UIColor whiteColor]];
         [self getNewAImove];
     }
+    [stone setNeedsDisplay];
+    [zoomedStone setNeedsDisplay];
     
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
     [defaults setInteger:[aiPlayer level] forKey:@"MMAILevel"];
@@ -943,6 +946,10 @@
     messagePopover = [PopoverView showPopoverAtPoint: CGPointMake(self.view.bounds.size.width - 20, 0) inView:self.view withTitle: @"settings" withContentView: setupView delegate:self];
     [messagePopover layoutSubviews];
     
+}
+
+- (void)popoverViewDidDismiss:(PopoverView *)popoverView {
+    [[setupView  difficultyCell] doResign];
 }
 
 
