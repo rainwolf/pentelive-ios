@@ -42,6 +42,7 @@
     int abstractBoard[19][19];
     int finalMove, whiteCaptures, blackCaptures, lastMove;
     char coordinateLetters[19];
+    BOOL aiThinking;
 }
 @synthesize aiPlayer;
 @synthesize board;
@@ -73,6 +74,8 @@
     [super viewDidLoad];
 	// Do any additional setup after loading the view, typically from a nib.
     showedAd = NO;
+    
+    aiThinking = NO;
     
     
     coordinateLetters[0] = 'A';
@@ -252,6 +255,7 @@
 }
 
 -(void) startGame: (id) sender {
+    aiThinking = NO;
     [((UIButton *) sender) setTitle:@"restart game" forState:UIControlStateNormal];
     if (aiPlayer == nil) {
 //        NSLog(@"kitty");
@@ -283,7 +287,7 @@
 }
 
 - (IBAction)goBackOneMoveSwipe:(UISwipeGestureRecognizer *)sender {
-    if ([[aiPlayer moves] count] > 1) {
+    if ([[aiPlayer moves] count] > 1 && !aiThinking) {
         [[aiPlayer moves] removeLastObject];
         [self replayGame:[[aiPlayer moves] count]];
         if (aiPlayer.seat == 1 + [[aiPlayer moves] count]%2) {
@@ -329,6 +333,7 @@
                     [spinner setColor: ([[aiPlayer moves] count]%2 == 1) ? [UIColor blackColor]:[UIColor whiteColor]];
                     [spinner setHidden:NO];
                     [spinner startAnimating];
+                    aiThinking = YES;
                     [NSThread detachNewThreadSelector:@selector(getNewAImove) toTarget:self withObject:nil];
                 }
                 
@@ -379,10 +384,11 @@
 
 
 -(void) getNewAImove {
-    int newMove = [aiPlayer getMove];
+    [aiPlayer getMove];
 //    NSLog(@"kitty move %i", newMove);
     activeGame = YES;
     [self replayGame:[[aiPlayer moves] count]];
+    aiThinking = NO;
     [spinner performSelectorOnMainThread:@selector(stopAnimating) withObject:nil waitUntilDone:NO];
 }
 
@@ -397,7 +403,7 @@
 }
 
 
--(void) replayGame: (int) untilMove {
+-(void) replayGame: (unsigned long) untilMove {
     if (aiPlayer.game == 1) {
         [self replayPenteGame: untilMove];
     } else {
@@ -405,7 +411,7 @@
     }
 }
 
--(void) replayPenteGame: (int) untilMove {
+-(void) replayPenteGame: (unsigned long) untilMove {
     [self resetBoard];
     whiteCaptures = 0;
     blackCaptures = 0;
@@ -485,7 +491,7 @@
 
 }
 
--(void) replayKeryoPenteGame: (int) untilMove {
+-(void) replayKeryoPenteGame: (unsigned long) untilMove {
     [self resetBoard];
     whiteCaptures = 0;
     blackCaptures = 0;

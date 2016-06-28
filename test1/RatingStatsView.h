@@ -8,6 +8,7 @@
 
 #import <UIKit/UIKit.h>
 #import "PentePlayer.h"
+#import "GamesTableViewController.h"
 
 
 @interface RatingStatCell : UITableViewCell {
@@ -20,7 +21,9 @@
 
 @interface RatingStatsView : UITableView <UITableViewDelegate, UITableViewDataSource> {
     NSArray<RatingStat *> *ratingStats;
+    GamesTableViewController *vc;
 }
 @property(retain, nonatomic, readwrite) NSArray<RatingStat *> *ratingStats;
+@property(retain, nonatomic, readwrite) GamesTableViewController *vc;
 
 @end

@@ -2698,7 +2698,9 @@
     [ratingView setDelegate: ratingView];
     [ratingView setDataSource: ratingView];
     [ratingView setRatingStats: [player ratingStats]];
-    [ratingView setUserInteractionEnabled:NO];
+//    [ratingView setUserInteractionEnabled:NO];
+    [ratingView setScrollEnabled: NO];
+    [ratingView setVc: self];
     
     actionPopoverView = [PopoverView showPopoverAtPoint: CGPointMake(self.view.bounds.size.width - 20, 0) inView:self.view withTitle: @"rating stats" withContentView: ratingView delegate:self];
     [actionPopoverView layoutSubviews];

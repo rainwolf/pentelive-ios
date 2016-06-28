@@ -55,7 +55,7 @@
             cell = [[SimplePickerInputTableViewCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier: @"difficultyCell"];
         }
         NSMutableArray<NSString *> *difficulties = [[NSMutableArray alloc] init];
-        for ( int i = 1; i < 13; ++i) {
+        for ( int i = 1; i < 9; ++i) {
             [difficulties addObject:[NSString stringWithFormat:@"%i",i]];
         }
         cell.datarray = difficulties;

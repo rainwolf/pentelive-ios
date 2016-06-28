@@ -7,9 +7,11 @@
 //
 
 #import "RatingStatsView.h"
+#import "SVWebViewController.h"
 
 @implementation RatingStatsView
 @synthesize ratingStats;
+@synthesize vc;
 
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
@@ -38,8 +40,36 @@
     NSMutableAttributedString *tmpStr = [[NSMutableAttributedString alloc] initWithString: ratingStr];
     [self addColorOfRating: [ratingStats objectAtIndex: indexPath.row].rating toString: tmpStr];
     cell.ratingLabel.attributedText = tmpStr;
+    [cell setAccessoryType:UITableViewCellAccessoryDisclosureIndicator];
     
     return cell;
+}
+
+-(void) tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    NSString *username = [[NSUserDefaults standardUserDefaults] objectForKey:@"username"];
+    NSString *game = nil;
+    if ([[[ratingStats objectAtIndex: indexPath.row] game] isEqualToString:@"Pente"])
+        game = @"51";
+    if ([[[ratingStats objectAtIndex: indexPath.row] game] isEqualToString:@"Gomoku"])
+        game = @"55";
+    if ([[[ratingStats objectAtIndex: indexPath.row] game] isEqualToString:@"D-Pente"])
+        game = @"57";
+    if ([[[ratingStats objectAtIndex: indexPath.row] game] isEqualToString:@"G-Pente"])
+        game = @"59";
+    if ([[[ratingStats objectAtIndex: indexPath.row] game] isEqualToString:@"Boat-Pente"])
+        game = @"65";
+    if ([[[ratingStats objectAtIndex: indexPath.row] game] isEqualToString:@"Poof-Pente"])
+        game = @"61";
+    if ([[[ratingStats objectAtIndex: indexPath.row] game] isEqualToString:@"Connect6"])
+        game = @"63";
+    if ([[[ratingStats objectAtIndex: indexPath.row] game] isEqualToString:@"Keryo-Pente"])
+        game = @"53";
+    NSString *urlString = [NSString stringWithFormat:@"https://www.pente.org/gameServer/viewLiveGames?p=%@&g=%@", username, game];
+    SVWebViewController *webViewController = [[SVWebViewController alloc] initWithAddress: urlString];
+    [vc.actionPopoverView dismiss];
+    [vc.navigationController pushViewController:webViewController animated:YES];
+
+    
 }
 
 
@@ -87,11 +117,12 @@
         imageWidth = self.imageView.frame.size.width;
     }
     CGFloat accessoryWidth;
-    if (self.accessoryType == UITableViewCellAccessoryDisclosureIndicator) {
-        accessoryWidth = 20;
-    } else {
-        accessoryWidth = 0;
-    }
+//    if (self.accessoryType == UITableViewCellAccessoryDisclosureIndicator) {
+//        accessoryWidth = 20;
+//    } else {
+//        accessoryWidth = 0;
+//    }
+    accessoryWidth = 0;
     [self.textLabel setFrame:CGRectMake(imageWidth + 10, 2, (screenWidth - imageWidth - accessoryWidth + 60)/2, 22)];
     [self.ratingLabel setFrame:CGRectMake(imageWidth + 10 + (screenWidth - imageWidth - accessoryWidth - 20)/2, 2, (screenWidth - imageWidth - accessoryWidth - 60)/2, 22)];
     [self.detailTextLabel setFrame:CGRectMake(imageWidth + 10, 24, screenWidth - imageWidth - accessoryWidth - 20, 18)];

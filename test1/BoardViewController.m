@@ -706,6 +706,7 @@ struct Capture {
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
     if ([defaults boolForKey:@"notBack2Dash"]) {
         finalMove = -1;
+        activeGame = NO;
         [submitButton setEnabled:NO];
         [submitButton setTitle:@"submit" forState:UIControlStateDisabled];
         [submitButton setAlpha:0.5];
@@ -1065,7 +1066,48 @@ struct Capture {
     if (![receivedMessage isEqualToString:@""]) {
         [self notifyNewMessage];
     }
-    
+
+    if ([[game opponentName] isEqualToString:@"computer"]) {
+        NSString *message = nil;
+        BOOL iWin = YES;
+        if ([self detectPenteOf: 2-([movesList count]%2) atPosition: [[movesList lastObject] intValue]]) {
+            if (2-([movesList count]%2) == 1) {
+                message = @"White wins";
+            } else {
+                message = @"Black wins";
+            }
+        } else if (whiteCaptures == 10) {
+            message = @"Black wins";
+        } else if (blackCaptures == 10) {
+            message = @"White wins";
+        }
+        if (message) {
+            activeGame = NO;
+            if ([message isEqualToString:@"White wins"]) {
+                if ([[game myColor] isEqualToString:@"black"]) {
+                    iWin = NO;
+                }
+            } else {
+                if ([[game myColor] isEqualToString:@"white"]) {
+                    iWin = NO;
+                }
+            }
+            [TSMessage showNotificationInViewController:self.navigationController
+                                                  title: @"Game Over"
+                                               subtitle: message
+                                                  image:nil
+                                                   type: (iWin?TSMessageNotificationTypeSuccess:TSMessageNotificationTypeError)
+                                               duration:TSMessageNotificationDurationAutomatic
+                                               callback: ^{
+                                                   [TSMessage dismissActiveNotification];
+                                               }
+                                            buttonTitle: nil
+                                         buttonCallback:nil
+                                             atPosition:TSMessageNotificationPositionBottom
+                                   canBeDismissedByUser:YES];
+        }
+    }
+
 }
 
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex
@@ -1318,7 +1360,6 @@ struct Capture {
     
     [board setNeedsDisplay];
     [zoomedBoard setNeedsDisplay];
-
 }
 
 
@@ -1348,11 +1389,6 @@ struct Capture {
     } else {
         [board setBackgroundColor:[UIColor colorWithRed:0.984 green:0.851 blue:0.541 alpha:1]];
         [zoomedBoard setBackgroundColor:[UIColor colorWithRed:0.984 green:0.851 blue:0.541 alpha:1]];
-        if ([[game opponentName] isEqualToString:@"computer"]) {
-            if ([self detectPenteOf: 2-([movesList count]%2) atPosition: [self parseMove:[movesList lastObject]]] || whiteCaptures == 10 || blackCaptures == 10) {
-                activeGame = NO;
-            }
-        }
     }
     [board setAbstractBoard: abstractBoard];
     [board setLastMove:[self parseMove:[movesList objectAtIndex:untilMove - 1]]];

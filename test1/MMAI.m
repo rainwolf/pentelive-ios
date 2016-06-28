@@ -22,7 +22,7 @@
 int game;
 int level;
 int seat;
-int moveNum;
+unsigned long moveNum;
 const int size = 19;
 
 const int bsize = 912;
@@ -30,7 +30,8 @@ const int tsize = 943;
 
 const int openingBookSize = 600;
 
-int cp, tn;
+int cp;
+unsigned long tn;
 
 int obfl, cob, crot, obsize, extnt;
 int p[7], ccc[18][7], sx[362], sy[362];
@@ -63,7 +64,8 @@ const int om3[] = {183,184,202,221,240,260,239,238,237,256,236,235,
     121,122,123,104,124,125,126,108,145,164};
 
 int mxst=2, gf=0, Kgame=0, //1 = K-pente
-multipbem=0, np=2, turn;
+multipbem=0, np=2;
+unsigned long turn;
 
 int fr, fhn, en, np, cp, Kgame, cap1, tourn;
 int mvct, lvl, ppd, vct, ferr, alpha, beta, a1, b1;
@@ -82,7 +84,7 @@ CGPoint p1xy[24], pxy[24], p2xy[24], p3xy[24];
 
 int *pfhn, *pFk, *pFh; //fuk[361][4], fhole[500][4],
 int *pTr, *pTm, *pTo, *pTi;
-int fr, en, np, cp, Kgame, cap1, turn, tourn, multipbem, breadth;
+int fr, en, np, cp, Kgame, cap1, tourn, multipbem, breadth;
 int bd[19][19], cc[20][7], p1d[24], p2d[24], p3d[24], cap2, cap3;
 int sco[7], exfl[20], exel[20], mxst, plv, extnt, extent;
 int rotx[8], roty[8], rotf[8], maxscr;
