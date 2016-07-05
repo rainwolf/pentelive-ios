@@ -41,10 +41,15 @@
 @synthesize name, tournamentID, tournamentState, date, round, game;
 @end
 
+@implementation KingOfTheHill
+@synthesize game, numPlayers, currentKing;
+@synthesize member, king;
+
+@end
 
 @implementation PentePlayer
 @synthesize playerName;
-@synthesize invitations, sentInvitations, activeGames, nonActiveGames, publicInvitations, messages, ratingStats, tournaments;
+@synthesize invitations, sentInvitations, activeGames, nonActiveGames, publicInvitations, messages, ratingStats, tournaments, hills;
 @synthesize showAds, subscriber;
 
 -(id) init {
@@ -58,6 +63,7 @@
         messages = [[NSMutableArray alloc] init];
         ratingStats = [[NSMutableArray alloc] init];
         tournaments = [[NSMutableArray alloc] init];
+        hills = [[NSMutableArray alloc] init];
         showAds = YES;
         subscriber = NO;
     }

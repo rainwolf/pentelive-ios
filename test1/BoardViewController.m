@@ -1371,7 +1371,7 @@ struct Capture {
         abstractBoard[rowCol / 19][rowCol % 19] = color;
         [self detectCaptureOfOpponent:opponentColor atPosition:rowCol];
     }
-    if ([[game ratedNot] isEqualToString:@"Rated"] && ([movesList count] == 2)) {
+    if ([[game ratedNot] rangeOfString:@"Not Rated"].location == NSNotFound && ([movesList count] == 2)) {
         for(int i = 7; i < 12; ++i) {
             for(int j = 7; j < 12; ++j) {
                 if (abstractBoard[i][j] == 0) {
@@ -1452,7 +1452,7 @@ struct Capture {
         [self detectCaptureOfOpponent:opponentColor atPosition:rowCol];
         [self detectKeryoCaptureOfOpponent:opponentColor atPosition:rowCol];
     }
-    if ([[game ratedNot] isEqualToString:@"Rated"] && ([movesList count] == 2)) {
+    if ([[game ratedNot] rangeOfString:@"Not Rated"].location == NSNotFound && ([movesList count] == 2)) {
         for(int i = 7; i < 12; ++i) {
             for(int j = 7; j < 12; ++j) {
                 if (abstractBoard[i][j] == 0) {
@@ -1578,7 +1578,7 @@ struct Capture {
         [self detectPoof:color atPosition:rowCol];
         [self detectCaptureOfOpponent:opponentColor atPosition:rowCol];
     }
-    if ([[game ratedNot] isEqualToString:@"Rated"] && ([movesList count] == 2)) {
+    if ([[game ratedNot] rangeOfString:@"Not Rated"].location == NSNotFound && ([movesList count] == 2)) {
         for(int i = 7; i < 12; ++i) {
             for(int j = 7; j < 12; ++j) {
                 if (abstractBoard[i][j] == 0) {

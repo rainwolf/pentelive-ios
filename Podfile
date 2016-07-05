@@ -11,3 +11,5 @@ pod 'Firebase/AdMob'
 pod 'TSMessages', :git => 'https://github.com/rainwolf/TSMessages.git'
 pod 'PopoverView'
 pod 'SVWebViewController', :head
+pod "Color-Picker-for-iOS", "~> 2.0"
+

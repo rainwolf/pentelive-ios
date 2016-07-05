@@ -35,7 +35,8 @@
     NSIndexPath *selectedInvitationIndexPath, *selectedPublicInvitationIndexPath;
     UIButton *acceptButton, *cancelButton, *rejectButton;
     GADBannerView *bannerView;
-    BOOL messagesCollapsed, invitationsReceivedCollapsed, activeGamesCollapsed, publicInvitationsCollapsed, sentInvitationsCollapsed, nonActiveGamesCollapsed, tournamentsCollapsed;
+    BOOL messagesCollapsed, invitationsReceivedCollapsed, activeGamesCollapsed, publicInvitationsCollapsed,
+    sentInvitationsCollapsed, nonActiveGamesCollapsed, tournamentsCollapsed, kothCollapsed;
     GameTableViewCell *selectedInvitationCell, *selectedPublicInvitationCell;
     BOOL alreadyAskedAboutInvitations;
     GADInterstitial *interstitial;
@@ -55,7 +56,8 @@
 @property(nonatomic,retain) UIButton *rejectButton;
 @property(nonatomic,retain) UIButton *cancelButton;
 @property(nonatomic,retain) GADBannerView *bannerView;
-@property(atomic) BOOL messagesCollapsed, invitationsReceivedCollapsed, activeGamesCollapsed, publicInvitationsCollapsed, sentInvitationsCollapsed, nonActiveGamesCollapsed, alreadyAskedAboutInvitations, showAds, tournamentsCollapsed;
+@property(atomic) BOOL messagesCollapsed, invitationsReceivedCollapsed, activeGamesCollapsed, publicInvitationsCollapsed,
+sentInvitationsCollapsed, nonActiveGamesCollapsed, alreadyAskedAboutInvitations, showAds, tournamentsCollapsed, kothCollapsed;
 @property(atomic) int gamesLimit;
 @property(nonatomic,retain) GameTableViewCell *selectedInvitationCell, *selectedPublicInvitationCell;
 @property(nonatomic, strong) GADInterstitial *interstitial;

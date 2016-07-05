@@ -1,4 +1,5 @@
 PODS:
+  - Color-Picker-for-iOS (2.0.2)
   - Firebase/AdMob (3.2.0):
     - Firebase/Analytics (= 3.2.0)
     - Google-Mobile-Ads-SDK (= 7.8.1)
@@ -25,6 +26,7 @@ PODS:
     - HexColors (~> 2.3.0)
 
 DEPENDENCIES:
+  - Color-Picker-for-iOS (~> 2.0)
   - Firebase/AdMob
   - Firebase/Core
   - PopoverView
@@ -41,6 +43,7 @@ CHECKOUT OPTIONS:
     :git: https://github.com/rainwolf/TSMessages.git
 
 SPEC CHECKSUMS:
+  Color-Picker-for-iOS: 4980589b3e3cfe7198f227dd50be9adb02d8bc0b
   Firebase: 6d4012da1598732a2b43f16d8355eca90f94ed59
   FirebaseAnalytics: 6f75b04e6bfb8e0b6e9ef298e04c24eea3b13863
   FirebaseInstanceID: d014d574053a2fe84478f12f7bae96979e7051bb

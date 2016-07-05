@@ -60,13 +60,22 @@ alpha:1.0]
 @property(nonatomic,retain) NSString *game, *name, *tournamentID, *round, *tournamentState, *date;
 @end
 
+@interface KingOfTheHill : NSObject {
+    NSString *game, *numPlayers, *currentKing;
+    BOOL member, king;
+}
+@property(nonatomic,retain) NSString *game, *numPlayers, *currentKing;
+@property(assign, atomic) BOOL member, king;
+@end
+
+
 
 @interface PentePlayer : NSObject {
     NSString *playerName;
-    NSMutableArray *invitations, *sentInvitations, *activeGames, *nonActiveGames, *publicInvitations, *messages, *ratingStats, *tournaments;
+    NSMutableArray *invitations, *sentInvitations, *activeGames, *nonActiveGames, *publicInvitations, *messages, *ratingStats, *tournaments, *hills;
     BOOL showAds, subscriber;
 }
 @property(nonatomic,retain) NSString *playerName;
-@property(nonatomic,retain) NSMutableArray *invitations, *sentInvitations, *activeGames, *nonActiveGames, *publicInvitations, *messages, *ratingStats, *tournaments;
+@property(nonatomic,retain) NSMutableArray *invitations, *sentInvitations, *activeGames, *nonActiveGames, *publicInvitations, *messages, *ratingStats, *tournaments, *hills;
 @property(atomic, assign) BOOL showAds, subscriber;
 @end
