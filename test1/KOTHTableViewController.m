@@ -8,6 +8,7 @@
 
 #import "KOTHTableViewController.h"
 #import "PenteNavigationViewController.h"
+#import "SVWebViewController.h"
 
 @interface PlayerTableViewCell : UITableViewCell {
     UILabel *ratingLabel;
@@ -95,8 +96,12 @@
     [self.refreshControl addTarget:self
                             action:@selector(loadKoth)
                   forControlEvents:UIControlEventValueChanged];
+    
+    UIBarButtonItem *barButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAction target:self action:@selector(loadWebsiteHill)];
+    [self.navigationItem setRightBarButtonItem:barButton];
     hill = [[Hill alloc] init];
     [self loadKoth];
+    
     
     
 }
@@ -476,7 +481,7 @@
         
         UIImageView *backgroundImageView = [[UIImageView alloc] initWithFrame:CGRectMake(0, -1, tableView.bounds.size.width, 23)];
         
-        headerLabel = [[UILabel alloc] initWithFrame:CGRectMake(12, 2, tableView.bounds.size.width-40, 18)];
+        headerLabel = [[UILabel alloc] initWithFrame:CGRectMake(12, 2, tableView.bounds.size.width-60, 18)];
         headerLabel.backgroundColor = [UIColor clearColor];
         headerLabel.textColor = [UIColor whiteColor];
         headerLabel.shadowColor = [UIColor darkGrayColor];
@@ -484,12 +489,13 @@
         headerLabel.font = [UIFont systemFontOfSize:15.0f];
         headerLabel.text = [self tableView:tableView titleForHeaderInSection:section];
         headerLabel.tag = 0;
-        collapsedLabel = [[UILabel alloc] initWithFrame:CGRectMake(tableView.bounds.size.width-40, 2, 40, 18)];
-        collapsedLabel.center = CGPointMake(tableView.bounds.size.width-20, 11);
+        collapsedLabel = [[UILabel alloc] initWithFrame:CGRectMake(tableView.bounds.size.width-70, 2, 70, 18)];
+        collapsedLabel.center = CGPointMake(tableView.bounds.size.width-40, 11);
         collapsedLabel.backgroundColor = [UIColor clearColor];
         collapsedLabel.textColor = [UIColor whiteColor];
         collapsedLabel.shadowColor = [UIColor darkGrayColor];
         collapsedLabel.shadowOffset = CGSizeMake(0, 1);
+        [collapsedLabel setTextAlignment:NSTextAlignmentRight];
         //    collapsedLabel.font = [UIFont boldSystemFontOfSize:18];
         [collapsedLabel setFont:[UIFont fontWithName:@"CourierNewPS-BoldMT" size:17.0f]];
         collapsedLabel.tag = 1;
@@ -522,7 +528,11 @@
     return sectionHeaderView;
 }
 
-
+-(void) loadWebsiteHill {
+    NSString *urlString = [NSString stringWithFormat:@"https://www.pente.org/gameServer/stairs.jsp?game=%@", [self getGameString: hillSummary.game]];
+    SVWebViewController *webViewController = [[SVWebViewController alloc] initWithAddress: urlString];
+    [self.navigationController pushViewController:webViewController animated:YES];
+}
 
 @end
 
