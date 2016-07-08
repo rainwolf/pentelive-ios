@@ -169,7 +169,7 @@
     }
     if (indexPath.section == 0) {
         cell.textLabel.text = [NSString stringWithFormat:@"Tap to %@ this hill", [hillSummary member]?@"leave":@"join"];
-        if (YES ||![player subscriber] && ![hillSummary member]) {
+        if (![player subscriber] && ![hillSummary member]) {
             cell.detailTextLabel.text = @"Warning: only subscribers can join multiple hills";
         }
         [cell.textLabel setTextAlignment:NSTextAlignmentCenter];
@@ -239,13 +239,15 @@
     if (indexPath.section == 0) {
         [self joinLeave];
     } else {
+        CGRect cellRect = [self.tableView rectForRowAtIndexPath:indexPath];
+        
         challengeView = [[KOTHChallengeView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width*2/3, 103)];
         [challengeView setScrollEnabled:NO];
         [challengeView setGameStr:[self getGameString:[hillSummary game]]];
         [challengeView setInvitee:[[[[hill steps] objectAtIndex: indexPath.section - 1] objectAtIndex:indexPath.row] name]];
         [challengeView setDelegate: challengeView];
         [challengeView setDataSource: challengeView];
-        actionPopoverView = [PopoverView showPopoverAtPoint: CGPointMake(self.view.bounds.size.width/2, 0) inView:self.view withTitle: [NSString stringWithFormat: @"challenge %@", challengeView.invitee] withContentView: challengeView delegate:self];
+        actionPopoverView = [PopoverView showPopoverAtPoint: CGPointMake(self.view.bounds.size.width/2, cellRect.origin.y) inView:self.view withTitle: [NSString stringWithFormat: @"challenge %@", challengeView.invitee] withContentView: challengeView delegate:self];
         [challengeView setPopoverView: actionPopoverView];
         [actionPopoverView layoutSubviews];
         ((PenteNavigationViewController *) self.navigationController).didMove = YES;
