@@ -162,9 +162,18 @@
             }
         }
     } else {
-        cell = (PlayerTableViewCell *) [tableView dequeueReusableCellWithIdentifier: @"kothCell"];
-        if (!cell) {
-            cell = [[PlayerTableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:@"kothCell"];
+        if ([[[NSUserDefaults standardUserDefaults] objectForKey:@"username"] isEqualToString:[[[[hill steps] objectAtIndex: indexPath.section - 1] objectAtIndex:indexPath.row] name]]) {
+            cell = (PlayerTableViewCell *) [tableView dequeueReusableCellWithIdentifier: @"myKothCell"];
+            if (!cell) {
+                cell = [[PlayerTableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:@"myKothCell"];
+            }
+            cell.imageView.image = [UIImage imageNamed:@"unread.png"];
+        } else {
+            cell = (PlayerTableViewCell *) [tableView dequeueReusableCellWithIdentifier: @"kothCell"];
+            if (!cell) {
+                cell = [[PlayerTableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:@"kothCell"];
+            }
+            cell.imageView.image = nil;
         }
     }
     if (indexPath.section == 0) {
@@ -175,7 +184,6 @@
         [cell.textLabel setTextAlignment:NSTextAlignmentCenter];
     } else {
         [cell setAccessoryType:UITableViewCellAccessoryDisclosureIndicator];
-        [cell.imageView removeFromSuperview];
         NSMutableString *txtStr = [[NSMutableString alloc] initWithString: [[[[hill steps] objectAtIndex: indexPath.section - 1] objectAtIndex:indexPath.row] name]];
         int crown = [[[[hill steps] objectAtIndex: indexPath.section - 1] objectAtIndex:indexPath.row] crown];
         NSTextAttachment *textAttachment = [[NSTextAttachment alloc] init];
@@ -247,7 +255,7 @@
         [challengeView setInvitee:[[[[hill steps] objectAtIndex: indexPath.section - 1] objectAtIndex:indexPath.row] name]];
         [challengeView setDelegate: challengeView];
         [challengeView setDataSource: challengeView];
-        actionPopoverView = [PopoverView showPopoverAtPoint: CGPointMake(self.view.bounds.size.width/2, cellRect.origin.y) inView:self.view withTitle: [NSString stringWithFormat: @"challenge %@", challengeView.invitee] withContentView: challengeView delegate:self];
+        actionPopoverView = [PopoverView showPopoverAtPoint: CGPointMake(self.view.bounds.size.width/2, cellRect.origin.y + cellRect.size.height/2) inView:self.view withTitle: [NSString stringWithFormat: @"challenge %@", challengeView.invitee] withContentView: challengeView delegate:self];
         [challengeView setPopoverView: actionPopoverView];
         [actionPopoverView layoutSubviews];
         ((PenteNavigationViewController *) self.navigationController).didMove = YES;
@@ -520,12 +528,19 @@
 //    
     
     if (section > 0) {
+        [sectionHeaderView setBackgroundColor:[UIColor colorWithRed:(8.0/255) green:(52.0/255) blue:(29.0/255) alpha:1.0]];
+        for(Player *player in [[hill steps] objectAtIndex: section - 1]) {
+            if ([[[NSUserDefaults standardUserDefaults] objectForKey:@"username"] isEqualToString:[player  name]]) {
+                [sectionHeaderView setBackgroundColor:[UIColor colorWithRed:1.0 green:(129.0/255) blue:0.0 alpha:1.0]];
+                break;
+            }
+        }
         collapsedLabel.text = [NSString stringWithFormat:@"(%lu)", [[hill.steps objectAtIndex: section - 1] count]] ;
     } else {
         collapsedLabel.text = [NSString stringWithFormat:@"(%@)", [hillSummary numPlayers]];
+        [sectionHeaderView setBackgroundColor:[UIColor colorWithRed:(8.0/255) green:(52.0/255) blue:(29.0/255) alpha:1.0]];
     }
     
-    [sectionHeaderView setBackgroundColor:[UIColor colorWithRed:(8.0/255) green:(52.0/255) blue:(29.0/255) alpha:1.0]];
     
     return sectionHeaderView;
 }

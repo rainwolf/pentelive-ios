@@ -1124,12 +1124,21 @@
             break;
         }
     }
+    BOOL king = NO;
+    for (KingOfTheHill *hill in [player hills]) {
+        if ([hill king]) {
+            king = YES;
+            break;
+        }
+    }
     if ((section == MESSAGESSECTION) && (unread)) {
-        [sectionHeaderView setBackgroundColor:[UIColor blueColor]];
+        [sectionHeaderView setBackgroundColor:[UIColor colorWithRed:1.0f green:0.5f blue:0 alpha:1.0]];
     } else if ((section == INVITATIONSSECTION) && ([[player invitations] count] > 0)) {
-        [sectionHeaderView setBackgroundColor:[UIColor blueColor]];
+        [sectionHeaderView setBackgroundColor:[UIColor colorWithRed:1.0f green:0.5f blue:0 alpha:1.0]];
     } else if ((section == ACTIVEGAMESSECTION) && ([[player activeGames] count] > 0)) {
-        [sectionHeaderView setBackgroundColor:[UIColor blueColor]];
+        [sectionHeaderView setBackgroundColor:[UIColor colorWithRed:1.0f green:0.5f blue:0 alpha:1.0]];
+    } else if ((section == KOTHSECTION) && king) {
+        [sectionHeaderView setBackgroundColor:[UIColor colorWithRed:1.0f green:0.5f blue:0 alpha:1.0]];
     } else {
         [sectionHeaderView setBackgroundColor:[UIColor colorWithRed:(8.0/255) green:(52.0/255) blue:(29.0/255) alpha:1.0]];
     }
