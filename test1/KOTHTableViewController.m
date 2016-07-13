@@ -24,6 +24,8 @@
         [ratingLabel setTextAlignment:NSTextAlignmentRight];
         [self.ratingLabel setFont:[UIFont fontWithName:@"HelveticaNeue" size:16.f]];
         [self.contentView addSubview: ratingLabel];
+        self.imageView.contentMode = UIViewContentModeScaleAspectFit;
+        self.imageView.clipsToBounds = YES;
     }
     return self;
 }
@@ -33,7 +35,8 @@
     [super layoutSubviews];
     CGFloat screenWidth = UIScreen.mainScreen.bounds.size.width;
     CGFloat imageWidth = 0;
-    if (self.imageView) {
+    if (self.imageView.image) {
+        [self.imageView setFrame:CGRectMake(0, 0, 44, 44)];
         imageWidth = self.imageView.frame.size.width;
     }
     CGFloat accessoryWidth;
@@ -173,7 +176,9 @@
             if (!cell) {
                 cell = [[PlayerTableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:@"kothCell"];
             }
-            cell.imageView.image = nil;
+            NSString *opponent = [[[[hill steps] objectAtIndex: indexPath.section - 1] objectAtIndex:indexPath.row] name];
+            UIImage *imgV = [player.avatars objectForKey: opponent];
+            cell.imageView.image = imgV;
         }
     }
     if (indexPath.section == 0) {

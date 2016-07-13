@@ -63,6 +63,36 @@
 			<string>SignUpButton</string>
 		</dict>
 		<dict>
+			<key>FooterText</key>
+			<string></string>
+			<key>Title</key>
+			<string></string>
+			<key>Type</key>
+			<string>PSGroupSpecifier</string>
+		</dict>
+		<dict>
+			<key>File</key>
+			<string>MoreSettings</string>
+			<key>Type</key>
+			<string>PSChildPaneSpecifier</string>
+			<key>IASKCellImage</key>
+			<string>moreSettings</string>
+			<key>IASKTextAlignment</key>
+			<string>IASKUITextAlignmentCenter</string>
+			<key>Title</key>
+			<string>More settings</string>
+			<key>Key</key>
+			<string>SignUpButton</string>
+		</dict>
+		<dict>
+			<key>FooterText</key>
+			<string></string>
+			<key>Title</key>
+			<string></string>
+			<key>Type</key>
+			<string>PSGroupSpecifier</string>
+		</dict>
+		<dict>
 			<key>Key</key>
 			<string>GameRulesButton</string>
 			<key>File</key>

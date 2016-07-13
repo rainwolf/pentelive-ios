@@ -484,6 +484,7 @@
     static NSString *CellWithWhiteStoneImageIdentifier = @"CellWithWhiteStoneImage";
     static NSString *CellWithBlackStoneImageIdentifier = @"CellWithBlackStoneImage";
     static NSString *CellWithUnreadImageIdentifier = @"CellWithUnreadImage";
+    static NSString *CellWithAvatarIdentifier = @"CellWithAvatar";
 
     NSString *tmpIdentifier;
     //    NSLog(@"here kitty");
@@ -493,16 +494,24 @@
     NSMutableString *txtStr;
     
     if (indexPath.section == MESSAGESSECTION) {
+        UIImage *imgV = nil;
         if ([[[[player messages] objectAtIndex:indexPath.row] unread] isEqualToString:@"unread"]) {
             cell = (GameTableViewCell *) [tableView dequeueReusableCellWithIdentifier: CellWithUnreadImageIdentifier];
             if (!cell) {
                 cell = [[GameTableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:CellWithUnreadImageIdentifier];
             }
-            cell.imageView.image = [UIImage imageNamed:@"unread.png"];
+            imgV = [UIImage imageNamed:@"unread.png"];
         } else {
-            cell = (GameTableViewCell *) [tableView dequeueReusableCellWithIdentifier: CellIdentifier];
+            NSString *opponent = [[[player messages] objectAtIndex:indexPath.row] author];
+                imgV = [player.avatars objectForKey: opponent];
+            if (imgV) {
+                tmpIdentifier = CellWithAvatarIdentifier;
+            } else {
+                tmpIdentifier = CellIdentifier;
+            }
+            cell = (GameTableViewCell *) [tableView dequeueReusableCellWithIdentifier: tmpIdentifier];
             if (!cell) {
-                cell = [[GameTableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:CellIdentifier];
+                cell = [[GameTableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:tmpIdentifier];
             }
         }
         txtStr = [[NSMutableString alloc] initWithString:[[[player messages] objectAtIndex:indexPath.row] author]];
@@ -544,6 +553,7 @@
         cell.detailTextLabel.text = [[[player messages] objectAtIndex:indexPath.row] subject];
         [cell setAccessoryType:UITableViewCellAccessoryDisclosureIndicator];
         [cell setUserInteractionEnabled:YES];
+        cell.imageView.image = imgV;
     }
     if (indexPath.section == INVITATIONSSECTION) {
         if (selectedInvitationIndexPath) {
@@ -551,9 +561,16 @@
                 return selectedInvitationCell;
             }
         }
-        cell = (GameTableViewCell *) [tableView dequeueReusableCellWithIdentifier: CellIdentifier];
+        NSString *opponent = [[[player invitations] objectAtIndex:indexPath.row] opponentName];
+        UIImage *imgV = [player.avatars objectForKey: opponent];
+        if (imgV) {
+            tmpIdentifier = CellWithAvatarIdentifier;
+        } else {
+            tmpIdentifier = CellIdentifier;
+        }
+        cell = (GameTableViewCell *) [tableView dequeueReusableCellWithIdentifier: tmpIdentifier];
         if (!cell) {
-            cell = [[GameTableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:CellIdentifier];
+            cell = [[GameTableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:tmpIdentifier];
         }
         [cell setAccessoryType:UITableViewCellAccessoryDisclosureIndicator];
         [cell.imageView removeFromSuperview];
@@ -604,13 +621,21 @@
         cell.detailTextLabel.text = txtStr;
         [cell setUserInteractionEnabled: YES];
         [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
+        cell.imageView.image = imgV;
     }
     if (indexPath.section == ACTIVEGAMESSECTION) {
-        tmpIdentifier = [[[[player activeGames] objectAtIndex:indexPath.row] myColor] isEqualToString:@"white"] ? CellWithWhiteStoneImageIdentifier : CellWithBlackStoneImageIdentifier;
+        NSString *opponent = [[[player activeGames] objectAtIndex:indexPath.row] opponentName];
+        UIImage *imgV = [player.avatars objectForKey: opponent];
+        if (imgV) {
+            tmpIdentifier = CellWithAvatarIdentifier;
+        } else {
+            tmpIdentifier = [[[[player activeGames] objectAtIndex:indexPath.row] myColor] isEqualToString:@"white"] ? CellWithWhiteStoneImageIdentifier : CellWithBlackStoneImageIdentifier;
+        }
         cell = (GameTableViewCell *) [tableView dequeueReusableCellWithIdentifier: tmpIdentifier];
         if (!cell) {
             cell = [[GameTableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:tmpIdentifier];
         }
+
         txtStr = [[NSMutableString alloc] initWithString:[[[player activeGames] objectAtIndex:indexPath.row] opponentName]];
         int crown = [[[player activeGames] objectAtIndex:indexPath.row] crown];
         NSTextAttachment *textAttachment = [[NSTextAttachment alloc] init];
@@ -659,7 +684,11 @@
         cell.detailTextLabel.text = txtStr;
         [cell setAccessoryType:UITableViewCellAccessoryDisclosureIndicator];
         [cell setUserInteractionEnabled:YES];
-        cell.imageView.image = [UIImage imageNamed:[NSString stringWithFormat:@"%@Stone.png",[[[player activeGames] objectAtIndex:indexPath.row] myColor]]];
+        if (imgV) {
+            cell.imageView.image = imgV;
+        } else {
+            cell.imageView.image = [UIImage imageNamed:[NSString stringWithFormat:@"%@Stone.png",[[[player activeGames] objectAtIndex:indexPath.row] myColor]]];
+        }
     }
     if (indexPath.section == PUBLICINVITATIONSSECTION) {
         if (selectedPublicInvitationIndexPath) {
@@ -667,11 +696,18 @@
                 return selectedPublicInvitationCell;
             }
         }
-        cell = (GameTableViewCell *) [tableView dequeueReusableCellWithIdentifier: CellIdentifier];
-        if (!cell) {
-            cell = [[GameTableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:CellIdentifier];
+        NSString *opponent = [[[player publicInvitations] objectAtIndex:indexPath.row] opponentName];
+        UIImage *imgV = [player.avatars objectForKey: opponent];
+        if (imgV) {
+            tmpIdentifier = CellWithAvatarIdentifier;
+        } else {
+            tmpIdentifier = CellIdentifier;
         }
-                [cell.imageView removeFromSuperview];
+        cell = (GameTableViewCell *) [tableView dequeueReusableCellWithIdentifier: tmpIdentifier];
+        if (!cell) {
+            cell = [[GameTableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:tmpIdentifier];
+        }
+//                [cell.imageView removeFromSuperview];
         txtStr = [[NSMutableString alloc] initWithString:[[[player publicInvitations] objectAtIndex:indexPath.row] opponentName]];
         int crown = [[[player publicInvitations] objectAtIndex:indexPath.row] crown];
         NSTextAttachment *textAttachment = [[NSTextAttachment alloc] init];
@@ -724,15 +760,23 @@
         [cell setUserInteractionEnabled: YES];
         [cell setAccessoryType:UITableViewCellAccessoryDisclosureIndicator];
         [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
+        cell.imageView.image = imgV;
     }
     if (indexPath.section == SENTINVITATIONSSECTION) {
-        cell = (GameTableViewCell *) [tableView dequeueReusableCellWithIdentifier: CellIdentifier];
+        NSString *opponent = [[[player sentInvitations] objectAtIndex:indexPath.row] opponentName];
+        UIImage *imgV = [player.avatars objectForKey: opponent];
+        if (imgV) {
+            tmpIdentifier = CellWithAvatarIdentifier;
+        } else {
+            tmpIdentifier = CellIdentifier;
+        }
+        cell = (GameTableViewCell *) [tableView dequeueReusableCellWithIdentifier: tmpIdentifier];
         if (!cell) {
-            cell = [[GameTableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:CellIdentifier];
+            cell = [[GameTableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:tmpIdentifier];
         }
 //        cell = nil;
 //        cell = [[GameTableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:CellIdentifier];
-        [cell.imageView removeFromSuperview];
+//        [cell.imageView removeFromSuperview];
         txtStr = [[NSMutableString alloc] initWithString:[[[player sentInvitations] objectAtIndex:indexPath.row] opponentName]];
         int crown = [[[player sentInvitations] objectAtIndex:indexPath.row] crown];
         NSTextAttachment *textAttachment = [[NSTextAttachment alloc] init];
@@ -786,9 +830,17 @@
         [cell setUserInteractionEnabled: YES];
         [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
         [cell setAccessoryType:UITableViewCellAccessoryDisclosureIndicator];
+        
+        cell.imageView.image = imgV;
     }
     if (indexPath.section == NONACTIVEGAMESSECTION) {
-        tmpIdentifier = [[[[player nonActiveGames] objectAtIndex:indexPath.row] myColor] isEqualToString:@"white"] ? CellWithWhiteStoneImageIdentifier : CellWithBlackStoneImageIdentifier;
+        NSString *opponent = [[[player nonActiveGames] objectAtIndex:indexPath.row] opponentName];
+        UIImage *imgV = [player.avatars objectForKey: opponent];
+        if (imgV) {
+            tmpIdentifier = CellWithAvatarIdentifier;
+        } else {
+            tmpIdentifier = [[[[player nonActiveGames] objectAtIndex:indexPath.row] myColor] isEqualToString:@"white"] ? CellWithWhiteStoneImageIdentifier : CellWithBlackStoneImageIdentifier;
+        }
         cell = (GameTableViewCell *) [tableView dequeueReusableCellWithIdentifier: tmpIdentifier];
         if (!cell) {
             cell = [[GameTableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:tmpIdentifier];
@@ -841,7 +893,13 @@
         cell.detailTextLabel.text = txtStr;
         [cell setUserInteractionEnabled:YES];
         [cell setAccessoryType:UITableViewCellAccessoryDisclosureIndicator];
-        cell.imageView.image = [UIImage imageNamed:[NSString stringWithFormat:@"%@Stone.png",[[[player nonActiveGames] objectAtIndex:indexPath.row] myColor]]];
+        if (imgV) {
+//            [cell.imageView setBounds:CGRectMake(0,0, cell.contentView.bounds.size.height,  cell.contentView.bounds.size.height)];
+            cell.imageView.image = imgV;
+            [cell setNeedsDisplay];
+        } else {
+            cell.imageView.image = [UIImage imageNamed:[NSString stringWithFormat:@"%@Stone.png",[[[player nonActiveGames] objectAtIndex:indexPath.row] myColor]]];
+        }
     }
     if (indexPath.section == TOURNAMENTSSECTION) {
         cell = [tableView dequeueReusableCellWithIdentifier: @"tournament"];
@@ -2116,6 +2174,7 @@
 
 
 -(void) parseDashboard {
+    UIColor *blackColor = UIColorFromRGB(0);
     
     [self.pullToReloadHeaderView setStatusString:@"Loading Games..." animated:YES];
     [self.pullToReloadHeaderView layoutSubviews];
@@ -2123,6 +2182,11 @@
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
     username = [defaults objectForKey:usernameKey];
     password = [defaults objectForKey:passwordKey];
+    BOOL wantsToSeeAvatars = [defaults boolForKey:@"wantToSeeAvatars"];
+    if (!wantsToSeeAvatars) {
+        [player.avatars removeAllObjects];
+        [player.pendingAvatarChecks removeAllObjects];
+    }
     self.tableView.layer.borderWidth = 1.5;
     
   
@@ -2269,6 +2333,9 @@
             [game setRatedNot:[splitLine objectAtIndex:6]];
             [game setNameColor: UIColorFromRGB([[splitLine objectAtIndex:7] intValue])];
             [game setCrown:[[splitLine objectAtIndex:8] intValue]];
+            if (wantsToSeeAvatars && ![game.nameColor isEqual: blackColor]) {
+                [player addUser:[game opponentName]];
+            }
             [sectionItems addObject:game];
             dashIDX++;
         }
@@ -2310,6 +2377,9 @@
             [game setRatedNot:[splitLine objectAtIndex:6]];
             [game setNameColor: UIColorFromRGB([[splitLine objectAtIndex:7] intValue])];
             [game setCrown:[[splitLine objectAtIndex:8] intValue]];
+            if (wantsToSeeAvatars && ![game.nameColor isEqual: blackColor]) {
+                [player addUser:[game opponentName]];
+            }
             [sectionItems addObject:game];
             dashIDX++;
         }
@@ -2361,6 +2431,9 @@
             [game setRatedNot:[splitLine objectAtIndex:7]];
             [game setNameColor: UIColorFromRGB([[splitLine objectAtIndex:8] intValue])];
             [game setCrown:[[splitLine objectAtIndex:9] intValue]];
+            if (wantsToSeeAvatars && ![game.nameColor isEqual: blackColor]) {
+                [player addUser:[game opponentName]];
+            }
             [sectionItems addObject:game];
             dashIDX++;
         }
@@ -2404,6 +2477,9 @@
             [game setRatedNot:[splitLine objectAtIndex:7]];
             [game setNameColor: UIColorFromRGB([[splitLine objectAtIndex:8] intValue])];
             [game setCrown:[[splitLine objectAtIndex:9] intValue]];
+            if (wantsToSeeAvatars && ![game.nameColor isEqual: blackColor]) {
+                [player addUser:[game opponentName]];
+            }
             [sectionItems addObject:game];
             dashIDX++;
         }
@@ -2461,6 +2537,9 @@
             [game setRatedNot:[splitLine objectAtIndex:6]];
             [game setNameColor: UIColorFromRGB([[splitLine objectAtIndex:7] intValue])];
             [game setCrown:[[splitLine objectAtIndex:8] intValue]];
+            if (wantsToSeeAvatars && ![game.nameColor isEqual: blackColor]) {
+                [player addUser:[game opponentName]];
+            }
             [sectionItems addObject:game];
             dashIDX++;
         }
@@ -2515,6 +2594,9 @@
             [message setTimeStamp: [splitLine objectAtIndex:4]];
             [message setNameColor: UIColorFromRGB([[splitLine objectAtIndex:5] intValue])];
             [message setCrown:[[splitLine objectAtIndex:6] intValue]];
+            if (wantsToSeeAvatars && ![message.nameColor isEqual: blackColor]) {
+                [player addUser:[message author]];
+            }
             [sectionItems addObject:message];
             dashIDX++;
         }
@@ -2907,6 +2989,8 @@
         [ratingLabel setTextAlignment:NSTextAlignmentRight];
         [self.ratingLabel setFont:[UIFont fontWithName:@"HelveticaNeue" size:16.f]];
         [self.contentView addSubview: ratingLabel];
+        self.imageView.contentMode = UIViewContentModeScaleAspectFit;
+        self.imageView.clipsToBounds = YES;
     }
     return self;
 }
@@ -2916,7 +3000,8 @@
     [super layoutSubviews];
     CGFloat screenWidth = UIScreen.mainScreen.bounds.size.width;
     CGFloat imageWidth = 0;
-    if (self.imageView) {
+    if (self.imageView.image) {
+        [self.imageView setFrame:CGRectMake(0, 0, 44, 44)];
         imageWidth = self.imageView.frame.size.width;
     }
     CGFloat accessoryWidth;

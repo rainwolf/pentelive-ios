@@ -74,8 +74,15 @@ alpha:1.0]
     NSString *playerName;
     NSMutableArray *invitations, *sentInvitations, *activeGames, *nonActiveGames, *publicInvitations, *messages, *ratingStats, *tournaments, *hills;
     BOOL showAds, subscriber;
+    NSMutableDictionary<NSString *, UIImage *> *avatars;
+    NSMutableArray<NSString *> *pendingAvatarChecks;
 }
 @property(nonatomic,retain) NSString *playerName;
 @property(nonatomic,retain) NSMutableArray *invitations, *sentInvitations, *activeGames, *nonActiveGames, *publicInvitations, *messages, *ratingStats, *tournaments, *hills;
 @property(atomic, assign) BOOL showAds, subscriber;
+@property(nonatomic, retain, readwrite) NSMutableDictionary<NSString *, UIImage *> *avatars;
+@property(nonatomic, retain, readwrite) NSMutableArray<NSString *> *pendingAvatarChecks;
+
+-(void) addUser: (NSString *) username;
+
 @end
