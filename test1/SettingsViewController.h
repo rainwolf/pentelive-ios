@@ -9,7 +9,7 @@
 #import "IASKAppSettingsViewController.h"
 #import "PenteNavigationViewController.h"
 
-@interface SettingsViewController : IASKAppSettingsViewController <IASKSettingsDelegate, MFMailComposeViewControllerDelegate> {
+@interface SettingsViewController : IASKAppSettingsViewController <IASKSettingsDelegate, MFMailComposeViewControllerDelegate, UIImagePickerControllerDelegate> {
     NSString *username, *password;
 }
 @property(nonatomic,retain) NSString *username;

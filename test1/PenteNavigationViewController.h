@@ -10,6 +10,7 @@
 #import <UIKit/UIKit.h>
 #import <GoogleMobileAds/GoogleMobileAds.h>
 #import "AppDelegate.h"
+#import "PentePlayer.h"
 
 
 @interface PenteNavigationViewController : UINavigationController <GADBannerViewDelegate> {
@@ -18,12 +19,14 @@
     NSString *activeGameToRemove, *unchallengedMessageID, *challengedUser;
     GADBannerView *bannerView;
     NSDictionary *receivedNotification;
+    PentePlayer *player;
 }
 @property(nonatomic,retain) NSString *activeGameToRemove, *unchallengedMessageID, *challengedUser;
 @property BOOL loggedIn, didMove, messageDeleted, challengeCancelled, needHelp;
 @property int deletedMessageRow;
 @property(nonatomic,retain) GADBannerView *bannerView;
 @property(nonatomic,retain) NSDictionary *receivedNotification;
+@property(nonatomic,retain) PentePlayer *player;
 
 //- (void)adViewWillLeaveApplication:(GADBannerView *)bannerViewl;
 

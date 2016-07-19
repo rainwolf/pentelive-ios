@@ -10,6 +10,7 @@
 #import "IASKSettingsReader.h"
 #import "GamesTableViewController.h"
 #import "SVWebViewController.h"
+#import "ChangeColorViewController.h"
 
 #define usernameKey @"username"
 #define passwordKey @"password"
@@ -18,7 +19,9 @@
 
 @end
 
-@implementation SettingsViewController
+@implementation SettingsViewController {
+    UIImagePickerController *picker;
+}
 @synthesize username;
 @synthesize password;
 
@@ -52,7 +55,6 @@
     [self.tableView setSeparatorColor:[UIColor blueColor]];
     [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleSingleLine];
     [self setDelegate:self];
-//    [self set]
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -235,11 +237,129 @@
         SVWebViewController *webViewController = [[SVWebViewController alloc] initWithAddress: @"https://pente.org/help/playGameRulesMobile.jsp"];
         [self.navigationController pushViewController:webViewController animated:YES];
     }
-
+    if ([specifier.key isEqualToString:@"penteOrgPreferencesButton"]) {
+        SVWebViewController *webViewController = [[SVWebViewController alloc] initWithAddress: @"https://pente.org/gameServer/myprofile/prefs"];
+        [self.navigationController pushViewController:webViewController animated:YES];
+    }
+    if ([specifier.key isEqualToString:@"changeColorButton"]) {
+        if (!((PenteNavigationViewController *) self.navigationController).player.subscriber) {
+            return;
+        }
+        ChangeColorViewController *vc = [[ChangeColorViewController alloc] initWithColor:((PenteNavigationViewController *) self.navigationController).player.myColor];
+        [self.navigationController pushViewController:vc animated:YES];
+    }
+    if ([specifier.key isEqualToString:@"changeAvatarButton"]) {
+        if (!((PenteNavigationViewController *) self.navigationController).player.subscriber) {
+            return;
+        }
+        picker = [[UIImagePickerController alloc] init];
+        picker.delegate = self;
+        
+        UIAlertController *keyXController = [UIAlertController
+                                             alertControllerWithTitle:nil
+                                             message: nil
+                                             preferredStyle:UIAlertControllerStyleActionSheet];
+        UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"Cancel", nil) style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {
+            NSLog(@"Cancel action");
+            
+        }];
+        UIAlertAction *cameraAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"Take a picture", nil) style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+            picker.sourceType = UIImagePickerControllerSourceTypeCamera;
+            [self presentViewController:picker animated:YES completion:nil];
+        }];
+        UIAlertAction *albumAction = [UIAlertAction actionWithTitle: @"Choose from library" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+            picker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
+            [self presentViewController:picker animated:YES completion:nil];
+        }];
+        [keyXController addAction:cancelAction];
+        [keyXController addAction:cameraAction];
+        [keyXController addAction:albumAction];
+        
+        [self presentViewController:keyXController animated:YES completion:nil];
+    }
+    
     if ([[specifier type] isEqualToString:kIASKOpenURLSpecifier]) {
         [[UIApplication sharedApplication] openURL:[NSURL URLWithString:specifier.file]];
     }
 //        [[NSUserDefaults standardUserDefaults] setObject:newTitle forKey:specifier.key];
+}
+
+
+- (void)imagePickerController:(UIImagePickerController *)pickr didFinishPickingMediaWithInfo:(NSDictionary *)info {
+//    NSLog(@"kitten");
+    [pickr dismissViewControllerAnimated:NO completion:nil];
+    
+    dispatch_async(dispatch_get_main_queue(), ^(void) {
+        UIImage *image = [info objectForKey:UIImagePickerControllerEditedImage];
+        if(image==nil) {
+            image = [info objectForKey:UIImagePickerControllerOriginalImage];
+        }
+        if(image==nil) {
+            image = [info objectForKey:UIImagePickerControllerCropRect];
+        }
+        CGFloat scaleSize = 300.0f;
+        if (image) {
+            UIImage *newImg = [self imageWithImage:image scaledToSize: scaleSize];
+            NSData *imageData = UIImageJPEGRepresentation(newImg, 0.75f);
+            NSLog(@"kitty %f and size %lu", scaleSize, [imageData length]);
+            while ([imageData length] > 65535) {
+                scaleSize -= 10.0f;
+                newImg = [self imageWithImage:image scaledToSize: scaleSize];
+                imageData = UIImageJPEGRepresentation(newImg, 0.75f);
+                NSLog(@"kitty %f and size %lu", scaleSize, [imageData length]);
+            }
+
+            NSString *urlString = @"https://www.pente.org/gameServer/changeAvatar";
+            
+            NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
+            [request setURL:[NSURL URLWithString:urlString]];
+            [request setHTTPMethod:@"POST"];
+            
+            NSString *boundary = @"---------------------------14737809831466499882746641449";
+            NSString *contentType = [NSString stringWithFormat:@"multipart/form-data; boundary=%@",boundary];
+//            contentType = @"image/png";
+            [request addValue:contentType forHTTPHeaderField: @"Content-Type"];
+            
+            NSMutableData *body = [NSMutableData data];
+            [body appendData:[[NSString stringWithFormat:@"\r\n--%@\r\n",boundary] dataUsingEncoding:NSUTF8StringEncoding]];
+            [body appendData:[[NSString stringWithString:[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"avatar\"; filename=\"%d\"\r\n", 1]] dataUsingEncoding:NSUTF8StringEncoding]];
+//            [body appendData:[@"Content-Type: application/octet-stream\r\n\r\n" dataUsingEncoding:NSUTF8StringEncoding]];
+            [body appendData:[@"Content-Type: image/jpg\r\n\r\n" dataUsingEncoding:NSUTF8StringEncoding]];
+            [body appendData:[NSData dataWithData:imageData]];
+            [body appendData:[[NSString stringWithFormat:@"\r\n--%@--\r\n",boundary] dataUsingEncoding:NSUTF8StringEncoding]];
+            [request setHTTPBody:body];
+            
+            [NSURLConnection sendSynchronousRequest:request returningResponse:nil error:nil];
+            
+        }
+    });
+}
+
+- (UIImage *)imageWithImage:(UIImage *)image scaledToSize:(CGFloat)newMaxSize {
+    CGFloat ratio;
+    
+    if (image.size.width > image.size.height) {
+        if (newMaxSize > image.size.width) {
+            return image;
+        } else {
+            ratio = newMaxSize/image.size.width;
+        }
+    } else {
+        if (newMaxSize > image.size.height) {
+            return image;
+        } else {
+            ratio = newMaxSize/image.size.height;
+        }
+    }
+    
+    //UIGraphicsBeginImageContext(newSize);
+    // In next line, pass 0.0 to use the current device's pixel scaling factor (and thus account for Retina resolution).
+    // Pass 1.0 to force exact pixel size.
+    UIGraphicsBeginImageContextWithOptions(CGSizeMake(image.size.width*ratio, image.size.height*ratio), NO, 0.0);
+    [image drawInRect:CGRectMake(0, 0, image.size.width*ratio, image.size.height*ratio)];
+    UIImage *newImage = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    return newImage;
 }
 
 

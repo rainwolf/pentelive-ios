@@ -52,6 +52,7 @@
 		6392B08319C354CB00916D41 /* Icon-76@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 6392B08119C354CB00916D41 /* Icon-76@2x.png */; };
 		6396A3781D367105004BC68D /* moreSettings.png in Resources */ = {isa = PBXBuildFile; fileRef = 6396A3761D367105004BC68D /* moreSettings.png */; };
 		6396A3791D367105004BC68D /* moreSettings@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 6396A3771D367105004BC68D /* moreSettings@2x.png */; };
+		6396A37C1D38DE81004BC68D /* ChangeColorViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 6396A37B1D38DE81004BC68D /* ChangeColorViewController.m */; };
 		6397574A1667A4F100008555 /* BoardView.m in Sources */ = {isa = PBXBuildFile; fileRef = 6362A55816677BEC00204445 /* BoardView.m */; };
 		639A9CEF1D00C2FF0065B2FA /* InviteAIViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 639A9CEE1D00C2FF0065B2FA /* InviteAIViewController.m */; };
 		639A9CF51D0168910065B2FA /* person.png in Resources */ = {isa = PBXBuildFile; fileRef = 639A9CF11D0168910065B2FA /* person.png */; };
@@ -206,6 +207,8 @@
 		6392B08119C354CB00916D41 /* Icon-76@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Icon-76@2x.png"; sourceTree = "<group>"; };
 		6396A3761D367105004BC68D /* moreSettings.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = moreSettings.png; sourceTree = "<group>"; };
 		6396A3771D367105004BC68D /* moreSettings@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "moreSettings@2x.png"; sourceTree = "<group>"; };
+		6396A37A1D38DE81004BC68D /* ChangeColorViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ChangeColorViewController.h; sourceTree = "<group>"; };
+		6396A37B1D38DE81004BC68D /* ChangeColorViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ChangeColorViewController.m; sourceTree = "<group>"; };
 		639A9CEE1D00C2FF0065B2FA /* InviteAIViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = InviteAIViewController.m; sourceTree = "<group>"; };
 		639A9CF01D00C3060065B2FA /* InviteAIViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = InviteAIViewController.h; sourceTree = "<group>"; };
 		639A9CF11D0168910065B2FA /* person.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = person.png; sourceTree = "<group>"; };
@@ -494,6 +497,8 @@
 				633648101CF350C600F432E2 /* RatingStatsView.m */,
 				63B20FDA1D282A410090644D /* KOTHTableViewController.h */,
 				63B20FDB1D282A410090644D /* KOTHTableViewController.m */,
+				6396A37A1D38DE81004BC68D /* ChangeColorViewController.h */,
+				6396A37B1D38DE81004BC68D /* ChangeColorViewController.m */,
 			);
 			name = penteLive;
 			path = test1;
@@ -907,6 +912,7 @@
 				63FEFC5A1689BFB30070E9AA /* UIPullToReloadTableViewController.m in Sources */,
 				63FEFD54168DFDA30070E9AA /* SettingsViewController.m in Sources */,
 				63B53BF51B9B2625003970ED /* IASKAppSettingsWebViewController.m in Sources */,
+				6396A37C1D38DE81004BC68D /* ChangeColorViewController.m in Sources */,
 				63FEFD651691CA9E0070E9AA /* InvitationsViewController.m in Sources */,
 				63B53BFB1B9B2625003970ED /* IASKSettingsStoreUserDefaults.m in Sources */,
 				63FEFD7216931A970070E9AA /* StringInputTableViewCell.m in Sources */,

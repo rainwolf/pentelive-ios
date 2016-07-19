@@ -90,6 +90,7 @@
 - (void)viewDidLoad
 {
     player = [[PentePlayer alloc] init];
+    ((PenteNavigationViewController *) self.navigationController).player = player;
     [super viewDidLoad];
     [self setTitle:@"Home"];
     
@@ -1960,7 +1961,7 @@
 
 
 - (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
-    if ((indexPath.section == PUBLICINVITATIONSSECTION) || (indexPath.section == TOURNAMENTSSECTION)) {
+    if ((indexPath.section == PUBLICINVITATIONSSECTION) || (indexPath.section == TOURNAMENTSSECTION) || (indexPath.section == KOTHSECTION)) {
         return NO;
     }
     return YES;
@@ -2256,7 +2257,16 @@
         }
         dashIDX++;
     }
-        
+
+        while ((dashIDX < [splitDash count]) && ([[splitDash objectAtIndex:dashIDX] rangeOfString: [username lowercaseString]].location != 0)) {
+            dashIDX++;
+        }
+        if ((dashIDX < [splitDash count]) && ([[splitDash objectAtIndex:dashIDX] rangeOfString: [username lowercaseString]].location == 0)) {
+            dashLine = [splitDash objectAtIndex:dashIDX];
+            splitLine = [dashLine componentsSeparatedByString:@";"];
+            [player setMyColor:UIColorFromRGB([[splitLine objectAtIndex:1] intValue])];
+        }
+
         sectionItems = [[NSMutableArray alloc] init];
         while ((dashIDX < [splitDash count]) && (![[splitDash objectAtIndex:dashIDX] isEqualToString: @"King of the Hill"])) {
             dashIDX++;

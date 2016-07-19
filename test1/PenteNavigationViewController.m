@@ -24,6 +24,7 @@
 @synthesize unchallengedMessageID;
 @synthesize challengedUser;
 @synthesize receivedNotification;
+@synthesize player;
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
 {

@@ -76,12 +76,14 @@ alpha:1.0]
     BOOL showAds, subscriber;
     NSMutableDictionary<NSString *, UIImage *> *avatars;
     NSMutableArray<NSString *> *pendingAvatarChecks;
+    UIColor *myColor;
 }
 @property(nonatomic,retain) NSString *playerName;
 @property(nonatomic,retain) NSMutableArray *invitations, *sentInvitations, *activeGames, *nonActiveGames, *publicInvitations, *messages, *ratingStats, *tournaments, *hills;
 @property(atomic, assign) BOOL showAds, subscriber;
 @property(nonatomic, retain, readwrite) NSMutableDictionary<NSString *, UIImage *> *avatars;
 @property(nonatomic, retain, readwrite) NSMutableArray<NSString *> *pendingAvatarChecks;
+@property(nonatomic, retain, readwrite) UIColor *myColor;
 
 -(void) addUser: (NSString *) username;
 

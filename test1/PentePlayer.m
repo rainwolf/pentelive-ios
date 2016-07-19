@@ -53,6 +53,7 @@
 @synthesize showAds, subscriber;
 @synthesize avatars;
 @synthesize pendingAvatarChecks;
+@synthesize myColor;
 
 
 -(id) init {

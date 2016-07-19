@@ -24,6 +24,10 @@ PODS:
   - SVWebViewController (HEAD based on 1.0)
   - TSMessages (0.9.13):
     - HexColors (~> 2.3.0)
+  - UIColor+Hex (1.0.1):
+    - UIColor+Hex/NSColor (= 1.0.1)
+    - UIColor+Hex/UIColor (= 1.0.1)
+  - UIColor+Hex/UIColor (1.0.1)
 
 DEPENDENCIES:
   - Color-Picker-for-iOS (~> 2.0)
@@ -32,6 +36,7 @@ DEPENDENCIES:
   - PopoverView
   - SVWebViewController (HEAD)
   - TSMessages (from `https://github.com/rainwolf/TSMessages.git`)
+  - UIColor+Hex
 
 EXTERNAL SOURCES:
   TSMessages:
@@ -55,5 +60,6 @@ SPEC CHECKSUMS:
   PopoverView: 62e83ffda75944d6cf2de9c6593489f3097dc1a3
   SVWebViewController: c36dda7326e81fcae0abf5d02bf7bbf7e41be901
   TSMessages: 6e403b790139636c15ab4f51946537095e03e79c
+  UIColor+Hex: 9fee91bb8e19f17dd40a79ae1e98949a6a84489d
 
 COCOAPODS: 0.39.0

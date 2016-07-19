@@ -170,7 +170,13 @@
             if (!cell) {
                 cell = [[PlayerTableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:@"myKothCell"];
             }
-            cell.imageView.image = [UIImage imageNamed:@"unread.png"];
+            NSString *opponent = [[[[hill steps] objectAtIndex: indexPath.section - 1] objectAtIndex:indexPath.row] name];
+            UIImage *imgV = [player.avatars objectForKey: opponent];
+            if (imgV != nil) {
+                cell.imageView.image = imgV;
+            } else {
+                cell.imageView.image = [UIImage imageNamed:@"unread.png"];
+            }
         } else {
             cell = (PlayerTableViewCell *) [tableView dequeueReusableCellWithIdentifier: @"kothCell"];
             if (!cell) {
@@ -364,7 +370,8 @@
     [request setTimeoutInterval:7.0];
     responseData = [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
     NSString *dashboardString = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
-    
+
+    BOOL wantsToSeeAvatars = [defaults boolForKey:@"wantToSeeAvatars"];
 
     [hillSummary setMember:[dashboardString rangeOfString:username].location != NSNotFound];
     
@@ -419,6 +426,9 @@
                         [kothPlayer setColor:[[playerDetails objectAtIndex: 3] intValue]];
                         [kothPlayer setCrown:[[playerDetails objectAtIndex: 4] intValue]];
                         [kothPlayer setLastGame: [playerDetails objectAtIndex:5]];
+                        if (wantsToSeeAvatars && kothPlayer.color != 0) {
+                            [player addUser:[kothPlayer name]];
+                        }
                         [step addObject:kothPlayer];
                     }
                 }

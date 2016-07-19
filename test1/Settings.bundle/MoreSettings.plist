@@ -21,6 +21,48 @@
 			<false/>
 		</dict>
 		<dict>
+			<key>FooterText</key>
+			<string>More preferences, such as email settings, can be changed at pente.org</string>
+			<key>Type</key>
+			<string>PSGroupSpecifier</string>
+		</dict>
+		<dict>
+			<key>Key</key>
+			<string>penteOrgPreferencesButton</string>
+			<key>Title</key>
+			<string>Preferences @ pente.org</string>
+			<key>IASKTextAlignment</key>
+			<string>IASKUITextAlignmentCenter</string>
+			<key>Type</key>
+			<string>IASKButtonSpecifier</string>
+		</dict>
+		<dict>
+			<key>FooterText</key>
+			<string>Name color changes and uploading an avatar is a subscriber-only feature</string>
+			<key>Type</key>
+			<string>PSGroupSpecifier</string>
+		</dict>
+		<dict>
+			<key>Key</key>
+			<string>changeColorButton</string>
+			<key>Title</key>
+			<string>Change my name color</string>
+			<key>IASKTextAlignment</key>
+			<string>IASKUITextAlignmentCenter</string>
+			<key>Type</key>
+			<string>IASKButtonSpecifier</string>
+		</dict>
+		<dict>
+			<key>Key</key>
+			<string>changeAvatarButton</string>
+			<key>Title</key>
+			<string>Change my avatar</string>
+			<key>IASKTextAlignment</key>
+			<string>IASKUITextAlignmentCenter</string>
+			<key>Type</key>
+			<string>IASKButtonSpecifier</string>
+		</dict>
+		<dict>
 			<key>Type</key>
 			<string>PSGroupSpecifier</string>
 		</dict>
