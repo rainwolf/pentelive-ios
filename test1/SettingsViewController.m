@@ -373,12 +373,6 @@
                 NSArray *toRecipients = [NSArray arrayWithObjects:@"rainwolf@submanifold.be", nil];
                 [mailer setToRecipients:toRecipients];
                 
-//                UIImage *myImage = [UIImage imageNamed:@"mobiletuts-logo.png"];
-//                NSData *imageData = UIImagePNGRepresentation(myImage);
-//                [mailer addAttachmentData:imageData mimeType:@"image/png" fileName:@"mobiletutsImage"];
-//                
-//                NSString *emailBody = @"Have you seen the MobileTuts+ web site?";
-//                [mailer setMessageBody:emailBody isHTML:NO];
                 
                 [self presentViewController:mailer animated:YES completion:nil];
             } else {
@@ -395,11 +389,6 @@
 }
 
 
-//-(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
-//{
-//    IASKSpecifier *specifier  = [self.settingsReader specifierForIndexPath:indexPath];
-//    [tableView deselectRowAtIndexPath:indexPath animated:NO];
-//}
 
 - (NSString *) URLEncodedString_ch: (NSString *) input{
     NSMutableString * output = [NSMutableString string];

@@ -22,7 +22,8 @@
 {
     // Override point for customization after application launch.
     
-    [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryAmbient error:nil];
+//    [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryAmbient error:nil];
+    [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryAmbient withOptions:AVAudioSessionCategoryOptionMixWithOthers error:nil];
     
     if ([application respondsToSelector:@selector(registerUserNotificationSettings:)]) {
         [application registerUserNotificationSettings:[UIUserNotificationSettings settingsForTypes:(UIUserNotificationTypeSound | UIUserNotificationTypeAlert | UIUserNotificationTypeBadge) categories:nil]];
@@ -96,6 +97,9 @@
 
 - (void)application:(UIApplication*)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData*)deviceToken
 {
+//    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+//    [defaults removeObjectForKey:@"lastPing"];
+//    [defaults synchronize];
     if (deviceToken) {
         NSString *tokenString = [[[[NSString stringWithFormat:@"%@", deviceToken] stringByReplacingOccurrencesOfString:@" " withString:@""] stringByReplacingOccurrencesOfString:@">" withString:@""] stringByReplacingOccurrencesOfString:@"<" withString:@""];
 //NSLog(@"My token is: %@", tokenString);
@@ -105,6 +109,7 @@
             if (![storedTokenString isEqualToString:tokenString]) {
                 [defaults setObject:tokenString forKey:@"deviceToken"];
                 [defaults removeObjectForKey:@"lastPing"];
+                [defaults synchronize];
            }
         } else {
             [defaults setObject:tokenString forKey:@"deviceToken"];

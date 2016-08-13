@@ -1348,6 +1348,7 @@
      */
     
     [TSMessage dismissActiveNotification];
+    [tableView deselectRowAtIndexPath:indexPath animated:YES];
     
     
     if (indexPath.section == MESSAGESSECTION) {
@@ -1961,7 +1962,7 @@
 
 
 - (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
-    if ((indexPath.section == PUBLICINVITATIONSSECTION) || (indexPath.section == TOURNAMENTSSECTION) || (indexPath.section == KOTHSECTION)) {
+    if ((indexPath.section == PUBLICINVITATIONSSECTION) || (indexPath.section == TOURNAMENTSSECTION) || (indexPath.section == KOTHSECTION) || (indexPath.section == NONACTIVEGAMESSECTION)) {
         return NO;
     }
     return YES;
@@ -1977,9 +1978,9 @@
     if (indexPath.section == SENTINVITATIONSSECTION) {
         return @"cancel";
     }
-    if (indexPath.section == NONACTIVEGAMESSECTION) {
-        return @"cancel set";
-    }
+//    if (indexPath.section == NONACTIVEGAMESSECTION) {
+//        return @"cancel set";
+//    }
     return @"uh-oh";
 }
 
@@ -2857,7 +2858,7 @@
     [button setFrame:frame];
     [buttonsArray addObject: button];
     
-    actionPopoverView = [PopoverView showPopoverAtPoint: CGPointMake(self.view.bounds.size.width - 20, 0) inView:self.view withViewArray: buttonsArray delegate:self];
+    actionPopoverView = [PopoverView showPopoverAtPoint: CGPointMake(self.view.bounds.size.width - 20, self.tableView.contentOffset.y) inView:self.view withViewArray: buttonsArray delegate:self];
     
 }
 
@@ -2879,7 +2880,7 @@
     [ratingView setScrollEnabled: NO];
     [ratingView setVc: self];
     
-    actionPopoverView = [PopoverView showPopoverAtPoint: CGPointMake(self.view.bounds.size.width - 20, 0) inView:self.view withTitle: @"rating stats" withContentView: ratingView delegate:self];
+    actionPopoverView = [PopoverView showPopoverAtPoint: CGPointMake(self.view.bounds.size.width - 20, self.tableView.contentOffset.y) inView:self.view withTitle: @"rating stats" withContentView: ratingView delegate:self];
     [actionPopoverView layoutSubviews];
 //    [ratingView setFrame: frame];
 }
@@ -2906,7 +2907,7 @@
     [button setFrame: frame];
     [buttonsArray addObject: button];
     
-    actionPopoverView = [PopoverView showPopoverAtPoint: CGPointMake(self.view.bounds.size.width - 80, 0) inView:self.view withViewArray: buttonsArray delegate:self];
+    actionPopoverView = [PopoverView showPopoverAtPoint: CGPointMake(self.view.bounds.size.width - 80, self.tableView.contentOffset.y) inView:self.view withViewArray: buttonsArray delegate:self];
     
 }
 

@@ -137,6 +137,11 @@
     }
 }
 
+-(void) viewWillDisappear:(BOOL)animated {
+    [super viewWillDisappear:animated];
+    [TSMessage dismissActiveNotification];
+}
+
 
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
@@ -255,8 +260,27 @@
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    [tableView deselectRowAtIndexPath:indexPath animated:YES];
     if (indexPath.section == 0) {
-        [self joinLeave];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [TSMessage showNotificationInViewController:self
+                                                  title: @"Tap again here to confirm"
+                                               subtitle: nil
+                                                  image:nil
+                                                   type: TSMessageNotificationTypeWarning
+                                               duration:TSMessageNotificationDurationEndless
+                                               callback: ^{
+                                                   [TSMessage dismissActiveNotification];
+                                                   [self joinLeave];
+                                               }
+                                            buttonTitle: @"cancel"
+                                         buttonCallback:^{
+                                             [TSMessage dismissActiveNotification];
+                                         }
+                                             atPosition:TSMessageNotificationPositionTop
+                                   canBeDismissedByUser:YES];
+            
+        });
     } else {
         CGRect cellRect = [self.tableView rectForRowAtIndexPath:indexPath];
         
