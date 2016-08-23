@@ -99,9 +99,18 @@
     [self.refreshControl addTarget:self
                             action:@selector(loadKoth)
                   forControlEvents:UIControlEventValueChanged];
-    
-    UIBarButtonItem *barButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAction target:self action:@selector(loadWebsiteHill)];
-    [self.navigationItem setRightBarButtonItem:barButton];
+
+    if ([hillSummary canSendOpen]) {
+        UIBarButtonItem *barButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAction target:self action:@selector(loadWebsiteHill)];
+        UIBarButtonItem *inviteButton = [[UIBarButtonItem alloc] initWithImage: [UIImage imageNamed:@"person.png"] style: UIBarButtonItemStylePlain target:self action: @selector(showOpenChallengeView)];
+        //    statsButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem: UIBarButtonSystemItem target:self action: @selector(showStats)];
+        //    friendsButton = [[UIBarButtonItem alloc] initWithImage: [UIImage imageNamed:@"friends.png"] style: UIBarButtonItemStylePlain target:self action:@selector(toFriends)];
+        [self.navigationItem setRightBarButtonItem:nil];
+        [self.navigationItem setRightBarButtonItems:[NSArray arrayWithObjects:barButton, inviteButton, nil]];
+    } else {
+        UIBarButtonItem *barButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAction target:self action:@selector(loadWebsiteHill)];
+        [self.navigationItem setRightBarButtonItem:barButton];
+    }
     hill = [[Hill alloc] init];
     [self loadKoth];
     
@@ -317,6 +326,19 @@
     [self loadKoth];
 }
 
+
+-(void) showOpenChallengeView {
+    challengeView = [[KOTHChallengeView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width*2/3, 103)];
+    [challengeView setScrollEnabled:NO];
+    [challengeView setGameStr:[self getGameString:[hillSummary game]]];
+    [challengeView setInvitee:@""];
+    [challengeView setDelegate: challengeView];
+    [challengeView setDataSource: challengeView];
+    actionPopoverView = [PopoverView showPopoverAtPoint: CGPointMake(self.view.bounds.size.width/2, [self.tableView contentOffset].y + 66) inView:self.view withTitle: @"send open challenge" withContentView: challengeView delegate:self];
+    [challengeView setPopoverView: actionPopoverView];
+    [actionPopoverView layoutSubviews];
+    ((PenteNavigationViewController *) self.navigationController).didMove = YES;
+}
 
 -(void) addColorOfRating: (NSString *) rating toString: (NSMutableAttributedString *) str {
     int ratingInt = [rating intValue];
@@ -574,7 +596,7 @@
                 break;
             }
         }
-        collapsedLabel.text = [NSString stringWithFormat:@"(%lu)", [[hill.steps objectAtIndex: section - 1] count]] ;
+        collapsedLabel.text = [NSString stringWithFormat:@"(%lu)", (unsigned long)[[hill.steps objectAtIndex: section - 1] count]] ;
     } else {
         collapsedLabel.text = [NSString stringWithFormat:@"(%@)", [hillSummary numPlayers]];
         [sectionHeaderView setBackgroundColor:[UIColor colorWithRed:(8.0/255) green:(52.0/255) blue:(29.0/255) alpha:1.0]];

@@ -762,6 +762,12 @@
         [cell setAccessoryType:UITableViewCellAccessoryDisclosureIndicator];
         [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
         cell.imageView.image = imgV;
+        if ([[[[player publicInvitations] objectAtIndex:indexPath.row] ratedNot] rangeOfString:@"KotH"].location != NSNotFound) {
+            cell.backgroundColor = [UIColor colorWithRed: 222.0/256 green:236.0/256 blue:222.0/256 alpha:1];
+        } else {
+            cell.backgroundColor = [UIColor whiteColor];
+        }
+
     }
     if (indexPath.section == SENTINVITATIONSSECTION) {
         NSString *opponent = [[[player sentInvitations] objectAtIndex:indexPath.row] opponentName];
@@ -2283,6 +2289,7 @@
                 [hill setMember: [[splitLine objectAtIndex: 2] isEqualToString:@"1"]];
                 [hill setKing: [[splitLine objectAtIndex: 3] isEqualToString:@"1"]];
                 [hill setCurrentKing: [splitLine objectAtIndex: 4]];
+                [hill setCanSendOpen:[[splitLine objectAtIndex: 5] isEqualToString:@"1"]];
                 [sectionItems addObject:hill];
                 dashIDX++;
             }

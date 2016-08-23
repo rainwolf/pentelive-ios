@@ -43,7 +43,7 @@
 
 @implementation KingOfTheHill
 @synthesize game, numPlayers, currentKing;
-@synthesize member, king;
+@synthesize member, king, canSendOpen;
 
 @end
 

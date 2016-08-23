@@ -62,10 +62,10 @@ alpha:1.0]
 
 @interface KingOfTheHill : NSObject {
     NSString *game, *numPlayers, *currentKing;
-    BOOL member, king;
+    BOOL member, king, canSendOpen;
 }
 @property(nonatomic,retain) NSString *game, *numPlayers, *currentKing;
-@property(assign, atomic) BOOL member, king;
+@property(assign, atomic) BOOL member, king, canSendOpen;
 @end
 
 

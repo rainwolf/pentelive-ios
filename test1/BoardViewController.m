@@ -316,11 +316,12 @@ struct Capture {
     [player2Button setHidden:YES];
     [dPenteChoiceLabel setHidden:YES];
     [submitButton setAlpha:1];
+    [submitButton setHidden:NO];
     [stone setStoneColor:[UIColor whiteColor]];
     [stone setNeedsDisplay];
     [zoomedStone setStoneColor:[UIColor whiteColor]];
     [zoomedStone setNeedsDisplay];
-//    [boardTapRecognizer setEnabled:YES];
+    activeGame = YES;
 }
 
 - (IBAction)dPentePlayer2:(id)sender {
@@ -407,7 +408,7 @@ struct Capture {
 }
 
 - (IBAction)boardTap:(UILongPressGestureRecognizer *)recognizer {
-    if (dPenteChoice) {
+    if (dPenteChoice && [submitButton isHidden]) {
         return;
     }
     if (dPenteOpening) {
@@ -573,7 +574,6 @@ struct Capture {
         [horizontalLine setHidden:YES];
         [verticalLine setHidden:YES];
     } else {
-//        NSLog(@"hi oopsie kitty %i %i", i, j);
         if ([zoomedBoard isHidden] && ([recognizer state] != UIGestureRecognizerStateEnded) && (abstractBoard[i][j] == 0)) {
 //            [zoomedBoard setHidden: NO];
 //            [zoomedStone setHidden: NO];
@@ -581,6 +581,7 @@ struct Capture {
 //            [horizontalLine setHidden:NO];
 //            [verticalLine setHidden:NO];
             if (activeGame) {
+//                        NSLog(@"hi oopsie kitty %i %i", i, j);
                 [zoomedBoard setHidden: NO];
                 [zoomedStone setHidden: NO];
                 [stone setHidden: YES];
@@ -928,6 +929,12 @@ struct Capture {
             activeGame = (([movesList count] % 2) == 1);
         }
         [self replayConnect6Game: (int) [movesList count]];
+    } else if ([[game gameType] isEqualToString:@"D-Pente"] && ([htmlString rangeOfString:@"dPenteState=2"].location != NSNotFound || [htmlString rangeOfString:@"dPenteState=1"].location != NSNotFound)) {
+        if (!iAmP1) {
+            activeGame = (([movesList count] % 2) == 0);
+        } else {
+            activeGame = (([movesList count] % 2) == 1);
+        }
     } else {
         if (iAmP1) {
             activeGame = (([movesList count] % 2) == 0);
@@ -950,7 +957,7 @@ struct Capture {
         dPenteChoice = NO;
         if ([movesList count] == 4) {
 //            NSLog(@"kitty %@", htmlString);
-            if ([htmlString rangeOfString:@"dPenteState=2"].location != NSNotFound) {
+            if ([htmlString rangeOfString:@"dPenteState=2"].location != NSNotFound && activeGame) {
 //                            NSLog(@"kitty what");
                 dPenteChoice = YES;
                 [submitButton setHidden:YES];

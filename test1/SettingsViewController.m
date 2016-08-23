@@ -301,12 +301,12 @@
         if (image) {
             UIImage *newImg = [self imageWithImage:image scaledToSize: scaleSize];
             NSData *imageData = UIImageJPEGRepresentation(newImg, 0.75f);
-            NSLog(@"kitty %f and size %lu", scaleSize, [imageData length]);
+//            NSLog(@"kitty %f and size %lu", scaleSize(unsigned long), [imageData length]);
             while ([imageData length] > 65535) {
                 scaleSize -= 10.0f;
                 newImg = [self imageWithImage:image scaledToSize: scaleSize];
                 imageData = UIImageJPEGRepresentation(newImg, 0.75f);
-                NSLog(@"kitty %f and size %lu", scaleSize, [imageData length]);
+//                NSLog(@"kitty %f and size %lu", scaleSize(unsigned long), [imageData length]);
             }
 
             NSString *urlString = @"https://www.pente.org/gameServer/changeAvatar";
