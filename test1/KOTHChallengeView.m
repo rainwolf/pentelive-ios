@@ -9,7 +9,7 @@
 #import "KOTHChallengeView.h"
 
 @implementation KOTHChallengeView
-@synthesize timoutCell;
+@synthesize timeoutCell, restrictionCell;
 @synthesize popoverView;
 @synthesize gameStr, invitee;
 
@@ -20,36 +20,64 @@
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    if (section == 0 && [invitee isEqualToString:@""]) {
+        return 2;
+    }
     return 1;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
 
     if (indexPath.section == 0) {
-        SimplePickerInputTableViewCell *cell = (SimplePickerInputTableViewCell *) [tableView dequeueReusableCellWithIdentifier: @"timoutCell"];
-        if (cell == nil) {
-            cell = [[SimplePickerInputTableViewCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier: @"timoutCell"];
+        if (indexPath.row == 0) {
+            SimplePickerInputTableViewCell *cell = (SimplePickerInputTableViewCell *) [tableView dequeueReusableCellWithIdentifier: @"timeoutCell"];
+            if (cell == nil) {
+                cell = [[SimplePickerInputTableViewCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier: @"timeoutCell"];
+            }
+            NSMutableArray<NSString *> *timouts = [[NSMutableArray alloc] init];
+            for ( int i = 1; i < 30; ++i) {
+                [timouts addObject:[NSString stringWithFormat:@"%i",i]];
+            }
+            cell.datarray = timouts;
+            [cell setDelegate: self];
+            [cell.picker reloadAllComponents];
+            [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
+            
+            cell.textLabel.text =  @"Days per move:";
+            int idx = (int) [[NSUserDefaults standardUserDefaults] integerForKey: @"kothTimeout"] - 1;
+            if (idx < 0) {
+                idx = 2;
+            }
+            [cell.picker selectRow:idx inComponent:0 animated:NO];
+            cell.detailTextLabel.text = [timouts objectAtIndex:idx];
+            
+            timeoutCell = cell;
+            
+            return cell;
+        } else if (indexPath.row == 1) {
+            SimplePickerInputTableViewCell *cell = (SimplePickerInputTableViewCell *) [tableView dequeueReusableCellWithIdentifier: @"restrictionCell"];
+            if (cell == nil) {
+                cell = [[SimplePickerInputTableViewCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier: @"restrictionCell"];
+            }
+            NSArray<NSString *> *restrictions = [[NSArray alloc] initWithObjects:@"of any rating",@"not already playing",@"of lower rating",@"of higher rating",@"of similar rating",@"in the same rating class", nil];
+
+            cell.datarray = restrictions;
+            [cell setDelegate: self];
+            [cell.picker reloadAllComponents];
+            [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
+            
+            cell.textLabel.text =  @"To players";
+            int idx = (int) [[NSUserDefaults standardUserDefaults] integerForKey: @"kothRestriction"] - 1;
+            if (idx < 0) {
+                idx = 0;
+            }
+            [cell.picker selectRow:idx inComponent:0 animated:NO];
+            cell.detailTextLabel.text = [restrictions objectAtIndex:idx];
+            
+            restrictionCell = cell;
+            
+            return cell;
         }
-        NSMutableArray<NSString *> *timouts = [[NSMutableArray alloc] init];
-        for ( int i = 1; i < 30; ++i) {
-            [timouts addObject:[NSString stringWithFormat:@"%i",i]];
-        }
-        cell.datarray = timouts;
-        [cell setDelegate: self];
-        [cell.picker reloadAllComponents];
-        [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
-       
-        cell.textLabel.text =  @"Days per move:";
-        int idx = (int) [[NSUserDefaults standardUserDefaults] integerForKey: @"kothTimeout"] - 1;
-        if (idx < 0) {
-            idx = 2;
-        }
-        [cell.picker selectRow:idx inComponent:0 animated:NO];
-        cell.detailTextLabel.text = [timouts objectAtIndex:idx];
-        
-        timoutCell = cell;
-        
-        return cell;
     } else if (indexPath.section == 1) {
         UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier: @"colorCell"];
         if (cell == nil) {
@@ -78,13 +106,38 @@
 
 -(void) tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     if (indexPath.section == 1) {
-        [[NSUserDefaults standardUserDefaults] setInteger: [timoutCell.detailTextLabel.text intValue] forKey:@"kothTimeout"];
-        [timoutCell doResign];
-
-        NSString *gameString = self.gameStr;
+        [[NSUserDefaults standardUserDefaults] setInteger: [timeoutCell.detailTextLabel.text intValue] forKey:@"kothTimeout"];
+        [timeoutCell doResign];
         
 
-        NSString *post = [NSString stringWithFormat:@"invitee=%@&game=%@&daysPerMove=%@&rated=Y&inviterMessage=&mobile=&koth=", self.invitee ,gameString, timoutCell.detailTextLabel.text];
+        NSString *gameString = self.gameStr;
+
+        NSString *restrictString = @"A";
+        if ([invitee isEqualToString:@""]) {
+            [[NSUserDefaults standardUserDefaults] setInteger: [restrictionCell.detailTextLabel.text intValue] forKey:@"kothRestriction"];
+            [restrictionCell doResign];
+            if ([restrictionCell.detailTextLabel.text isEqualToString:@"of any rating"]) {
+                restrictString = @"A";
+            }
+            if ([restrictionCell.detailTextLabel.text isEqualToString:@"not already playing"]) {
+                restrictString = @"N";
+            }
+            if ([restrictionCell.detailTextLabel.text isEqualToString:@"of lower rating"]) {
+                restrictString = @"L";
+            }
+            if ([restrictionCell.detailTextLabel.text isEqualToString:@"of higher rating"]) {
+                restrictString = @"H";
+            }
+            if ([restrictionCell.detailTextLabel.text isEqualToString:@"of similar rating"]) {
+                restrictString = @"S";
+            }
+            if ([restrictionCell.detailTextLabel.text isEqualToString:@"of same rating class"]) {
+                restrictString = @"C";
+            }
+        }
+
+
+        NSString *post = [NSString stringWithFormat:@"invitee=%@&game=%@&daysPerMove=%@&invitationRestriction=%@&rated=Y&inviterMessage=&mobile=&koth=", self.invitee ,gameString, timeoutCell.detailTextLabel.text, restrictString];
         NSData *postData = [post dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
         NSString *postLength = [NSString stringWithFormat:@"%lu", (unsigned long)[postData length]];
         

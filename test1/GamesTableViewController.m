@@ -502,6 +502,7 @@
                 cell = [[GameTableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:CellWithUnreadImageIdentifier];
             }
             imgV = [UIImage imageNamed:@"unread.png"];
+            cell.backgroundColor = [UIColor colorWithRed: 222.0/256 green:236.0/256 blue:222.0/256 alpha:1];
         } else {
             NSString *opponent = [[[player messages] objectAtIndex:indexPath.row] author];
                 imgV = [player.avatars objectForKey: opponent];
@@ -514,6 +515,7 @@
             if (!cell) {
                 cell = [[GameTableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:tmpIdentifier];
             }
+            cell.backgroundColor = [UIColor whiteColor];
         }
         txtStr = [[NSMutableString alloc] initWithString:[[[player messages] objectAtIndex:indexPath.row] author]];
         int crown = [[[player messages] objectAtIndex:indexPath.row] crown];
@@ -623,6 +625,7 @@
         [cell setUserInteractionEnabled: YES];
         [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
         cell.imageView.image = imgV;
+        cell.backgroundColor = [UIColor whiteColor];
     }
     if (indexPath.section == ACTIVEGAMESSECTION) {
         NSString *opponent = [[[player activeGames] objectAtIndex:indexPath.row] opponentName];
@@ -685,6 +688,7 @@
         cell.detailTextLabel.text = txtStr;
         [cell setAccessoryType:UITableViewCellAccessoryDisclosureIndicator];
         [cell setUserInteractionEnabled:YES];
+        cell.backgroundColor = [UIColor whiteColor];
         if (imgV) {
             cell.imageView.image = imgV;
         } else {
@@ -837,6 +841,7 @@
         [cell setUserInteractionEnabled: YES];
         [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
         [cell setAccessoryType:UITableViewCellAccessoryDisclosureIndicator];
+        cell.backgroundColor = [UIColor whiteColor];
         
         cell.imageView.image = imgV;
     }
@@ -900,6 +905,7 @@
         cell.detailTextLabel.text = txtStr;
         [cell setUserInteractionEnabled:YES];
         [cell setAccessoryType:UITableViewCellAccessoryDisclosureIndicator];
+        cell.backgroundColor = [UIColor whiteColor];
         if (imgV) {
 //            [cell.imageView setBounds:CGRectMake(0,0, cell.contentView.bounds.size.height,  cell.contentView.bounds.size.height)];
             cell.imageView.image = imgV;

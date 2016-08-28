@@ -149,6 +149,7 @@
 -(void) viewWillDisappear:(BOOL)animated {
     [super viewWillDisappear:animated];
     [TSMessage dismissActiveNotification];
+    [actionPopoverView dismiss];
 }
 
 
@@ -270,6 +271,7 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
+    [TSMessage dismissActiveNotification];
     if (indexPath.section == 0) {
         dispatch_async(dispatch_get_main_queue(), ^{
             [TSMessage showNotificationInViewController:self
@@ -322,13 +324,14 @@
 
 
 - (void)popoverViewDidDismiss:(PopoverView *)popoverView {
-    [[challengeView  timoutCell] doResign];
+    [[challengeView  timeoutCell] doResign];
+    [[challengeView  restrictionCell] doResign];
     [self loadKoth];
 }
 
 
 -(void) showOpenChallengeView {
-    challengeView = [[KOTHChallengeView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width*2/3, 103)];
+    challengeView = [[KOTHChallengeView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width*4/5, 147)];
     [challengeView setScrollEnabled:NO];
     [challengeView setGameStr:[self getGameString:[hillSummary game]]];
     [challengeView setInvitee:@""];
