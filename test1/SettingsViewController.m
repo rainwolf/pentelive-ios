@@ -50,6 +50,9 @@
 {
     [super viewDidLoad];
 	// Do any additional setup after loading the view.
+    if (![[NSUserDefaults standardUserDefaults] boolForKey:@"registrationFailed"]) {
+        self.hiddenKeys = [NSSet setWithObjects:@"SignUpButton", @"SignUpLabel", nil];
+    }
     [self setShowCreditsFooter:YES];
     [self setTitle:@"Settings"];
     [self.tableView setSeparatorColor:[UIColor blueColor]];
@@ -57,6 +60,19 @@
     [self setDelegate:self];
 }
 
+- (void)viewDidAppear:(BOOL)animated {
+    [super viewDidAppear:animated];
+    if (![[NSUserDefaults standardUserDefaults] boolForKey:@"registrationFailed"]) {
+        [self.tableView cellForRowAtIndexPath: [NSIndexPath indexPathForRow:0 inSection:0]].userInteractionEnabled = NO;
+        [self.tableView cellForRowAtIndexPath: [NSIndexPath indexPathForRow:1 inSection:0]].userInteractionEnabled = NO;
+    }
+}
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView {
+    if (![[NSUserDefaults standardUserDefaults] boolForKey:@"registrationFailed"]) {
+        [self.tableView cellForRowAtIndexPath: [NSIndexPath indexPathForRow:0 inSection:0]].userInteractionEnabled = NO;
+        [self.tableView cellForRowAtIndexPath: [NSIndexPath indexPathForRow:1 inSection:0]].userInteractionEnabled = NO;
+    }
+}
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
     

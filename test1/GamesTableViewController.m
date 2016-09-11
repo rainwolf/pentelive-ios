@@ -2237,6 +2237,8 @@
         self.tableView.layer.borderWidth = 0.0;
         [self.tableView setUserInteractionEnabled:YES];
         return;
+    } else {
+        [defaults setBool:NO forKey:@"registrationFailed"];
     }
 
     showAds = ([dashboardString rangeOfString:@"No Ads"].location == NSNotFound) || ([dashboardString rangeOfString:@"No Ads"].location > 30);

@@ -131,7 +131,7 @@
             if ([restrictionCell.detailTextLabel.text isEqualToString:@"of similar rating"]) {
                 restrictString = @"S";
             }
-            if ([restrictionCell.detailTextLabel.text isEqualToString:@"of same rating class"]) {
+            if ([restrictionCell.detailTextLabel.text isEqualToString:@"in the same rating class"]) {
                 restrictString = @"C";
             }
         }

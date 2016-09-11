@@ -43,6 +43,8 @@
 			<string>IASKButtonSpecifier</string>
 		</dict>
 		<dict>
+			<key>Key</key>
+			<string>SignUpLabel</string>
 			<key>FooterText</key>
 			<string></string>
 			<key>Title</key>
@@ -82,7 +84,7 @@
 			<key>Title</key>
 			<string>More settings</string>
 			<key>Key</key>
-			<string>SignUpButton</string>
+			<string>MoreSettingsButton</string>
 		</dict>
 		<dict>
 			<key>FooterText</key>
