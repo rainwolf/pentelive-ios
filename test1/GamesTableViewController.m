@@ -2238,7 +2238,7 @@
         [self.tableView setUserInteractionEnabled:YES];
         return;
     } else {
-        [defaults setBool:NO forKey:@"registrationFailed"];
+        [defaults setBool:YES forKey:@"registrationSuccess"];
     }
 
     showAds = ([dashboardString rangeOfString:@"No Ads"].location == NSNotFound) || ([dashboardString rangeOfString:@"No Ads"].location > 30);

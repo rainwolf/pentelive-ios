@@ -50,7 +50,7 @@
 {
     [super viewDidLoad];
 	// Do any additional setup after loading the view.
-    if (![[NSUserDefaults standardUserDefaults] boolForKey:@"registrationFailed"]) {
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"registrationSuccess"]) {
         self.hiddenKeys = [NSSet setWithObjects:@"SignUpButton", @"SignUpLabel", nil];
     }
     [self setShowCreditsFooter:YES];
@@ -62,13 +62,13 @@
 
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
-    if (![[NSUserDefaults standardUserDefaults] boolForKey:@"registrationFailed"]) {
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"registrationSuccess"]) {
         [self.tableView cellForRowAtIndexPath: [NSIndexPath indexPathForRow:0 inSection:0]].userInteractionEnabled = NO;
         [self.tableView cellForRowAtIndexPath: [NSIndexPath indexPathForRow:1 inSection:0]].userInteractionEnabled = NO;
     }
 }
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
-    if (![[NSUserDefaults standardUserDefaults] boolForKey:@"registrationFailed"]) {
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"registrationSuccess"]) {
         [self.tableView cellForRowAtIndexPath: [NSIndexPath indexPathForRow:0 inSection:0]].userInteractionEnabled = NO;
         [self.tableView cellForRowAtIndexPath: [NSIndexPath indexPathForRow:1 inSection:0]].userInteractionEnabled = NO;
     }
