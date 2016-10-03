@@ -12,7 +12,7 @@
 			<key>Key</key>
 			<string>username</string>
 			<key>Title</key>
-			<string>Username:   </string>
+			<string>Username:</string>
 			<key>AutocorrectionType</key>
 			<string>No</string>
 			<key>IsSecure</key>
@@ -26,7 +26,7 @@
 			<key>Key</key>
 			<string>password</string>
 			<key>Title</key>
-			<string>Password:   </string>
+			<string>Password:</string>
 			<key>IsSecure</key>
 			<true/>
 		</dict>
@@ -71,6 +71,32 @@
 			<string></string>
 			<key>Type</key>
 			<string>PSGroupSpecifier</string>
+		</dict>
+		<dict>
+			<key>Type</key>
+			<string>IASKButtonSpecifier</string>
+			<key>IASKCellImage</key>
+			<string>subscribeIcon</string>
+			<key>IASKTextAlignment</key>
+			<string>IASKUITextAlignmentCenter</string>
+			<key>Title</key>
+			<string>Subscribe!</string>
+			<key>Key</key>
+			<string>SubscribeButton</string>
+		</dict>
+		<dict>
+			<key>Key</key>
+			<string>manageSubscriptions</string>
+			<key>DefaultValue</key>
+			<string>pente.org</string>
+			<key>File</key>
+			<string>https://buy.itunes.apple.com/WebObjects/MZFinance.woa/wa/manageSubscriptions</string>
+			<key>Title</key>
+			<string>Manage subscription</string>
+			<key>Type</key>
+			<string>IASKOpenURLSpecifier</string>
+			<key>IASKTextAlignment</key>
+			<string>IASKUITextAlignmentCenter</string>
 		</dict>
 		<dict>
 			<key>File</key>
@@ -143,6 +169,18 @@
 			<string>IASKUITextAlignmentCenter</string>
 			<key>Type</key>
 			<string>IASKButtonSpecifier</string>
+		</dict>
+		<dict>
+			<key>Key</key>
+			<string>AcknowledgementsButton</string>
+			<key>File</key>
+			<string>Acknowledgements</string>
+			<key>Title</key>
+			<string>Acknowledgements</string>
+			<key>Type</key>
+			<string>PSChildPaneSpecifier</string>
+			<key>IASKTextAlignment</key>
+			<string>IASKUITextAlignmentCenter</string>
 		</dict>
 	</array>
 	<key>StringsTable</key>

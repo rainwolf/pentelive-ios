@@ -20,6 +20,7 @@
     GADBannerView *bannerView;
     NSDictionary *receivedNotification;
     PentePlayer *player;
+    SKProduct *subscription;
 }
 @property(nonatomic,retain) NSString *activeGameToRemove, *unchallengedMessageID, *challengedUser;
 @property BOOL loggedIn, didMove, messageDeleted, challengeCancelled, needHelp;
@@ -27,6 +28,7 @@
 @property(nonatomic,retain) GADBannerView *bannerView;
 @property(nonatomic,retain) NSDictionary *receivedNotification;
 @property(nonatomic,retain) PentePlayer *player;
+@property(nonatomic,retain) SKProduct *subscription;
 
 //- (void)adViewWillLeaveApplication:(GADBannerView *)bannerViewl;
 

@@ -2244,6 +2244,9 @@
     showAds = ([dashboardString rangeOfString:@"No Ads"].location == NSNotFound) || ([dashboardString rangeOfString:@"No Ads"].location > 30);
     [player setShowAds: showAds];
     [player setSubscriber: ([dashboardString rangeOfString:@"tb GamesLimit"].location == NSNotFound) || ([dashboardString rangeOfString:@"tb GamesLimit"].location > 30)];
+        if ([player subscriber]) {
+            [[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"shouldSendReceipt"];
+        }
     if (([dashboardString rangeOfString:@"Unlimited Games"].location != NSNotFound) && ([dashboardString rangeOfString:@"Unlimited Games"].location < 30)) {
         gamesLimit = INT_MAX;
     }

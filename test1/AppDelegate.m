@@ -11,6 +11,8 @@
 #import "GamesTableViewController.h"
 #import "BoardViewController.h"
 @import Firebase;
+#import "RMStore.h"
+
 
 @implementation AppDelegate
 
@@ -18,10 +20,11 @@
 @synthesize notification;
 @synthesize sndID;
 
-- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
+- (BOOL)application:(UIApplication *)application willFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
     // Override point for customization after application launch.
     
+    NSLog(@"kitty");
 //    [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryAmbient error:nil];
     [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryAmbient withOptions:AVAudioSessionCategoryOptionMixWithOthers error:nil];
     
@@ -62,6 +65,76 @@
     }
     
     [FIRApp configure];
+
+    NSSet *products = [NSSet setWithArray:@[@"1YRNOADSORLIMITS"]];
+    [[RMStore defaultStore] requestProducts:products success:^(NSArray *products, NSArray *invalidProductIdentifiers) {
+        for (SKProduct *product in products) {
+            if ([product.productIdentifier isEqualToString:@"1YRNOADSORLIMITS"]) {
+                    [((PenteNavigationViewController *)self.window.rootViewController) setSubscription:product];
+            }
+        }
+    } failure:^(NSError *error) {
+        NSLog(@"Something went wrong");
+    }];
+    
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"shouldSendReceipt"]) {
+        NSURL *receiptURL = [[NSBundle mainBundle] appStoreReceiptURL];
+        NSData *receipt = [NSData dataWithContentsOfURL:receiptURL];
+        
+        NSString *url = @"https://www.pente.org/gameServer/iOSReceiptValidation";
+        NSString *postString = [NSString stringWithFormat:@"name=%@&receipt=%@", [[NSUserDefaults standardUserDefaults] stringForKey:@"username"], [self URLEncodedString_ch:[receipt base64EncodedStringWithOptions:0]]];
+        
+        NSData *postData = [postString dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
+        NSString *postLength = [NSString stringWithFormat:@"%lu", (unsigned long)[postData length]];
+        
+        NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
+        [request setURL:[NSURL URLWithString:url]];
+        [request setHTTPMethod:@"POST"];
+        [request setValue:postLength forHTTPHeaderField:@"Content-Length"];
+        [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
+        [request setHTTPBody:postData];
+        [request setTimeoutInterval:20.0];
+        
+        //    [request setHTTPShouldUsePipelining: YES];
+        
+        NSURLResponse *response;
+        NSError *error;
+        NSData *responseData = [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
+        NSString *dashboardString = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
+        NSLog(dashboardString);
+        
+        if ([dashboardString containsString:@"success"]) {
+            [[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"shouldSendReceipt"];
+            [TSMessage showNotificationInViewController:((PenteNavigationViewController *)self.window.rootViewController)
+                                                  title: @"Purchase registration successful"
+                                               subtitle: nil
+                                                  image:nil
+                                                   type: TSMessageNotificationTypeSuccess
+                                               duration:TSMessageNotificationDurationAutomatic
+                                               callback: ^{
+                                                   [TSMessage dismissActiveNotification];
+                                               }
+                                            buttonTitle: nil
+                                         buttonCallback:nil
+                                             atPosition:TSMessageNotificationPositionBottom
+                                   canBeDismissedByUser:YES];
+        } else {
+            [TSMessage showNotificationInViewController:((PenteNavigationViewController *)self.window.rootViewController)
+                                                  title: @"Purchase registration failed"
+                                               subtitle: @"The app will retry purchase registration at pente.org every time the app starts"
+                                                  image:nil
+                                                   type: TSMessageNotificationTypeWarning
+                                               duration:TSMessageNotificationDurationAutomatic
+                                               callback: ^{
+                                                   [TSMessage dismissActiveNotification];
+                                               }
+                                            buttonTitle: nil
+                                         buttonCallback:nil
+                                             atPosition:TSMessageNotificationPositionBottom
+                                   canBeDismissedByUser:YES];
+        }
+
+    }
     
     return YES;
 }
@@ -203,5 +276,27 @@
     [defaults setBool:YES forKey:@"termsAccepted"];
     [defaults synchronize];
 }
+
+- (NSString *) URLEncodedString_ch: (NSString *) input{
+    NSMutableString * output = [NSMutableString string];
+    const unsigned char * source = (const unsigned char *)[input UTF8String];
+    int sourceLen = (int) strlen((const char *)source);
+    for (int i = 0; i < sourceLen; ++i) {
+        const unsigned char thisChar = source[i];
+        if (thisChar == ' '){
+            [output appendString:@"+"];
+        } else if (thisChar == '.' || thisChar == '-' || thisChar == '_' || thisChar == '~' ||
+                   (thisChar >= 'a' && thisChar <= 'z') ||
+                   (thisChar >= 'A' && thisChar <= 'Z') ||
+                   (thisChar >= '0' && thisChar <= '9')) {
+            [output appendFormat:@"%c", thisChar];
+        } else {
+            [output appendFormat:@"%%%02X", thisChar];
+        }
+    }
+    return output;
+}
+
+
 
 @end

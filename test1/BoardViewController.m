@@ -1041,9 +1041,9 @@ struct Capture {
         if (i == 0) {
             [moveStatsString appendString: @"<b>1.</b> "];
         } else if ([[game gameType] isEqualToString:@"Connect6"]) {
-            if (((i-1)%4) == 0) {
+            if (((i-3)%4) == 0) {
                 [moveStatsString appendString: [NSString stringWithFormat:@"&nbsp; <b>%i.</b> ", (i >> 2) + 2]];
-            } else if (((i-1)%4) == 2) {
+            } else if (((i-3)%4) == 2 || i == 1) {
                 [moveStatsString appendString: @" - "];
             } else {
                 [moveStatsString appendString: @"-"];
@@ -1347,9 +1347,9 @@ struct Capture {
         if (i == 0) {
             [moveStatsString appendString: @"<b>1.</b> "];
         } else if ([[game gameType] isEqualToString:@"Connect6"]) {
-            if (((i-1)%4) == 0) {
+            if (((i-3)%4) == 0) {
                 [moveStatsString appendString: [NSString stringWithFormat:@"&nbsp; <b>%i.</b> ", (i >> 2) + 2]];
-            } else if (((i-1)%4) == 2) {
+            } else if (((i-3)%4) == 2 || i == 1) {
                 [moveStatsString appendString: @" - "];
             } else {
                 [moveStatsString appendString: @"-"];

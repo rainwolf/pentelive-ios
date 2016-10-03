@@ -25,6 +25,7 @@
 @synthesize challengedUser;
 @synthesize receivedNotification;
 @synthesize player;
+@synthesize subscription;
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
 {
