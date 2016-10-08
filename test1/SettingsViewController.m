@@ -79,21 +79,21 @@
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
     if ([[NSUserDefaults standardUserDefaults] boolForKey:@"registrationSuccess"]) {
-        if ([[[[self.tableView cellForRowAtIndexPath: [NSIndexPath indexPathForRow:0 inSection:0]] textLabel] text] isEqualToString:@"Username:"]) {
-            [self.tableView cellForRowAtIndexPath: [NSIndexPath indexPathForRow:0 inSection:0]].userInteractionEnabled = NO;
+        if ([[[[self.tableView cellForRowAtIndexPath: [NSIndexPath indexPathForRow:0 inSection:1]] textLabel] text] isEqualToString:@"Username:"]) {
+            [self.tableView cellForRowAtIndexPath: [NSIndexPath indexPathForRow:0 inSection:1]].userInteractionEnabled = NO;
         }
-        if ([[[[self.tableView cellForRowAtIndexPath: [NSIndexPath indexPathForRow:1 inSection:0]] textLabel] text] isEqualToString:@"Password:"]) {
-            [self.tableView cellForRowAtIndexPath: [NSIndexPath indexPathForRow:1 inSection:0]].userInteractionEnabled = NO;
+        if ([[[[self.tableView cellForRowAtIndexPath: [NSIndexPath indexPathForRow:1 inSection:1]] textLabel] text] isEqualToString:@"Password:"]) {
+            [self.tableView cellForRowAtIndexPath: [NSIndexPath indexPathForRow:1 inSection:1]].userInteractionEnabled = NO;
         }
     }
 }
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
     if ([[NSUserDefaults standardUserDefaults] boolForKey:@"registrationSuccess"]) {
-        if ([[[[self.tableView cellForRowAtIndexPath: [NSIndexPath indexPathForRow:0 inSection:0]] textLabel] text] isEqualToString:@"Username:"]) {
-            [self.tableView cellForRowAtIndexPath: [NSIndexPath indexPathForRow:0 inSection:0]].userInteractionEnabled = NO;
+        if ([[[[self.tableView cellForRowAtIndexPath: [NSIndexPath indexPathForRow:0 inSection:1]] textLabel] text] isEqualToString:@"Username:"]) {
+            [self.tableView cellForRowAtIndexPath: [NSIndexPath indexPathForRow:0 inSection:1]].userInteractionEnabled = NO;
         }
-        if ([[[[self.tableView cellForRowAtIndexPath: [NSIndexPath indexPathForRow:1 inSection:0]] textLabel] text] isEqualToString:@"Password:"]) {
-            [self.tableView cellForRowAtIndexPath: [NSIndexPath indexPathForRow:1 inSection:0]].userInteractionEnabled = NO;
+        if ([[[[self.tableView cellForRowAtIndexPath: [NSIndexPath indexPathForRow:1 inSection:1]] textLabel] text] isEqualToString:@"Password:"]) {
+            [self.tableView cellForRowAtIndexPath: [NSIndexPath indexPathForRow:1 inSection:1]].userInteractionEnabled = NO;
         }
     }
 }

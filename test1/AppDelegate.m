@@ -24,7 +24,7 @@
 {
     // Override point for customization after application launch.
     
-    NSLog(@"kitty");
+//    NSLog(@"kitty");
 //    [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryAmbient error:nil];
     [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryAmbient withOptions:AVAudioSessionCategoryOptionMixWithOthers error:nil];
     

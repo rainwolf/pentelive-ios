@@ -180,12 +180,13 @@
             }
         }
     } else {
-        if ([[[NSUserDefaults standardUserDefaults] objectForKey:@"username"] isEqualToString:[[[[hill steps] objectAtIndex: indexPath.section - 1] objectAtIndex:indexPath.row] name]]) {
+        Player *playr = [[[hill steps] objectAtIndex: indexPath.section - 1] objectAtIndex:indexPath.row];
+        if ([[[NSUserDefaults standardUserDefaults] objectForKey:@"username"] isEqualToString:[playr name]]) {
             cell = (PlayerTableViewCell *) [tableView dequeueReusableCellWithIdentifier: @"myKothCell"];
             if (!cell) {
                 cell = [[PlayerTableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:@"myKothCell"];
             }
-            NSString *opponent = [[[[hill steps] objectAtIndex: indexPath.section - 1] objectAtIndex:indexPath.row] name];
+            NSString *opponent = [playr name];
             UIImage *imgV = [player.avatars objectForKey: opponent];
             if (imgV != nil) {
                 cell.imageView.image = imgV;
@@ -197,7 +198,7 @@
             if (!cell) {
                 cell = [[PlayerTableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:@"kothCell"];
             }
-            NSString *opponent = [[[[hill steps] objectAtIndex: indexPath.section - 1] objectAtIndex:indexPath.row] name];
+            NSString *opponent = [playr name];
             UIImage *imgV = [player.avatars objectForKey: opponent];
             cell.imageView.image = imgV;
         }
@@ -209,9 +210,10 @@
         }
         [cell.textLabel setTextAlignment:NSTextAlignmentCenter];
     } else {
+        Player *playr = [[[hill steps] objectAtIndex: indexPath.section - 1] objectAtIndex:indexPath.row];
         [cell setAccessoryType:UITableViewCellAccessoryDisclosureIndicator];
-        NSMutableString *txtStr = [[NSMutableString alloc] initWithString: [[[[hill steps] objectAtIndex: indexPath.section - 1] objectAtIndex:indexPath.row] name]];
-        int crown = [[[[hill steps] objectAtIndex: indexPath.section - 1] objectAtIndex:indexPath.row] crown];
+        NSMutableString *txtStr = [[NSMutableString alloc] initWithString: [playr name]];
+        int crown = [playr crown];
         NSTextAttachment *textAttachment = [[NSTextAttachment alloc] init];
         switch (crown) {
             case 1:
@@ -232,19 +234,19 @@
         }
         NSAttributedString *crownStr = [NSAttributedString attributedStringWithAttachment:textAttachment];
         NSMutableString *ratingStr = [NSMutableString stringWithString:@"\u25A0 "];
-        if ([[[[[hill steps] objectAtIndex: indexPath.section - 1] objectAtIndex:indexPath.row] rating] length] == 3) {
+        if ([[playr rating] length] == 3) {
             [ratingStr appendString:@"  "];
         }
-        [ratingStr appendString: [[[[hill steps] objectAtIndex: indexPath.section - 1] objectAtIndex:indexPath.row] rating]];
+        [ratingStr appendString: [playr rating]];
         NSMutableAttributedString *tmpStr = [[NSMutableAttributedString alloc] initWithString: ratingStr];
-        [self addColorOfRating: [[[[hill steps] objectAtIndex: indexPath.section - 1] objectAtIndex:indexPath.row] rating] toString: tmpStr];
+        [self addColorOfRating: [playr rating] toString: tmpStr];
         ((PlayerTableViewCell *) cell).ratingLabel.attributedText = tmpStr;
         
         tmpStr = [[NSMutableAttributedString alloc] initWithString: txtStr];
-        [tmpStr addAttribute:NSForegroundColorAttributeName value:UIColorFromRGB([[[[hill steps] objectAtIndex: indexPath.section - 1] objectAtIndex:indexPath.row] color]) range:NSMakeRange(0, [[[[[hill steps] objectAtIndex: indexPath.section - 1] objectAtIndex:indexPath.row] name] length])];
+        [tmpStr addAttribute:NSForegroundColorAttributeName value:UIColorFromRGB([playr color]) range:NSMakeRange(0, [[playr name] length])];
         [tmpStr addAttribute:NSFontAttributeName value:[UIFont fontWithName:@"HelveticaNeue" size:16.f] range:NSMakeRange(0, [tmpStr length])];
-        if ([[[[hill steps] objectAtIndex: indexPath.section - 1] objectAtIndex:indexPath.row] color] != 0) {
-            [tmpStr addAttribute:NSFontAttributeName value: [UIFont fontWithName:@"HelveticaNeue-Bold" size:16] range:NSMakeRange(0, [[[[[hill steps] objectAtIndex: indexPath.section - 1] objectAtIndex:indexPath.row] name] length])];
+        if ([playr color] != 0) {
+            [tmpStr addAttribute:NSFontAttributeName value: [UIFont fontWithName:@"HelveticaNeue-Bold" size:16] range:NSMakeRange(0, [[playr name] length])];
         }
         [tmpStr appendAttributedString:[[NSMutableAttributedString alloc] initWithString:@" "]];
         [tmpStr appendAttributedString:crownStr];
@@ -254,9 +256,9 @@
 //        } else {
 //            txtStr = (NSMutableString *) [NSString stringWithFormat:@"%@ (%@, %@) - %@", [[[player invitations] objectAtIndex:indexPath.row] gameType], [[[player invitations] objectAtIndex:indexPath.row] ratedNot], [[[[player invitations] objectAtIndex:indexPath.row] myColor] substringWithRange: NSMakeRange(0,5)], [[[player invitations] objectAtIndex:indexPath.row] remainingTime]];
 //        }
-        cell.detailTextLabel.text = [NSString stringWithFormat: @"Last game played on %@", [[[[hill steps] objectAtIndex: indexPath.section - 1] objectAtIndex:indexPath.row] lastGame]];
+        cell.detailTextLabel.text = [NSString stringWithFormat: @"Last game played on %@", [playr lastGame]];
         [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
-        if ([[[[hill steps] objectAtIndex: indexPath.section - 1] objectAtIndex:indexPath.row] canBeChallenged]) {
+        if ([playr canBeChallenged]) {
             cell.backgroundColor = [UIColor colorWithRed: 222.0/256 green:236.0/256 blue:222.0/256 alpha:1];
             [cell setUserInteractionEnabled: YES];
         } else {
