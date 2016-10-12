@@ -182,6 +182,18 @@
 			<key>IASKTextAlignment</key>
 			<string>IASKUITextAlignmentCenter</string>
 		</dict>
+		<dict>
+			<key>Key</key>
+			<string>penteOrgPrivacyPolicyButton</string>
+			<key>Title</key>
+			<string>Privacy Policy</string>
+			<key>IASKCellImage</key>
+			<string>subscribeIcon</string>
+			<key>Type</key>
+			<string>IASKButtonSpecifier</string>
+			<key>IASKTextAlignment</key>
+			<string>IASKUITextAlignmentCenter</string>
+		</dict>
 	</array>
 	<key>StringsTable</key>
 	<string>Root</string>

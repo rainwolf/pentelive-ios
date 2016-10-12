@@ -338,6 +338,10 @@
         SVWebViewController *webViewController = [[SVWebViewController alloc] initWithAddress: @"https://pente.org/gameServer/myprofile/prefs"];
         [self.navigationController pushViewController:webViewController animated:YES];
     }
+    if ([specifier.key isEqualToString:@"penteOrgPrivacyPolicyButton"]) {
+        SVWebViewController *webViewController = [[SVWebViewController alloc] initWithAddress: @"https://pente.org/help/helpWindow.jsp?file=privacyPolicy"];
+        [self.navigationController pushViewController:webViewController animated:YES];
+    }
     if ([specifier.key isEqualToString:@"changeColorButton"]) {
         if (!self.navC.player.subscriber) {
             return;
@@ -403,6 +407,14 @@
         [priceText setTextColor:[UIColor orangeColor]];
         [priceText sizeToFit];
 
+        UILabel *clearInfoText = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width*9/10, CGFLOAT_MAX)];
+        [clearInfoText setLineBreakMode:NSLineBreakByWordWrapping];
+        [clearInfoText setNumberOfLines:0];
+        NSString *clearInfoString = @"(This subscription auto-renews every year.)";
+        [clearInfoText setText:clearInfoString];
+        [clearInfoText setFont:[UIFont systemFontOfSize: 14]];
+        [clearInfoText sizeToFit];
+
         UIButton *subscribeButton = [UIButton buttonWithType:UIButtonTypeCustom];
         subscribeButton.backgroundColor = [UIColor clearColor];
         subscribeButton.titleLabel.font = [UIFont boldSystemFontOfSize:22];
@@ -413,13 +425,13 @@
 //        [subscribeButton setImage:[UIImage imageNamed:@"subscribeIcon"] forState:UIControlStateNormal];
 //        [subscribeButton setContentHorizontalAlignment:UIControlContentHorizontalAlignmentLeft];
 
-        popoverView = [PopoverView showPopoverAtPoint: CGPointMake(self.view.bounds.size.width/2, [self.tableView contentOffset].y) inView:self.view withTitle: @"Subscribe today and" withViewArray: @[subscribeText, priceText, subscribeButton] delegate:self];
-        [popoverView setDelegate:self];
         self.progressView = [[ICDMaterialActivityIndicatorView alloc]initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height) activityIndicatorStyle:ICDMaterialActivityIndicatorViewStyleLarge];
         [self.progressView setBackgroundColor:[UIColor whiteColor]];
         [self.progressView setAlpha:0.75];
         [self.progressView startAnimating];
         [self.view addSubview:self.progressView];
+        popoverView = [PopoverView showPopoverAtPoint: CGPointMake(self.view.bounds.size.width/2, [self.tableView contentOffset].y) inView:self.view withTitle: @"Subscribe today and" withViewArray: @[subscribeText, priceText, clearInfoText, subscribeButton] delegate:self];
+        [popoverView setDelegate:self];
     }
     
     if ([[specifier type] isEqualToString:kIASKOpenURLSpecifier]) {

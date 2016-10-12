@@ -23,8 +23,8 @@
 - (BOOL)application:(UIApplication *)application willFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
     // Override point for customization after application launch.
-    
 //    NSLog(@"kitty");
+
 //    [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryAmbient error:nil];
     [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryAmbient withOptions:AVAudioSessionCategoryOptionMixWithOthers error:nil];
     
@@ -65,6 +65,7 @@
     }
     
     [FIRApp configure];
+
 
     NSSet *products = [NSSet setWithArray:@[@"1YRNOADSORLIMITS"]];
     [[RMStore defaultStore] requestProducts:products success:^(NSArray *products, NSArray *invalidProductIdentifiers) {
