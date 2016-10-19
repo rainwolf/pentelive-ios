@@ -114,7 +114,24 @@
     hill = [[Hill alloc] init];
     [self loadKoth];
     
-    
+    if ([player showAds]) {
+//        NSLog(@"kitty");
+        CGPoint origin = CGPointMake(0.0, self.view.frame.size.height - self.navigationController.navigationBar.frame.size.height - kGADAdSizeBanner.size.height);
+        bannerView = [[GADBannerView alloc] initWithAdSize:kGADAdSizeBanner origin:origin];
+        bannerView.rootViewController = self;
+        [bannerView setDelegate: self];
+        CGFloat screenHeight = UIScreen.mainScreen.bounds.size.height;
+        CGFloat newOriginY = screenHeight - self.navigationController.navigationBar.frame.size.height - [UIApplication sharedApplication].statusBarFrame.size.height - bannerView.frame.size.height;
+        CGRect newBannerViewFrame = CGRectMake(bannerView.frame.origin.x, newOriginY, bannerView.frame.size.width, bannerView.frame.size.height);
+        bannerView.frame = newBannerViewFrame;
+        bannerView.adUnitID = @"ca-app-pub-3326997956703582/7598759449";
+        GADRequest *request = [GADRequest request];
+        [bannerView loadRequest:request];
+        [self.view addSubview:bannerView];
+        [self.tableView setTableFooterView:bannerView];
+        [self.tableView bringSubviewToFront:bannerView];
+        [self scrollViewDidScroll: self.tableView];
+    }
     
 }
 
@@ -132,18 +149,8 @@
 }
 
 - (void)viewDidAppear:(BOOL)animated {
-    bannerView = ((PenteNavigationViewController *) self.navigationController).bannerView;
-    bannerView.rootViewController = self;
-    [bannerView setDelegate: self];
-    if ([player showAds]) {
-        CGFloat screenHeight = UIScreen.mainScreen.bounds.size.height;
-        CGFloat newOriginY = screenHeight - self.navigationController.navigationBar.frame.size.height - [UIApplication sharedApplication].statusBarFrame.size.height - bannerView.frame.size.height;
-        CGRect newBannerViewFrame = CGRectMake(bannerView.frame.origin.x, newOriginY, bannerView.frame.size.width, bannerView.frame.size.height);
-        bannerView.frame = newBannerViewFrame;
-        [self.tableView setTableFooterView:bannerView];
-        [self.tableView bringSubviewToFront:bannerView];
-        [self scrollViewDidScroll: self.tableView];
-    }
+    [super viewDidAppear:animated];
+    [self scrollViewDidScroll: self.tableView];
 }
 
 -(void) viewWillDisappear:(BOOL)animated {
@@ -456,11 +463,12 @@
         hill.steps = [[NSMutableArray alloc] init];
 
         sectionItems = [[NSMutableArray alloc] init];
-        while ((dashIDX < [splitDash count]) && ([[splitDash objectAtIndex:dashIDX] isEqualToString: @""])) {
-            dashIDX++;
-        }
-        if ((dashIDX < [splitDash count])) {
-            while ((![[splitDash objectAtIndex:dashIDX] isEqualToString: @""]) && (dashIDX < [splitDash count])) {
+//        while ((dashIDX < [splitDash count]) && ([[splitDash objectAtIndex:dashIDX] isEqualToString: @""])) {
+//            dashIDX++;
+//        }
+//        if ((dashIDX < [splitDash count])) {
+//            while ((![[splitDash objectAtIndex:dashIDX] isEqualToString: @""]) && (dashIDX < [splitDash count])) {
+            while (dashIDX < [splitDash count]) {
                 dashLine = [splitDash objectAtIndex:dashIDX];
                 splitLine = [dashLine componentsSeparatedByString:@";"];
                 NSMutableArray<Player *> *step = [[NSMutableArray alloc] init];
@@ -483,13 +491,18 @@
                         [step addObject:kothPlayer];
                     }
                 }
-                if ([step count] > 0) {
-                    [[hill steps] insertObject:step atIndex:0];
-                }
+//                if ([step count] > 0) {
+//                    [[hill steps] insertObject:step atIndex:0];
+//                }
+                [[hill steps] insertObject:step atIndex:0];
                 dashIDX++;
             }
+//        }
+        while ([[hill steps] count]>0 && [[[hill steps] firstObject] count] == 0) {
+            [[hill steps] removeObjectAtIndex:0];
         }
-//        indexSet = [[NSMutableArray alloc] init];
+
+                   //        indexSet = [[NSMutableArray alloc] init];
 //        for(int i = 0; i < [[player hills] count]; ++i)
 //            [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: KOTHSECTION]];
 //        [player setHills:[[NSMutableArray alloc] init]];

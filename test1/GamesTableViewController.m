@@ -130,14 +130,10 @@
     
     alreadyAskedAboutInvitations = NO;
     
-    PenteNavigationViewController *navController = (PenteNavigationViewController *) self.navigationController;
-    bannerView = navController.bannerView;
+//    PenteNavigationViewController *navController = (PenteNavigationViewController *) self.navigationController;
+//    bannerView = navController.bannerView;
 
     self.interstitial = nil;
-    self.interstitial = [[GADInterstitial alloc] initWithAdUnitID:@"ca-app-pub-3326997956703582/8641559446"];
-    [self.interstitial setDelegate:self];
-//    [self.interstitial setAdUnitID:@"567b72e8189a488c"];
-    [self.interstitial loadRequest:[GADRequest request]];
     
     showAds = YES;
     gamesLimit = 200;
@@ -179,19 +175,19 @@
         self.tableView.layer.borderWidth = 1.5;
         [self login];
     }
-    bannerView = navController.bannerView;
+//    bannerView = navController.bannerView;
     [navController setChallengeCancelled:NO];
-    bannerView.rootViewController = self;
-    [bannerView setDelegate: self];
-    if (showAds) {
-        CGFloat screenHeight = UIScreen.mainScreen.bounds.size.height;
-        CGFloat newOriginY = screenHeight - navController.navigationBar.frame.size.height - [UIApplication sharedApplication].statusBarFrame.size.height - bannerView.frame.size.height;
-        CGRect newBannerViewFrame = CGRectMake(bannerView.frame.origin.x, newOriginY, bannerView.frame.size.width, bannerView.frame.size.height);
-        bannerView.frame = newBannerViewFrame;
-        [self.tableView setTableFooterView:bannerView];
-        [self.tableView bringSubviewToFront:bannerView];
-        [self scrollViewDidScroll: self.tableView];
-    }
+//    bannerView.rootViewController = self;
+//    [bannerView setDelegate: self];
+//    if (showAds) {
+//        CGFloat screenHeight = UIScreen.mainScreen.bounds.size.height;
+//        CGFloat newOriginY = screenHeight - navController.navigationBar.frame.size.height - [UIApplication sharedApplication].statusBarFrame.size.height - bannerView.frame.size.height;
+//        CGRect newBannerViewFrame = CGRectMake(bannerView.frame.origin.x, newOriginY, bannerView.frame.size.width, bannerView.frame.size.height);
+//        bannerView.frame = newBannerViewFrame;
+//        [self.tableView setTableFooterView:bannerView];
+//        [self.tableView bringSubviewToFront:bannerView];
+//        [self scrollViewDidScroll: self.tableView];
+//    }
 
     
 //    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
@@ -255,8 +251,8 @@
 }
 
 - (void)viewWillDisappear:(BOOL)animated {
-    [bannerView removeFromSuperview];
-    [self.tableView setTableFooterView:nil];
+//    [bannerView removeFromSuperview];
+//    [self.tableView setTableFooterView:nil];
 }
 
 
@@ -285,7 +281,12 @@
         responseData = [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
         NSString *dashboardString = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
         
-        if ([dashboardString isEqualToString:@""] || ([dashboardString rangeOfString:@"HTTP Error"].length != 0)) {
+        if (error) {
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:[NSString stringWithFormat: @"Trouble connecting to pente.org, please try again in a bit.\nReason: %@",  error.localizedDescription] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+            [alert show];
+            [self performSegueWithIdentifier:@"settingsTap" sender:self];
+            return;
+        } else if ([dashboardString isEqualToString:@""] || ([dashboardString rangeOfString:@"HTTP Error"].length != 0)) {
             UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:@"pente.org appears to be down, please try again later." delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
             [alert show];
             [self performSegueWithIdentifier:@"settingsTap" sender:self];
@@ -2268,6 +2269,30 @@
     }
 
     showAds = ([dashboardString rangeOfString:@"No Ads"].location == NSNotFound) || ([dashboardString rangeOfString:@"No Ads"].location > 30);
+        if (showAds && bannerView == nil) {
+            CGPoint origin = CGPointMake(0.0, self.view.frame.size.height - self.navigationController.navigationBar.frame.size.height - kGADAdSizeBanner.size.height);
+            bannerView = [[GADBannerView alloc] initWithAdSize:kGADAdSizeBanner origin:origin];
+            bannerView.rootViewController = self;
+            [bannerView setDelegate: self];
+            CGFloat screenHeight = UIScreen.mainScreen.bounds.size.height;
+            CGFloat newOriginY = screenHeight - self.navigationController.navigationBar.frame.size.height - [UIApplication sharedApplication].statusBarFrame.size.height - bannerView.frame.size.height;
+            CGRect newBannerViewFrame = CGRectMake(bannerView.frame.origin.x, newOriginY, bannerView.frame.size.width, bannerView.frame.size.height);
+            bannerView.frame = newBannerViewFrame;
+            [self.tableView setTableFooterView:bannerView];
+            [self.tableView bringSubviewToFront:bannerView];
+            [self scrollViewDidScroll: self.tableView];
+            //    bannerView.adUnitID = @"567b72e8189a488c";
+            bannerView.adUnitID = @"ca-app-pub-3326997956703582/8641559446";
+            GADRequest *request = [GADRequest request];
+//            request.testDevices = [NSArray arrayWithObjects:@"simulator", nil];
+//            request.testDevices = [NSArray arrayWithObjects:kGADSimulatorID, nil];
+            [bannerView loadRequest:request];
+
+            self.interstitial = [[GADInterstitial alloc] initWithAdUnitID:@"ca-app-pub-3326997956703582/8641559446"];
+            [self.interstitial setDelegate:self];
+            //    [self.interstitial setAdUnitID:@"567b72e8189a488c"];
+            [self.interstitial loadRequest:[GADRequest request]];
+        }
     [player setShowAds: showAds];
     [player setSubscriber: ([dashboardString rangeOfString:@"tb GamesLimit"].location == NSNotFound) || ([dashboardString rangeOfString:@"tb GamesLimit"].location > 30)];
         if ([player subscriber]) {
@@ -2934,22 +2959,55 @@
     CGRect frame = CGRectMake(0, 0, 45, 45);
     UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
     button.backgroundColor = [UIColor clearColor];
+    [button setTitle:@" Server AI" forState:UIControlStateNormal];
+    [button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
     [button setImage:[UIImage imageNamed:@"server.png"] forState:UIControlStateNormal];
     [button addTarget:self action:@selector(toAIInvitations) forControlEvents:UIControlEventTouchUpInside];
-    [button setFrame: frame];
+//    [button setFrame: frame];
+    [button sizeToFit];
+    frame = button.frame;
     [buttonsArray addObject: button];
     button = [UIButton buttonWithType:UIButtonTypeCustom];
+    [button setTitle:@" Onboard AI" forState:UIControlStateNormal];
+    [button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
     button.backgroundColor = [UIColor clearColor];
     [button setImage:[UIImage imageNamed:@"computer.png"] forState:UIControlStateNormal];
     [button addTarget:self action:@selector(toMMAI) forControlEvents:UIControlEventTouchUpInside];
-    [button setFrame: frame];
+    [button sizeToFit];
+    if (button.frame.size.width > frame.size.width) {
+        frame = button.frame;
+    }
     [buttonsArray addObject: button];
     button = [UIButton buttonWithType:UIButtonTypeCustom];
+    [button setTitle:@" Humans" forState:UIControlStateNormal];
+    [button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
     button.backgroundColor = [UIColor clearColor];
     [button setImage:[UIImage imageNamed:@"person.png"] forState:UIControlStateNormal];
     [button addTarget:self action:@selector(toRegularInvitations) forControlEvents:UIControlEventTouchUpInside];
-    [button setFrame: frame];
+    [button sizeToFit];
+    if (button.frame.size.width > frame.size.width) {
+        frame = button.frame;
+    }
     [buttonsArray addObject: button];
+    button = [UIButton buttonWithType:UIButtonTypeCustom];
+    [button setTitle:@" Database" forState:UIControlStateNormal];
+    [button setImage:[UIImage imageNamed:@"database.png"] forState:UIControlStateNormal];
+    [button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+    button.backgroundColor = [UIColor clearColor];
+    if (player && ![player subscriber]) {
+        [button setAlpha:0.5f];
+    }
+//    [button setImage:[UIImage imageNamed:@"person.png"] forState:UIControlStateNormal];
+    [button addTarget:self action:@selector(toDatabase) forControlEvents:UIControlEventTouchUpInside];
+    [button sizeToFit];
+    if (button.frame.size.width > frame.size.width) {
+        frame = button.frame;
+    }
+    [buttonsArray addObject: button];
+    for (UIButton *bttn in buttonsArray) {
+        bttn.contentHorizontalAlignment = UIControlContentHorizontalAlignmentLeft;
+        bttn.frame = frame;
+    }
     
     actionPopoverView = [PopoverView showPopoverAtPoint: CGPointMake(self.view.bounds.size.width - 80, self.tableView.contentOffset.y) inView:self.view withViewArray: buttonsArray delegate:self];
     
@@ -2967,6 +3025,23 @@
 -(void) toAIInvitations {
     [actionPopoverView dismiss];
     [self performSegueWithIdentifier:@"inviteAItap" sender:self];
+}
+-(void) toDatabase {
+    [actionPopoverView dismiss];
+    if (player && ![player subscriber]) {
+        UIAlertController *subscribersOnlyController = [UIAlertController
+                                             alertControllerWithTitle:NSLocalizedString(@"Level up your game", nil)
+                                             message: NSLocalizedString(@"The database allows you to search games in the pente.org database by position. This powerful tool enables you to study and analyze games, practice opening moves, sort the results by most played or highest win percentage.\nMore features like asking the AI what to do next, or more parameters for a search will be added in the future.\n\nThe database is open to subscribers only.", nil)
+                                             preferredStyle:UIAlertControllerStyleAlert];
+        UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"OK", nil) style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {
+//            NSLog(@"Cancel action");
+        }];
+        [subscribersOnlyController addAction:cancelAction];
+  
+        [self presentViewController:subscribersOnlyController animated:NO completion:nil];
+        return;
+    }
+    [self performSegueWithIdentifier:@"databaseSegue" sender:self];
 }
 
 

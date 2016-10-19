@@ -124,6 +124,11 @@
 		63E5B3CE16D3C2D900010B4F /* HTAutocompleteTextField.m in Sources */ = {isa = PBXBuildFile; fileRef = 63E5B3CC16D3C2D900010B4F /* HTAutocompleteTextField.m */; };
 		63EACA5D1712EA1200E3902B /* acceptButton.png in Resources */ = {isa = PBXBuildFile; fileRef = 63EACA5B1712EA1200E3902B /* acceptButton.png */; };
 		63EACA5E1712EA1200E3902B /* acceptButton@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 63EACA5C1712EA1200E3902B /* acceptButton@2x.png */; };
+		63EFAEAB1DB570A50029DA41 /* DatabaseViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 63EFAEAA1DB570A50029DA41 /* DatabaseViewController.m */; };
+		63EFAEAE1DB576F60029DA41 /* DBBoardView.m in Sources */ = {isa = PBXBuildFile; fileRef = 63EFAEAD1DB576F60029DA41 /* DBBoardView.m */; };
+		63EFAEB11DB579DB0029DA41 /* DBSetupView.m in Sources */ = {isa = PBXBuildFile; fileRef = 63EFAEB01DB579DB0029DA41 /* DBSetupView.m */; };
+		63EFAEB41DB647C60029DA41 /* database.png in Resources */ = {isa = PBXBuildFile; fileRef = 63EFAEB21DB647C60029DA41 /* database.png */; };
+		63EFAEB51DB647C60029DA41 /* database@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 63EFAEB31DB647C60029DA41 /* database@2x.png */; };
 		63FA911A16A0C6A700ED66D1 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 63FA911916A0C6A700ED66D1 /* AudioToolbox.framework */; };
 		63FA911E16A0C6FE00ED66D1 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 63FA911D16A0C6FE00ED66D1 /* SystemConfiguration.framework */; };
 		63FA912516A0C77100ED66D1 /* AdSupport.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 63FA912216A0C75800ED66D1 /* AdSupport.framework */; };
@@ -320,6 +325,14 @@
 		63E5B3CC16D3C2D900010B4F /* HTAutocompleteTextField.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HTAutocompleteTextField.m; sourceTree = "<group>"; };
 		63EACA5B1712EA1200E3902B /* acceptButton.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = acceptButton.png; sourceTree = "<group>"; };
 		63EACA5C1712EA1200E3902B /* acceptButton@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "acceptButton@2x.png"; sourceTree = "<group>"; };
+		63EFAEA91DB570A50029DA41 /* DatabaseViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DatabaseViewController.h; sourceTree = "<group>"; };
+		63EFAEAA1DB570A50029DA41 /* DatabaseViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DatabaseViewController.m; sourceTree = "<group>"; };
+		63EFAEAC1DB576F60029DA41 /* DBBoardView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DBBoardView.h; sourceTree = "<group>"; };
+		63EFAEAD1DB576F60029DA41 /* DBBoardView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DBBoardView.m; sourceTree = "<group>"; };
+		63EFAEAF1DB579DB0029DA41 /* DBSetupView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DBSetupView.h; sourceTree = "<group>"; };
+		63EFAEB01DB579DB0029DA41 /* DBSetupView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DBSetupView.m; sourceTree = "<group>"; };
+		63EFAEB21DB647C60029DA41 /* database.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = database.png; sourceTree = "<group>"; };
+		63EFAEB31DB647C60029DA41 /* database@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "database@2x.png"; sourceTree = "<group>"; };
 		63FA911716A0C65800ED66D1 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
 		63FA911916A0C6A700ED66D1 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		63FA911D16A0C6FE00ED66D1 /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
@@ -455,6 +468,12 @@
 		633C9D2215BD5B98009AD00A /* penteLive */ = {
 			isa = PBXGroup;
 			children = (
+				63EFAEAC1DB576F60029DA41 /* DBBoardView.h */,
+				63EFAEAD1DB576F60029DA41 /* DBBoardView.m */,
+				63EFAEA91DB570A50029DA41 /* DatabaseViewController.h */,
+				63EFAEAA1DB570A50029DA41 /* DatabaseViewController.m */,
+				63EFAEAF1DB579DB0029DA41 /* DBSetupView.h */,
+				63EFAEB01DB579DB0029DA41 /* DBSetupView.m */,
 				63D299F11D991196005AED78 /* penteLive.entitlements */,
 				6322A5A41D2BB18D0023304F /* KOTHChallengeView.h */,
 				6322A5A21D2BB1830023304F /* KOTHChallengeView.m */,
@@ -606,6 +625,8 @@
 		63FEFC86168CAAC50070E9AA /* images */ = {
 			isa = PBXGroup;
 			children = (
+				63EFAEB21DB647C60029DA41 /* database.png */,
+				63EFAEB31DB647C60029DA41 /* database@2x.png */,
 				63D299F21D992BB9005AED78 /* subscribeIcon.png */,
 				63D299F31D992BB9005AED78 /* subscribeIcon@2x.png */,
 				6396A3761D367105004BC68D /* moreSettings.png */,
@@ -819,6 +840,7 @@
 				63B3AC751CF64E8000362111 /* settings@2x.png in Resources */,
 				63A6C23116C5C4CB00718708 /* UINavigationBarBlackOpaqueButton.png in Resources */,
 				63B53BFD1B9B2625003970ED /* IASKLocalizable.strings in Resources */,
+				63EFAEB41DB647C60029DA41 /* database.png in Resources */,
 				6392B08319C354CB00916D41 /* Icon-76@2x.png in Resources */,
 				6396A3791D367105004BC68D /* moreSettings@2x.png in Resources */,
 				63E5B3CD16D3C2D900010B4F /* .gitignore in Resources */,
@@ -849,6 +871,7 @@
 				633648071CEDB48700F432E2 /* friends.png in Resources */,
 				63AEDF021875C756006892F7 /* messageBubble0.png in Resources */,
 				639A9CF81D0168910065B2FA /* computer@2x.png in Resources */,
+				63EFAEB51DB647C60029DA41 /* database@2x.png in Resources */,
 				633648081CEDB48700F432E2 /* friends@2x.png in Resources */,
 				6322ECFB1744C93D00793511 /* preferencesBG.png in Resources */,
 			);
@@ -932,7 +955,9 @@
 				6396A37C1D38DE81004BC68D /* ChangeColorViewController.m in Sources */,
 				63FEFD651691CA9E0070E9AA /* InvitationsViewController.m in Sources */,
 				63B53BFB1B9B2625003970ED /* IASKSettingsStoreUserDefaults.m in Sources */,
+				63EFAEAB1DB570A50029DA41 /* DatabaseViewController.m in Sources */,
 				63FEFD7216931A970070E9AA /* StringInputTableViewCell.m in Sources */,
+				63EFAEAE1DB576F60029DA41 /* DBBoardView.m in Sources */,
 				63FEFD751693200C0070E9AA /* SimplePickerInputTableViewCell.m in Sources */,
 				63FEFD78169320AB0070E9AA /* PickerInputTableViewCell.m in Sources */,
 				63B53BF71B9B2625003970ED /* IASKSpecifierValuesViewController.m in Sources */,
@@ -945,6 +970,7 @@
 				6322A5A31D2BB1830023304F /* KOTHChallengeView.m in Sources */,
 				639F1A2B1D0975D6008BD3DE /* AISetupView.m in Sources */,
 				63B53BFF1B9B2625003970ED /* IASKPSTextFieldSpecifierViewCell.m in Sources */,
+				63EFAEB11DB579DB0029DA41 /* DBSetupView.m in Sources */,
 				63B53BF41B9B2625003970ED /* IASKAppSettingsViewController.m in Sources */,
 				63B53C001B9B2625003970ED /* IASKSlider.m in Sources */,
 			);

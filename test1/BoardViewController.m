@@ -193,6 +193,29 @@ struct Capture {
         playerStats.frame = CGRectMake(2, submitButton.frame.origin.y +  3 + submitButton.frame.size.height, self.view.bounds.size.width - 4, newOriginY - submitButton.frame.origin.y - 5 -  submitButton.frame.size.height);
 //        playerStats = [[UIWebView alloc] initWithFrame:CGRectMake(2, submitButton.frame.origin.y + 3, self.view.bounds.size.width - 4, 135)];
     }
+    [self.view addSubview: playerStats];
+
+    if (showAds) {
+        CGPoint origin = CGPointMake(0.0, self.view.frame.size.height - self.navigationController.navigationBar.frame.size.height - kGADAdSizeBanner.size.height);
+        bannerView = [[GADBannerView alloc] initWithAdSize:kGADAdSizeBanner origin:origin];
+        bannerView.rootViewController = self;
+        [bannerView setDelegate: self];
+        //    CGFloat screenHeight = UIScreen.mainScreen.bounds.size.height;
+        newOriginY = screenHeight - self.navigationController.navigationBar.frame.size.height - [UIApplication sharedApplication].statusBarFrame.size.height - bannerView.frame.size.height;
+//        newOriginY = playerStats.frame.origin.y + playerStats.frame.size.height;
+        CGRect newBannerViewFrame = CGRectMake(bannerView.frame.origin.x, newOriginY, bannerView.frame.size.width, bannerView.frame.size.height);
+        bannerView.frame = newBannerViewFrame;
+        bannerView.frame = newBannerViewFrame;
+        bannerView.adUnitID = @"ca-app-pub-3326997956703582/5064095440";
+        bannerView.rootViewController = self;
+        GADRequest *request = [GADRequest request];
+        //            request.testDevices = [NSArray arrayWithObjects:kGADSimulatorID, nil];
+        [bannerView loadRequest:request];
+        [self.view addSubview:bannerView];
+//        [self.view bringSubviewToFront:bannerView];
+//        NSLog(@"kittty");
+    }
+    
 
 }
 
@@ -237,22 +260,11 @@ struct Capture {
 
 
 - (void)viewDidAppear:(BOOL)animated {
-    [self.view addSubview: playerStats];
-    PenteNavigationViewController *navControllor = (PenteNavigationViewController *) self.navigationController;
-    bannerView = navControllor.bannerView;
-    bannerView.rootViewController = self;
-    [bannerView setDelegate:self];
-    if (showAds) {
-        CGFloat screenHeight = UIScreen.mainScreen.bounds.size.height;
-        CGFloat newOriginY = screenHeight - navControllor.navigationBar.frame.size.height - [UIApplication sharedApplication].statusBarFrame.size.height - bannerView.frame.size.height;
-        CGRect newBannerViewFrame = CGRectMake(bannerView.frame.origin.x, newOriginY, bannerView.frame.size.width, bannerView.frame.size.height);
-        bannerView.frame = newBannerViewFrame;
-        [self.view addSubview:bannerView];
-    }
+    [super viewDidAppear:animated];
 }
 
 - (void)viewWillDisappear:(BOOL)animated {
-    [bannerView removeFromSuperview];
+//    [bannerView removeFromSuperview];
     PenteNavigationViewController *navController = (PenteNavigationViewController *) self.navigationController;
     [navController setChallengeCancelled:YES];
     

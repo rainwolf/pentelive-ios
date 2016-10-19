@@ -18,7 +18,7 @@
 @synthesize messageDeleted;
 @synthesize needHelp;
 @synthesize deletedMessageRow;
-@synthesize bannerView;
+//@synthesize bannerView;
 @synthesize activeGameToRemove;
 @synthesize challengeCancelled;
 @synthesize unchallengedMessageID;
@@ -54,18 +54,18 @@
     needHelp = NO;
 //    NSLog(@"kitty2");
 
-    AppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
+    AppDelegate *appDelegate = (AppDelegate *) [[UIApplication sharedApplication] delegate];
     receivedNotification = appDelegate.notification;
     
     [[UIApplication sharedApplication] setStatusBarHidden: NO withAnimation: YES];
-    CGPoint origin = CGPointMake(0.0, self.view.frame.size.height - self.navigationController.navigationBar.frame.size.height - kGADAdSizeBanner.size.height);
-    bannerView = [[GADBannerView alloc] initWithAdSize:kGADAdSizeBanner origin:origin];
-//    bannerView.adUnitID = @"567b72e8189a488c";
-    bannerView.adUnitID = @"ca-app-pub-3326997956703582/8641559446";
-    bannerView.rootViewController = self;
-    GADRequest *request = [GADRequest request];
-    request.testDevices = [NSArray arrayWithObjects:kGADSimulatorID, nil];
-    [bannerView loadRequest:request];
+//    CGPoint origin = CGPointMake(0.0, self.view.frame.size.height - self.navigationController.navigationBar.frame.size.height - kGADAdSizeBanner.size.height);
+//    bannerView = [[GADBannerView alloc] initWithAdSize:kGADAdSizeBanner origin:origin];
+////    bannerView.adUnitID = @"567b72e8189a488c";
+//    bannerView.adUnitID = @"ca-app-pub-3326997956703582/8641559446";
+//    bannerView.rootViewController = self;
+//    GADRequest *request = [GADRequest request];
+//    request.testDevices = [NSArray arrayWithObjects:kGADSimulatorID, nil];
+//    [bannerView loadRequest:request];
     
     self.navigationBar.tintColor = [UIColor grayColor];
 }

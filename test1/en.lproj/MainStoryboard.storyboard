@@ -19,18 +19,18 @@
                                 <rect key="frame" x="0.0" y="22" width="375" height="44"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="bm0-Dv-e5j" id="Ygp-CK-SSS">
-                                    <frame key="frameInset" width="307" height="43.5"/>
+                                    <frame key="frameInset" width="308" height="43.5"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                     <subviews>
                                         <label opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="top" text="Title" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="MPe-SH-fQZ">
-                                            <frame key="frameInset" minX="16" minY="3" width="38.5" height="21.5"/>
+                                            <frame key="frameInset" minX="15" minY="3" width="38.5" height="21.5"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <fontDescription key="fontDescription" type="boldSystem" pointSize="18"/>
                                             <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                             <color key="highlightedColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                         </label>
                                         <label opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="left" text="Subtitle" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="WwM-Oi-r0E">
-                                            <frame key="frameInset" minX="16" minY="24.5" width="50" height="17"/>
+                                            <frame key="frameInset" minX="15" minY="24.5" width="50" height="17"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                             <color key="textColor" red="0.50196078431372548" green="0.50196078431372548" blue="0.50196078431372548" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
@@ -60,6 +60,7 @@
                         <segue destination="WR4-Sy-JyX" kind="push" identifier="messagesTap" id="ofa-gV-th9"/>
                         <segue destination="REu-q7-2N3" kind="push" identifier="inviteAItap" id="PVb-2X-cpn"/>
                         <segue destination="UVe-HJ-FfO" kind="push" identifier="MMAItap" id="uao-aE-ZyL"/>
+                        <segue destination="8vP-pm-xUP" kind="push" identifier="databaseSegue" id="scy-qX-sDX"/>
                     </connections>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Vwf-GD-IgS" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -143,7 +144,7 @@
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="left" text="Time per move (days): " lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="pYI-qP-QJk">
-                                                    <frame key="frameInset" minX="15" minY="12" width="185" height="20.5"/>
+                                                    <frame key="frameInset" minX="16" minY="12" width="185" height="20.5"/>
                                                     <autoresizingMask key="autoresizingMask"/>
                                                     <fontDescription key="fontDescription" type="boldSystem" pointSize="17"/>
                                                     <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
@@ -191,7 +192,7 @@
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" multipleTouchEnabled="YES" contentMode="left" text="To players" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="lJk-7g-etN">
-                                                    <frame key="frameInset" minX="15" minY="12" width="84" height="20.5"/>
+                                                    <frame key="frameInset" minX="16" minY="12" width="84" height="20.5"/>
                                                     <autoresizingMask key="autoresizingMask"/>
                                                     <fontDescription key="fontDescription" type="boldSystem" pointSize="17"/>
                                                     <nil key="highlightedColor"/>
@@ -214,7 +215,7 @@
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" alpha="0.50000000000000011" contentMode="left" text="Play as:" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="RTR-zq-8Cr">
-                                                    <frame key="frameInset" minX="15" minY="12" width="63.5" height="20.5"/>
+                                                    <frame key="frameInset" minX="16" minY="12" width="63.5" height="20.5"/>
                                                     <autoresizingMask key="autoresizingMask"/>
                                                     <fontDescription key="fontDescription" type="boldSystem" pointSize="17"/>
                                                     <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
@@ -501,7 +502,7 @@
                 </swipeGestureRecognizer>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="4" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-366" y="-245"/>
+            <point key="canvasLocation" x="-313" y="-437"/>
         </scene>
         <!--Messages View Controller-->
         <scene sceneID="agF-jl-MMC">
@@ -543,7 +544,7 @@
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="left" text="Game: " lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="e9v-Ua-4wJ">
-                                                    <frame key="frameInset" minX="15" minY="12" width="57" height="20.5"/>
+                                                    <frame key="frameInset" minX="16" minY="12" width="57" height="20.5"/>
                                                     <autoresizingMask key="autoresizingMask"/>
                                                     <fontDescription key="fontDescription" type="boldSystem" pointSize="17"/>
                                                     <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
@@ -567,7 +568,7 @@
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label autoresizesSubviews="NO" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="left" text="Difficulty:" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="zH3-ZP-rGv">
-                                                    <frame key="frameInset" minX="15" minY="12" width="81" height="20.5"/>
+                                                    <frame key="frameInset" minX="16" minY="12" width="81" height="20.5"/>
                                                     <autoresizingMask key="autoresizingMask"/>
                                                     <fontDescription key="fontDescription" type="boldSystem" pointSize="17"/>
                                                     <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
@@ -615,7 +616,7 @@
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" alpha="0.5" contentMode="left" text="Play as:" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="d8w-wV-3oI">
-                                                    <frame key="frameInset" minX="15" minY="12" width="63.5" height="20.5"/>
+                                                    <frame key="frameInset" minX="16" minY="12" width="63.5" height="20.5"/>
                                                     <autoresizingMask key="autoresizingMask"/>
                                                     <fontDescription key="fontDescription" type="boldSystem" pointSize="17"/>
                                                     <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
@@ -794,6 +795,119 @@
             </objects>
             <point key="canvasLocation" x="610" y="-240"/>
         </scene>
+        <!--Database View Controller-->
+        <scene sceneID="ltB-Z5-LUz">
+            <objects>
+                <viewController id="8vP-pm-xUP" userLabel="Database View Controller" customClass="DatabaseViewController" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="jwa-Dh-ZGf">
+                        <rect key="frame" x="0.0" y="64" width="375" height="603"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <view clipsSubviews="YES" contentMode="scaleAspectFit" id="Gow-ho-6t6" customClass="DBBoardView">
+                                <frame key="frameInset" minX="0.0%" width="100.00%" height="320"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMinX="YES" widthSizable="YES" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <subviews>
+                                    <view userInteractionEnabled="NO" contentMode="center" id="zca-9p-CQr" customClass="DBBoardView">
+                                        <frame key="frameInset" minX="224" minY="-34" height="640" maxX="-544"/>
+                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
+                                        <subviews>
+                                            <view hidden="YES" contentMode="scaleToFill" id="IRw-Q2-CQR" customClass="VerticalLine">
+                                                <frame key="frameInset" minX="-12.26%" minY="0.0%" width="10" height="100.00%"/>
+                                                <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxX="YES" flexibleMinY="YES" heightSizable="YES" flexibleMaxY="YES"/>
+                                                <color key="backgroundColor" red="0.0" green="0.0" blue="0.0" alpha="0.0" colorSpace="custom" customColorSpace="sRGB"/>
+                                            </view>
+                                            <view hidden="YES" contentMode="scaleToFill" id="WOE-SL-SXr" customClass="HorizontalLine">
+                                                <frame key="frameInset" minX="-12.09%" minY="0.0%" width="92.09%" height="10"/>
+                                                <autoresizingMask key="autoresizingMask" flexibleMinX="YES" widthSizable="YES" flexibleMaxX="YES" flexibleMinY="YES" flexibleMaxY="YES"/>
+                                                <color key="backgroundColor" red="0.0" green="0.0" blue="0.0" alpha="0.0" colorSpace="custom" customColorSpace="sRGB"/>
+                                            </view>
+                                            <view contentMode="scaleToFill" id="Bsa-7V-gav" customClass="StoneView">
+                                                <frame key="frameInset" minX="-173" minY="41" height="49" maxX="764"/>
+                                                <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
+                                                <color key="backgroundColor" red="0.0" green="0.0" blue="0.0" alpha="0.0" colorSpace="custom" customColorSpace="sRGB"/>
+                                            </view>
+                                        </subviews>
+                                        <color key="backgroundColor" red="0.95777387719999996" green="1" blue="0.67507892759999999" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                    </view>
+                                    <view contentMode="scaleToFill" id="EdE-FN-cWg" customClass="StoneView">
+                                        <frame key="frameInset" minX="152" minY="116" height="16" maxX="152"/>
+                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
+                                        <color key="backgroundColor" red="0.0" green="0.0" blue="0.0" alpha="0.0" colorSpace="custom" customColorSpace="sRGB"/>
+                                    </view>
+                                    <activityIndicatorView hidden="YES" opaque="NO" contentMode="center" hidesWhenStopped="YES" style="whiteLarge" id="wZ9-yG-CUE">
+                                        <frame key="frameInset" minX="142" minY="141" width="37" height="37"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                        <color key="backgroundColor" red="0.0" green="0.0" blue="0.0" alpha="0.0" colorSpace="custom" customColorSpace="sRGB"/>
+                                        <color key="color" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                    </activityIndicatorView>
+                                </subviews>
+                                <color key="backgroundColor" red="0.95777387719999996" green="1" blue="0.67507892759999999" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <gestureRecognizers/>
+                                <connections>
+                                    <outletCollection property="gestureRecognizers" destination="D5Q-ag-odk" appends="YES" id="FQP-lA-d1K"/>
+                                    <outletCollection property="gestureRecognizers" destination="y8Z-1s-234" appends="YES" id="mxu-pq-amI"/>
+                                </connections>
+                            </view>
+                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="x 0" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="EiI-hg-Xob">
+                                <frame key="frameInset" minX="24" minY="322" width="35" height="21"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" type="boldSystem" pointSize="17"/>
+                                <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="x 0" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="DDV-5q-1dL">
+                                <frame key="frameInset" minX="24" minY="344" width="35" height="21"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" type="boldSystem" pointSize="17"/>
+                                <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <view contentMode="scaleToFill" id="MiI-fG-gMg" customClass="StoneView">
+                                <frame key="frameInset" minX="8" minY="325" width="16" height="16"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                            </view>
+                            <view contentMode="scaleToFill" id="qwo-o6-LCd" customClass="StoneView">
+                                <frame key="frameInset" minX="8" minY="347" width="16" height="16"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                            </view>
+                        </subviews>
+                        <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                    </view>
+                    <extendedEdge key="edgesForExtendedLayout"/>
+                    <navigationItem key="navigationItem" id="7O5-1e-wCl"/>
+                    <connections>
+                        <outlet property="blackCapturesCountLabel" destination="DDV-5q-1dL" id="Icf-UV-hZA"/>
+                        <outlet property="blackStoneCaptures" destination="qwo-o6-LCd" id="8Xd-NM-5GD"/>
+                        <outlet property="board" destination="Gow-ho-6t6" id="o0r-yr-9Nr"/>
+                        <outlet property="boardTapRecognizer" destination="mro-VF-Zxe" id="xaC-a8-xQ8"/>
+                        <outlet property="horizontalLine" destination="WOE-SL-SXr" id="TP0-kd-8o7"/>
+                        <outlet property="spinner" destination="wZ9-yG-CUE" id="XG3-em-Qsy"/>
+                        <outlet property="stone" destination="EdE-FN-cWg" id="sT3-0m-jQl"/>
+                        <outlet property="verticalLine" destination="IRw-Q2-CQR" id="1AB-xf-A63"/>
+                        <outlet property="view" destination="jwa-Dh-ZGf" id="C3m-o8-2Hr"/>
+                        <outlet property="whiteCapturesCountLabel" destination="EiI-hg-Xob" id="K5O-LS-VRR"/>
+                        <outlet property="whiteStoneCaptures" destination="MiI-fG-gMg" id="Zsn-lW-FLf"/>
+                        <outlet property="zoomedBoard" destination="zca-9p-CQr" id="dcx-WK-Egv"/>
+                        <outlet property="zoomedStone" destination="Bsa-7V-gav" id="dX9-DC-aHH"/>
+                        <segue destination="2" kind="push" identifier="viewGameSegue" id="j8K-Ie-GUp"/>
+                    </connections>
+                </viewController>
+                <pongPressGestureRecognizer allowableMovement="3" minimumPressDuration="0.050000000000000003" id="D5Q-ag-odk">
+                    <connections>
+                        <action selector="boardTap:" destination="8vP-pm-xUP" id="UxJ-pZ-8uI"/>
+                    </connections>
+                </pongPressGestureRecognizer>
+                <swipeGestureRecognizer direction="left" id="y8Z-1s-234">
+                    <connections>
+                        <action selector="goBackOneMoveSwipe:" destination="8vP-pm-xUP" id="FPi-IG-KlH"/>
+                    </connections>
+                </swipeGestureRecognizer>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="NJ9-dl-vtX" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="1012" y="-241"/>
+        </scene>
     </scenes>
     <simulatedMetricsContainer key="defaultSimulatedMetrics">
         <simulatedStatusBarMetrics key="statusBar"/>
@@ -801,7 +915,7 @@
         <simulatedScreenMetrics key="destination" type="retina4_7.fullscreen"/>
     </simulatedMetricsContainer>
     <inferredMetricsTieBreakers>
-        <segue reference="hWj-TH-GIE"/>
         <segue reference="jQc-hL-gfw"/>
+        <segue reference="j8K-Ie-GUp"/>
     </inferredMetricsTieBreakers>
 </document>

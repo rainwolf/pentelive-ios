@@ -205,7 +205,10 @@
                 NSString *dashboardString = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
                 //            NSLog(@"kittyyyyyyString -%@-", dashboardString);
     
-                if ([dashboardString isEqualToString:@""]) {
+                if (error) {
+                    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:[NSString stringWithFormat: @"Trouble connecting to pente.org, please try again in a bit.\nReason: %@",  error.localizedDescription] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+                    [alert show];
+                } else if ([dashboardString isEqualToString:@""]) {
                     [self.navC setLoggedIn: NO];
                     UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:@"pente.org appears to be down, please try again later." delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
                     [alert show];

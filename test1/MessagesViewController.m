@@ -94,14 +94,19 @@ InvitationsViewController *invitationVC;
         }
     }];
     if (showAds) {
-        PenteNavigationViewController *navControllor = (PenteNavigationViewController *) self.navigationController;
-        bannerView = navControllor.bannerView;
+        CGPoint origin = CGPointMake(0.0, self.view.frame.size.height - self.navigationController.navigationBar.frame.size.height - kGADAdSizeBanner.size.height);
+        bannerView = [[GADBannerView alloc] initWithAdSize:kGADAdSizeBanner origin:origin];
         bannerView.rootViewController = self;
-        [bannerView setDelegate:self];
+        [bannerView setDelegate: self];
         CGFloat screenHeight = UIScreen.mainScreen.bounds.size.height;
-        CGFloat newOriginY = screenHeight - navControllor.navigationBar.frame.size.height - [UIApplication sharedApplication].statusBarFrame.size.height - bannerView.frame.size.height;
+        CGFloat newOriginY = screenHeight - self.navigationController.navigationBar.frame.size.height - [UIApplication sharedApplication].statusBarFrame.size.height - bannerView.frame.size.height;
         CGRect newBannerViewFrame = CGRectMake(bannerView.frame.origin.x, newOriginY, bannerView.frame.size.width, bannerView.frame.size.height);
+//        NSLog(@"kitty %f", newOriginY);
         bannerView.frame = newBannerViewFrame;
+        bannerView.adUnitID = @"ca-app-pub-3326997956703582/4645293043";
+        GADRequest *request = [GADRequest request];
+//        request.testDevices = @[ kGADSimulatorID ];
+        [bannerView loadRequest:request];
         [self.view addSubview:bannerView];
     }
     

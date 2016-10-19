@@ -21,8 +21,8 @@
 #define IS_IPHONE_6P (IS_IPHONE && SCREEN_MAX_LENGTH == 736.0)
 
 
-#import "MMAIViewController.h"
-#import "BoardView.h"
+#import "DatabaseViewController.h"
+#import "DBBoardView.h"
 #import <GoogleMobileAds/GoogleMobileAds.h>
 //#import "GADBannerView.h"
 #import <QuartzCore/QuartzCore.h>
@@ -31,14 +31,14 @@
 #import "TSMessage.h"
 #import "TSMessageView.h"
 #import "MMAI.h"
-
+#import "BoardViewController.h"
 
 
 
 
 //GADBannerView *bannerView_;
 
-@implementation MMAIViewController {
+@implementation DatabaseViewController {
     int abstractBoard[19][19];
     int finalMove, whiteCaptures, blackCaptures, lastMove;
     char coordinateLetters[19];
@@ -58,7 +58,7 @@
 @synthesize showedAd;
 @synthesize horizontalLine;
 @synthesize verticalLine;
-@synthesize movesList;
+@synthesize movesList, captures;
 @synthesize messagePopover;
 @synthesize activeGame;
 @synthesize playerStats;
@@ -66,6 +66,13 @@
 @synthesize moveStatsString;
 @synthesize playerStatsBaseString;
 @synthesize setupView;
+
+BoardViewController *boardController;
+
+struct Capture {
+    int color;
+    int position;
+};
 
 
 
@@ -101,9 +108,8 @@
     UIBarButtonItem *setupButton = [[UIBarButtonItem alloc] initWithImage: [UIImage imageNamed:@"settings.png"] style: UIBarButtonItemStylePlain target:self action: @selector(showSetup)];
     [self.navigationItem setRightBarButtonItem:setupButton];
     
-
-    
-    [self setTitle:@"Mark Mammel's AI"];
+    [self setTitle:@"Database & AI"];
+    [self setTitle:@"Database"];
     
     
     [board setFrame:CGRectMake(0, 0, self.view.bounds.size.width, self.view.bounds.size.width)];
@@ -116,9 +122,7 @@
         [zoomedBoard setBackgroundColor:[UIColor colorWithRed:0.984 green:0.851 blue:0.541 alpha:1]];
     }
     [board setLastMove: -1];
-    [board setLastConnect6Move: -1];
     [zoomedBoard setLastMove: -1];
-    [zoomedBoard setLastConnect6Move: -1];
     
     CGRect rect;
 
@@ -126,8 +130,8 @@
     button.backgroundColor = [UIColor clearColor];
     button.titleLabel.font = [UIFont boldSystemFontOfSize:20];
     [button setTitleColor:[UIColor blueColor] forState:UIControlStateNormal];
-    [button setTitle:@"  start game  " forState:UIControlStateNormal];
-    [button addTarget:self action:@selector(startGame:) forControlEvents:UIControlEventTouchUpInside];
+    [button setTitle:@"  search  " forState:UIControlStateNormal];
+    [button addTarget:self action:@selector(searchDB:) forControlEvents:UIControlEventTouchUpInside];
     rect = button.frame;
     rect.size = [button intrinsicContentSize];
     rect.origin.y = board.frame.size.height + 2;
@@ -190,6 +194,9 @@
         [self.view addSubview:bannerView];
     }
 
+    
+    movesList = [[NSMutableArray alloc] init];
+    [self resetState];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -214,7 +221,9 @@
 
 
 - (void)viewDidAppear:(BOOL)animated {
-    [self showSetup];
+    if ([movesList count] < 2) {
+        [self showSetup];
+    }
 }
 
 - (void)viewWillDisappear:(BOOL)animated {
@@ -258,48 +267,54 @@
     //    return UIInterfaceOrientationLandscapeLeft | UIInterfaceOrientationLandscapeRight | UIInterfaceOrientationPortrait;
 }
 
--(void) startGame: (id) sender {
-    aiThinking = NO;
-    [((UIButton *) sender) setTitle:@"restart game" forState:UIControlStateNormal];
-    if (aiPlayer == nil) {
-//        NSLog(@"kitty");
-        aiPlayer = [[MMAI alloc] init];
-    }
-    [aiPlayer reset];
-    [aiPlayer setLevel:[setupView.difficultyCell.detailTextLabel.text intValue]];
-    [aiPlayer setSeat: ([setupView.colorCell.detailTextLabel.text isEqualToString:@"white"]?2:1)];
-//    NSLog(@"kitty %@", setupView.colorCell.detailTextLabel.text);
-    [aiPlayer addMove:180];
-    [aiPlayer setGame: ([setupView.gameCell.detailTextLabel.text isEqualToString:@"Pente"]?1:2)];
-    if (aiPlayer.seat == 1) {
-        [stone setStoneColor: [UIColor blackColor]];
-        [zoomedStone setStoneColor: [UIColor blackColor]];
-        activeGame = YES;
-        [self replayGame:[[aiPlayer moves] count]];
-    } else {
-        [stone setStoneColor: [UIColor whiteColor]];
-        [zoomedStone setStoneColor: [UIColor whiteColor]];
-        [self getNewAImove];
-    }
-    [stone setNeedsDisplay];
-    [zoomedStone setNeedsDisplay];
-    
-    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-    [defaults setInteger:[aiPlayer level] forKey:@"MMAILevel"];
-    [defaults setObject: setupView.colorCell.detailTextLabel.text forKey: @"MMAIColor"];
-    [defaults setObject: setupView.gameCell.detailTextLabel.text forKey: @"MMAIGame"];
-}
+//-(void) startGame: (id) sender {
+//    aiThinking = NO;
+//    [((UIButton *) sender) setTitle:@"restart game" forState:UIControlStateNormal];
+//    if (aiPlayer == nil) {
+////        NSLog(@"kitty");
+//        aiPlayer = [[MMAI alloc] init];
+//    }
+//    [aiPlayer reset];
+////    [aiPlayer setLevel:[setupView.difficultyCell.detailTextLabel.text intValue]];
+////    [aiPlayer setSeat: ([setupView.colorCell.detailTextLabel.text isEqualToString:@"white"]?2:1)];
+////    NSLog(@"kitty %@", setupView.colorCell.detailTextLabel.text);
+//    [aiPlayer addMove:180];
+//    [aiPlayer setGame: ([setupView.gameCell.detailTextLabel.text isEqualToString:@"Pente"]?1:2)];
+//    if (aiPlayer.seat == 1) {
+//        [stone setStoneColor: [UIColor blackColor]];
+//        [zoomedStone setStoneColor: [UIColor blackColor]];
+//        activeGame = YES;
+//        [self replayGame:[[aiPlayer moves] count]];
+//    } else {
+//        [stone setStoneColor: [UIColor whiteColor]];
+//        [zoomedStone setStoneColor: [UIColor whiteColor]];
+//        [self getNewAImove];
+//    }
+//    [stone setNeedsDisplay];
+//    [zoomedStone setNeedsDisplay];
+//    
+//    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+//    [defaults setInteger:[aiPlayer level] forKey:@"MMAILevel"];
+////    [defaults setObject: setupView.colorCell.detailTextLabel.text forKey: @"MMAIColor"];
+//    [defaults setObject: setupView.gameCell.detailTextLabel.text forKey: @"MMAIGame"];
+//}
 
 - (IBAction)goBackOneMoveSwipe:(UISwipeGestureRecognizer *)sender {
-    if ([[aiPlayer moves] count] > 1 && !aiThinking) {
-        [[aiPlayer moves] removeLastObject];
-        [self replayGame:[[aiPlayer moves] count]];
-        if (aiPlayer.seat == 1 + [[aiPlayer moves] count]%2) {
-            activeGame = NO;
-        } else {
-            activeGame = YES;
-        }
+    if ([movesList count] > 1) {
+        [movesList removeLastObject];
+        [self replayGame];
+        [board setDbOptions:nil];
+        [zoomedBoard setDbOptions:nil];
     }
+//    if ([[aiPlayer moves] count] > 1 && !aiThinking) {
+//        [[aiPlayer moves] removeLastObject];
+////        [self replayGame:[[aiPlayer moves] count]];
+//        if (aiPlayer.seat == 1 + [[aiPlayer moves] count]%2) {
+//            activeGame = NO;
+//        } else {
+//            activeGame = YES;
+//        }
+//    }
 }
 
 - (IBAction)boardTap:(UILongPressGestureRecognizer *)recognizer {
@@ -311,9 +326,18 @@
     
     switch ([recognizer state]) {
         case UIGestureRecognizerStateBegan:
+            if ([movesList count]%2 == 1) {
+                [stone setStoneColor:[UIColor blackColor]];
+                [zoomedStone setStoneColor:[UIColor blackColor]];
+            } else {
+                [stone setStoneColor:[UIColor whiteColor]];
+                [zoomedStone setStoneColor:[UIColor whiteColor]];
+            }
+            [stone setNeedsDisplay];
+            [zoomedStone setNeedsDisplay];
             [zoomedBoard setHidden: NO];
             [stone setHidden: YES];
-            if (abstractBoard[i][j] == 0 && activeGame) {
+            if (abstractBoard[i][j] == 0) {
                 [zoomedStone setHidden: NO];
                 [horizontalLine setHidden:NO];
                 [verticalLine setHidden:NO];
@@ -321,7 +345,7 @@
             break;
         case UIGestureRecognizerStateEnded:
             [zoomedBoard setHidden: YES];
-            if (abstractBoard[i][j] == 0 && activeGame) {
+            if (abstractBoard[i][j] == 0) {
                 stone.center = CGPointMake(cellSize*j + cellSize/2, cellSize*i + cellSize/2);
                 [zoomedStone setHidden: YES];
                 [horizontalLine setHidden:YES];
@@ -329,19 +353,91 @@
 
                 finalMove = 19*i + j;
                 
-                [aiPlayer addMove: finalMove];
-                [self replayGame:[[aiPlayer moves] count]];
-                if (activeGame) {
-                    activeGame = NO;
-                    spinner.center = stone.center;
-                    [spinner setColor: ([[aiPlayer moves] count]%2 == 1) ? [UIColor blackColor]:[UIColor whiteColor]];
-                    [spinner setHidden:NO];
-                    [spinner startAnimating];
-                    aiThinking = YES;
-                    [NSThread detachNewThreadSelector:@selector(getNewAImove) toTarget:self withObject:nil];
-                }
+//                [aiPlayer addMove: finalMove];
+//                [self replayGame:[[aiPlayer moves] count]];
+//                if (activeGame) {
+//                    activeGame = NO;
+//                    spinner.center = stone.center;
+//                    [spinner setColor: ([[aiPlayer moves] count]%2 == 1) ? [UIColor blackColor]:[UIColor whiteColor]];
+//                    [spinner setHidden:NO];
+//                    [spinner startAnimating];
+//                    aiThinking = YES;
+//                    [NSThread detachNewThreadSelector:@selector(getNewAImove) toTarget:self withObject:nil];
+//                }
                 
 //                [self detectCaptureOfOpponent:(([[stone stoneColor] isEqual: [UIColor blackColor]]) ? 1 : 2) atPosition: finalMove];
+                abstractBoard[i][j] = 1 + ([movesList count]%2);
+                [movesList addObject:[NSNumber numberWithInt:finalMove]];
+                NSString *game = setupView.gameCell.detailTextLabel.text;
+                if (![game isEqualToString:@"Gomoku"]) {
+                    int color = 2 - ([movesList count] % 2), opponentColor = (color == 2) ? 1 : 2;
+                    if ([game isEqualToString:@"Poof-Pente"]) {
+                        [self detectPoof:color atPosition:finalMove];
+                    }
+                    [self detectCaptureOfOpponent:opponentColor atPosition:finalMove];
+                    if ([game isEqualToString:@"Keryo-Pente"]) {
+                        [self detectKeryoCaptureOfOpponent:opponentColor atPosition:finalMove];
+                    }
+                    if ([game isEqualToString:@"G-Pente"] && [movesList count] == 2) {
+                        for(int i = 7; i < 12; ++i) {
+                            for(int j = 7; j < 12; ++j) {
+                                if (abstractBoard[i][j] == 0) {
+                                    abstractBoard[i][j] = -1;
+                                }
+                            }
+                        }
+                        for(int i = 1; i < 3; ++i) {
+                            if (abstractBoard[9][11 + i] == 0) {
+                                abstractBoard[9][11 + i] = -1;
+                            }
+                            if (abstractBoard[9][7 - i] == 0) {
+                                abstractBoard[9][7 - i] = -1;
+                            }
+                            if (abstractBoard[11 + i][9] == 0) {
+                                abstractBoard[11 + i][9] = -1;
+                            }
+                            if (abstractBoard[7 - i][9] == 0) {
+                                abstractBoard[7 - i][9] = -1;
+                            }
+                        }
+                    } else if ([game isEqualToString:@"G-Pente"] && [movesList count] == 3) {
+                        for(int i = 7; i < 12; ++i) {
+                            for(int j = 7; j < 12; ++j) {
+                                if (abstractBoard[i][j] == -1) {
+                                    abstractBoard[i][j] = 0;
+                                }
+                            }
+                        }
+                        for(int i = 1; i < 3; ++i) {
+                            if (abstractBoard[9][11 + i] == -1) {
+                                abstractBoard[9][11 + i] = 0;
+                            }
+                            if (abstractBoard[9][7 - i] == -1) {
+                                abstractBoard[9][7 - i] = 0;
+                            }
+                            if (abstractBoard[11 + i][9] == -1) {
+                                abstractBoard[11 + i][9] = 0;
+                            }
+                            if (abstractBoard[7 - i][9] == -1) {
+                                abstractBoard[7 - i][9] = 0;
+                            }
+                        }
+                    }
+                }
+                if (([movesList count]%2) == 1) {
+                    [moveStatsString appendString: [NSString stringWithFormat:@"&nbsp; <b>%lu.</b> ", ([movesList count] >> 1) + 1]];
+                } else {
+                    [moveStatsString appendString: @" - "];
+                }
+                [moveStatsString appendString:[NSString stringWithFormat:@"%c%d", coordinateLetters[finalMove % 19], 19 - (finalMove / 19)]];
+                [playerStats loadHTMLString: [playerStatsBaseString stringByAppendingString:moveStatsString] baseURL:nil];
+                [board setAbstractBoard: abstractBoard];
+                [zoomedBoard setAbstractBoard: abstractBoard];
+                [board setDbOptions:nil];
+                [zoomedBoard setDbOptions:nil];
+                [board setNeedsDisplay];
+                [zoomedBoard setNeedsDisplay];
+                [self updateCaptures];
             }
             break;
         default: break;
@@ -372,7 +468,7 @@
             zoomedStone.center = CGPointMake(cellSize*j + cellSize/2, cellSize*i + cellSize/2);
             verticalLine.center = CGPointMake(cellSize*j + cellSize/2, zoomedBoard.bounds.size.width/2);
             horizontalLine.center = CGPointMake(zoomedBoard.bounds.size.height/2, cellSize*i + cellSize/2);
-            if (abstractBoard[i][j] == 0 && activeGame) {
+            if (abstractBoard[i][j] == 0) {
                 [zoomedStone setHidden:NO];
                 [horizontalLine setHidden:NO];
                 [verticalLine setHidden:NO];
@@ -386,15 +482,185 @@
     }
 }
 
+-(void) searchDB: (UIButton *) sender {
+    NSMutableString *movesStr = [[NSMutableString alloc] init];
+    for (NSNumber *move in movesList) {
+        int moveInt = [move intValue];
+        [movesStr appendString:[NSString stringWithFormat:@"%c%d,", coordinateLetters[moveInt % 19], 19 - (moveInt / 19)]];
+    }
+    NSString *getStr = [NSString stringWithFormat:@"moves=%@&response_format=org.pente.gameDatabase.SimpleHtmlGameStorerSearchResponseFormat&response_params=%@&results_order=%i&filter_data=%@",[self URLEncodedString_ch:movesStr],
+                        [self URLEncodedString_ch:@"zippedPartNumParam=1"],[setupView.sortCell.detailTextLabel.text isEqualToString:@"popularity"]?1:2,
+                         [self URLEncodedString_ch:[NSString stringWithFormat:@"start_game_num=0&end_game_num=100&player_1_name=&player_2_name=&game=%@&site=All%%20Sites&event=All%%20Events&round=All%%20Rounds&section=All%%20Sections&winner=0",setupView.gameCell.detailTextLabel.text]]];
+    
+//    NSLog(@"getkittyyyyyyString -\n%@-", [self URLEncodedString_ch:getStr]);
+    NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
+    NSString *url = [NSString stringWithFormat:@"https://www.pente.org/gameServer/mobileController/search?format_name=org.pente.gameDatabase.SimpleGameStorerSearchRequestFormat&format_data=%@", [self URLEncodedString_ch:getStr]];
+    [request setURL:[NSURL URLWithString:url]];
+    [request setHTTPMethod:@"GET"];
+    [request setTimeoutInterval:7.0];
+    NSURLResponse *response;
+    NSError *error;
+    NSData *responseData = [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
+    NSString *dashboardString = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
+//    NSLog(@"kittyyyyyyString -\n%@-", dashboardString);
+    
+    moveStatsString = [[NSMutableString alloc] init];
+    for (int i = 0; i < [movesList count]; ++i) {
+        int rowCol = [[movesList objectAtIndex:i] intValue];
+        if (i == 0) {
+            [moveStatsString appendString: @"<center><b>1.</b> "];
+        } else {
+            if ((i%2) == 0) {
+                [moveStatsString appendString: [NSString stringWithFormat:@"&nbsp; <b>%i.</b> ", (i >> 1) + 1]];
+            } else {
+                [moveStatsString appendString: @" - "];
+            }
+        }
+        [moveStatsString appendString:[NSString stringWithFormat:@"%c%d", coordinateLetters[rowCol % 19], 19 - (rowCol / 19)]];
+    }
+    [playerStats loadHTMLString: [[moveStatsString stringByAppendingString:@"</center><br>"] stringByAppendingString:dashboardString] baseURL:nil];
 
--(void) getNewAImove {
-    [aiPlayer getMove];
-//    NSLog(@"kitty move %i", newMove);
-    activeGame = YES;
-    [self replayGame:[[aiPlayer moves] count]];
-    aiThinking = NO;
-    [spinner performSelectorOnMainThread:@selector(stopAnimating) withObject:nil waitUntilDone:NO];
+    NSMutableArray<NSNumber *> *moves = [[NSMutableArray alloc] init];
+    NSMutableArray<UIColor *> *colors = [[NSMutableArray alloc] init];
+    
+    for (NSString *line in [dashboardString componentsSeparatedByString:@"\n"]) {
+        if ([line rangeOfString:@"moves="].location == 0) {
+//            NSLog(line);
+            for (NSString *moveString in [[line substringFromIndex:6] componentsSeparatedByString:@","]) {
+                [moves addObject:[NSNumber numberWithInt:[moveString intValue]]];
+            }
+        }
+        if ([line rangeOfString:@"occurrence="].location == 0) {
+//            NSLog(line);
+            double max = 0.0, min = DBL_MAX;
+            for (NSString *moveString in [[line substringFromIndex:11] componentsSeparatedByString:@";"]) {
+                double dblValue = [moveString doubleValue];
+                if (max < dblValue) {
+                    max = dblValue;
+                }
+                if (min > dblValue) {
+                    min = dblValue;
+                }
+            }
+//            double i = 0.0;
+            for (NSString *moveString in [[line substringFromIndex:11] componentsSeparatedByString:@";"]) {
+                double dblValue = ([moveString doubleValue]-min)/(max-min);
+                if (dblValue <= 0.5) {
+                    [colors addObject: [UIColor colorWithRed:1.0 green:(dblValue/0.5) blue:0 alpha:1]];
+                } else {
+                    [colors addObject: [UIColor colorWithRed:(1.0-dblValue)/0.5 green:1 blue:0 alpha:1]];
+                }
+//                if (i < [moves count]/2) {
+//                    [colors addObject: [UIColor colorWithRed:(2.0*i/[moves count]) green:1.0 blue:0 alpha:1]];
+//                } else {
+//                    [colors addObject: [UIColor colorWithRed:1.0 green:(2.0*(i-[moves count]/2.0)/[moves count]) blue:0 alpha:1]];
+//                }
+//                i+=1;
+//                [colors addObject: [UIColor colorWithHue:(dblValue-min)/(2*max) saturation:1.0 brightness:1.0 alpha:1.0]];
+//                NSLog(@"%f", dblValue);
+            }
+            break;
+        }
+    }
+    NSMutableDictionary<NSNumber *, UIColor *> *dbOptions = [[NSMutableDictionary alloc] init];
+    for ( int i = 0; i < [moves count];  ++i ) {
+        [dbOptions setObject: [colors objectAtIndex:i] forKey:[moves objectAtIndex: i]];
+    }
+//    dbOptions = [NSDictionary dictionaryWithObjects:colors forKeys:moves count:[moves count]];
+    [board setDbOptions:dbOptions];
+    [zoomedBoard setDbOptions:dbOptions];
+    [board setNeedsDisplay];
+    [zoomedBoard setNeedsDisplay];
 }
+
+
+-(void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender{
+    if([segue.identifier isEqualToString:@"viewGameSegue"]){
+        boardController = (BoardViewController *)segue.destinationViewController;
+        return;
+    }
+}
+-(void)webViewDidFinishLoad:(UIWebView *)webView {
+//    NSInteger height = [[webView stringByEvaluatingJavaScriptFromString:@"document.body.offsetHeight;"] intValue];
+//    NSString* javascript = [NSString stringWithFormat:@"window.scrollBy(0, %ld);", (long)height];
+//    [webView stringByEvaluatingJavaScriptFromString:javascript];
+    //    NSLog(@"kitty");
+    playerStats.scrollView.contentOffset = CGPointMake(0, 0);
+}
+
+
+
+-(BOOL) webView:(UIWebView *)inWeb shouldStartLoadWithRequest:(NSURLRequest *)inRequest navigationType:(UIWebViewNavigationType)inType {
+    if ( inType == UIWebViewNavigationTypeLinkClicked ) {
+        NSString *urlString = [[inRequest URL] absoluteString];
+
+        if ([urlString rangeOfString:@"mobile&g="].location != NSNotFound) {
+            
+            NSString *gameStr = [urlString substringFromIndex:[urlString rangeOfString:@"="].location + 1];
+            if ([gameStr length] == 14 && [gameStr rangeOfString:@"5"].location != 0) {
+                SVWebViewController *webViewController = [[SVWebViewController alloc] initWithAddress: urlString];
+                //        [webViewController setDelegate:self];
+                [self.navigationController pushViewController:webViewController animated:YES];
+                return NO;
+            }
+            [self performSegueWithIdentifier:@"viewGameSegue" sender:self];
+            //        NSLog(@"kittyy %@", gameStr);
+            Game *game = [[Game alloc] init];
+            [game setGameID: gameStr];
+            //        [game setGameType:@"Connect6"];
+//            [game setOpponentName:author];
+            [game setRemainingTime:@"0 days"];
+            //        [game setOpponentRating:[splitLine objectAtIndex:3]];
+            //        [game setMyColor:[splitLine objectAtIndex:4]];
+            //        [game setRemainingTime:[splitLine objectAtIndex:5]];
+            //        [game setRatedNot:[splitLine objectAtIndex:6]];
+            //        [game setNameColor: UIColorFromRGB([[splitLine objectAtIndex:7] intValue])];
+            
+            [boardController setShowAds: showAds];
+            [boardController setActiveGame:NO];
+            [boardController setGame:game];
+            [boardController replayGame];
+            [[boardController boardTapRecognizer] setEnabled: NO];
+            return NO;
+            
+        }
+        //        if ([urlString rangeOfString:@"mobile&g="].location != NSNotFound) {
+        //            [self performSegueWithIdentifier:@"viewGameTap" sender:self];
+        //            BoardViewController *boardController = [[BoardViewController alloc] init];
+        //
+        //            NSString *gameStr = [urlString substringFromIndex:[urlString rangeOfString:@"="].location + 1];
+        //            Game *game = [[Game alloc] init];
+        //            [game setGameID: gameStr];
+        ////            [game setOpponentName:author];
+        //            [game setRemainingTime:@"0 days"];
+        //
+        //            [boardController setShowAds: showAds];
+        //            [boardController setActiveGame:NO];
+        //            [boardController setGame:game];
+        //            [boardController replayGame];
+        //            [[boardController boardTapRecognizer] setEnabled: NO];
+        //            return NO;
+        //
+        //        }
+        SVWebViewController *webViewController = [[SVWebViewController alloc] initWithAddress: urlString];
+        //        [webViewController setDelegate:self];
+        [self.navigationController pushViewController:webViewController animated:YES];
+        return NO;
+    }
+    
+    return YES;
+}
+
+
+
+//-(void) getNewAImove {
+//    [aiPlayer getMove];
+////    NSLog(@"kitty move %i", newMove);
+//    activeGame = YES;
+//    [self replayGame:[[aiPlayer moves] count]];
+//    aiThinking = NO;
+//    [spinner performSelectorOnMainThread:@selector(stopAnimating) withObject:nil waitUntilDone:NO];
+//}
 
 
 
@@ -407,13 +673,13 @@
 }
 
 
--(void) replayGame: (unsigned long) untilMove {
-    if (aiPlayer.game == 1) {
-        [self replayPenteGame: untilMove];
-    } else {
-        [self replayKeryoPenteGame: untilMove];
-    }
-}
+//-(void) replayGame: (unsigned long) untilMove {
+//    if (aiPlayer.game == 1) {
+//        [self replayPenteGame: untilMove];
+//    } else {
+//        [self replayKeryoPenteGame: untilMove];
+//    }
+//}
 
 -(void) replayPenteGame: (unsigned long) untilMove {
     [self resetBoard];
@@ -451,15 +717,6 @@
     }
     if (message) {
         activeGame = NO;
-        if ([message isEqualToString:@"White wins"]) {
-            if ([setupView.colorCell.detailTextLabel.text isEqualToString:@"black"]) {
-                iWin = NO;
-            }
-        } else {
-            if ([setupView.colorCell.detailTextLabel.text isEqualToString:@"white"]) {
-                iWin = NO;
-            }
-        }
         [TSMessage showNotificationInViewController:self.navigationController
                                               title: @"Game Over"
                                            subtitle: message
@@ -475,7 +732,6 @@
                                canBeDismissedByUser:YES];
     }
 
-    moveStatsString = [[NSMutableString alloc] initWithString:[NSString stringWithFormat:@"<center><b>Color:</b> %@, <b>difficulty:</b> %@</center><hr>", setupView.colorCell.detailTextLabel.text, setupView.difficultyCell.detailTextLabel.text]];
     int i = 0;
     for (NSNumber *move in [aiPlayer moves]) {
         int rowCol = [move intValue];
@@ -544,15 +800,6 @@
     }
     if (message) {
         activeGame = NO;
-        if ([message isEqualToString:@"White wins"]) {
-            if ([setupView.colorCell.detailTextLabel.text isEqualToString:@"black"]) {
-                iWin = NO;
-            }
-        } else {
-            if ([setupView.colorCell.detailTextLabel.text isEqualToString:@"white"]) {
-                iWin = NO;
-            }
-        }
         [TSMessage showNotificationInViewController:self.navigationController
                                               title: @"Game Over"
                                            subtitle: message
@@ -568,7 +815,6 @@
                                canBeDismissedByUser:YES];
     }
     
-    moveStatsString = [[NSMutableString alloc] initWithString:[NSString stringWithFormat:@"<center><b>Color:</b> %@, <b>difficulty:</b> %@</center><hr>", setupView.colorCell.detailTextLabel.text, setupView.difficultyCell.detailTextLabel.text]];
     int i = 0;
     for (NSNumber *move in [aiPlayer moves]) {
         int rowCol = [move intValue];
@@ -588,13 +834,99 @@
 }
 
 
+-(void) replayGame {
+    [self resetBoard];
+    int i = 0;
+    NSString *game = setupView.gameCell.detailTextLabel.text;
+    for (NSNumber *move in movesList) {
+        int rowCol = [move intValue];
+        int color = (i % 2) + 1, opponentColor = (color == 2) ? 1 : 2;
+        abstractBoard[rowCol / 19][rowCol % 19] = color;
+        i+=1;
+        if (![game isEqualToString:@"Gomoku"]) {
+            if ([game isEqualToString:@"Poof-Pente"]) {
+                [self detectPoof:color atPosition:rowCol];
+            }
+            [self detectCaptureOfOpponent:opponentColor atPosition:rowCol];
+            if ([game isEqualToString:@"Keryo-Pente"]) {
+                [self detectKeryoCaptureOfOpponent:opponentColor atPosition:rowCol];
+            }
+        } else {
+            continue;
+        }
+    }
+    if ([game isEqualToString:@"G-Pente"] && [movesList count] == 2) {
+        for(int i = 7; i < 12; ++i) {
+            for(int j = 7; j < 12; ++j) {
+                if (abstractBoard[i][j] == 0) {
+                    abstractBoard[i][j] = -1;
+                }
+            }
+        }
+        for(int i = 1; i < 3; ++i) {
+            if (abstractBoard[9][11 + i] == 0) {
+                abstractBoard[9][11 + i] = -1;
+            }
+            if (abstractBoard[9][7 - i] == 0) {
+                abstractBoard[9][7 - i] = -1;
+            }
+            if (abstractBoard[11 + i][9] == 0) {
+                abstractBoard[11 + i][9] = -1;
+            }
+            if (abstractBoard[7 - i][9] == 0) {
+                abstractBoard[7 - i][9] = -1;
+            }
+        }
+    } else if ([game isEqualToString:@"G-Pente"] && [movesList count] == 3) {
+        for(int i = 7; i < 12; ++i) {
+            for(int j = 7; j < 12; ++j) {
+                if (abstractBoard[i][j] == -1) {
+                    abstractBoard[i][j] = 0;
+                }
+            }
+        }
+        for(int i = 1; i < 3; ++i) {
+            if (abstractBoard[9][11 + i] == -1) {
+                abstractBoard[9][11 + i] = 0;
+            }
+            if (abstractBoard[9][7 - i] == -1) {
+                abstractBoard[9][7 - i] = 0;
+            }
+            if (abstractBoard[11 + i][9] == -1) {
+                abstractBoard[11 + i][9] = 0;
+            }
+            if (abstractBoard[7 - i][9] == -1) {
+                abstractBoard[7 - i][9] = 0;
+            }
+        }
+    }
 
--(void)webViewDidFinishLoad:(UIWebView *)webView {
-    NSInteger height = [[webView stringByEvaluatingJavaScriptFromString:@"document.body.offsetHeight;"] intValue];
-    NSString* javascript = [NSString stringWithFormat:@"window.scrollBy(0, %ld);", (long)height];
-    [webView stringByEvaluatingJavaScriptFromString:javascript];
-//    NSLog(@"kitty");
+    [board setAbstractBoard: abstractBoard];
+    [zoomedBoard setAbstractBoard: abstractBoard];
+    [board setNeedsDisplay];
+    [zoomedBoard setNeedsDisplay];
+    [self updateCaptures];
+    moveStatsString = [[NSMutableString alloc] init];
+    for (int i = 0; i < [movesList count]; ++i) {
+        int rowCol = [[movesList objectAtIndex:i] intValue];
+        if (i == 0) {
+            [moveStatsString appendString: @"<b>1.</b> "];
+        } else {
+            if ((i%2) == 0) {
+                [moveStatsString appendString: [NSString stringWithFormat:@"&nbsp; <b>%i.</b> ", (i >> 1) + 1]];
+            } else {
+                [moveStatsString appendString: @" - "];
+            }
+        }
+        [moveStatsString appendString:[NSString stringWithFormat:@"%c%d", coordinateLetters[rowCol % 19], 19 - (rowCol / 19)]];
+    }
+    [playerStats loadHTMLString: [playerStatsBaseString stringByAppendingString:moveStatsString] baseURL:nil];
+    
 }
+
+
+
+
 
 
 -(void) detectCaptureOfOpponent: (int) opponentColor atPosition: (int) rowCol {
@@ -935,22 +1267,193 @@
 }
 
 
+-(BOOL) detectPoof: (int) myColor atPosition: (int) rowCol {
+    BOOL poof = NO;
+    struct Capture capture;
+    int i = rowCol / 19, j = rowCol % 19, opponentColor = (myColor == 1) ? 2 : 1, capturesLength = (int) [captures count];
+    if (((i-2) > -1) && ((i+1) < 19)) {
+        if (abstractBoard[i-1][j] == myColor) {
+            if ((abstractBoard[i-2][j] == opponentColor) && (abstractBoard[i+1][j] == opponentColor)) {
+                poof = YES;
+                abstractBoard[i-1][j] = 0;
+                abstractBoard[i][j] = 0;
+                if (myColor == 1) {
+                    ++whiteCaptures;
+                } else {
+                    ++blackCaptures;
+                }
+                capture.color = myColor;
+                capture.position = (i-1)*19 + (j);
+                [captures addObject:[NSValue value:&capture withObjCType:@encode(struct Capture)]];
+                
+            }
+        }
+    }
+    if (((i-2) > -1) && ((j-2) > -1) && ((i+1) < 19) && ((j+1) < 19)) {
+        if (abstractBoard[i-1][j-1] == myColor) {
+            if ((abstractBoard[i-2][j-2] == opponentColor) && (abstractBoard[i+1][j+1] == opponentColor)) {
+                poof = YES;
+                abstractBoard[i-1][j-1] = 0;
+                abstractBoard[i][j] = 0;
+                if (myColor == 1) {
+                    ++whiteCaptures;
+                } else {
+                    ++blackCaptures;
+                }
+                capture.color = myColor;
+                capture.position = (i-1)*19 + (j-1);
+                [captures addObject:[NSValue value:&capture withObjCType:@encode(struct Capture)]];
+            }
+        }
+    }
+    if (((j-2) > -1) && ((j+1) < 19)) {
+        if (abstractBoard[i][j-1] == myColor) {
+            if ((abstractBoard[i][j-2] == opponentColor) && (abstractBoard[i][j+1] == opponentColor)) {
+                poof = YES;
+                abstractBoard[i][j-1] = 0;
+                abstractBoard[i][j] = 0;
+                if (myColor == 1) {
+                    ++whiteCaptures;
+                } else {
+                    ++blackCaptures;
+                }
+                capture.color = myColor;
+                capture.position = (i)*19 + (j-1);
+                [captures addObject:[NSValue value:&capture withObjCType:@encode(struct Capture)]];
+            }
+        }
+    }
+    if (((i-1) > -1) && ((j-2) > -1) && ((i+2) < 19) && ((j+1) < 19)) {
+        if (abstractBoard[i+1][j-1] == myColor) {
+            if ((abstractBoard[i-1][j+1] == opponentColor) && (abstractBoard[i+2][j-2] == opponentColor)) {
+                poof = YES;
+                abstractBoard[i+1][j-1] = 0;
+                abstractBoard[i][j] = 0;
+                if (myColor == 1) {
+                    ++whiteCaptures;
+                } else {
+                    ++blackCaptures;
+                }
+                capture.color = myColor;
+                capture.position = (i+1)*19 + (j-1);
+                [captures addObject:[NSValue value:&capture withObjCType:@encode(struct Capture)]];
+            }
+        }
+    }
+    if (((i+2) < 19) && ((i-1) > -1)) {
+        if (abstractBoard[i+1][j] == myColor) {
+            if ((abstractBoard[i+2][j] == opponentColor) && (abstractBoard[i-1][j] == opponentColor)) {
+                poof = YES;
+                abstractBoard[i+1][j] = 0;
+                abstractBoard[i][j] = 0;
+                if (myColor == 1) {
+                    ++whiteCaptures;
+                } else {
+                    ++blackCaptures;
+                }
+                capture.color = myColor;
+                capture.position = (i+1)*19 + (j);
+                [captures addObject:[NSValue value:&capture withObjCType:@encode(struct Capture)]];
+            }
+        }
+    }
+    if (((i-1) > -1) && ((j-1) > -1) && ((i+2) < 19) && ((j+2) < 19)) {
+        if (abstractBoard[i+1][j+1] == myColor) {
+            if ((abstractBoard[i-1][j-1] == opponentColor) && (abstractBoard[i+2][j+2] == opponentColor)) {
+                poof = YES;
+                abstractBoard[i+1][j+1] = 0;
+                abstractBoard[i][j] = 0;
+                if (myColor == 1) {
+                    ++whiteCaptures;
+                } else {
+                    ++blackCaptures;
+                }
+                capture.color = myColor;
+                capture.position = (i+1)*19 + (j+1);
+                [captures addObject:[NSValue value:&capture withObjCType:@encode(struct Capture)]];
+            }
+        }
+    }
+    if (((j+2) < 19) && ((j-1) > -1)) {
+        if (abstractBoard[i][j+1] == myColor) {
+            if ((abstractBoard[i][j-1] == opponentColor) && (abstractBoard[i][j+2] == opponentColor)) {
+                poof = YES;
+                abstractBoard[i][j+1] = 0;
+                abstractBoard[i][j] = 0;
+                if (myColor == 1) {
+                    ++whiteCaptures;
+                } else {
+                    ++blackCaptures;
+                }
+                capture.color = myColor;
+                capture.position = (i)*19 + (j+1);
+                [captures addObject:[NSValue value:&capture withObjCType:@encode(struct Capture)]];
+            }
+        }
+    }
+    if (((i-2) > -1) && ((j-1) > -1) && ((i+1) < 19) && ((j+2) < 19)) {
+        if (abstractBoard[i-1][j+1] == myColor) {
+            if ((abstractBoard[i+1][j-1] == opponentColor) && (abstractBoard[i-2][j+2] == opponentColor)) {
+                poof = YES;
+                abstractBoard[i-1][j+1] = 0;
+                abstractBoard[i][j] = 0;
+                if (myColor == 1) {
+                    ++whiteCaptures;
+                } else {
+                    ++blackCaptures;
+                }
+                capture.color = myColor;
+                capture.position = (i-1)*19 + (j+1);
+                [captures addObject:[NSValue value:&capture withObjCType:@encode(struct Capture)]];
+            }
+        }
+    }
+    
+    if (poof) {
+        if (myColor == 1) {
+            ++whiteCaptures;
+        } else {
+            ++blackCaptures;
+        }
+        capture.color = myColor;
+        capture.position = i*19 + j;
+        [captures insertObject:[NSValue value:&capture withObjCType:@encode(struct Capture)] atIndex: capturesLength];
+    }
+    return poof;
+}
+
+
 -(void) resetBoard {
     for(int i = 0; i < 19; ++i) {
         for(int j = 0; j < 19; ++j) {
             abstractBoard[i][j] = 0;
         }
     }
+    [captures removeAllObjects];
+    whiteCaptures = 0;
+    blackCaptures = 0;
+    [self updateCaptures];
+}
+
+-(void) resetState {
+    moveStatsString = [[NSMutableString alloc] init];
+    [moveStatsString appendString: @"<b>1.</b> K10"];
+    [playerStats loadHTMLString: [playerStatsBaseString stringByAppendingString:moveStatsString] baseURL:nil];
+    [self resetBoard];
+    abstractBoard[9][9] = 1;
+    [movesList removeAllObjects];
+    [movesList addObject: [NSNumber numberWithInt:180]];
+    [board setAbstractBoard: abstractBoard];
+    [zoomedBoard setAbstractBoard: abstractBoard];
 }
 
 
 -(void) showSetup {
     
-    setupView = [[AISetupView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width*2/3, 132)];
+    setupView = [[DBSetupView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width*2/3, 88)];
     [setupView setScrollEnabled:NO];
     [setupView setDelegate: setupView];
     [setupView setDataSource: setupView];
-//    [AISetupView setUserInteractionEnabled:NO];
     [setupView setBoard: board];
     [setupView setZBoard:zoomedBoard];
     messagePopover = [PopoverView showPopoverAtPoint: CGPointMake(self.view.bounds.size.width - 20, 0) inView:self.view withTitle: @"settings" withContentView: setupView delegate:self];
@@ -959,7 +1462,37 @@
 }
 
 - (void)popoverViewDidDismiss:(PopoverView *)popoverView {
-    [[setupView  difficultyCell] doResign];
+    if ([setupView.gameCell.detailTextLabel.text isEqualToString:@"Gomoku"]) {
+        [whiteStoneCaptures setHidden:YES];
+        [whiteCapturesCountLabel setHidden:YES];
+        [blackStoneCaptures setHidden:YES];
+        [blackCapturesCountLabel setHidden:YES];
+    } else {
+        [whiteStoneCaptures setHidden:NO];
+        [whiteCapturesCountLabel setHidden:NO];
+        [blackStoneCaptures setHidden:NO];
+        [blackCapturesCountLabel setHidden:NO];
+    }
+}
+
+- (NSString *) URLEncodedString_ch: (NSString *) input{
+    NSMutableString * output = [NSMutableString string];
+    const unsigned char * source = (const unsigned char *)[input UTF8String];
+    int sourceLen = (int) strlen((const char *)source);
+    for (int i = 0; i < sourceLen; ++i) {
+        const unsigned char thisChar = source[i];
+        if (thisChar == ' '){
+            [output appendString:@"+"];
+        } else if (thisChar == '.' || thisChar == '-' || thisChar == '_' || thisChar == '~' ||
+                   (thisChar >= 'a' && thisChar <= 'z') ||
+                   (thisChar >= 'A' && thisChar <= 'Z') ||
+                   (thisChar >= '0' && thisChar <= '9')) {
+            [output appendFormat:@"%c", thisChar];
+        } else {
+            [output appendFormat:@"%%%02X", thisChar];
+        }
+    }
+    return output;
 }
 
 
