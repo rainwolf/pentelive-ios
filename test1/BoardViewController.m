@@ -555,14 +555,14 @@ struct Capture {
                     }
                 }
                 if (!([[game gameType] isEqualToString:@"Connect6"] || [[game gameType] isEqualToString:@"Gomoku"])) {
-                    [self detectCaptureOfOpponent:(([[stone stoneColor] isEqual: [UIColor blackColor]]) ? 1 : 2) atPosition: finalMove];
-                    if ([[game gameType] isEqualToString:@"Keryo-Pente"]) {
-                        [self detectKeryoCaptureOfOpponent:(([[stone stoneColor] isEqual: [UIColor blackColor]]) ? 1 : 2) atPosition: finalMove];
-                    }
                     if ([[game gameType] isEqualToString:@"Poof-Pente"]) {
                         if ([self detectPoof:(([[stone stoneColor] isEqual: [UIColor blackColor]]) ? 2 : 1) atPosition: finalMove]) {
                             [stone setHidden:YES];
                         }
+                    }
+                    [self detectCaptureOfOpponent:(([[stone stoneColor] isEqual: [UIColor blackColor]]) ? 1 : 2) atPosition: finalMove];
+                    if ([[game gameType] isEqualToString:@"Keryo-Pente"]) {
+                        [self detectKeryoCaptureOfOpponent:(([[stone stoneColor] isEqual: [UIColor blackColor]]) ? 1 : 2) atPosition: finalMove];
                     }
                     if ([captures count] != 0) {
                         //NSLog(@"kittyCapture of color %i at position %i,%i",(([[stone stoneColor] isEqual: [UIColor blackColor]]) ? 1 : 2),finalMove/19,finalMove%19);
