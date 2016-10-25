@@ -312,7 +312,12 @@
     [defaults setObject:gameCell.detailTextLabel.text forKey:@"lastInvitedAIGame"];
     [defaults setObject:opponentCell.detailTextLabel.text forKey:@"lastInvitedAIdifficulty"];
 
-    if ([dashboardString rangeOfString:@"against the AI player. You can start a new one after finishing the current one."].location != NSNotFound) {
+    if (error) {
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:[NSString stringWithFormat:@"Reason: %@", error.localizedDescription] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+        //        [alert show];
+        [alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:YES];
+        return;
+    } else if ([dashboardString rangeOfString:@"against the AI player. You can start a new one after finishing the current one."].location != NSNotFound) {
         UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:@"The AI player will only play 1 game or set of each game at a time." delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
         [alert show];
 

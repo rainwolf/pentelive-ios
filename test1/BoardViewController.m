@@ -711,6 +711,13 @@ struct Capture {
     responseData = [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
 
     [spinner performSelectorOnMainThread:@selector(stopAnimating) withObject:nil waitUntilDone:NO];
+    if (error) {
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:[NSString stringWithFormat:@"Reason: %@", error.localizedDescription] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+        //        [alert show];
+        [alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:YES];
+        return;
+    }
+
     [self performSelectorOnMainThread:@selector(cleanUp) withObject:nil waitUntilDone:NO];
 }
 

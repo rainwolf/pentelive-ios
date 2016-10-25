@@ -477,7 +477,12 @@
     
     [spinner performSelectorOnMainThread:@selector(stopAnimating) withObject:nil waitUntilDone:NO];
 
-    if ([dashboardString rangeOfString:[NSString stringWithFormat:@"Player not found: %@",opponentCell.textField.text]].length != 0) {
+    if (error) {
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:[NSString stringWithFormat:@"Reason: %@", error.localizedDescription] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+        //        [alert show];
+        [alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:YES];
+        return;
+    } else if ([dashboardString rangeOfString:[NSString stringWithFormat:@"Player not found: %@",opponentCell.textField.text]].length != 0) {
         UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:[NSString stringWithFormat:@"The username %@ does not exist.", opponentCell.textField.text] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
         [alert show];
     } else {

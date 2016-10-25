@@ -399,6 +399,12 @@
 
     
     [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
+    if (error) {
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:[NSString stringWithFormat:@"Reason: %@", error.localizedDescription] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+        //        [alert show];
+        [alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:YES];
+        return;
+    }
     
     ((PenteNavigationViewController *) self.navigationController).didMove = YES;
     
@@ -427,6 +433,13 @@
     [request setHTTPMethod:@"GET"];
     [request setTimeoutInterval:7.0];
     responseData = [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
+    if (error) {
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:[NSString stringWithFormat:@"Reason: %@", error.localizedDescription] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+        //        [alert show];
+        [alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:YES];
+        self.tableView.layer.borderWidth = 0.0;
+        return;
+    }
     NSString *dashboardString = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
 
     BOOL wantsToSeeAvatars = [defaults boolForKey:@"wantToSeeAvatars"];

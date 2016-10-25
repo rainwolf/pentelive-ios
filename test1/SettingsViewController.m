@@ -282,7 +282,12 @@
 
 //                        NSLog(@"kittyyyyyyString -%@-", dashboardString);
         
-            if ([dashboardString isEqualToString:@""]) {
+        if (error) {
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:[NSString stringWithFormat:@"Reason: %@", error.localizedDescription] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+            //        [alert show];
+            [alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:YES];
+            return;
+        } else if ([dashboardString isEqualToString:@""]) {
                 [self.navC setLoggedIn: NO];
                 UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:@"pente.org appears to be down, please try again later." delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
                 [alert show];
@@ -579,8 +584,15 @@
             [body appendData:[[NSString stringWithFormat:@"\r\n--%@--\r\n",boundary] dataUsingEncoding:NSUTF8StringEncoding]];
             [request setHTTPBody:body];
             
-            [NSURLConnection sendSynchronousRequest:request returningResponse:nil error:nil];
-            
+            NSError *error = nil;
+            [NSURLConnection sendSynchronousRequest:request returningResponse:nil error: &error];
+            if (error) {
+                UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:[NSString stringWithFormat:@"Reason: %@", error.localizedDescription] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+                //        [alert show];
+                [alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:YES];
+                return;
+            }
+
         }
     });
 }

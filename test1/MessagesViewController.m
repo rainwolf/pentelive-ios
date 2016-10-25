@@ -373,9 +373,13 @@ InvitationsViewController *invitationVC;
     NSString *dashboardString = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
 //    NSLog(@"kitty %@", dashboardString);
 
-    if ([dashboardString rangeOfString:[NSString stringWithFormat:@"Error: Player %@ not found.",toField.text]].length != 0) {
+    if (error) {
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:[NSString stringWithFormat:@"Reason: %@", error.localizedDescription] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+        //        [alert show];
+        [alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:YES];
+    } else if ([dashboardString rangeOfString:[NSString stringWithFormat:@"Error: Player %@ not found.",toField.text]].length != 0) {
         UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:[NSString stringWithFormat:@"The username %@ does not exist.", toField.text] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
-//        [alert show];
+        //        [alert show];
         [alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:YES];
     } else {
         if ([toField.text length] > 0) {

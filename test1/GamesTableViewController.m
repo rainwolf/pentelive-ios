@@ -1650,6 +1650,12 @@
     NSURLResponse *response;
     NSError *error;
     [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
+    if (error) {
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:[NSString stringWithFormat:@"Reason: %@", error.localizedDescription] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+        //        [alert show];
+        [alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:YES];
+        return;
+    }
     //    NSData *responseData = [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
     //    NSString *dashboardString = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
 }
@@ -1742,6 +1748,12 @@
     NSURLResponse *response;
     NSError *error;
     [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
+    if (error) {
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:[NSString stringWithFormat:@"Reason: %@", error.localizedDescription] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+        //        [alert show];
+        [alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:YES];
+        return;
+    }
     //    NSData *responseData = [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
     //    NSString *dashboardString = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
 
@@ -2066,6 +2078,12 @@
         NSURLResponse *response;
         NSError *error;
         [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
+        if (error) {
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:[NSString stringWithFormat:@"Reason: %@", error.localizedDescription] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+            //        [alert show];
+            [alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:YES];
+            return;
+        }
 //        NSData *responseData = [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
 //
 //        NSString *dashboardString = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
@@ -2105,6 +2123,12 @@
         NSURLResponse *response;
         NSError *error;
         [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
+        if (error) {
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:[NSString stringWithFormat:@"Reason: %@", error.localizedDescription] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+            //        [alert show];
+            [alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:YES];
+            return;
+        }
         //    NSData *responseData = [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
         //    NSString *dashboardString = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
         
@@ -2140,6 +2164,12 @@
         NSURLResponse *response;
         NSError *error;
         [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
+        if (error) {
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:[NSString stringWithFormat:@"Reason: %@", error.localizedDescription] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+            //        [alert show];
+            [alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:YES];
+            return;
+        }
         //    NSData *responseData = [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
         //    NSString *dashboardString = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
         
@@ -2186,6 +2216,12 @@
 //        NSError *error;
 //        [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
         NSData *responseData = [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
+        if (error) {
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:[NSString stringWithFormat:@"Reason: %@", error.localizedDescription] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+            //        [alert show];
+            [alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:YES];
+            return;
+        }
         NSString *dashboardString = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
         movesRange = NSMakeRange(0,[dashboardString length]);
         movesRange = [dashboardString rangeOfString: @"Error: Cancel request already exists." options:0 range:movesRange];
@@ -2245,6 +2281,13 @@
     [request setHTTPMethod:@"GET"];
     [request setTimeoutInterval:7.0];
     responseData = [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
+    if (error) {
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:[NSString stringWithFormat:@"Reason: %@", error.localizedDescription] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+        //        [alert show];
+        [alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:YES];
+        self.tableView.layer.borderWidth = 0.0;
+        return;
+    }
     NSString *dashboardString = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
 
     dispatch_async(dispatch_get_main_queue(), ^{
