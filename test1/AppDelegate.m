@@ -102,7 +102,7 @@
         NSError *error;
         NSData *responseData = [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
         NSString *dashboardString = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
-        NSLog(dashboardString);
+//        NSLog(dashboardString);
         
         if ([dashboardString containsString:@"success"]) {
             [[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"shouldSendReceipt"];

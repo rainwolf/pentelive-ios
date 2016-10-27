@@ -3062,10 +3062,20 @@
     //    [self performSegueWithIdentifier:@"inviteAItap" sender:self];
 }
 -(void) toMMAI {
+    if (showAds) {
+        if ([self.interstitial isReady]) {
+            [self.interstitial presentFromRootViewController:self];
+        }
+    }
     [actionPopoverView dismiss];
     [self performSegueWithIdentifier:@"MMAItap" sender:self];
 }
 -(void) toAIInvitations {
+    if (showAds) {
+        if ([self.interstitial isReady]) {
+            [self.interstitial presentFromRootViewController:self];
+        }
+    }
     [actionPopoverView dismiss];
     [self performSegueWithIdentifier:@"inviteAItap" sender:self];
 }

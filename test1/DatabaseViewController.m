@@ -66,6 +66,7 @@
 @synthesize moveStatsString;
 @synthesize playerStatsBaseString;
 @synthesize setupView;
+@synthesize progressView;
 
 BoardViewController *boardController;
 
@@ -197,6 +198,9 @@ struct Capture {
     
     movesList = [[NSMutableArray alloc] init];
     [self resetState];
+    self.progressView = [[ICDMaterialActivityIndicatorView alloc]initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height) activityIndicatorStyle:ICDMaterialActivityIndicatorViewStyleLarge];
+    [self.progressView setBackgroundColor:[UIColor whiteColor]];
+    [self.progressView setAlpha:0.75];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -483,6 +487,8 @@ struct Capture {
 }
 
 -(void) searchDB: (UIButton *) sender {
+    [self.progressView startAnimating];
+    [self.view addSubview:self.progressView];
     NSMutableString *movesStr = [[NSMutableString alloc] init];
     for (NSNumber *move in movesList) {
         int moveInt = [move intValue];
@@ -504,6 +510,8 @@ struct Capture {
     NSString *dashboardString = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
 //    NSLog(@"kittyyyyyyString -\n%@-", dashboardString);
 
+    [self.progressView stopAnimating];
+    [self.progressView removeFromSuperview];
     if (error) {
         UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:[NSString stringWithFormat:@"Reason: %@", error.localizedDescription] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
         //        [alert show];
@@ -525,7 +533,6 @@ struct Capture {
         }
         [moveStatsString appendString:[NSString stringWithFormat:@"%c%d", coordinateLetters[rowCol % 19], 19 - (rowCol / 19)]];
     }
-    [playerStats loadHTMLString: [[moveStatsString stringByAppendingString:@"</center><br>"] stringByAppendingString:dashboardString] baseURL:nil];
 
     NSMutableArray<NSNumber *> *moves = [[NSMutableArray alloc] init];
     NSMutableArray<UIColor *> *colors = [[NSMutableArray alloc] init];
@@ -533,42 +540,51 @@ struct Capture {
     for (NSString *line in [dashboardString componentsSeparatedByString:@"\n"]) {
         if ([line rangeOfString:@"moves="].location == 0) {
 //            NSLog(line);
-            for (NSString *moveString in [[line substringFromIndex:6] componentsSeparatedByString:@","]) {
-                [moves addObject:[NSNumber numberWithInt:[moveString intValue]]];
+            if ([line rangeOfString:@","].location != NSNotFound) {
+                for (NSString *moveString in [[line substringFromIndex:6] componentsSeparatedByString:@","]) {
+                    [moves addObject:[NSNumber numberWithInt:[moveString intValue]]];
+                }
             }
         }
         if ([line rangeOfString:@"occurrence="].location == 0) {
 //            NSLog(line);
             double max = 0.0, min = DBL_MAX;
-            for (NSString *moveString in [[line substringFromIndex:11] componentsSeparatedByString:@";"]) {
-                double dblValue = [moveString doubleValue];
-                if (max < dblValue) {
-                    max = dblValue;
+            if ([line rangeOfString:@";"].location != NSNotFound) {
+                for (NSString *moveString in [[line substringFromIndex:11] componentsSeparatedByString:@";"]) {
+                    double dblValue = [moveString doubleValue];
+                    if (max < dblValue) {
+                        max = dblValue;
+                    }
+                    if (min > dblValue) {
+                        min = dblValue;
+                    }
                 }
-                if (min > dblValue) {
-                    min = dblValue;
+    //            double i = 0.0;
+                for (NSString *moveString in [[line substringFromIndex:11] componentsSeparatedByString:@";"]) {
+                    double dblValue = ([moveString doubleValue]-min)/(max-min);
+                    if (dblValue <= 0.5) {
+                        [colors addObject: [UIColor colorWithRed:1.0 green:(dblValue/0.5) blue:0 alpha:1]];
+                    } else {
+                        [colors addObject: [UIColor colorWithRed:(1.0-dblValue)/0.5 green:1 blue:0 alpha:1]];
+                    }
+    //                if (i < [moves count]/2) {
+    //                    [colors addObject: [UIColor colorWithRed:(2.0*i/[moves count]) green:1.0 blue:0 alpha:1]];
+    //                } else {
+    //                    [colors addObject: [UIColor colorWithRed:1.0 green:(2.0*(i-[moves count]/2.0)/[moves count]) blue:0 alpha:1]];
+    //                }
+    //                i+=1;
+    //                [colors addObject: [UIColor colorWithHue:(dblValue-min)/(2*max) saturation:1.0 brightness:1.0 alpha:1.0]];
+    //                NSLog(@"%f", dblValue);
                 }
-            }
-//            double i = 0.0;
-            for (NSString *moveString in [[line substringFromIndex:11] componentsSeparatedByString:@";"]) {
-                double dblValue = ([moveString doubleValue]-min)/(max-min);
-                if (dblValue <= 0.5) {
-                    [colors addObject: [UIColor colorWithRed:1.0 green:(dblValue/0.5) blue:0 alpha:1]];
-                } else {
-                    [colors addObject: [UIColor colorWithRed:(1.0-dblValue)/0.5 green:1 blue:0 alpha:1]];
-                }
-//                if (i < [moves count]/2) {
-//                    [colors addObject: [UIColor colorWithRed:(2.0*i/[moves count]) green:1.0 blue:0 alpha:1]];
-//                } else {
-//                    [colors addObject: [UIColor colorWithRed:1.0 green:(2.0*(i-[moves count]/2.0)/[moves count]) blue:0 alpha:1]];
-//                }
-//                i+=1;
-//                [colors addObject: [UIColor colorWithHue:(dblValue-min)/(2*max) saturation:1.0 brightness:1.0 alpha:1.0]];
-//                NSLog(@"%f", dblValue);
             }
             break;
         }
     }
+    if ([moves count] == 0) {
+        dashboardString = @"No search results";
+    }
+    [playerStats loadHTMLString: [[moveStatsString stringByAppendingString:@"</center><br>"] stringByAppendingString:dashboardString] baseURL:nil];
+
     NSMutableDictionary<NSNumber *, UIColor *> *dbOptions = [[NSMutableDictionary alloc] init];
     for ( int i = 0; i < [moves count];  ++i ) {
         [dbOptions setObject: [colors objectAtIndex:i] forKey:[moves objectAtIndex: i]];

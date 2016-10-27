@@ -13,6 +13,7 @@
 #import <GoogleMobileAds/GoogleMobileAds.h>
 #import "PopoverView.h"
 #import "DBSetupView.h"
+#import "ICDMaterialActivityIndicatorView.h"
 @class MMAI;
 
 //#define IS_IPHONE_5 ( fabs( ( double )[ [ UIScreen mainScreen ] bounds ].size.height - ( double )568 ) < DBL_EPSILON )
@@ -28,6 +29,7 @@
     BOOL activeGame, showAds;
     MMAI *aiPlayer;
     DBSetupView *setupView;
+    ICDMaterialActivityIndicatorView *progressView;
     
 }
 @property(atomic) BOOL showedAd;
@@ -59,5 +61,6 @@
 
 @property(nonatomic, retain, readwrite) MMAI *aiPlayer;
 @property(nonatomic, retain, readwrite) DBSetupView *setupView;
+@property (strong,nonatomic) ICDMaterialActivityIndicatorView *progressView;
 
 @end
