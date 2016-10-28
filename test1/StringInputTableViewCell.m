@@ -18,9 +18,8 @@
 - (void)initalizeInputView {
 	// Initialization code
 	self.selectionStyle = UITableViewCellSelectionStyleNone;
-	self.textField = [[HTAutocompleteTextField alloc] initWithFrame:CGRectMake(self.frame.size.width/3, (self.frame.size.height - [UIFont systemFontOfSize:17.0f].lineHeight) / 2 , 2*self.frame.size.width/3-20, [UIFont systemFontOfSize:17.0f].lineHeight)];
+	self.textField = [[HTAutocompleteTextField alloc] initWithFrame:CGRectMake(self.frame.size.width*4/9, (self.frame.size.height - [UIFont systemFontOfSize:17.0f].lineHeight) / 2 , self.frame.size.width - self.frame.size.width*4/9 -10, [UIFont systemFontOfSize:17.0f].lineHeight)];
 	[self addSubview:self.textField];
-//    [self.textField setBounds:CGRectMake(self.frame.size.width/2, 0, self.frame.size.width/2, [UIFont systemFontOfSize:17.0f].lineHeight)];
 	self.textField.autocorrectionType = UITextAutocorrectionTypeNo;
 	self.textField.autocapitalizationType = UITextAutocapitalizationTypeNone;
     self.textField.returnKeyType = UIReturnKeyDone;
@@ -106,7 +105,7 @@
 }
 
 - (void)textFieldDidBeginEditing:(UITextField *)textField {
-    self.textField.frame = CGRectMake(self.frame.size.width/2, (self.frame.size.height - [UIFont systemFontOfSize:17.0f].lineHeight) / 2 , self.frame.size.width/2 -20, [UIFont systemFontOfSize:17.0f].lineHeight);
+//    self.textField.frame = CGRectMake(self.frame.size.width/2, (self.frame.size.height - [UIFont systemFontOfSize:17.0f].lineHeight) / 2 , self.frame.size.width/2 -20, [UIFont systemFontOfSize:17.0f].lineHeight);
 	self.textField.textAlignment = NSTextAlignmentLeft;
 	UITableView *tableView = (UITableView *)self.superview.superview;
     [tableView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:YES];
@@ -114,7 +113,7 @@
 }
 
 - (void)textFieldDidEndEditing:(UITextField *)textField {
-    self.textField.frame = CGRectMake(self.frame.size.width/3, (self.frame.size.height - [UIFont systemFontOfSize:17.0f].lineHeight) / 2 , 2*self.frame.size.width/3-20, [UIFont systemFontOfSize:17.0f].lineHeight);
+//    self.textField.frame = CGRectMake(self.frame.size.width/3, (self.frame.size.height - [UIFont systemFontOfSize:17.0f].lineHeight) / 2 , 2*self.frame.size.width/3-20, [UIFont systemFontOfSize:17.0f].lineHeight);
 	self.textField.textAlignment = NSTextAlignmentRight;
 	if (delegate && [delegate respondsToSelector:@selector(tableViewCell:didEndEditingWithString:)]) {
 		[delegate tableViewCell:self didEndEditingWithString:self.stringValue];
@@ -126,12 +125,13 @@
 - (void)layoutSubviews {
 	[super layoutSubviews];
 	CGRect editFrame = CGRectInset(self.contentView.frame, 10, 10);
+    self.textField.frame = CGRectMake(self.frame.size.width*4/9, (self.frame.size.height - [UIFont systemFontOfSize:17.0f].lineHeight) / 2 , self.frame.size.width - self.frame.size.width*4/9 -10, [UIFont systemFontOfSize:17.0f].lineHeight);
 	
 	if (self.textLabel.text && [self.textLabel.text length] != 0) {
 		CGSize textSize = [self.textLabel sizeThatFits:CGSizeZero];
 		editFrame.origin.x += textSize.width + 10;
 		editFrame.size.width -= textSize.width + 10;
-//		self.textField.textAlignment = UITextAlignmentRight;
+//		self.textField.textAlignment = NSTextAlignmentCenter;
 	} else {
 		self.textField.textAlignment = NSTextAlignmentLeft;
 	}

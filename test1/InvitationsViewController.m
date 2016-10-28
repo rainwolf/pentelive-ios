@@ -126,6 +126,7 @@
     PenteNavigationViewController *navController = (PenteNavigationViewController *) self.navigationController;
     [navController setChallengeCancelled:YES];
     self.opponentCell.textField.text = navController.challengedUser;
+    [self.opponentCell setNeedsLayout];
     
     if (self.openInvitationOnly) {
         NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];

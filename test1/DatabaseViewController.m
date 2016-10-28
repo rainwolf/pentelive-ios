@@ -489,111 +489,118 @@ struct Capture {
 -(void) searchDB: (UIButton *) sender {
     [self.progressView startAnimating];
     [self.view addSubview:self.progressView];
-    NSMutableString *movesStr = [[NSMutableString alloc] init];
-    for (NSNumber *move in movesList) {
-        int moveInt = [move intValue];
-        [movesStr appendString:[NSString stringWithFormat:@"%c%d,", coordinateLetters[moveInt % 19], 19 - (moveInt / 19)]];
-    }
-    NSString *getStr = [NSString stringWithFormat:@"moves=%@&response_format=org.pente.gameDatabase.SimpleHtmlGameStorerSearchResponseFormat&response_params=%@&results_order=%i&filter_data=%@",[self URLEncodedString_ch:movesStr],
-                        [self URLEncodedString_ch:@"zippedPartNumParam=1"],[setupView.sortCell.detailTextLabel.text isEqualToString:@"popularity"]?1:2,
-                         [self URLEncodedString_ch:[NSString stringWithFormat:@"start_game_num=0&end_game_num=100&player_1_name=&player_2_name=&game=%@&site=All%%20Sites&event=All%%20Events&round=All%%20Rounds&section=All%%20Sections&winner=0",setupView.gameCell.detailTextLabel.text]]];
-    
-//    NSLog(@"getkittyyyyyyString -\n%@-", [self URLEncodedString_ch:getStr]);
-    NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
-    NSString *url = [NSString stringWithFormat:@"https://www.pente.org/gameServer/mobileController/search?format_name=org.pente.gameDatabase.SimpleGameStorerSearchRequestFormat&format_data=%@", [self URLEncodedString_ch:getStr]];
-    [request setURL:[NSURL URLWithString:url]];
-    [request setHTTPMethod:@"GET"];
-    [request setTimeoutInterval:7.0];
-    NSURLResponse *response;
-    NSError *error;
-    NSData *responseData = [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
-    NSString *dashboardString = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
-//    NSLog(@"kittyyyyyyString -\n%@-", dashboardString);
-
-    [self.progressView stopAnimating];
-    [self.progressView removeFromSuperview];
-    if (error) {
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:[NSString stringWithFormat:@"Reason: %@", error.localizedDescription] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
-        //        [alert show];
-        [alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:YES];
-        return;
-    }
-    
-    moveStatsString = [[NSMutableString alloc] init];
-    for (int i = 0; i < [movesList count]; ++i) {
-        int rowCol = [[movesList objectAtIndex:i] intValue];
-        if (i == 0) {
-            [moveStatsString appendString: @"<center><b>1.</b> "];
-        } else {
-            if ((i%2) == 0) {
-                [moveStatsString appendString: [NSString stringWithFormat:@"&nbsp; <b>%i.</b> ", (i >> 1) + 1]];
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        //    [[NSRunLoop mainRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:2.0]];
+        NSMutableString *movesStr = [[NSMutableString alloc] init];
+        for (NSNumber *move in movesList) {
+            int moveInt = [move intValue];
+            [movesStr appendString:[NSString stringWithFormat:@"%c%d,", coordinateLetters[moveInt % 19], 19 - (moveInt / 19)]];
+        }
+        NSString *getStr = [NSString stringWithFormat:@"moves=%@&response_format=org.pente.gameDatabase.SimpleHtmlGameStorerSearchResponseFormat&response_params=%@&results_order=%i&filter_data=%@",[self URLEncodedString_ch:movesStr],
+                            [self URLEncodedString_ch:@"zippedPartNumParam=1"],[setupView.sortCell.detailTextLabel.text isEqualToString:@"popularity"]?1:2,
+                            [self URLEncodedString_ch:[NSString stringWithFormat:@"start_game_num=0&end_game_num=100&player_1_name=&player_2_name=&game=%@&site=All%%20Sites&event=All%%20Events&round=All%%20Rounds&section=All%%20Sections&winner=0",setupView.gameCell.detailTextLabel.text]]];
+        
+        //    NSLog(@"getkittyyyyyyString -\n%@-", [self URLEncodedString_ch:getStr]);
+        NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
+        NSString *url = [NSString stringWithFormat:@"https://www.pente.org/gameServer/mobileController/search?format_name=org.pente.gameDatabase.SimpleGameStorerSearchRequestFormat&format_data=%@", [self URLEncodedString_ch:getStr]];
+        [request setURL:[NSURL URLWithString:url]];
+        [request setHTTPMethod:@"GET"];
+        [request setTimeoutInterval:7.0];
+        NSURLResponse *response;
+        NSError *error;
+        NSData *responseData = [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
+        NSString *dashboardString = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
+        //    NSLog(@"kittyyyyyyString -\n%@-", dashboardString);
+        
+        if (error) {
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:[NSString stringWithFormat:@"Reason: %@", error.localizedDescription] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+            //        [alert show];
+            [alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:YES];
+            [self.progressView stopAnimating];
+            [self.progressView removeFromSuperview];
+            return;
+        }
+        
+        moveStatsString = [[NSMutableString alloc] init];
+        for (int i = 0; i < [movesList count]; ++i) {
+            int rowCol = [[movesList objectAtIndex:i] intValue];
+            if (i == 0) {
+                [moveStatsString appendString: @"<center><b>1.</b> "];
             } else {
-                [moveStatsString appendString: @" - "];
-            }
-        }
-        [moveStatsString appendString:[NSString stringWithFormat:@"%c%d", coordinateLetters[rowCol % 19], 19 - (rowCol / 19)]];
-    }
-
-    NSMutableArray<NSNumber *> *moves = [[NSMutableArray alloc] init];
-    NSMutableArray<UIColor *> *colors = [[NSMutableArray alloc] init];
-    
-    for (NSString *line in [dashboardString componentsSeparatedByString:@"\n"]) {
-        if ([line rangeOfString:@"moves="].location == 0) {
-//            NSLog(line);
-            if ([line rangeOfString:@","].location != NSNotFound) {
-                for (NSString *moveString in [[line substringFromIndex:6] componentsSeparatedByString:@","]) {
-                    [moves addObject:[NSNumber numberWithInt:[moveString intValue]]];
+                if ((i%2) == 0) {
+                    [moveStatsString appendString: [NSString stringWithFormat:@"&nbsp; <b>%i.</b> ", (i >> 1) + 1]];
+                } else {
+                    [moveStatsString appendString: @" - "];
                 }
             }
+            [moveStatsString appendString:[NSString stringWithFormat:@"%c%d", coordinateLetters[rowCol % 19], 19 - (rowCol / 19)]];
         }
-        if ([line rangeOfString:@"occurrence="].location == 0) {
-//            NSLog(line);
-            double max = 0.0, min = DBL_MAX;
-            if ([line rangeOfString:@";"].location != NSNotFound) {
-                for (NSString *moveString in [[line substringFromIndex:11] componentsSeparatedByString:@";"]) {
-                    double dblValue = [moveString doubleValue];
-                    if (max < dblValue) {
-                        max = dblValue;
+        
+        NSMutableArray<NSNumber *> *moves = [[NSMutableArray alloc] init];
+        NSMutableArray<UIColor *> *colors = [[NSMutableArray alloc] init];
+        
+        for (NSString *line in [dashboardString componentsSeparatedByString:@"\n"]) {
+            if ([line rangeOfString:@"moves="].location == 0) {
+                //            NSLog(line);
+                if ([line rangeOfString:@","].location != NSNotFound) {
+                    for (NSString *moveString in [[line substringFromIndex:6] componentsSeparatedByString:@","]) {
+                        [moves addObject:[NSNumber numberWithInt:[moveString intValue]]];
                     }
-                    if (min > dblValue) {
-                        min = dblValue;
-                    }
-                }
-    //            double i = 0.0;
-                for (NSString *moveString in [[line substringFromIndex:11] componentsSeparatedByString:@";"]) {
-                    double dblValue = ([moveString doubleValue]-min)/(max-min);
-                    if (dblValue <= 0.5) {
-                        [colors addObject: [UIColor colorWithRed:1.0 green:(dblValue/0.5) blue:0 alpha:1]];
-                    } else {
-                        [colors addObject: [UIColor colorWithRed:(1.0-dblValue)/0.5 green:1 blue:0 alpha:1]];
-                    }
-    //                if (i < [moves count]/2) {
-    //                    [colors addObject: [UIColor colorWithRed:(2.0*i/[moves count]) green:1.0 blue:0 alpha:1]];
-    //                } else {
-    //                    [colors addObject: [UIColor colorWithRed:1.0 green:(2.0*(i-[moves count]/2.0)/[moves count]) blue:0 alpha:1]];
-    //                }
-    //                i+=1;
-    //                [colors addObject: [UIColor colorWithHue:(dblValue-min)/(2*max) saturation:1.0 brightness:1.0 alpha:1.0]];
-    //                NSLog(@"%f", dblValue);
                 }
             }
-            break;
+            if ([line rangeOfString:@"occurrence="].location == 0) {
+                //            NSLog(line);
+                double max = 0.0, min = DBL_MAX;
+                if ([line rangeOfString:@";"].location != NSNotFound) {
+                    for (NSString *moveString in [[line substringFromIndex:11] componentsSeparatedByString:@";"]) {
+                        double dblValue = [moveString doubleValue];
+                        if (max < dblValue) {
+                            max = dblValue;
+                        }
+                        if (min > dblValue) {
+                            min = dblValue;
+                        }
+                    }
+                    //            double i = 0.0;
+                    for (NSString *moveString in [[line substringFromIndex:11] componentsSeparatedByString:@";"]) {
+                        double dblValue = ([moveString doubleValue]-min)/(max-min);
+                        if (dblValue <= 0.5) {
+                            [colors addObject: [UIColor colorWithRed:1.0 green:(dblValue/0.5) blue:0 alpha:1]];
+                        } else {
+                            [colors addObject: [UIColor colorWithRed:(1.0-dblValue)/0.5 green:1 blue:0 alpha:1]];
+                        }
+                        //                if (i < [moves count]/2) {
+                        //                    [colors addObject: [UIColor colorWithRed:(2.0*i/[moves count]) green:1.0 blue:0 alpha:1]];
+                        //                } else {
+                        //                    [colors addObject: [UIColor colorWithRed:1.0 green:(2.0*(i-[moves count]/2.0)/[moves count]) blue:0 alpha:1]];
+                        //                }
+                        //                i+=1;
+                        //                [colors addObject: [UIColor colorWithHue:(dblValue-min)/(2*max) saturation:1.0 brightness:1.0 alpha:1.0]];
+                        //                NSLog(@"%f", dblValue);
+                    }
+                }
+                break;
+            }
         }
-    }
-    if ([moves count] == 0) {
-        dashboardString = @"No search results";
-    }
-    [playerStats loadHTMLString: [[moveStatsString stringByAppendingString:@"</center><br>"] stringByAppendingString:dashboardString] baseURL:nil];
-
-    NSMutableDictionary<NSNumber *, UIColor *> *dbOptions = [[NSMutableDictionary alloc] init];
-    for ( int i = 0; i < [moves count];  ++i ) {
-        [dbOptions setObject: [colors objectAtIndex:i] forKey:[moves objectAtIndex: i]];
-    }
-//    dbOptions = [NSDictionary dictionaryWithObjects:colors forKeys:moves count:[moves count]];
-    [board setDbOptions:dbOptions];
-    [zoomedBoard setDbOptions:dbOptions];
-    [board setNeedsDisplay];
-    [zoomedBoard setNeedsDisplay];
+        if ([moves count] == 0) {
+            dashboardString = @"No search results";
+        }
+        NSMutableDictionary<NSNumber *, UIColor *> *dbOptions = [[NSMutableDictionary alloc] init];
+        for ( int i = 0; i < [moves count];  ++i ) {
+            [dbOptions setObject: [colors objectAtIndex:i] forKey:[moves objectAtIndex: i]];
+        }
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [playerStats loadHTMLString: [[moveStatsString stringByAppendingString:@"</center><br>"] stringByAppendingString:dashboardString] baseURL:nil];
+            //    dbOptions = [NSDictionary dictionaryWithObjects:colors forKeys:moves count:[moves count]];
+            [board setDbOptions:dbOptions];
+            [zoomedBoard setDbOptions:dbOptions];
+            [board setNeedsDisplay];
+            [zoomedBoard setNeedsDisplay];
+            [self.progressView stopAnimating];
+            [self.progressView removeFromSuperview];
+        });
+    });
 }
 
 
