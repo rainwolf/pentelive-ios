@@ -9,8 +9,9 @@
 #import "DBSetupView.h"
 
 @implementation DBSetupView
-@synthesize gameCell, sortCell;
+@synthesize gameCell, sortCell, winnerCell;
 @synthesize board, zBoard;
+@synthesize player1Cell, player2Cell;
 
 
 
@@ -19,7 +20,7 @@
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    return 2;
+    return 5;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -63,21 +64,82 @@
         
         return cell;
     }
+    if (indexPath.row == 2) {
+        StringInputTableViewCell *cell = [tableView dequeueReusableCellWithIdentifier: @"player1Cell"];
+        if (cell == nil) {
+            cell = [[StringInputTableViewCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier: @"player1Cell"];
+        }
+        [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
+        
+        cell.textLabel.text =  @"Player 1:";
+        
+        player1Cell = cell;
+        
+        return cell;
+    }
+    if (indexPath.row == 3) {
+        StringInputTableViewCell *cell = [tableView dequeueReusableCellWithIdentifier: @"player2Cell"];
+        if (cell == nil) {
+            cell = [[StringInputTableViewCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier: @"player2Cell"];
+        }
+        [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
+        
+        cell.textLabel.text =  @"Player 2:";
+        
+        player2Cell = cell;
+        
+        return cell;
+    }
+    if (indexPath.row == 4) {
+        UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier: @"winnerCell"];
+        if (cell == nil) {
+            cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier: @"winnerCell"];
+        }
+        [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
+        
+        cell.textLabel.text =  @"Winner";
+//        NSString *str = [[NSUserDefaults standardUserDefaults] objectForKey: @"DBSort"];
+//        if (str) {
+//            cell.detailTextLabel.text = str;
+//        } else {
+//            cell.detailTextLabel.text = @"win percentage";
+//        }
+        cell.detailTextLabel.text = @"either";
+        
+        winnerCell = cell;
+        
+        return cell;
+    }
     return nil;
 }
 
 -(void) tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     if (indexPath.row == 0) {
+        [player1Cell resignFirstResponder];
+        [player2Cell resignFirstResponder];
         [self changeBoardColor];
         [[NSUserDefaults standardUserDefaults] setObject:gameCell.detailTextLabel.text forKey:@"DBGame"];
     }
     if (indexPath.row == 1) {
+        [player1Cell resignFirstResponder];
+        [player2Cell resignFirstResponder];
         if ([sortCell.detailTextLabel.text isEqualToString:@"popularity"]) {
             [sortCell.detailTextLabel setText:@"win percentage"];
         } else {
             [sortCell.detailTextLabel setText:@"popularity"];
         }
         [[NSUserDefaults standardUserDefaults] setObject:sortCell.detailTextLabel.text forKey:@"DBSort"];
+    }
+    if (indexPath.row == 4) {
+        [player1Cell resignFirstResponder];
+        [player2Cell resignFirstResponder];
+        if ([winnerCell.detailTextLabel.text isEqualToString:@"either"]) {
+            [winnerCell.detailTextLabel setText:@"player 1"];
+        } else if ([winnerCell.detailTextLabel.text isEqualToString:@"player 1"]) {
+            [winnerCell.detailTextLabel setText:@"player 2"];
+        } else {
+            [winnerCell.detailTextLabel setText:@"either"];
+        }
     }
 
 }

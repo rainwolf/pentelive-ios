@@ -119,6 +119,7 @@
 
 - (void)viewWillAppear:(BOOL)animated {
     [spinner setHidden:YES];
+    opponentCell.textField.placeholder = @"blank to invite anyone";
 }
 
 - (void)viewDidAppear:(BOOL)animated {

@@ -26,7 +26,6 @@
 	self.textField.textAlignment = NSTextAlignmentLeft;
 	self.textField.textColor = [UIColor blueColor];
 	self.textField.font = [UIFont systemFontOfSize:17.0f];
-    self.textField.placeholder = @"blank to invite anyone";
 	self.textField.clearButtonMode = UITextFieldViewModeNever;
 //	self.textField.autoresizingMask = UIViewAutoresizingFlexibleWidth;
 	self.accessoryType = UITableViewCellAccessoryNone;

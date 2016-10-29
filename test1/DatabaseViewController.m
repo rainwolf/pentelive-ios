@@ -195,6 +195,12 @@ struct Capture {
         [self.view addSubview:bannerView];
     }
 
+    setupView = [[DBSetupView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width*2/3, 220)];
+    [setupView setScrollEnabled:NO];
+    [setupView setDelegate: setupView];
+    [setupView setDataSource: setupView];
+    [setupView setBoard: board];
+    [setupView setZBoard:zoomedBoard];
     
     movesList = [[NSMutableArray alloc] init];
     [self resetState];
@@ -496,11 +502,18 @@ struct Capture {
             int moveInt = [move intValue];
             [movesStr appendString:[NSString stringWithFormat:@"%c%d,", coordinateLetters[moveInt % 19], 19 - (moveInt / 19)]];
         }
+        NSString *winnerStr = @"0";
+        if ([setupView.winnerCell.detailTextLabel.text isEqualToString:@"player 1"]) {
+            winnerStr = @"1";
+        } else if ([setupView.winnerCell.detailTextLabel.text isEqualToString:@"player 2"]) {
+            winnerStr = @"2";
+        }
         NSString *getStr = [NSString stringWithFormat:@"moves=%@&response_format=org.pente.gameDatabase.SimpleHtmlGameStorerSearchResponseFormat&response_params=%@&results_order=%i&filter_data=%@",[self URLEncodedString_ch:movesStr],
                             [self URLEncodedString_ch:@"zippedPartNumParam=1"],[setupView.sortCell.detailTextLabel.text isEqualToString:@"popularity"]?1:2,
-                            [self URLEncodedString_ch:[NSString stringWithFormat:@"start_game_num=0&end_game_num=100&player_1_name=&player_2_name=&game=%@&site=All%%20Sites&event=All%%20Events&round=All%%20Rounds&section=All%%20Sections&winner=0",setupView.gameCell.detailTextLabel.text]]];
+                            [self URLEncodedString_ch:[NSString stringWithFormat:@"start_game_num=0&end_game_num=100&player_1_name=%@&player_2_name=%@&game=%@&site=All%%20Sites&event=All%%20Events&round=All%%20Rounds&section=All%%20Sections&winner=%@", [setupView.player1Cell.textField.text lowercaseString], [setupView.player2Cell.textField.text lowercaseString],setupView.gameCell.detailTextLabel.text, winnerStr]]];
         
-        //    NSLog(@"getkittyyyyyyString -\n%@-", [self URLEncodedString_ch:getStr]);
+//        NSLog(@"\ngetkittyyyyyyString -\n%@-", [self URLEncodedString_ch:getStr]);
+//        NSLog(@"\n\ngetkittyyyyyyString -\n%@-", getStr);
         NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
         NSString *url = [NSString stringWithFormat:@"https://www.pente.org/gameServer/mobileController/search?format_name=org.pente.gameDatabase.SimpleGameStorerSearchRequestFormat&format_data=%@", [self URLEncodedString_ch:getStr]];
         [request setURL:[NSURL URLWithString:url]];
@@ -542,7 +555,8 @@ struct Capture {
         for (NSString *line in [dashboardString componentsSeparatedByString:@"\n"]) {
             if ([line rangeOfString:@"moves="].location == 0) {
                 //            NSLog(line);
-                if ([line rangeOfString:@","].location != NSNotFound) {
+//                if ([line rangeOfString:@","].location != NSNotFound) {
+                if ([line length] > 6) {
                     for (NSString *moveString in [[line substringFromIndex:6] componentsSeparatedByString:@","]) {
                         [moves addObject:[NSNumber numberWithInt:[moveString intValue]]];
                     }
@@ -551,7 +565,8 @@ struct Capture {
             if ([line rangeOfString:@"occurrence="].location == 0) {
                 //            NSLog(line);
                 double max = 0.0, min = DBL_MAX;
-                if ([line rangeOfString:@";"].location != NSNotFound) {
+//                if ([line rangeOfString:@";"].location != NSNotFound) {
+                if ([line length] > 11) {
                     for (NSString *moveString in [[line substringFromIndex:11] componentsSeparatedByString:@";"]) {
                         double dblValue = [moveString doubleValue];
                         if (max < dblValue) {
@@ -584,6 +599,47 @@ struct Capture {
         }
         if ([moves count] == 0) {
             dashboardString = @"No search results";
+        } else {
+            NSString *p1Str = [setupView.player1Cell.textField.text lowercaseString], *p2Str = [setupView.player2Cell.textField.text lowercaseString];
+            if (!([p1Str isEqualToString:@""] && [p2Str isEqualToString:@""])) {
+                NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+                    NSMutableArray *invitedHistory =  [[defaults objectForKey:@"invitedHistory"] mutableCopy];
+                    if (invitedHistory) {
+                        int i = 0;
+                        for ( i = 0; i < [invitedHistory count]; ++i) {
+                            if (![p1Str isEqualToString:@""] && [[invitedHistory objectAtIndex:i] localizedCaseInsensitiveCompare:p1Str] == NSOrderedDescending) {
+                                if (![invitedHistory containsObject:p1Str]) {
+                                    [invitedHistory insertObject:p1Str atIndex:i];
+                                }
+                            }
+                            if (![p2Str isEqualToString:@""] && [[invitedHistory objectAtIndex:i] localizedCaseInsensitiveCompare:p2Str] == NSOrderedDescending) {
+                                if (![invitedHistory containsObject:p2Str]) {
+                                    [invitedHistory insertObject:p2Str atIndex:i];
+                                }
+                            }
+                        }
+                    } else {
+                        if (![p1Str isEqualToString:@""]) {
+                            invitedHistory = [NSMutableArray arrayWithObject:p1Str];
+                        }
+                        if (![p2Str isEqualToString:@""]) {
+                            if (invitedHistory) {
+                                if ([[invitedHistory objectAtIndex:0] localizedCaseInsensitiveCompare:p2Str] == NSOrderedDescending) {
+                                    if (![invitedHistory containsObject:p2Str]) {
+                                        [invitedHistory insertObject:p2Str atIndex:0];
+                                    } else {
+                                        [invitedHistory addObject:p2Str];
+                                    }
+                                }
+                            } else {
+                                invitedHistory = [NSMutableArray arrayWithObject:p2Str];
+                            }
+                        }
+                    }
+                [defaults setObject:invitedHistory forKey:@"invitedHistory"];
+                [setupView.player1Cell setInvitedHistory:invitedHistory];
+                [setupView.player2Cell setInvitedHistory:invitedHistory];
+            }
         }
         NSMutableDictionary<NSNumber *, UIColor *> *dbOptions = [[NSMutableDictionary alloc] init];
         for ( int i = 0; i < [moves count];  ++i ) {
@@ -711,157 +767,157 @@ struct Capture {
 //    }
 //}
 
--(void) replayPenteGame: (unsigned long) untilMove {
-    [self resetBoard];
-    whiteCaptures = 0;
-    blackCaptures = 0;
-    for (int i = 0; i < untilMove; ++i) {
-        int rowCol = [[[aiPlayer moves] objectAtIndex:i] intValue];
-        int color = (i % 2) + 1, opponentColor = (color == 2) ? 1 : 2;
-        abstractBoard[rowCol / 19][rowCol % 19] = color;
-        [self detectCaptureOfOpponent:opponentColor atPosition:rowCol];
-    }
-    
-    [board setAbstractBoard: abstractBoard];
-    [board setLastMove: [[[aiPlayer moves] objectAtIndex:untilMove - 1] intValue]];
-    if (lastMove == [movesList count]) {
-        [zoomedBoard setAbstractBoard: abstractBoard];
-        [zoomedBoard setLastMove: [[[aiPlayer moves] objectAtIndex:untilMove - 1] intValue]];
-    }
-    [board setNeedsDisplay];
-    [zoomedBoard setNeedsDisplay];
-    [self updateCaptures];
-    
-    NSString *message = nil;
-    BOOL iWin = YES;
-    if ([self detectPenteOf: 2-([[aiPlayer moves] count]%2) atPosition: [[[aiPlayer moves] lastObject] intValue]]) {
-        if (2-([[aiPlayer moves] count]%2) == 1) {
-            message = @"White wins";
-        } else {
-            message = @"Black wins";
-        }
-    } else if (whiteCaptures == 10) {
-        message = @"Black wins";
-    } else if (blackCaptures == 10) {
-        message = @"White wins";
-    }
-    if (message) {
-        activeGame = NO;
-        [TSMessage showNotificationInViewController:self.navigationController
-                                              title: @"Game Over"
-                                           subtitle: message
-                                              image:nil
-                                               type: (iWin?TSMessageNotificationTypeSuccess:TSMessageNotificationTypeError)
-                                           duration:TSMessageNotificationDurationAutomatic
-                                           callback: ^{
-                                               [TSMessage dismissActiveNotification];
-                                           }
-                                        buttonTitle: nil
-                                     buttonCallback:nil
-                                         atPosition:TSMessageNotificationPositionBottom
-                               canBeDismissedByUser:YES];
-    }
-
-    int i = 0;
-    for (NSNumber *move in [aiPlayer moves]) {
-        int rowCol = [move intValue];
-        if (i == 0) {
-            [moveStatsString appendString: @"<b>1.</b> "];
-        } else {
-            if ((i%2) == 0) {
-                [moveStatsString appendString: [NSString stringWithFormat:@"&nbsp; <b>%i.</b> ", (i >> 1) + 1]];
-            } else {
-                [moveStatsString appendString: @" - "];
-            }
-        }
-        [moveStatsString appendString:[NSString stringWithFormat:@"%c%d", coordinateLetters[rowCol % 19], 19 - (rowCol / 19)]];
-        ++i;
-    }
-    [playerStats loadHTMLString: moveStatsString baseURL:nil];
-
-}
-
--(void) replayKeryoPenteGame: (unsigned long) untilMove {
-    [self resetBoard];
-    whiteCaptures = 0;
-    blackCaptures = 0;
-    for (int i = 0; i < untilMove; ++i) {
-        int rowCol = [[[aiPlayer moves] objectAtIndex:i] intValue];
-        int color = (i % 2) + 1, opponentColor = (color == 2) ? 1 : 2;
-        abstractBoard[rowCol / 19][rowCol % 19] = color;
-        [self detectCaptureOfOpponent:opponentColor atPosition:rowCol];
-        [self detectKeryoCaptureOfOpponent:opponentColor atPosition:rowCol];
-    }
-//    if ([[game ratedNot] isEqualToString:@"Rated"] && ([movesList count] == 2)) {
-//        for(int i = 7; i < 12; ++i) {
-//            for(int j = 7; j < 12; ++j) {
-//                if (abstractBoard[i][j] == 0) {
-//                    abstractBoard[i][j] = -1;
-//                }
+//-(void) replayPenteGame: (unsigned long) untilMove {
+//    [self resetBoard];
+//    whiteCaptures = 0;
+//    blackCaptures = 0;
+//    for (int i = 0; i < untilMove; ++i) {
+//        int rowCol = [[[aiPlayer moves] objectAtIndex:i] intValue];
+//        int color = (i % 2) + 1, opponentColor = (color == 2) ? 1 : 2;
+//        abstractBoard[rowCol / 19][rowCol % 19] = color;
+//        [self detectCaptureOfOpponent:opponentColor atPosition:rowCol];
+//    }
+//    
+//    [board setAbstractBoard: abstractBoard];
+//    [board setLastMove: [[[aiPlayer moves] objectAtIndex:untilMove - 1] intValue]];
+//    if (lastMove == [movesList count]) {
+//        [zoomedBoard setAbstractBoard: abstractBoard];
+//        [zoomedBoard setLastMove: [[[aiPlayer moves] objectAtIndex:untilMove - 1] intValue]];
+//    }
+//    [board setNeedsDisplay];
+//    [zoomedBoard setNeedsDisplay];
+//    [self updateCaptures];
+//    
+//    NSString *message = nil;
+//    BOOL iWin = YES;
+//    if ([self detectPenteOf: 2-([[aiPlayer moves] count]%2) atPosition: [[[aiPlayer moves] lastObject] intValue]]) {
+//        if (2-([[aiPlayer moves] count]%2) == 1) {
+//            message = @"White wins";
+//        } else {
+//            message = @"Black wins";
+//        }
+//    } else if (whiteCaptures == 10) {
+//        message = @"Black wins";
+//    } else if (blackCaptures == 10) {
+//        message = @"White wins";
+//    }
+//    if (message) {
+//        activeGame = NO;
+//        [TSMessage showNotificationInViewController:self.navigationController
+//                                              title: @"Game Over"
+//                                           subtitle: message
+//                                              image:nil
+//                                               type: (iWin?TSMessageNotificationTypeSuccess:TSMessageNotificationTypeError)
+//                                           duration:TSMessageNotificationDurationAutomatic
+//                                           callback: ^{
+//                                               [TSMessage dismissActiveNotification];
+//                                           }
+//                                        buttonTitle: nil
+//                                     buttonCallback:nil
+//                                         atPosition:TSMessageNotificationPositionBottom
+//                               canBeDismissedByUser:YES];
+//    }
+//
+//    int i = 0;
+//    for (NSNumber *move in [aiPlayer moves]) {
+//        int rowCol = [move intValue];
+//        if (i == 0) {
+//            [moveStatsString appendString: @"<b>1.</b> "];
+//        } else {
+//            if ((i%2) == 0) {
+//                [moveStatsString appendString: [NSString stringWithFormat:@"&nbsp; <b>%i.</b> ", (i >> 1) + 1]];
+//            } else {
+//                [moveStatsString appendString: @" - "];
 //            }
 //        }
+//        [moveStatsString appendString:[NSString stringWithFormat:@"%c%d", coordinateLetters[rowCol % 19], 19 - (rowCol / 19)]];
+//        ++i;
 //    }
-    
-    
-    //NSLog(@" kitty moves %i",abstractBoard[0][0]);
-    [board setAbstractBoard: abstractBoard];
-    [board setAbstractBoard: abstractBoard];
-    [board setLastMove: [[[aiPlayer moves] objectAtIndex:untilMove - 1] intValue]];
-    if (lastMove == [movesList count]) {
-        [zoomedBoard setAbstractBoard: abstractBoard];
-        [zoomedBoard setLastMove: [[[aiPlayer moves] objectAtIndex:untilMove - 1] intValue]];
-    }
-    [board setNeedsDisplay];
-    [zoomedBoard setNeedsDisplay];
-    [self updateCaptures];
-
-    NSString *message = nil;
-    BOOL iWin = YES;
-    if ([self detectPenteOf: 2-([[aiPlayer moves] count]%2) atPosition: [[[aiPlayer moves] lastObject] intValue]]) {
-        if (2-([[aiPlayer moves] count]%2) == 1) {
-            message = @"White wins";
-        } else {
-            message = @"Black wins";
-        }
-    } else if (whiteCaptures >= 15) {
-        message = @"Black wins";
-    } else if (blackCaptures >= 15) {
-        message = @"White wins";
-    }
-    if (message) {
-        activeGame = NO;
-        [TSMessage showNotificationInViewController:self.navigationController
-                                              title: @"Game Over"
-                                           subtitle: message
-                                              image:nil
-                                               type: (iWin?TSMessageNotificationTypeSuccess:TSMessageNotificationTypeError)
-                                           duration:TSMessageNotificationDurationAutomatic
-                                           callback: ^{
-                                               [TSMessage dismissActiveNotification];
-                                           }
-                                        buttonTitle: nil
-                                     buttonCallback:nil
-                                         atPosition:TSMessageNotificationPositionBottom
-                               canBeDismissedByUser:YES];
-    }
-    
-    int i = 0;
-    for (NSNumber *move in [aiPlayer moves]) {
-        int rowCol = [move intValue];
-        if (i == 0) {
-            [moveStatsString appendString: @"<b>1.</b> "];
-        } else {
-            if ((i%2) == 0) {
-                [moveStatsString appendString: [NSString stringWithFormat:@"&nbsp; <b>%i.</b> ", (i >> 1) + 1]];
-            } else {
-                [moveStatsString appendString: @" - "];
-            }
-        }
-        [moveStatsString appendString:[NSString stringWithFormat:@"%c%d", coordinateLetters[rowCol % 19], 19 - (rowCol / 19)]];
-        ++i;
-    }
-    [playerStats loadHTMLString: moveStatsString baseURL:nil];
-}
+//    [playerStats loadHTMLString: moveStatsString baseURL:nil];
+//
+//}
+//
+//-(void) replayKeryoPenteGame: (unsigned long) untilMove {
+//    [self resetBoard];
+//    whiteCaptures = 0;
+//    blackCaptures = 0;
+//    for (int i = 0; i < untilMove; ++i) {
+//        int rowCol = [[[aiPlayer moves] objectAtIndex:i] intValue];
+//        int color = (i % 2) + 1, opponentColor = (color == 2) ? 1 : 2;
+//        abstractBoard[rowCol / 19][rowCol % 19] = color;
+//        [self detectCaptureOfOpponent:opponentColor atPosition:rowCol];
+//        [self detectKeryoCaptureOfOpponent:opponentColor atPosition:rowCol];
+//    }
+////    if ([[game ratedNot] isEqualToString:@"Rated"] && ([movesList count] == 2)) {
+////        for(int i = 7; i < 12; ++i) {
+////            for(int j = 7; j < 12; ++j) {
+////                if (abstractBoard[i][j] == 0) {
+////                    abstractBoard[i][j] = -1;
+////                }
+////            }
+////        }
+////    }
+//    
+//    
+//    //NSLog(@" kitty moves %i",abstractBoard[0][0]);
+//    [board setAbstractBoard: abstractBoard];
+//    [board setAbstractBoard: abstractBoard];
+//    [board setLastMove: [[[aiPlayer moves] objectAtIndex:untilMove - 1] intValue]];
+//    if (lastMove == [movesList count]) {
+//        [zoomedBoard setAbstractBoard: abstractBoard];
+//        [zoomedBoard setLastMove: [[[aiPlayer moves] objectAtIndex:untilMove - 1] intValue]];
+//    }
+//    [board setNeedsDisplay];
+//    [zoomedBoard setNeedsDisplay];
+//    [self updateCaptures];
+//
+//    NSString *message = nil;
+//    BOOL iWin = YES;
+//    if ([self detectPenteOf: 2-([[aiPlayer moves] count]%2) atPosition: [[[aiPlayer moves] lastObject] intValue]]) {
+//        if (2-([[aiPlayer moves] count]%2) == 1) {
+//            message = @"White wins";
+//        } else {
+//            message = @"Black wins";
+//        }
+//    } else if (whiteCaptures >= 15) {
+//        message = @"Black wins";
+//    } else if (blackCaptures >= 15) {
+//        message = @"White wins";
+//    }
+//    if (message) {
+//        activeGame = NO;
+//        [TSMessage showNotificationInViewController:self.navigationController
+//                                              title: @"Game Over"
+//                                           subtitle: message
+//                                              image:nil
+//                                               type: (iWin?TSMessageNotificationTypeSuccess:TSMessageNotificationTypeError)
+//                                           duration:TSMessageNotificationDurationAutomatic
+//                                           callback: ^{
+//                                               [TSMessage dismissActiveNotification];
+//                                           }
+//                                        buttonTitle: nil
+//                                     buttonCallback:nil
+//                                         atPosition:TSMessageNotificationPositionBottom
+//                               canBeDismissedByUser:YES];
+//    }
+//    
+//    int i = 0;
+//    for (NSNumber *move in [aiPlayer moves]) {
+//        int rowCol = [move intValue];
+//        if (i == 0) {
+//            [moveStatsString appendString: @"<b>1.</b> "];
+//        } else {
+//            if ((i%2) == 0) {
+//                [moveStatsString appendString: [NSString stringWithFormat:@"&nbsp; <b>%i.</b> ", (i >> 1) + 1]];
+//            } else {
+//                [moveStatsString appendString: @" - "];
+//            }
+//        }
+//        [moveStatsString appendString:[NSString stringWithFormat:@"%c%d", coordinateLetters[rowCol % 19], 19 - (rowCol / 19)]];
+//        ++i;
+//    }
+//    [playerStats loadHTMLString: moveStatsString baseURL:nil];
+//}
 
 
 -(void) replayGame {
@@ -1068,117 +1124,117 @@ struct Capture {
 }
 
 
--(BOOL) detectPenteOf: (int) color atPosition: (int) rowCol {
-    BOOL pente = NO;
-    int penteCounter = 1;
-    int row = rowCol / 19, col = rowCol % 19, i, j;
-    i = row - 1;
-    j = col;
-    while (i > 0 && i < 19 && j > 0 && j < 19 && !pente) {
-        if (color == abstractBoard[i][j]) {
-            penteCounter += 1;
-            pente = (penteCounter > 4);
-        } else {
-            break;
-        }
-        i -= 1;
-    }
-    i = row + 1;
-    j = col;
-    while (i > 0 && i < 19 && j > 0 && j < 19 && !pente) {
-        if (color == abstractBoard[i][j]) {
-            penteCounter += 1;
-            pente = (penteCounter > 4);
-        } else {
-            break;
-        }
-        i += 1;
-    }
-    if (pente) {
-        return pente;
-    }
-    penteCounter = 1;
-    i = row;
-    j = col - 1;
-    while (i > 0 && i < 19 && j > 0 && j < 19 && !pente) {
-        if (color == abstractBoard[i][j]) {
-            penteCounter += 1;
-            pente = (penteCounter > 4);
-        } else {
-            break;
-        }
-        j -= 1;
-    }
-    i = row;
-    j = col + 1;
-    while (i > 0 && i < 19 && j > 0 && j < 19 && !pente) {
-        if (color == abstractBoard[i][j]) {
-            penteCounter += 1;
-            pente = (penteCounter > 4);
-        } else {
-            break;
-        }
-        j += 1;
-    }
-    if (pente) {
-        return pente;
-    }
-    penteCounter = 1;
-    i = row - 1;
-    j = col - 1;
-    while (i > 0 && i < 19 && j > 0 && j < 19 && !pente) {
-        if (color == abstractBoard[i][j]) {
-            penteCounter += 1;
-            pente = (penteCounter > 4);
-        } else {
-            break;
-        }
-        j -= 1;
-        i -= 1;
-    }
-    i = row + 1;
-    j = col + 1;
-    while (i > 0 && i < 19 && j > 0 && j < 19 && !pente) {
-        if (color == abstractBoard[i][j]) {
-            penteCounter += 1;
-            pente = (penteCounter > 4);
-        } else {
-            break;
-        }
-        i += 1;
-        j += 1;
-    }
-    if (pente) {
-        return pente;
-    }
-    penteCounter = 1;
-    i = row - 1;
-    j = col + 1;
-    while (i > 0 && i < 19 && j > 0 && j < 19 && !pente) {
-        if (color == abstractBoard[i][j]) {
-            penteCounter += 1;
-            pente = (penteCounter > 4);
-        } else {
-            break;
-        }
-        j += 1;
-        i -= 1;
-    }
-    i = row + 1;
-    j = col - 1;
-    while (i > 0 && i < 19 && j > 0 && j < 19 && !pente) {
-        if (color == abstractBoard[i][j]) {
-            penteCounter += 1;
-            pente = (penteCounter > 4);
-        } else {
-            break;
-        }
-        i += 1;
-        j -= 1;
-    }
-
-    return pente;
-}
+//-(BOOL) detectPenteOf: (int) color atPosition: (int) rowCol {
+//    BOOL pente = NO;
+//    int penteCounter = 1;
+//    int row = rowCol / 19, col = rowCol % 19, i, j;
+//    i = row - 1;
+//    j = col;
+//    while (i > 0 && i < 19 && j > 0 && j < 19 && !pente) {
+//        if (color == abstractBoard[i][j]) {
+//            penteCounter += 1;
+//            pente = (penteCounter > 4);
+//        } else {
+//            break;
+//        }
+//        i -= 1;
+//    }
+//    i = row + 1;
+//    j = col;
+//    while (i > 0 && i < 19 && j > 0 && j < 19 && !pente) {
+//        if (color == abstractBoard[i][j]) {
+//            penteCounter += 1;
+//            pente = (penteCounter > 4);
+//        } else {
+//            break;
+//        }
+//        i += 1;
+//    }
+//    if (pente) {
+//        return pente;
+//    }
+//    penteCounter = 1;
+//    i = row;
+//    j = col - 1;
+//    while (i > 0 && i < 19 && j > 0 && j < 19 && !pente) {
+//        if (color == abstractBoard[i][j]) {
+//            penteCounter += 1;
+//            pente = (penteCounter > 4);
+//        } else {
+//            break;
+//        }
+//        j -= 1;
+//    }
+//    i = row;
+//    j = col + 1;
+//    while (i > 0 && i < 19 && j > 0 && j < 19 && !pente) {
+//        if (color == abstractBoard[i][j]) {
+//            penteCounter += 1;
+//            pente = (penteCounter > 4);
+//        } else {
+//            break;
+//        }
+//        j += 1;
+//    }
+//    if (pente) {
+//        return pente;
+//    }
+//    penteCounter = 1;
+//    i = row - 1;
+//    j = col - 1;
+//    while (i > 0 && i < 19 && j > 0 && j < 19 && !pente) {
+//        if (color == abstractBoard[i][j]) {
+//            penteCounter += 1;
+//            pente = (penteCounter > 4);
+//        } else {
+//            break;
+//        }
+//        j -= 1;
+//        i -= 1;
+//    }
+//    i = row + 1;
+//    j = col + 1;
+//    while (i > 0 && i < 19 && j > 0 && j < 19 && !pente) {
+//        if (color == abstractBoard[i][j]) {
+//            penteCounter += 1;
+//            pente = (penteCounter > 4);
+//        } else {
+//            break;
+//        }
+//        i += 1;
+//        j += 1;
+//    }
+//    if (pente) {
+//        return pente;
+//    }
+//    penteCounter = 1;
+//    i = row - 1;
+//    j = col + 1;
+//    while (i > 0 && i < 19 && j > 0 && j < 19 && !pente) {
+//        if (color == abstractBoard[i][j]) {
+//            penteCounter += 1;
+//            pente = (penteCounter > 4);
+//        } else {
+//            break;
+//        }
+//        j += 1;
+//        i -= 1;
+//    }
+//    i = row + 1;
+//    j = col - 1;
+//    while (i > 0 && i < 19 && j > 0 && j < 19 && !pente) {
+//        if (color == abstractBoard[i][j]) {
+//            penteCounter += 1;
+//            pente = (penteCounter > 4);
+//        } else {
+//            break;
+//        }
+//        i += 1;
+//        j -= 1;
+//    }
+//
+//    return pente;
+//}
 
 -(void) detectKeryoCaptureOfOpponent: (int) opponentColor atPosition: (int) rowCol {
     int i = rowCol / 19, j = rowCol % 19, myColor = (opponentColor == 1) ? 2 : 1;
@@ -1479,14 +1535,7 @@ struct Capture {
 
 
 -(void) showSetup {
-    
-    setupView = [[DBSetupView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width*2/3, 88)];
-    [setupView setScrollEnabled:NO];
-    [setupView setDelegate: setupView];
-    [setupView setDataSource: setupView];
-    [setupView setBoard: board];
-    [setupView setZBoard:zoomedBoard];
-    messagePopover = [PopoverView showPopoverAtPoint: CGPointMake(self.view.bounds.size.width - 20, 0) inView:self.view withTitle: @"settings" withContentView: setupView delegate:self];
+    messagePopover = [PopoverView showPopoverAtPoint: CGPointMake(self.view.bounds.size.width - 20, 0) inView:self.view withTitle: @"search parameters" withContentView: setupView delegate:self];
     [messagePopover layoutSubviews];
     
 }
