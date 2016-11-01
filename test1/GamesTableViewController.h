@@ -15,6 +15,7 @@
 #import "SettingsViewController.h"
 #import "InvitationsViewController.h"
 #import <GoogleMobileAds/GoogleMobileAds.h>
+#import "ICDMaterialActivityIndicatorView.h"
 
 
 
@@ -43,6 +44,7 @@
     int gamesLimit;
     BOOL showAds;
     PopoverView *actionPopoverView;
+    ICDMaterialActivityIndicatorView *progressView;
 }
 @property(nonatomic,retain) PentePlayer *player;
 @property(nonatomic,retain) Game *selectedGame;
@@ -62,6 +64,7 @@ sentInvitationsCollapsed, nonActiveGamesCollapsed, alreadyAskedAboutInvitations,
 @property(nonatomic,retain) GameTableViewCell *selectedInvitationCell, *selectedPublicInvitationCell;
 @property(nonatomic, strong) GADInterstitial *interstitial;
 @property(nonatomic, retain, readwrite) PopoverView *actionPopoverView;
+@property (strong,nonatomic) ICDMaterialActivityIndicatorView *progressView;
 
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath;
@@ -72,6 +75,7 @@ sentInvitationsCollapsed, nonActiveGamesCollapsed, alreadyAskedAboutInvitations,
 //- (void)adViewWillLeaveApplication:(GADBannerView *)bannerView;
 -(void) dashboardParse;
 -(void) parseMessages;
+-(void) toInvitationsWithPlayer: (NSString *) playerName;
 
 
 @end

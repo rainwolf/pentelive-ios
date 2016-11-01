@@ -196,6 +196,8 @@ struct Capture {
     }
 
     setupView = [[DBSetupView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width*2/3, 220)];
+    setupView.layer.cornerRadius = 5.0f;
+    setupView.layer.borderWidth = 1.0f;
     [setupView setScrollEnabled:NO];
     [setupView setDelegate: setupView];
     [setupView setDataSource: setupView];
@@ -554,7 +556,7 @@ struct Capture {
         
         for (NSString *line in [dashboardString componentsSeparatedByString:@"\n"]) {
             if ([line rangeOfString:@"moves="].location == 0) {
-                //            NSLog(line);
+//                            NSLog(line);
 //                if ([line rangeOfString:@","].location != NSNotFound) {
                 if ([line length] > 6) {
                     for (NSString *moveString in [[line substringFromIndex:6] componentsSeparatedByString:@","]) {
@@ -563,7 +565,7 @@ struct Capture {
                 }
             }
             if ([line rangeOfString:@"occurrence="].location == 0) {
-                //            NSLog(line);
+//                            NSLog(line);
                 double max = 0.0, min = DBL_MAX;
 //                if ([line rangeOfString:@";"].location != NSNotFound) {
                 if ([line length] > 11) {
@@ -575,6 +577,10 @@ struct Capture {
                         if (min > dblValue) {
                             min = dblValue;
                         }
+                    }
+                    if (max == min) {
+                        max = 100.0;
+                        min = 0.0;
                     }
                     //            double i = 0.0;
                     for (NSString *moveString in [[line substringFromIndex:11] componentsSeparatedByString:@";"]) {

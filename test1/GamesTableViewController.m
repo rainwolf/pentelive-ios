@@ -15,6 +15,7 @@
 #import "SVWebViewController.h"
 #import "MMAIViewController.h"
 #import "KOTHTableViewController.h"
+#import "WhosOnlineView.h"
 
 
 #define usernameKey @"username"
@@ -53,6 +54,7 @@
 @synthesize gamesLimit;
 @synthesize showAds;
 @synthesize actionPopoverView;
+@synthesize progressView;
 
 
 //- (void)adViewWillLeaveApplication:(GADBannerView *)bannerView {
@@ -142,6 +144,10 @@
     if (openInvitationsLimit == 0) {
         [[NSUserDefaults standardUserDefaults] setInteger: 3 forKey:@"openInvitationsLimit"];
     }
+    self.progressView = [[ICDMaterialActivityIndicatorView alloc]initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height) activityIndicatorStyle:ICDMaterialActivityIndicatorViewStyleLarge];
+    [self.progressView setBackgroundColor:[UIColor whiteColor]];
+    [self.progressView setAlpha:0.75];
+    
 }
 
 
@@ -2958,17 +2964,43 @@
     CGRect frame = CGRectMake(0, 0, 45, 45);
     UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
     button.backgroundColor = [UIColor clearColor];
-    button.titleLabel.font = [UIFont boldSystemFontOfSize:17];
+//    button.titleLabel.font = [UIFont boldSystemFontOfSize:17];
     [button setImage:[UIImage imageNamed:@"newmessage.png"] forState:UIControlStateNormal];
+    [button setTitle:@" new message" forState:UIControlStateNormal];
+    [button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
     [button addTarget:self action:@selector(toComposer) forControlEvents:UIControlEventTouchUpInside];
-    [button setFrame:frame];
+//    [button setFrame:frame];
+    [button sizeToFit];
+    frame = button.frame;
     [buttonsArray addObject: button];
     button = [UIButton buttonWithType:UIButtonTypeCustom];
     button.backgroundColor = [UIColor clearColor];
     [button setImage:[UIImage imageNamed:@"showstats.png"] forState:UIControlStateNormal];
+    [button setTitle:@" my ratings" forState:UIControlStateNormal];
+    [button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
     [button addTarget:self action:@selector(showStats) forControlEvents:UIControlEventTouchUpInside];
-    [button setFrame:frame];
+    //    [button setFrame:frame];
+    [button sizeToFit];
+    if (button.frame.size.width > frame.size.width) {
+        frame = button.frame;
+    }
     [buttonsArray addObject: button];
+    button = [UIButton buttonWithType:UIButtonTypeCustom];
+    button.backgroundColor = [UIColor clearColor];
+    [button setImage:[UIImage imageNamed:@"onlineUsers.png"] forState:UIControlStateNormal];
+    [button setTitle:@" online players" forState:UIControlStateNormal];
+    [button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+    [button addTarget:self action:@selector(showOnlinePlayers) forControlEvents:UIControlEventTouchUpInside];
+    //    [button setFrame:frame];
+    [button sizeToFit];
+    if (button.frame.size.width > frame.size.width) {
+        frame = button.frame;
+    }
+    [buttonsArray addObject: button];
+    for (UIButton *bttn in buttonsArray) {
+        bttn.contentHorizontalAlignment = UIControlContentHorizontalAlignmentLeft;
+        bttn.frame = frame;
+    }
     
     actionPopoverView = [PopoverView showPopoverAtPoint: CGPointMake(self.view.bounds.size.width - 20, self.tableView.contentOffset.y) inView:self.view withViewArray: buttonsArray delegate:self];
     
@@ -2985,16 +3017,76 @@
     [actionPopoverView dismiss];
     
     RatingStatsView *ratingView = [[RatingStatsView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width*4/5, 44*[[player ratingStats] count])];
+    ratingView.layer.cornerRadius = 5.0f;
+    ratingView.layer.borderWidth = 1.0f;
     [ratingView setDelegate: ratingView];
     [ratingView setDataSource: ratingView];
     [ratingView setRatingStats: [player ratingStats]];
-//    [ratingView setUserInteractionEnabled:NO];
+    //    [ratingView setUserInteractionEnabled:NO];
     [ratingView setScrollEnabled: NO];
     [ratingView setVc: self];
     
     actionPopoverView = [PopoverView showPopoverAtPoint: CGPointMake(self.view.bounds.size.width - 20, self.tableView.contentOffset.y) inView:self.view withTitle: @"rating stats" withContentView: ratingView delegate:self];
     [actionPopoverView layoutSubviews];
-//    [ratingView setFrame: frame];
+    //    [ratingView setFrame: frame];
+}
+
+-(void) showOnlinePlayers {
+    [actionPopoverView dismiss];
+    [self.progressView startAnimating];
+    [self.view addSubview:self.progressView];
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        //    [[NSRunLoop mainRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:2.0]];
+        NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
+        NSString *url = [NSString stringWithFormat:@"https://www.pente.org/gameServer/mobile/whosonline.jsp"];
+        [request setURL:[NSURL URLWithString:url]];
+        [request setHTTPMethod:@"GET"];
+        [request setTimeoutInterval:7.0];
+        NSURLResponse *response;
+        NSError *error;
+        NSData *responseData = [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
+        NSString *dashboardString = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
+        //    NSLog(@"kittyyyyyyString -\n%@-", dashboardString);
+        
+        if (error) {
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:[NSString stringWithFormat:@"Reason: %@", error.localizedDescription] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+            //        [alert show];
+            [alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:YES];
+            [self.progressView stopAnimating];
+            [self.progressView removeFromSuperview];
+            return;
+        }
+        NSMutableArray *players = [[NSMutableArray alloc] init];
+        for (NSString *line in [dashboardString componentsSeparatedByString:@"\n"]) {
+            NSArray *splitLine = [line componentsSeparatedByString:@","];
+            if ([splitLine count] > 3) {
+                Player *playr = [[Player alloc] init];
+                [playr setName: [splitLine objectAtIndex:0]];
+                [playr setRating: [splitLine objectAtIndex:1]];
+                [playr setColor: [[splitLine objectAtIndex:2] intValue]];
+                [playr setCrown: [[splitLine objectAtIndex:3] intValue]];
+                [playr setNumberOfGames: [splitLine objectAtIndex:4]];
+                [players addObject: playr];
+            }
+        }
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self.progressView stopAnimating];
+            [self.progressView removeFromSuperview];
+            WhosOnlineView *playersView = [[WhosOnlineView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width*4/5, 44*[players count])];
+            playersView.layer.cornerRadius = 5.0f;
+            playersView.layer.borderWidth = 1.0f;
+            [playersView setDelegate: playersView];
+            [playersView setDataSource: playersView];
+            [playersView setPlayers:players];
+            [playersView setVc: self];
+            actionPopoverView = [PopoverView showPopoverAtPoint: CGPointMake(self.view.bounds.size.width - 20, self.tableView.contentOffset.y) inView:self.view withTitle: @"who's online" withContentView:playersView delegate:self];
+            [actionPopoverView layoutSubviews];
+        });
+    });
+    
+    
+    //    [ratingView setFrame: frame];
 }
 
 -(void) showInvitationActions {
@@ -3060,6 +3152,14 @@
     [actionPopoverView dismiss];
     [self performSegueWithIdentifier:@"addInvitationsTap" sender: self];
     //    [self performSegueWithIdentifier:@"inviteAItap" sender:self];
+}
+-(void) toInvitationsWithPlayer: (NSString *) playerName {
+    [actionPopoverView dismiss];
+    if (![playerName isEqualToString:username]) {
+        PenteNavigationViewController *navController = (PenteNavigationViewController *) self.navigationController;
+        [navController setChallengedUser: playerName];
+        [self performSegueWithIdentifier:@"addInvitationsTap" sender: self];
+    }
 }
 -(void) toMMAI {
     if (showAds) {

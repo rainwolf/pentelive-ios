@@ -20,6 +20,9 @@
 		6322A5A31D2BB1830023304F /* KOTHChallengeView.m in Sources */ = {isa = PBXBuildFile; fileRef = 6322A5A21D2BB1830023304F /* KOTHChallengeView.m */; };
 		6322ECFA1744C93D00793511 /* preferencesBG@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 6322ECF81744C93D00793511 /* preferencesBG@2x.png */; };
 		6322ECFB1744C93D00793511 /* preferencesBG.png in Resources */ = {isa = PBXBuildFile; fileRef = 6322ECF91744C93D00793511 /* preferencesBG.png */; };
+		6333AF871DC8BB030023BAAF /* WhosOnlineView.m in Sources */ = {isa = PBXBuildFile; fileRef = 6333AF861DC8BB030023BAAF /* WhosOnlineView.m */; };
+		6333AF8B1DC8C9580023BAAF /* onlineUsers.png in Resources */ = {isa = PBXBuildFile; fileRef = 6333AF891DC8C9580023BAAF /* onlineUsers.png */; };
+		6333AF8C1DC8C9580023BAAF /* onlineUsers@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 6333AF8A1DC8C9580023BAAF /* onlineUsers@2x.png */; };
 		633648071CEDB48700F432E2 /* friends.png in Resources */ = {isa = PBXBuildFile; fileRef = 633648051CEDB48700F432E2 /* friends.png */; };
 		633648081CEDB48700F432E2 /* friends@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 633648061CEDB48700F432E2 /* friends@2x.png */; };
 		6336480B1CEDB6C600F432E2 /* help.png in Resources */ = {isa = PBXBuildFile; fileRef = 633648091CEDB6C600F432E2 /* help.png */; };
@@ -169,6 +172,10 @@
 		6322A5A41D2BB18D0023304F /* KOTHChallengeView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KOTHChallengeView.h; sourceTree = "<group>"; };
 		6322ECF81744C93D00793511 /* preferencesBG@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "preferencesBG@2x.png"; sourceTree = "<group>"; };
 		6322ECF91744C93D00793511 /* preferencesBG.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = preferencesBG.png; sourceTree = "<group>"; };
+		6333AF861DC8BB030023BAAF /* WhosOnlineView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WhosOnlineView.m; sourceTree = "<group>"; };
+		6333AF881DC8BB180023BAAF /* WhosOnlineView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WhosOnlineView.h; sourceTree = "<group>"; };
+		6333AF891DC8C9580023BAAF /* onlineUsers.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = onlineUsers.png; sourceTree = "<group>"; };
+		6333AF8A1DC8C9580023BAAF /* onlineUsers@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "onlineUsers@2x.png"; sourceTree = "<group>"; };
 		633648051CEDB48700F432E2 /* friends.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = friends.png; sourceTree = "<group>"; };
 		633648061CEDB48700F432E2 /* friends@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "friends@2x.png"; sourceTree = "<group>"; };
 		633648091CEDB6C600F432E2 /* help.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = help.png; sourceTree = "<group>"; };
@@ -520,6 +527,8 @@
 				63C4198A17B0E03200983B57 /* Images.xcassets */,
 				6336480F1CF350C600F432E2 /* RatingStatsView.h */,
 				633648101CF350C600F432E2 /* RatingStatsView.m */,
+				6333AF861DC8BB030023BAAF /* WhosOnlineView.m */,
+				6333AF881DC8BB180023BAAF /* WhosOnlineView.h */,
 				63B20FDA1D282A410090644D /* KOTHTableViewController.h */,
 				63B20FDB1D282A410090644D /* KOTHTableViewController.m */,
 				6396A37A1D38DE81004BC68D /* ChangeColorViewController.h */,
@@ -625,6 +634,8 @@
 		63FEFC86168CAAC50070E9AA /* images */ = {
 			isa = PBXGroup;
 			children = (
+				6333AF891DC8C9580023BAAF /* onlineUsers.png */,
+				6333AF8A1DC8C9580023BAAF /* onlineUsers@2x.png */,
 				63EFAEB21DB647C60029DA41 /* database.png */,
 				63EFAEB31DB647C60029DA41 /* database@2x.png */,
 				63D299F21D992BB9005AED78 /* subscribeIcon.png */,
@@ -794,6 +805,7 @@
 				6396A3781D367105004BC68D /* moreSettings.png in Resources */,
 				63B3AC6A1CF64C0F00362111 /* newmessage.png in Resources */,
 				6336480C1CEDB6C600F432E2 /* help@2x.png in Resources */,
+				6333AF8C1DC8C9580023BAAF /* onlineUsers@2x.png in Resources */,
 				63FEFC91168CAAC50070E9AA /* arrow.png in Resources */,
 				63B3AC6C1CF64C0F00362111 /* showpopup.png in Resources */,
 				63AEDF001875C756006892F7 /* messageBubble0@2x.png in Resources */,
@@ -840,6 +852,7 @@
 				63B3AC751CF64E8000362111 /* settings@2x.png in Resources */,
 				63A6C23116C5C4CB00718708 /* UINavigationBarBlackOpaqueButton.png in Resources */,
 				63B53BFD1B9B2625003970ED /* IASKLocalizable.strings in Resources */,
+				6333AF8B1DC8C9580023BAAF /* onlineUsers.png in Resources */,
 				63EFAEB41DB647C60029DA41 /* database.png in Resources */,
 				6392B08319C354CB00916D41 /* Icon-76@2x.png in Resources */,
 				6396A3791D367105004BC68D /* moreSettings@2x.png in Resources */,
@@ -948,6 +961,7 @@
 				63B20FDC1D282A410090644D /* KOTHTableViewController.m in Sources */,
 				63B53BF61B9B2625003970ED /* IASKMultipleValueSelection.m in Sources */,
 				63B53BF91B9B2625003970ED /* IASKSettingsStore.m in Sources */,
+				6333AF871DC8BB030023BAAF /* WhosOnlineView.m in Sources */,
 				63FEFC591689BFB30070E9AA /* UIPullToReloadHeaderView.m in Sources */,
 				63FEFC5A1689BFB30070E9AA /* UIPullToReloadTableViewController.m in Sources */,
 				63FEFD54168DFDA30070E9AA /* SettingsViewController.m in Sources */,

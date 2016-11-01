@@ -54,17 +54,8 @@
 
 
 
-@interface Player : NSObject {
-    NSString *name, *rating, *lastGame;
-    BOOL canBeChallenged;
-    int crown, color;
-}
-@property(retain, nonatomic, readwrite) NSString *name, *rating, *lastGame;
-@property(assign, atomic, readwrite) BOOL canBeChallenged;
-@property(assign, atomic, readwrite) int crown, color;
-@end
 @implementation Player
-@synthesize name, rating, lastGame;
+@synthesize name, rating, lastGame, numberOfGames;
 @synthesize canBeChallenged;
 @synthesize crown, color;
 @end
@@ -621,8 +612,8 @@
     
     if (section > 0) {
         [sectionHeaderView setBackgroundColor:[UIColor colorWithRed:(8.0/255) green:(52.0/255) blue:(29.0/255) alpha:1.0]];
-        for(Player *player in [[hill steps] objectAtIndex: section - 1]) {
-            if ([[[NSUserDefaults standardUserDefaults] objectForKey:@"username"] isEqualToString:[player  name]]) {
+        for(Player *playr in [[hill steps] objectAtIndex: section - 1]) {
+            if ([[[NSUserDefaults standardUserDefaults] objectForKey:@"username"] isEqualToString:[playr  name]]) {
                 [sectionHeaderView setBackgroundColor:[UIColor colorWithRed:1.0 green:(129.0/255) blue:0.0 alpha:1.0]];
                 break;
             }

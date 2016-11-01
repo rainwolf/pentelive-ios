@@ -14,6 +14,17 @@
 
 @class Hill;
 
+@interface Player : NSObject {
+    NSString *name, *rating, *lastGame, *numberOfGames;
+    BOOL canBeChallenged;
+    int crown, color;
+}
+@property(retain, nonatomic, readwrite) NSString *name, *rating, *lastGame, *numberOfGames;
+@property(assign, atomic, readwrite) BOOL canBeChallenged;
+@property(assign, atomic, readwrite) int crown, color;
+@end
+
+
 @interface KOTHTableViewController : UITableViewController <GADBannerViewDelegate, PopoverViewDelegate, UIScrollViewDelegate> {
     Hill *hill;
     KingOfTheHill *hillSummary;

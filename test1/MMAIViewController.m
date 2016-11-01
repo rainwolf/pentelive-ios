@@ -189,6 +189,15 @@
         [bannerView loadRequest:request];
         [self.view addSubview:bannerView];
     }
+    setupView = [[AISetupView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width*2/3, 132)];
+    setupView.layer.cornerRadius = 5.0f;
+    setupView.layer.borderWidth = 1.0f;
+    [setupView setScrollEnabled:NO];
+    [setupView setDelegate: setupView];
+    [setupView setDataSource: setupView];
+    //    [AISetupView setUserInteractionEnabled:NO];
+    [setupView setBoard: board];
+    [setupView setZBoard:zoomedBoard];
 
 }
 
@@ -946,13 +955,6 @@
 
 -(void) showSetup {
     
-    setupView = [[AISetupView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width*2/3, 132)];
-    [setupView setScrollEnabled:NO];
-    [setupView setDelegate: setupView];
-    [setupView setDataSource: setupView];
-//    [AISetupView setUserInteractionEnabled:NO];
-    [setupView setBoard: board];
-    [setupView setZBoard:zoomedBoard];
     messagePopover = [PopoverView showPopoverAtPoint: CGPointMake(self.view.bounds.size.width - 20, 0) inView:self.view withTitle: @"settings" withContentView: setupView delegate:self];
     [messagePopover layoutSubviews];
     
