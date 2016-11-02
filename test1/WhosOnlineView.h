@@ -36,10 +36,13 @@
 
 
 @interface WhosOnlineView : UITableView <UITableViewDelegate, UITableViewDataSource> {
+    PentePlayer *player;
     NSArray<Player *> *players;
     GamesTableViewController *vc;
 }
+
 @property(retain, nonatomic, readwrite) NSArray<Player *> *players;
 @property(retain, nonatomic, readwrite) GamesTableViewController *vc;
+@property(retain, nonatomic, readwrite) PentePlayer *player;
 
 @end

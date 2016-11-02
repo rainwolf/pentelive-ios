@@ -25,6 +25,7 @@
 //@end
 
 @implementation WhosOnlineView
+@synthesize player;
 @synthesize players;
 @synthesize vc;
 
@@ -88,6 +89,14 @@
     [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
 
     cell.detailTextLabel.text = [NSString stringWithFormat:@"Total games: %@", [playr numberOfGames]];
+    cell.backgroundColor = [UIColor colorWithRed: 222.0/256 green:236.0/256 blue:222.0/256 alpha:1];
+
+    if (playr.color != 0) {
+        UIImage *imgV = [player.avatars objectForKey: playr.name];
+        cell.imageView.image = imgV;
+    } else {
+        cell.imageView.image = nil;
+    }
 //    cell.textLabel.text =  [players objectAtIndex: indexPath.row].name;
 //    NSMutableString *ratingStr = [NSMutableString stringWithString:@"\u25A0 "];
 //    if ([[players objectAtIndex: indexPath.row].rating length] == 3) {
@@ -173,8 +182,12 @@
     [super layoutSubviews];
     CGFloat screenWidth = self.contentView.bounds.size.width;
     CGFloat imageWidth = 0;
-    if (self.imageView) {
+    if (self.imageView.image) {
+        [self.imageView setFrame:CGRectMake(0, 0, self.contentView.frame.size.height, self.contentView.frame.size.height)];
+        self.imageView.contentMode = UIViewContentModeScaleAspectFit;
         imageWidth = self.imageView.frame.size.width;
+    } else {
+        [self.imageView setFrame:CGRectMake(0, 0, 0, 0)];
     }
     CGFloat accessoryWidth;
     //    if (self.accessoryType == UITableViewCellAccessoryDisclosureIndicator) {
@@ -183,8 +196,8 @@
     //        accessoryWidth = 0;
     //    }
     accessoryWidth = 0;
-    [self.textLabel setFrame:CGRectMake(imageWidth + 10, 2, (screenWidth - imageWidth - accessoryWidth + 60)/2, 22)];
-    [self.ratingLabel setFrame:CGRectMake(imageWidth + 10 + (screenWidth - imageWidth - accessoryWidth - 20)/2, 2, (screenWidth - imageWidth - accessoryWidth - 60)/2, 22)];
+    [self.textLabel setFrame:CGRectMake(imageWidth + 10, 2, (screenWidth - imageWidth - accessoryWidth + 60)*2/3, 22)];
+    [self.ratingLabel setFrame:CGRectMake(imageWidth + 10 + (screenWidth - imageWidth - accessoryWidth - 20)*2/3, 2, (screenWidth - imageWidth - accessoryWidth - 60)/2, 22)];
     [self.detailTextLabel setFrame:CGRectMake(imageWidth + 10, 24, screenWidth - imageWidth - accessoryWidth - 20, 18)];
     [self.imageView setFrame:CGRectMake(0, 0, imageWidth, imageWidth)];
     

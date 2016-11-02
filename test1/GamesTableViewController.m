@@ -3033,10 +3033,11 @@
 
 -(void) showOnlinePlayers {
     [actionPopoverView dismiss];
-    [self.progressView startAnimating];
-    [self.view addSubview:self.progressView];
+//    [[NSRunLoop mainRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.9]];
+
+//    [self.progressView startAnimating];
+//    [self.view addSubview:self.progressView];
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-        //    [[NSRunLoop mainRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:2.0]];
         NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
         NSString *url = [NSString stringWithFormat:@"https://www.pente.org/gameServer/mobile/whosonline.jsp"];
         [request setURL:[NSURL URLWithString:url]];
@@ -3056,6 +3057,8 @@
             [self.progressView removeFromSuperview];
             return;
         }
+        [self.progressView stopAnimating];
+        BOOL wantsToSeeAvatars = [[NSUserDefaults standardUserDefaults] boolForKey:@"wantToSeeAvatars"];
         NSMutableArray *players = [[NSMutableArray alloc] init];
         for (NSString *line in [dashboardString componentsSeparatedByString:@"\n"]) {
             NSArray *splitLine = [line componentsSeparatedByString:@","];
@@ -3067,13 +3070,15 @@
                 [playr setCrown: [[splitLine objectAtIndex:3] intValue]];
                 [playr setNumberOfGames: [splitLine objectAtIndex:4]];
                 [players addObject: playr];
+                if (wantsToSeeAvatars && (playr.color != 0)) {
+                    [player addUser: playr.name];
+                }
             }
         }
         
         dispatch_async(dispatch_get_main_queue(), ^{
-            [self.progressView stopAnimating];
-            [self.progressView removeFromSuperview];
-            WhosOnlineView *playersView = [[WhosOnlineView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width*4/5, 44*[players count])];
+            WhosOnlineView *playersView = [[WhosOnlineView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width*5/6, MIN(44*[players count], floor(self.view.frame.size.height*2/(3*44))*44))];
+            [playersView setPlayer: player];
             playersView.layer.cornerRadius = 5.0f;
             playersView.layer.borderWidth = 1.0f;
             [playersView setDelegate: playersView];
@@ -3082,12 +3087,19 @@
             [playersView setVc: self];
             actionPopoverView = [PopoverView showPopoverAtPoint: CGPointMake(self.view.bounds.size.width - 20, self.tableView.contentOffset.y) inView:self.view withTitle: @"who's online" withContentView:playersView delegate:self];
             [actionPopoverView layoutSubviews];
+            [playersView flashScrollIndicators];
         });
     });
     
     
     //    [ratingView setFrame: frame];
 }
+
+-(void) popoverViewDidDismiss:(PopoverView *)popoverView {
+    [self.progressView stopAnimating];
+    [self.progressView removeFromSuperview];
+}
+
 
 -(void) showInvitationActions {
     NSMutableArray *buttonsArray = [[NSMutableArray alloc] init];
