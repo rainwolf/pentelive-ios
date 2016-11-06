@@ -189,15 +189,9 @@
     } else {
         [self.imageView setFrame:CGRectMake(0, 0, 0, 0)];
     }
-    CGFloat accessoryWidth;
-    //    if (self.accessoryType == UITableViewCellAccessoryDisclosureIndicator) {
-    //        accessoryWidth = 20;
-    //    } else {
-    //        accessoryWidth = 0;
-    //    }
-    accessoryWidth = 0;
-    [self.textLabel setFrame:CGRectMake(imageWidth + 10, 2, (screenWidth - imageWidth - accessoryWidth + 60)*2/3, 22)];
-    [self.ratingLabel setFrame:CGRectMake(imageWidth + 10 + (screenWidth - imageWidth - accessoryWidth - 20)*2/3, 2, (screenWidth - imageWidth - accessoryWidth - 60)/2, 22)];
+    CGFloat accessoryWidth = self.accessoryView.frame.size.width;
+    [self.textLabel setFrame:CGRectMake(imageWidth + 10, 2, (screenWidth - imageWidth - accessoryWidth + 60)/2, 22)];
+    [self.ratingLabel setFrame:CGRectMake(imageWidth + 10 + (screenWidth - imageWidth - accessoryWidth - 20)/2, 2, (screenWidth - imageWidth - accessoryWidth - 20)/2, 22)];
     [self.detailTextLabel setFrame:CGRectMake(imageWidth + 10, 24, screenWidth - imageWidth - accessoryWidth - 20, 18)];
     [self.imageView setFrame:CGRectMake(0, 0, imageWidth, imageWidth)];
     

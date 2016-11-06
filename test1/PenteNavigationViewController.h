@@ -15,7 +15,7 @@
 
 
 @interface PenteNavigationViewController : UINavigationController {
-    BOOL loggedIn, didMove, messageDeleted, challengeCancelled, needHelp;
+    BOOL loggedIn, didMove, messageDeleted, challengeCancelled, needHelp, showSubscribe;
     int deletedMessageRow;
     NSString *activeGameToRemove, *unchallengedMessageID, *challengedUser;
 //    GADBannerView *bannerView;
@@ -24,7 +24,7 @@
     SKProduct *subscription;
 }
 @property(nonatomic,retain) NSString *activeGameToRemove, *unchallengedMessageID, *challengedUser;
-@property BOOL loggedIn, didMove, messageDeleted, challengeCancelled, needHelp;
+@property BOOL loggedIn, didMove, messageDeleted, challengeCancelled, needHelp, showSubscribe;
 @property int deletedMessageRow;
 //@property(nonatomic,retain) GADBannerView *bannerView;
 @property(nonatomic,retain) NSDictionary *receivedNotification;

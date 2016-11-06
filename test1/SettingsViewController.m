@@ -86,6 +86,9 @@
             [self.tableView cellForRowAtIndexPath: [NSIndexPath indexPathForRow:1 inSection:1]].userInteractionEnabled = NO;
         }
     }
+    if (((PenteNavigationViewController *) self.navigationController).showSubscribe) {
+        [self showSubscribeInfo];
+    }
 }
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
     if ([[NSUserDefaults standardUserDefaults] boolForKey:@"registrationSuccess"]) {
@@ -387,59 +390,7 @@
         [self presentViewController:keyXController animated:YES completion:nil];
     }
     if ([specifier.key isEqualToString:@"SubscribeButton"]) {
-        if (self.navC.subscription == nil) {
-            return;
-        }
-        SKProduct *product = self.navC.subscription;
-        NSNumberFormatter *numberFormatter = [[NSNumberFormatter alloc] init];
-        [numberFormatter setFormatterBehavior:NSNumberFormatterBehavior10_4];
-        [numberFormatter setNumberStyle:NSNumberFormatterCurrencyStyle];
-        [numberFormatter setLocale:product.priceLocale];
-        NSString *formattedPrice = [numberFormatter stringFromNumber:product.price];
-        
-        UILabel *subscribeText = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width*9/10, CGFLOAT_MAX)];
-        [subscribeText setLineBreakMode:NSLineBreakByWordWrapping];
-        [subscribeText setNumberOfLines:0];
-        NSString *subscribeString = @"\u2022 remove limits on open invitations\n\u2022 participate in all King of the Hills\n\u2022 see no more ads\n\u2022 change your name color\n\u2022 upload an avatar\n\u2022 access the database at pente.org!";
-        [subscribeText setText:subscribeString];
-        [subscribeText sizeToFit];
-        
-//        UILabel *priceText = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width*9/10, CGFLOAT_MAX)];
-        UILabel *priceText = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width*9/10, 50)];
-        [priceText setLineBreakMode:NSLineBreakByWordWrapping];
-        [priceText setNumberOfLines:0];
-        NSString *priceString = [NSString stringWithFormat:@"only %@ / year", formattedPrice];
-//        [priceText setAdjustsFontSizeToFitWidth:YES];
-        [priceText setText:priceString];
-        [priceText setFont:[UIFont systemFontOfSize: 23]];
-        [priceText setTextColor:[UIColor orangeColor]];
-        [priceText sizeToFit];
-
-        UILabel *clearInfoText = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width*9/10, CGFLOAT_MAX)];
-        [clearInfoText setLineBreakMode:NSLineBreakByWordWrapping];
-        [clearInfoText setNumberOfLines:0];
-        NSString *clearInfoString = @"(This subscription auto-renews every year.)";
-        [clearInfoText setText:clearInfoString];
-        [clearInfoText setFont:[UIFont systemFontOfSize: 14]];
-        [clearInfoText sizeToFit];
-
-        UIButton *subscribeButton = [UIButton buttonWithType:UIButtonTypeCustom];
-        subscribeButton.backgroundColor = [UIColor clearColor];
-        subscribeButton.titleLabel.font = [UIFont boldSystemFontOfSize:22];
-        [subscribeButton setTitleColor:[UIColor colorWithRed:0 green:0.0 blue:0.9 alpha:1] forState:UIControlStateNormal];
-        [subscribeButton setTitle:@"\u2606      subscribe      \u2606" forState:UIControlStateNormal];
-        [subscribeButton addTarget:self action:@selector(subscribe:) forControlEvents:UIControlEventTouchUpInside];
-        [subscribeButton setFrame:CGRectMake(0, 0, self.view.bounds.size.width*8/9, 60)];
-//        [subscribeButton setImage:[UIImage imageNamed:@"subscribeIcon"] forState:UIControlStateNormal];
-//        [subscribeButton setContentHorizontalAlignment:UIControlContentHorizontalAlignmentLeft];
-
-        self.progressView = [[ICDMaterialActivityIndicatorView alloc]initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height) activityIndicatorStyle:ICDMaterialActivityIndicatorViewStyleLarge];
-        [self.progressView setBackgroundColor:[UIColor whiteColor]];
-        [self.progressView setAlpha:0.75];
-        [self.progressView startAnimating];
-        [self.view addSubview:self.progressView];
-        popoverView = [PopoverView showPopoverAtPoint: CGPointMake(self.view.bounds.size.width/2, [self.tableView contentOffset].y) inView:self.view withTitle: @"Subscribe today and" withViewArray: @[subscribeText, priceText, clearInfoText, subscribeButton] delegate:self];
-        [popoverView setDelegate:self];
+        [self showSubscribeInfo];
     }
     
     if ([[specifier type] isEqualToString:kIASKOpenURLSpecifier]) {
@@ -448,6 +399,62 @@
 //        [[NSUserDefaults standardUserDefaults] setObject:newTitle forKey:specifier.key];
 }
 
+-(void) showSubscribeInfo {
+    ((PenteNavigationViewController *) self.navigationController).showSubscribe = NO;
+    if (self.navC.subscription == nil) {
+        return;
+    }
+    SKProduct *product = self.navC.subscription;
+    NSNumberFormatter *numberFormatter = [[NSNumberFormatter alloc] init];
+    [numberFormatter setFormatterBehavior:NSNumberFormatterBehavior10_4];
+    [numberFormatter setNumberStyle:NSNumberFormatterCurrencyStyle];
+    [numberFormatter setLocale:product.priceLocale];
+    NSString *formattedPrice = [numberFormatter stringFromNumber:product.price];
+    
+    UILabel *subscribeText = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width*9/10, CGFLOAT_MAX)];
+    [subscribeText setLineBreakMode:NSLineBreakByWordWrapping];
+    [subscribeText setNumberOfLines:0];
+    NSString *subscribeString = @"\u2022 remove limits on open invitations\n\u2022 participate in all King of the Hills\n\u2022 see no more ads\n\u2022 change your name color\n\u2022 upload an avatar\n\u2022 access the database!";
+    [subscribeText setText:subscribeString];
+    [subscribeText sizeToFit];
+    
+    //        UILabel *priceText = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width*9/10, CGFLOAT_MAX)];
+    UILabel *priceText = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width*9/10, 50)];
+    [priceText setLineBreakMode:NSLineBreakByWordWrapping];
+    [priceText setNumberOfLines:0];
+    NSString *priceString = [NSString stringWithFormat:@"only %@ / year", formattedPrice];
+    //        [priceText setAdjustsFontSizeToFitWidth:YES];
+    [priceText setText:priceString];
+    [priceText setFont:[UIFont systemFontOfSize: 23]];
+    [priceText setTextColor:[UIColor orangeColor]];
+    [priceText sizeToFit];
+    
+    UILabel *clearInfoText = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width*9/10, CGFLOAT_MAX)];
+    [clearInfoText setLineBreakMode:NSLineBreakByWordWrapping];
+    [clearInfoText setNumberOfLines:0];
+    NSString *clearInfoString = @"(This subscription auto-renews every year.)";
+    [clearInfoText setText:clearInfoString];
+    [clearInfoText setFont:[UIFont systemFontOfSize: 14]];
+    [clearInfoText sizeToFit];
+    
+    UIButton *subscribeButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    subscribeButton.backgroundColor = [UIColor clearColor];
+    subscribeButton.titleLabel.font = [UIFont boldSystemFontOfSize:22];
+    [subscribeButton setTitleColor:[UIColor colorWithRed:0 green:0.0 blue:0.9 alpha:1] forState:UIControlStateNormal];
+    [subscribeButton setTitle:@"\u2606      subscribe      \u2606" forState:UIControlStateNormal];
+    [subscribeButton addTarget:self action:@selector(subscribe:) forControlEvents:UIControlEventTouchUpInside];
+    [subscribeButton setFrame:CGRectMake(0, 0, self.view.bounds.size.width*8/9, 60)];
+    //        [subscribeButton setImage:[UIImage imageNamed:@"subscribeIcon"] forState:UIControlStateNormal];
+    //        [subscribeButton setContentHorizontalAlignment:UIControlContentHorizontalAlignmentLeft];
+    
+    self.progressView = [[ICDMaterialActivityIndicatorView alloc]initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height) activityIndicatorStyle:ICDMaterialActivityIndicatorViewStyleLarge];
+    [self.progressView setBackgroundColor:[UIColor whiteColor]];
+    [self.progressView setAlpha:0.75];
+    [self.progressView startAnimating];
+    [self.view addSubview:self.progressView];
+    popoverView = [PopoverView showPopoverAtPoint: CGPointMake(self.view.bounds.size.width/2, [self.tableView contentOffset].y) inView:self.view withTitle: @"Subscribe today and" withViewArray: @[subscribeText, priceText, clearInfoText, subscribeButton] delegate:self];
+    [popoverView setDelegate:self];
+}
 
 -(void) subscribe: (UIButton *) sender {
     subscribing = YES;

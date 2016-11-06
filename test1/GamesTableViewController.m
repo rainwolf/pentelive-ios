@@ -3141,9 +3141,9 @@
     [button setImage:[UIImage imageNamed:@"database.png"] forState:UIControlStateNormal];
     [button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
     button.backgroundColor = [UIColor clearColor];
-    if (player && ![player subscriber]) {
-        [button setAlpha:0.5f];
-    }
+//    if (player && ![player subscriber]) {
+//        [button setAlpha:0.5f];
+//    }
 //    [button setImage:[UIImage imageNamed:@"person.png"] forState:UIControlStateNormal];
     [button addTarget:self action:@selector(toDatabase) forControlEvents:UIControlEventTouchUpInside];
     [button sizeToFit];
@@ -3196,12 +3196,17 @@
     if (player && ![player subscriber]) {
         UIAlertController *subscribersOnlyController = [UIAlertController
                                              alertControllerWithTitle:NSLocalizedString(@"Level up your game", nil)
-                                             message: NSLocalizedString(@"The database allows you to search games in the pente.org database by position. This powerful tool enables you to study and analyze games, practice opening moves, sort the results by most played or highest win percentage.\nMore features like asking the AI what to do next, or more parameters for a search will be added in the future.\n\nThe database is open to subscribers only.", nil)
-                                             preferredStyle:UIAlertControllerStyleAlert];
-        UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"OK", nil) style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {
-//            NSLog(@"Cancel action");
+                                             message: NSLocalizedString(@"The database allows you to search games in the pente.org database by position. This powerful tool enables you to study and analyze games and opponents, practice opening moves, sort the results by most played or highest win percentage, and filter by player name and winner. More features will be added in the future.\n\nThe database is open to subscribers only.", nil)
+                                             preferredStyle:UIAlertControllerStyleActionSheet];
+        UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"dismiss", nil) style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {
+            //            NSLog(@"Cancel action");
+        }];
+        UIAlertAction *subscribeAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"subscribe now", nil) style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+            ((PenteNavigationViewController *) self.navigationController).showSubscribe = YES;
+            [self performSegueWithIdentifier:@"settingsTap" sender:self];
         }];
         [subscribersOnlyController addAction:cancelAction];
+        [subscribersOnlyController addAction:subscribeAction];
   
         [self presentViewController:subscribersOnlyController animated:NO completion:nil];
         return;

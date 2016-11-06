@@ -9,6 +9,7 @@
 #import "MessagesViewController.h"
 #import <QuartzCore/QuartzCore.h>
 #import "InvitationsViewController.h"
+#import "SVWebViewController.h"
 
 #define IS_IPHONE_5 ( fabs( ( double )[ [ UIScreen mainScreen ] bounds ].size.height - ( double )568 ) < DBL_EPSILON )
 #define usernameKey @"username"
@@ -75,10 +76,10 @@ InvitationsViewController *invitationVC;
         } else {
             [subjectField setText: [@"Re: " stringByAppendingString:subject]];
         }
-        [self.view addSubview:subjectField];
-        [self.view addSubview:receivedMessageView];
-        [self.view addSubview:replyMessageView];
-        [self.view addSubview:sendButton];
+//        [self.view addSubview:subjectField];
+//        [self.view addSubview:receivedMessageView];
+//        [self.view addSubview:replyMessageView];
+//        [self.view addSubview:sendButton];
         if (showAds) {
             [self.view addSubview:bannerView];
         }
@@ -130,7 +131,7 @@ InvitationsViewController *invitationVC;
         } else {
             [subjectField setText: [@"Re: " stringByAppendingString:subject]];
         }
-        [self.view addSubview:subjectField];
+//        [self.view addSubview:subjectField];
         
         NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
         NSString *url;
@@ -156,7 +157,7 @@ InvitationsViewController *invitationVC;
         NSString *receivedText = [self stripURL: [self replaceWithSmileys: tmpText]];
         
         NSDictionary *fontAttributes = [NSDictionary dictionaryWithObject:[receivedMessageView font] forKey:NSFontAttributeName];
-        [self.view addSubview:receivedMessageView];
+//        [self.view addSubview:receivedMessageView];
         CGRect textFrame = [receivedText boundingRectWithSize:CGSizeMake(receivedMessageView.contentSize.width + receivedMessageView.contentOffset.x - receivedMessageView.contentInset.left - receivedMessageView.contentInset.right, halfScreenSize) options:NSStringDrawingUsesLineFragmentOrigin attributes:fontAttributes context:nil];
         [receivedMessageView setText: receivedText];
         CGFloat fontLineHeight = [[receivedMessageView font] lineHeight];
@@ -181,19 +182,20 @@ InvitationsViewController *invitationVC;
         }];
     } else {
         [self setTitle: @"new message"];
+        [receivedMessageView removeFromSuperview];
         
         [toField setFrame:CGRectMake(3, 3, self.view.bounds.size.width - 6, 30)];
         self.toField.textColor = [UIColor blueColor];
-        [self.view addSubview:toField];
+//        [self.view addSubview:toField];
         
         [subjectField setFrame:CGRectMake(3, toField.frame.origin.y + toField.frame.size.height + 3, self.view.bounds.size.width - 6, 30)];
-        [self.view addSubview:subjectField];
+//        [self.view addSubview:subjectField];
         
         [replyMessageView setFrame:CGRectMake(3, subjectField.frame.origin.y + subjectField.frame.size.height + 3, self.view.bounds.size.width - 6, 44)];
         CGRect frame = replyMessageView.frame;
         frame.size.height = sendButton.frame.origin.y - subjectField.frame.origin.y - subjectField.frame.size.height - 6;
         [replyMessageView setFrame:frame];
-        [self.view addSubview:replyMessageView];
+//        [self.view addSubview:replyMessageView];
 
         if ([navController needHelp]) {
             [navController setNeedHelp:NO];
@@ -207,13 +209,13 @@ InvitationsViewController *invitationVC;
 
 -(void) viewDidDisappear:(BOOL)animated {
     [[NSNotificationCenter defaultCenter] removeObserver:self];
-    [receivedMessageView removeFromSuperview];
-    [replyMessageView removeFromSuperview];
-    [subjectField removeFromSuperview];
-    [sendButton removeFromSuperview];
-    [toField removeFromSuperview];
-    messageID = nil;
-    [bannerView removeFromSuperview];
+//    [receivedMessageView removeFromSuperview];
+//    [replyMessageView removeFromSuperview];
+//    [subjectField removeFromSuperview];
+//    [sendButton removeFromSuperview];
+//    [toField removeFromSuperview];
+//    messageID = nil;
+//    [bannerView removeFromSuperview];
     [super viewDidDisappear:animated];
 }
 
@@ -878,8 +880,12 @@ InvitationsViewController *invitationVC;
         [invitationVC setGame:gameString];
 
         return NO;
+    } else {
+        SVWebViewController *webViewController = [[SVWebViewController alloc] initWithAddress: urlString];
+        [self.navigationController pushViewController:webViewController animated:YES];
+        return NO;
     }
-    return YES;
+//    return YES;
 }
 
 
