@@ -10,17 +10,43 @@
 
 @implementation DBSetupView
 @synthesize gameCell, sortCell, winnerCell;
+@synthesize beforeCell, afterCell;
 @synthesize board, zBoard;
 @synthesize player1Cell, player2Cell;
+@synthesize beforePicker, afterPicker;
+@synthesize datePickerToolbar;
+@synthesize clearButton;
 
+-(instancetype) initWithFrame:(CGRect)frame {
+    if (self = [super initWithFrame:frame]) {
+        beforePicker = [[UIDatePicker alloc] init];
+        beforePicker.datePickerMode = UIDatePickerModeDate;
+        beforePicker.tag = 1;
+        [beforePicker addTarget:self action:@selector(datePickerValueChanged:) forControlEvents:UIControlEventValueChanged]; // method to respond to changes in the picker value
+        afterPicker = [[UIDatePicker alloc] init];
+        afterPicker.datePickerMode = UIDatePickerModeDate;
+        afterPicker.tag = 2;
+        [afterPicker addTarget:self action:@selector(datePickerValueChanged:) forControlEvents:UIControlEventValueChanged]; // method to respond to changes in the picker value
+        
+        // Setup UIToolbar for UIDatePicker
+        datePickerToolbar = [[UIToolbar alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, 44)];
+        [datePickerToolbar setBarStyle:UIBarStyleBlackTranslucent];
+        UIBarButtonItem *extraSpace = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:nil];
+        UIBarButtonItem *doneButton = [[UIBarButtonItem alloc] initWithTitle:@"Done" style:UIBarButtonItemStyleDone target:self action:@selector(dismissPicker:)]; // method to dismiss the picker when the "Done" button is pressed
+        clearButton = [[UIBarButtonItem alloc] initWithTitle:@"Clear" style:UIBarButtonItemStyleDone target:self action:@selector(clearDate:)]; // method to dismiss the picker
+        [datePickerToolbar setItems:[[NSArray alloc] initWithObjects: extraSpace, clearButton, doneButton, nil]];
+        
 
+    }
+    return self;
+}
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
     return 1;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    return 5;
+    return 7;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -98,15 +124,50 @@
         [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
         
         cell.textLabel.text =  @"Winner";
-//        NSString *str = [[NSUserDefaults standardUserDefaults] objectForKey: @"DBSort"];
-//        if (str) {
-//            cell.detailTextLabel.text = str;
-//        } else {
-//            cell.detailTextLabel.text = @"win percentage";
-//        }
         cell.detailTextLabel.text = @"either";
         
         winnerCell = cell;
+        
+        return cell;
+    }
+    if (indexPath.row == 5) {
+        DateTableViewCell *cell = (DateTableViewCell *) [tableView dequeueReusableCellWithIdentifier: @"afterCell"];
+        if (cell == nil) {
+            cell = [[DateTableViewCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier: @"afterCell"];
+        }
+        [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
+        
+        cell.textLabel.text =  @"After:";
+        //        NSString *str = [[NSUserDefaults standardUserDefaults] objectForKey: @"DBSort"];
+        //        if (str) {
+        //            cell.detailTextLabel.text = str;
+        //        } else {
+        //            cell.detailTextLabel.text = @"win percentage";
+        //        }
+//        cell.detailTextLabel.text = @"";
+        cell.textField.inputView = afterPicker;
+        cell.textField.tag = 1;
+        cell.textField.delegate = self;
+        cell.textField.inputAccessoryView = datePickerToolbar;
+
+        afterCell = cell;
+        
+        return cell;
+    }
+    if (indexPath.row == 6) {
+        DateTableViewCell *cell = (DateTableViewCell *) [tableView dequeueReusableCellWithIdentifier: @"beforeCell"];
+        if (cell == nil) {
+            cell = [[DateTableViewCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier: @"beforeCell"];
+        }
+        [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
+        
+        cell.textLabel.text =  @"Before:";
+        cell.textField.tag = 2;
+        cell.textField.delegate = self;
+        cell.textField.inputView = beforePicker;
+        cell.textField.inputAccessoryView = datePickerToolbar;
+        
+        beforeCell = cell;
         
         return cell;
     }
@@ -115,12 +176,16 @@
 
 -(void) tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     if (indexPath.row == 0) {
+        [beforeCell.textField resignFirstResponder];
+        [afterCell.textField resignFirstResponder];
         [player1Cell resignFirstResponder];
         [player2Cell resignFirstResponder];
         [self changeBoardColor];
         [[NSUserDefaults standardUserDefaults] setObject:gameCell.detailTextLabel.text forKey:@"DBGame"];
     }
     if (indexPath.row == 1) {
+        [beforeCell.textField resignFirstResponder];
+        [afterCell.textField resignFirstResponder];
         [player1Cell resignFirstResponder];
         [player2Cell resignFirstResponder];
         if ([sortCell.detailTextLabel.text isEqualToString:@"popularity"]) {
@@ -131,6 +196,8 @@
         [[NSUserDefaults standardUserDefaults] setObject:sortCell.detailTextLabel.text forKey:@"DBSort"];
     }
     if (indexPath.row == 4) {
+        [beforeCell.textField resignFirstResponder];
+        [afterCell.textField resignFirstResponder];
         [player1Cell resignFirstResponder];
         [player2Cell resignFirstResponder];
         if ([winnerCell.detailTextLabel.text isEqualToString:@"either"]) {
@@ -141,7 +208,53 @@
             [winnerCell.detailTextLabel setText:@"either"];
         }
     }
+    if (indexPath.row == 5 || indexPath.row == 6) {
+//        [player1Cell resignFirstResponder];
+//        [player2Cell resignFirstResponder];
+//        if (indexPath.row == 5) {
+//            clearButton.tag = 1;
+//            [beforeCell.textField resignFirstResponder];
+//        } else {
+//            clearButton.tag = 2;
+//            [afterCell.textField resignFirstResponder];
+//        }
+//        NSLog(@"kitty %ld", (long)clearButton.tag);
 
+    }
+
+}
+
+- (void)datePickerValueChanged: (UIDatePicker *) sender {
+    NSDate *selectedDate = sender.date;
+    
+    NSDateFormatter *df = [[NSDateFormatter alloc] init];
+    [df setDateFormat:@"MM/dd/YYYY"];
+    UITextField *textField;
+    if (sender.tag == 1) {
+        textField = beforeCell.textField;
+    } else if (sender.tag == 2) {
+        textField = afterCell.textField;
+    }
+    [textField setText:[df stringFromDate:selectedDate]];
+}
+-(void) dismissPicker: (id) sender {
+    [beforeCell.textField resignFirstResponder];
+    [afterCell.textField resignFirstResponder];
+}
+-(void) clearDate: (UIBarButtonItem *) sender {
+//    NSLog(@"kitty %ld", (long)sender.tag);
+    if (sender.tag == 1) {
+        [afterCell.textField setText:@""];
+        [afterCell.textField resignFirstResponder];
+    } else if (sender.tag == 2) {
+        [beforeCell.textField setText:@""];
+        [beforeCell.textField resignFirstResponder];
+    }
+    
+}
+
+-(void)textFieldDidBeginEditing:(UITextField *)textField {
+    clearButton.tag = textField.tag;
 }
 
 -(void) changeBoardColor {
@@ -220,4 +333,46 @@
 
 
 @end
+
+
+
+
+
+@implementation DateTableViewCell
+@synthesize textField;
+
+- (id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier {
+    if ((self = [super initWithStyle:style reuseIdentifier:reuseIdentifier])) {
+        textField = [[UITextField alloc] init];
+        [textField setTextAlignment:NSTextAlignmentRight];
+//        [self.ratingLabel setFont:[UIFont fontWithName:@"HelveticaNeue" size:16.f]];
+        [self.contentView addSubview: textField];
+    }
+    return self;
+}
+
+
+- (void) layoutSubviews {
+    [super layoutSubviews];
+    CGFloat tfX = self.textLabel.frame.origin.x + self.textLabel.frame.size.width + 15,
+        tfW = self.contentView.frame.size.width - tfX - 15;
+    
+    [self.textField setFrame:CGRectMake(tfX, 4, tfW, 36)];
+}
+
+
+@end
+
+
+
+
+
+
+
+
+
+
+
+
+
 

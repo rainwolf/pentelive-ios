@@ -195,7 +195,7 @@ struct Capture {
         [self.view addSubview:bannerView];
     }
 
-    setupView = [[DBSetupView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width*2/3, 220)];
+    setupView = [[DBSetupView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width*2/3, 308)];
     setupView.layer.cornerRadius = 5.0f;
     setupView.layer.borderWidth = 1.0f;
     [setupView setScrollEnabled:NO];
@@ -510,9 +510,16 @@ struct Capture {
         } else if ([setupView.winnerCell.detailTextLabel.text isEqualToString:@"player 2"]) {
             winnerStr = @"2";
         }
+        NSString *afterStr = setupView.afterCell.textField.text, *beforeStr = setupView.beforeCell.textField.text;
+        if (![afterStr isEqualToString:@""]) {
+            afterStr = [NSString stringWithFormat:@"&after_date=%@", afterStr];
+        }
+        if (![beforeStr isEqualToString:@""]) {
+            beforeStr = [NSString stringWithFormat:@"&before_date=%@", beforeStr];
+        }
         NSString *getStr = [NSString stringWithFormat:@"moves=%@&response_format=org.pente.gameDatabase.SimpleHtmlGameStorerSearchResponseFormat&response_params=%@&results_order=%i&filter_data=%@",[self URLEncodedString_ch:movesStr],
                             [self URLEncodedString_ch:@"zippedPartNumParam=1"],[setupView.sortCell.detailTextLabel.text isEqualToString:@"popularity"]?1:2,
-                            [self URLEncodedString_ch:[NSString stringWithFormat:@"start_game_num=0&end_game_num=100&player_1_name=%@&player_2_name=%@&game=%@&site=All%%20Sites&event=All%%20Events&round=All%%20Rounds&section=All%%20Sections&winner=%@", [setupView.player1Cell.textField.text lowercaseString], [setupView.player2Cell.textField.text lowercaseString],setupView.gameCell.detailTextLabel.text, winnerStr]]];
+                            [self URLEncodedString_ch:[NSString stringWithFormat:@"start_game_num=0&end_game_num=100&player_1_name=%@&player_2_name=%@&game=%@&site=All%%20Sites&event=All%%20Events&round=All%%20Rounds&section=All%%20Sections&winner=%@%@%@", [setupView.player1Cell.textField.text lowercaseString], [setupView.player2Cell.textField.text lowercaseString],setupView.gameCell.detailTextLabel.text, winnerStr, afterStr, beforeStr]]];
         
 //        NSLog(@"\ngetkittyyyyyyString -\n%@-", [self URLEncodedString_ch:getStr]);
 //        NSLog(@"\n\ngetkittyyyyyyString -\n%@-", getStr);
