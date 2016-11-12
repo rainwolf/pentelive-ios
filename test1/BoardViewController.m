@@ -763,7 +763,6 @@ struct Capture {
         receivedMessageView = [[UITextView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width - 40, 44)];
         replyMessageView = [[UITextView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width - 40, 44)];
     }
-    [self setTitle:[game gameType]];
     
     BOOL iAmP1 = NO;
 
@@ -791,7 +790,7 @@ struct Capture {
     //            NSLog(@"result: %@",dashboardString);
     
     int dashIDX = 0;
-    NSString *myUsername = [[[NSUserDefaults standardUserDefaults] objectForKey:@"username"] lowercaseString];
+    NSString *myUsername = [[[NSUserDefaults standardUserDefaults] objectForKey:@"username"] lowercaseString], *p1Name, *p2Name;
     
     while (dashIDX < [splitDash count]) {
         dashLine = [splitDash objectAtIndex:dashIDX];
@@ -821,14 +820,16 @@ struct Capture {
                 }
             } else if ([[dashLine substringToIndex:8] isEqualToString:@"player1="]) {
                 NSArray *playerRating = [NSArray arrayWithArray:[[dashLine substringFromIndex:8] componentsSeparatedByString:@","]];
-                if (![[playerRating objectAtIndex:0] isEqualToString:myUsername]) {
+                p1Name = [playerRating objectAtIndex:0];
+                if (![p1Name isEqualToString:myUsername]) {
                     iAmP1 = NO;
                     [game setOpponentName: [playerRating objectAtIndex:0]];
                     [game setOpponentRating: [playerRating objectAtIndex:1]];
                 }
             } else if ([[dashLine substringToIndex:8] isEqualToString:@"player2="]) {
                 NSArray *playerRating = [NSArray arrayWithArray:[[dashLine substringFromIndex:8] componentsSeparatedByString:@","]];
-                if (![[playerRating objectAtIndex:0] isEqualToString:myUsername]) {
+                p2Name = [playerRating objectAtIndex:0];
+                if (![p2Name isEqualToString:myUsername]) {
                     iAmP1 = YES;
                     [game setOpponentName: [playerRating objectAtIndex:0]];
                     [game setOpponentRating: [playerRating objectAtIndex:1]];
@@ -842,6 +843,7 @@ struct Capture {
             dashIDX++;
         }
     }
+    [self setTitle:[game gameType]];
 
     
     for (int i = 0; i < [messages count]; ++i) {
@@ -933,7 +935,11 @@ struct Capture {
     replyMessageView.layer.borderColor = [[UIColor grayColor] CGColor];
 
 
-    playerStatsBaseString = [NSString stringWithFormat:@"<font size=\"3.5\">Opponent: <a href=\"https://pente.org/gameServer/profile?viewName=%@\">%@</a>, rating: %@ <br> Remaining time: %@ <br> %@ and %@ game.</font><hr>",[game opponentName],[game opponentName],[game opponentRating],[game remainingTime],[game ratedNot],[game privateGame]];
+    if (![myUsername isEqualToString:p1Name] && ![myUsername isEqualToString:p2Name]) {
+        playerStatsBaseString = [NSString stringWithFormat:@"<font size=\"3.5\"><a href=\"https://pente.org/gameServer/profile?viewName=%@\">%@</a> vs <a href=\"https://pente.org/gameServer/profile?viewName=%@\">%@</a>, rating: %@ <br> Remaining time: %@ <br> %@ and %@ game.</font><hr>",p1Name, p1Name, p2Name, p2Name ,[game opponentRating],[game remainingTime],[game ratedNot],[game privateGame]];
+    } else {
+        playerStatsBaseString = [NSString stringWithFormat:@"<font size=\"3.5\">Opponent: <a href=\"https://pente.org/gameServer/profile?viewName=%@\">%@</a>, rating: %@ <br> Remaining time: %@ <br> %@ and %@ game.</font><hr>",[game opponentName],[game opponentName],[game opponentRating],[game remainingTime],[game ratedNot],[game privateGame]];
+    }
 
     
 //    NSLog(@"kitty message %@", message);
@@ -1132,6 +1138,9 @@ struct Capture {
                                              atPosition:TSMessageNotificationPositionBottom
                                    canBeDismissedByUser:YES];
         }
+    }
+    if (![htmlString containsString:@"state=active"]) {
+        activeGame = NO;
     }
 
 }
@@ -2287,12 +2296,9 @@ struct Capture {
     UIAlertView *alert;
     if (activeGame) {
         alert = [[UIAlertView alloc] initWithTitle:@"Options" message:nil delegate:self cancelButtonTitle:@"Dismiss" otherButtonTitles:@"Resign", @"Cancel Set", nil];
-    } else {
-        alert = [[UIAlertView alloc] initWithTitle:@"Options" message:nil delegate:self cancelButtonTitle:@"Dismiss" otherButtonTitles:@"Cancel Set", nil];
-
+        [alert setTag: 1];
+        [alert show];
     }
-    [alert setTag: 1];
-    [alert show];
 }
 
 
