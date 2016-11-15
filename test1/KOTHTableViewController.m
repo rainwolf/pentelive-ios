@@ -345,7 +345,7 @@
 
 -(void) addColorOfRating: (NSString *) rating toString: (NSMutableAttributedString *) str {
     int ratingInt = [rating intValue];
-    UIColor *ratingColor = [UIColor blackColor];
+    UIColor *ratingColor;
     if (ratingInt >= 1900) {
         ratingColor = [UIColor redColor];
     } else if (ratingInt >= 1700) {

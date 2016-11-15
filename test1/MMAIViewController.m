@@ -224,10 +224,12 @@
 
 - (void)viewDidAppear:(BOOL)animated {
     [self showSetup];
+    [super viewDidAppear:animated];
 }
 
 - (void)viewWillDisappear:(BOOL)animated {
     [bannerView removeFromSuperview];
+    [super viewWillDisappear:animated];
 }
 
 - (void)adViewWillPresentScreen:(GADBannerView *)bannerView {

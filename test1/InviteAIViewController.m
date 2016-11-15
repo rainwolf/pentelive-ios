@@ -78,10 +78,12 @@
     PenteNavigationViewController *navController = (PenteNavigationViewController *) self.navigationController;
     [navController setChallengedUser:@""];
     game = nil;
+    [super viewWillDisappear:animated];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
     [spinner setHidden:YES];
+    [super viewWillAppear:animated];
 }
 
 - (void)viewDidAppear:(BOOL)animated {
@@ -121,6 +123,7 @@
 //    if ([defaults objectForKey:@"lastInvitedColor"]) {
 //        [playAsCell.detailTextLabel setText:[defaults objectForKey:@"lastInvitedColor"]];
 //    }
+    [super viewDidAppear:animated];
 }
 
 

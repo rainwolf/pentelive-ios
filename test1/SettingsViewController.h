@@ -25,5 +25,6 @@
 
 //-(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath;
 
+- (id)initWithFile:(NSString*)file specifier:(IASKSpecifier*)specifier;
 
 @end

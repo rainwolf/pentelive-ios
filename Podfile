@@ -16,4 +16,5 @@ platform :ios, '7.0'
 	pod "UIColor+Hex"
 	pod 'ICDMaterialActivityIndicatorView'
 	pod 'RMStore', '~> 0.7'
+	pod 'InAppSettingsKit'
 end

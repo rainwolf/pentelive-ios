@@ -221,6 +221,9 @@
     CGContextAddEllipseInRect(context, circle);
     CGContextClip(context);
     CGContextDrawRadialGradient(context, myGradient, centre, 0.0f, centre, 5*margin/4, 0);
+    
+    CGGradientRelease(myGradient);
+    CGColorSpaceRelease(myColorspace);
 
 //    CGContextAddEllipseInRect(context, circle);
 //    CGContextFillPath(context);

@@ -25,6 +25,7 @@ PODS:
     - GoogleToolboxForMac/Defines (= 2.1.0)
   - HexColors (2.3.0)
   - ICDMaterialActivityIndicatorView (0.1.2)
+  - InAppSettingsKit (2.8)
   - PopoverView (0.0.2)
   - RMStore (0.7.1):
     - RMStore/Core (= 0.7.1)
@@ -42,6 +43,7 @@ DEPENDENCIES:
   - Firebase/AdMob
   - Firebase/Core
   - ICDMaterialActivityIndicatorView
+  - InAppSettingsKit
   - PopoverView
   - RMStore (~> 0.7)
   - SVWebViewController
@@ -69,12 +71,13 @@ SPEC CHECKSUMS:
   GoogleToolboxForMac: 2b2596cbb7186865e98cadf2b1e262d851c2b168
   HexColors: 6ad3947c3447a055a3aa8efa859def096351fe5f
   ICDMaterialActivityIndicatorView: 3f02a9dc9e52417023a98385d631c93d3f95c465
+  InAppSettingsKit: fe3e73f8f9530cdd6270065cd7df7b3773f557e6
   PopoverView: 62e83ffda75944d6cf2de9c6593489f3097dc1a3
   RMStore: 64ba13a9c040e3b7572765d169f77175cd3243e5
   SVWebViewController: c36dda7326e81fcae0abf5d02bf7bbf7e41be901
   TSMessages: 6e403b790139636c15ab4f51946537095e03e79c
   UIColor+Hex: 9fee91bb8e19f17dd40a79ae1e98949a6a84489d
 
-PODFILE CHECKSUM: 1a3cef3323a18ab42fe5c90773eca8fe3f34cac3
+PODFILE CHECKSUM: 202fd07dd1406a8b8a2b1454566b3c2a1d703ad0
 
 COCOAPODS: 1.0.1

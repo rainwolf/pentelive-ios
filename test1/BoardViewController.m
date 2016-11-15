@@ -269,6 +269,7 @@ struct Capture {
     [navController setChallengeCancelled:YES];
     
 //    [playerStats setText:@""];
+    [super viewWillDisappear:animated];
 }
 
 - (void)adViewWillPresentScreen:(GADBannerView *)bannerView {

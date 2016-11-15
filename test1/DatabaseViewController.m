@@ -82,7 +82,7 @@ struct Capture {
     [super viewDidLoad];
 	// Do any additional setup after loading the view, typically from a nib.
     showedAd = NO;
-    
+
     aiThinking = NO;
     
     
@@ -236,10 +236,12 @@ struct Capture {
     if ([movesList count] < 2) {
         [self showSetup];
     }
+    [super viewDidAppear:animated];
 }
 
 - (void)viewWillDisappear:(BOOL)animated {
     [bannerView removeFromSuperview];
+    [super viewWillDisappear:animated];
 }
 
 - (void)adViewWillPresentScreen:(GADBannerView *)bannerView {
@@ -770,167 +772,6 @@ struct Capture {
     [blackCapturesCountLabel setText:[NSString stringWithFormat:@"x %i",blackCaptures]];
     [blackCapturesCountLabel setNeedsDisplay];
 }
-
-
-//-(void) replayGame: (unsigned long) untilMove {
-//    if (aiPlayer.game == 1) {
-//        [self replayPenteGame: untilMove];
-//    } else {
-//        [self replayKeryoPenteGame: untilMove];
-//    }
-//}
-
-//-(void) replayPenteGame: (unsigned long) untilMove {
-//    [self resetBoard];
-//    whiteCaptures = 0;
-//    blackCaptures = 0;
-//    for (int i = 0; i < untilMove; ++i) {
-//        int rowCol = [[[aiPlayer moves] objectAtIndex:i] intValue];
-//        int color = (i % 2) + 1, opponentColor = (color == 2) ? 1 : 2;
-//        abstractBoard[rowCol / 19][rowCol % 19] = color;
-//        [self detectCaptureOfOpponent:opponentColor atPosition:rowCol];
-//    }
-//    
-//    [board setAbstractBoard: abstractBoard];
-//    [board setLastMove: [[[aiPlayer moves] objectAtIndex:untilMove - 1] intValue]];
-//    if (lastMove == [movesList count]) {
-//        [zoomedBoard setAbstractBoard: abstractBoard];
-//        [zoomedBoard setLastMove: [[[aiPlayer moves] objectAtIndex:untilMove - 1] intValue]];
-//    }
-//    [board setNeedsDisplay];
-//    [zoomedBoard setNeedsDisplay];
-//    [self updateCaptures];
-//    
-//    NSString *message = nil;
-//    BOOL iWin = YES;
-//    if ([self detectPenteOf: 2-([[aiPlayer moves] count]%2) atPosition: [[[aiPlayer moves] lastObject] intValue]]) {
-//        if (2-([[aiPlayer moves] count]%2) == 1) {
-//            message = @"White wins";
-//        } else {
-//            message = @"Black wins";
-//        }
-//    } else if (whiteCaptures == 10) {
-//        message = @"Black wins";
-//    } else if (blackCaptures == 10) {
-//        message = @"White wins";
-//    }
-//    if (message) {
-//        activeGame = NO;
-//        [TSMessage showNotificationInViewController:self.navigationController
-//                                              title: @"Game Over"
-//                                           subtitle: message
-//                                              image:nil
-//                                               type: (iWin?TSMessageNotificationTypeSuccess:TSMessageNotificationTypeError)
-//                                           duration:TSMessageNotificationDurationAutomatic
-//                                           callback: ^{
-//                                               [TSMessage dismissActiveNotification];
-//                                           }
-//                                        buttonTitle: nil
-//                                     buttonCallback:nil
-//                                         atPosition:TSMessageNotificationPositionBottom
-//                               canBeDismissedByUser:YES];
-//    }
-//
-//    int i = 0;
-//    for (NSNumber *move in [aiPlayer moves]) {
-//        int rowCol = [move intValue];
-//        if (i == 0) {
-//            [moveStatsString appendString: @"<b>1.</b> "];
-//        } else {
-//            if ((i%2) == 0) {
-//                [moveStatsString appendString: [NSString stringWithFormat:@"&nbsp; <b>%i.</b> ", (i >> 1) + 1]];
-//            } else {
-//                [moveStatsString appendString: @" - "];
-//            }
-//        }
-//        [moveStatsString appendString:[NSString stringWithFormat:@"%c%d", coordinateLetters[rowCol % 19], 19 - (rowCol / 19)]];
-//        ++i;
-//    }
-//    [playerStats loadHTMLString: moveStatsString baseURL:nil];
-//
-//}
-//
-//-(void) replayKeryoPenteGame: (unsigned long) untilMove {
-//    [self resetBoard];
-//    whiteCaptures = 0;
-//    blackCaptures = 0;
-//    for (int i = 0; i < untilMove; ++i) {
-//        int rowCol = [[[aiPlayer moves] objectAtIndex:i] intValue];
-//        int color = (i % 2) + 1, opponentColor = (color == 2) ? 1 : 2;
-//        abstractBoard[rowCol / 19][rowCol % 19] = color;
-//        [self detectCaptureOfOpponent:opponentColor atPosition:rowCol];
-//        [self detectKeryoCaptureOfOpponent:opponentColor atPosition:rowCol];
-//    }
-////    if ([[game ratedNot] isEqualToString:@"Rated"] && ([movesList count] == 2)) {
-////        for(int i = 7; i < 12; ++i) {
-////            for(int j = 7; j < 12; ++j) {
-////                if (abstractBoard[i][j] == 0) {
-////                    abstractBoard[i][j] = -1;
-////                }
-////            }
-////        }
-////    }
-//    
-//    
-//    //NSLog(@" kitty moves %i",abstractBoard[0][0]);
-//    [board setAbstractBoard: abstractBoard];
-//    [board setAbstractBoard: abstractBoard];
-//    [board setLastMove: [[[aiPlayer moves] objectAtIndex:untilMove - 1] intValue]];
-//    if (lastMove == [movesList count]) {
-//        [zoomedBoard setAbstractBoard: abstractBoard];
-//        [zoomedBoard setLastMove: [[[aiPlayer moves] objectAtIndex:untilMove - 1] intValue]];
-//    }
-//    [board setNeedsDisplay];
-//    [zoomedBoard setNeedsDisplay];
-//    [self updateCaptures];
-//
-//    NSString *message = nil;
-//    BOOL iWin = YES;
-//    if ([self detectPenteOf: 2-([[aiPlayer moves] count]%2) atPosition: [[[aiPlayer moves] lastObject] intValue]]) {
-//        if (2-([[aiPlayer moves] count]%2) == 1) {
-//            message = @"White wins";
-//        } else {
-//            message = @"Black wins";
-//        }
-//    } else if (whiteCaptures >= 15) {
-//        message = @"Black wins";
-//    } else if (blackCaptures >= 15) {
-//        message = @"White wins";
-//    }
-//    if (message) {
-//        activeGame = NO;
-//        [TSMessage showNotificationInViewController:self.navigationController
-//                                              title: @"Game Over"
-//                                           subtitle: message
-//                                              image:nil
-//                                               type: (iWin?TSMessageNotificationTypeSuccess:TSMessageNotificationTypeError)
-//                                           duration:TSMessageNotificationDurationAutomatic
-//                                           callback: ^{
-//                                               [TSMessage dismissActiveNotification];
-//                                           }
-//                                        buttonTitle: nil
-//                                     buttonCallback:nil
-//                                         atPosition:TSMessageNotificationPositionBottom
-//                               canBeDismissedByUser:YES];
-//    }
-//    
-//    int i = 0;
-//    for (NSNumber *move in [aiPlayer moves]) {
-//        int rowCol = [move intValue];
-//        if (i == 0) {
-//            [moveStatsString appendString: @"<b>1.</b> "];
-//        } else {
-//            if ((i%2) == 0) {
-//                [moveStatsString appendString: [NSString stringWithFormat:@"&nbsp; <b>%i.</b> ", (i >> 1) + 1]];
-//            } else {
-//                [moveStatsString appendString: @" - "];
-//            }
-//        }
-//        [moveStatsString appendString:[NSString stringWithFormat:@"%c%d", coordinateLetters[rowCol % 19], 19 - (rowCol / 19)]];
-//        ++i;
-//    }
-//    [playerStats loadHTMLString: moveStatsString baseURL:nil];
-//}
 
 
 -(void) replayGame {

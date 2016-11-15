@@ -16,7 +16,7 @@
 #import "MMAIViewController.h"
 #import "KOTHTableViewController.h"
 #import "WhosOnlineView.h"
-
+#import "SettingsViewController.h"
 
 #define usernameKey @"username"
 #define passwordKey @"password"
@@ -118,6 +118,8 @@
     UIBarButtonItem *leftBarButton = [self.navigationItem leftBarButtonItem];
     [leftBarButton setImage:[UIImage imageNamed:@"settings.png"]];
     [leftBarButton setTitle: nil];
+//    [leftBarButton setTarget:self];
+//    [leftBarButton setAction:@selector(toSettings)];
     
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
     messagesCollapsed = [defaults boolForKey:@"messagesCollapsed"];
@@ -149,6 +151,12 @@
     [self.progressView setAlpha:0.75];
     
 }
+
+//-(void) toSettings {
+//    NSLog(@"toSettings");
+//    SettingsViewController *vc = [[SettingsViewController alloc] initWithFile:@"Root.inApp" specifier:nil andNavigationController: (PenteNavigationViewController *)self.navigationController];
+//    [self.navigationController pushViewController:vc animated:YES];
+//}
 
 
 
@@ -216,6 +224,7 @@
 //    }
     
 //    [self performSelector:@selector(scrollViewDidScroll:) withObject: self.tableView afterDelay:.05f];
+    [super viewDidAppear:animated];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -259,6 +268,7 @@
 - (void)viewWillDisappear:(BOOL)animated {
 //    [bannerView removeFromSuperview];
 //    [self.tableView setTableFooterView:nil];
+    [super viewWillDisappear:animated];
 }
 
 
@@ -469,7 +479,7 @@
 
 -(void) addColorOfRating: (NSString *) rating toString: (NSMutableAttributedString *) str {
     int ratingInt = [rating intValue];
-    UIColor *ratingColor = [UIColor blackColor];
+    UIColor *ratingColor;
     if (ratingInt >= 1900) {
         ratingColor = [UIColor redColor];
     } else if (ratingInt >= 1700) {
@@ -1371,6 +1381,9 @@
     if([segue.identifier isEqualToString:@"MMAItap"]){
         [(MMAIViewController *)segue.destinationViewController setShowAds:showAds];
     }
+//    if([segue.identifier isEqualToString:@"settingsTap"]){
+//        [(SettingsViewController *)segue.destinationViewController setNavC:(PenteNavigationViewController *)self.navigationController];
+//    }
     
 }
 
@@ -2791,7 +2804,6 @@
     }
         
         
-        
         [self.tableView endUpdates];
         [CATransaction commit];
         [self parseMessages];
@@ -2961,7 +2973,7 @@
 
 -(void) showActions {
     NSMutableArray *buttonsArray = [[NSMutableArray alloc] init];
-    CGRect frame = CGRectMake(0, 0, 45, 45);
+    CGRect frame;
     UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
     button.backgroundColor = [UIColor clearColor];
 //    button.titleLabel.font = [UIFont boldSystemFontOfSize:17];

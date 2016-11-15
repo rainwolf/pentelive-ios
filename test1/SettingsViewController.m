@@ -51,29 +51,21 @@
     return UIInterfaceOrientationMaskPortrait;
     //    return UIInterfaceOrientationLandscapeLeft | UIInterfaceOrientationLandscapeRight | UIInterfaceOrientationPortrait;
 }
+- (id)initWithFile:(NSString*)file specifier:(IASKSpecifier*)specifier {
+    if ((self = [super init])) {
+        // custom initialization
+        [self setFile:file];
+        
+        [self setShowDoneButton:NO];
+    }
+    return self;
+}
 
 - (void)viewDidLoad
 {
-    [super viewDidLoad];
-
     subscribing = NO;
 	// Do any additional setup after loading the view.
-    self.navC = ((PenteNavigationViewController *)self.navigationController);
-    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"registrationSuccess"]) {
-        if (self.navC.player && self.navC.player.subscriber) {
-            self.hiddenKeys = [NSSet setWithObjects:@"SubscribeButton",@"SignUpButton", @"SignUpLabel", nil];
-//            self.hiddenKeys = [NSSet setWithObjects:@"SignUpButton", @"SignUpLabel", nil];
-        } else {
-            self.hiddenKeys = [NSSet setWithObjects:@"SignUpButton",@"manageSubscriptions", @"SignUpLabel", nil];
-        }
-    } else {
-        self.hiddenKeys = [NSSet setWithObjects:@"SubscribeButton",@"manageSubscriptions", nil];
-    }
-    [self setShowCreditsFooter:YES];
-    [self setTitle:@"Settings"];
-    [self.tableView setSeparatorColor:[UIColor blueColor]];
-    [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleSingleLine];
-    [self setDelegate:self];
+    [self setNavC:(PenteNavigationViewController *) [UIApplication sharedApplication].keyWindow.rootViewController];
 }
 
 - (void)viewDidAppear:(BOOL)animated {
@@ -86,9 +78,10 @@
             [self.tableView cellForRowAtIndexPath: [NSIndexPath indexPathForRow:1 inSection:1]].userInteractionEnabled = NO;
         }
     }
-    if (((PenteNavigationViewController *) self.navigationController).showSubscribe) {
+    if (self.navC.showSubscribe) {
         [self showSubscribeInfo];
     }
+//    NSLog([NSString stringWithFormat:@"kitty viewDidAppear %@",[self navC]]);
 }
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
     if ([[NSUserDefaults standardUserDefaults] boolForKey:@"registrationSuccess"]) {
@@ -100,7 +93,27 @@
         }
     }
 }
+
 - (void)viewWillAppear:(BOOL)animated {
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"registrationSuccess"]) {
+        if (self.navC.player && self.navC.player.subscriber) {
+            self.hiddenKeys = [NSSet setWithObjects:@"SubscribeButton",@"SignUpButton", @"SignUpLabel", nil];
+            //            self.hiddenKeys = [NSSet setWithObjects:@"SignUpButton", @"SignUpLabel", nil];
+        } else {
+            self.hiddenKeys = [NSSet setWithObjects:@"SignUpButton",@"manageSubscriptions", @"SignUpLabel", nil];
+        }
+    } else {
+        self.hiddenKeys = [NSSet setWithObjects:@"SubscribeButton",@"manageSubscriptions", nil];
+    }
+    [self setShowCreditsFooter:YES];
+    [self setTitle:@"Settings"];
+    [self.tableView setSeparatorColor:[UIColor blueColor]];
+    [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleSingleLine];
+    [self setDelegate:self];
+//    NSLog([NSString stringWithFormat:@"kitty1 %@",[self navC]]);
+//    NSLog([NSString stringWithFormat:@"kitty2 %@",self.navigationController]);
+//    NSLog([NSString stringWithFormat:@"kitty4 %@",self.parentViewController]);
+    [super viewDidLoad];
 //    [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"shouldSendReceipt"];
 //    NSURL *receiptURL = [[NSBundle mainBundle] appStoreReceiptURL];
 //    NSData *receipt = [NSData dataWithContentsOfURL:receiptURL];
@@ -311,6 +324,11 @@
                 [self.navigationController popToRootViewControllerAnimated:YES];
             }
     }
+//    if ([specifier.key isEqualToString:@"MoreSettingsButton"]) {
+//        NSLog(@"kittyyyyyy");
+//        SettingsViewController *vc = [[SettingsViewController alloc] initWithFile:@"MoreSettings" specifier: specifier];
+//        [self.navC pushViewController:vc animated:YES];
+//    }
     if ([specifier.key isEqualToString:@"HelpButton"]) {
         if (![self.navC loggedIn]) {
             UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:@"You need to be logged in to send a help message. Send an email instead?" delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Email",nil];
@@ -354,6 +372,7 @@
         [self.navigationController pushViewController:webViewController animated:YES];
     }
     if ([specifier.key isEqualToString:@"changeColorButton"]) {
+//        NSLog([NSString stringWithFormat:@"kitty wth %@", self.navC]);
         if (!self.navC.player.subscriber) {
             return;
         }
@@ -361,6 +380,7 @@
         [self.navigationController pushViewController:vc animated:YES];
     }
     if ([specifier.key isEqualToString:@"changeAvatarButton"]) {
+//        NSLog([NSString stringWithFormat:@"kitty wth %@", self.navC]);
         if (!self.navC.player.subscriber) {
             return;
         }

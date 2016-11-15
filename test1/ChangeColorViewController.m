@@ -82,7 +82,7 @@
         [alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:YES];
         return;
     }
-    
+    [super viewWillDisappear:animated];
 }
 
 @end

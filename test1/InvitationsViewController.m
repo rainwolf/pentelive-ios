@@ -115,11 +115,13 @@
     [navController setChallengedUser:@""];
     challengedOpponent = @"";
     game = nil;
+    [super viewWillDisappear:animated];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
     [spinner setHidden:YES];
     opponentCell.textField.placeholder = @"blank to invite anyone";
+    [super viewWillAppear:animated];
 }
 
 - (void)viewDidAppear:(BOOL)animated {
@@ -182,6 +184,7 @@
         [playAsCell.detailTextLabel setText:[defaults objectForKey:@"lastInvitedColor"]];
     }
     [privateSwitch setOn:[defaults boolForKey:@"lastInvitationPrivate"]];
+    [super viewDidAppear:animated];
 }
 
 
