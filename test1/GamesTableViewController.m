@@ -293,10 +293,16 @@
 //        url = [NSString stringWithFormat:@"https://development.pente.org/gameServer/login.jsp?mobile=&name2=%@&password2=%@",username,password];
         [request setURL:[NSURL URLWithString:url]];
         [request setHTTPMethod:@"POST"];
-        [request setTimeoutInterval:7.0];
+        [request setTimeoutInterval:3.0];
         responseData = [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
         NSString *dashboardString = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
         
+        if (error && error.code == NSURLErrorTimedOut) {
+            [request setTimeoutInterval:10.0];
+            error = nil;
+            responseData = [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
+            dashboardString = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
+        }
         if (error) {
             UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:[NSString stringWithFormat: @"Trouble connecting to pente.org, please try again in a bit.\nReason: %@",  error.localizedDescription] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
             [alert show];

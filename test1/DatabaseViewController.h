@@ -22,7 +22,7 @@
     GADBannerView *bannerView;
     BOOL showedAd;
     NSMutableArray *movesList, *captures;
-    NSString *playerStatsBaseString;
+    NSString *playerStatsBaseString, *game;
     NSMutableString *moveStatsString;
     UIWebView *playerStats;
     PopoverView *messagePopover;
@@ -37,7 +37,7 @@
 @property(atomic) BOOL showAds;
 @property(nonatomic,retain) GADBannerView *bannerView;
 @property(nonatomic,retain) NSMutableArray *movesList, *captures;
-@property(nonatomic, retain) NSString *playerStatsBaseString;
+@property(nonatomic, retain) NSString *playerStatsBaseString, *game;
 @property(nonatomic, retain) NSMutableString *moveStatsString;
 @property (weak, nonatomic) IBOutlet DBBoardView *board;
 @property (weak, nonatomic) IBOutlet DBBoardView *zoomedBoard;

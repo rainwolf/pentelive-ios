@@ -67,7 +67,7 @@ InvitationsViewController *invitationVC;
 
 -(void) viewDidAppear:(BOOL)animated {
     PenteNavigationViewController *navController = (PenteNavigationViewController *) self.navigationController;
-    [navController setDelegate:self];
+//    [navController setDelegate:self];
     if (navController.challengeCancelled) {
         [self setMessageID:navController.unchallengedMessageID];
         [self setTitle: author];

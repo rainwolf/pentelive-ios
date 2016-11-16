@@ -28,6 +28,7 @@
 #import <QuartzCore/QuartzCore.h>
 #import "PopoverView.h"
 #import "SVWebViewController.h"
+#import "DatabaseViewController.h"
 
 
 
@@ -1142,8 +1143,21 @@ struct Capture {
     }
     if (![htmlString containsString:@"state=active"]) {
         activeGame = NO;
+        PenteNavigationViewController *navC = (PenteNavigationViewController *) self.navigationController;
+        if (navC.player.subscriber) {
+            [lockButton setImage:[UIImage imageNamed:@"database.png"] forState:UIControlStateNormal];
+            [lockButton removeTarget:self action:@selector(toggleBoardLock:) forControlEvents:UIControlEventTouchUpInside];
+            [lockButton addTarget:self action:@selector(toDB) forControlEvents:UIControlEventTouchUpInside];
+        }
     }
-
+}
+-(void) toDB {
+    [[NSUserDefaults standardUserDefaults] setObject:[game gameType] forKey:@"DBGame"];
+    UIStoryboard *sb = [UIStoryboard storyboardWithName:@"MainStoryboard" bundle:nil];
+    DatabaseViewController * vc = (DatabaseViewController *)[sb instantiateViewControllerWithIdentifier:@"databaseViewController"];
+    [vc setMovesList: [[movesList subarrayWithRange:NSMakeRange(0, lastMove)] mutableCopy]];
+    [vc setGame:[game gameType]];
+    [self.navigationController pushViewController:vc animated:YES];
 }
 
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex

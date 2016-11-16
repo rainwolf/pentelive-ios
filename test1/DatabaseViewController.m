@@ -64,7 +64,7 @@
 @synthesize playerStats;
 @synthesize showAds;
 @synthesize moveStatsString;
-@synthesize playerStatsBaseString;
+@synthesize playerStatsBaseString,game;
 @synthesize setupView;
 @synthesize progressView;
 
@@ -204,8 +204,10 @@ struct Capture {
     [setupView setBoard: board];
     [setupView setZBoard:zoomedBoard];
     
-    movesList = [[NSMutableArray alloc] init];
-    [self resetState];
+    if (movesList == nil) {
+        movesList = [[NSMutableArray alloc] init];
+        [self resetState];
+    }
     self.progressView = [[ICDMaterialActivityIndicatorView alloc]initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height) activityIndicatorStyle:ICDMaterialActivityIndicatorViewStyleLarge];
     [self.progressView setBackgroundColor:[UIColor whiteColor]];
     [self.progressView setAlpha:0.75];
@@ -235,6 +237,10 @@ struct Capture {
 - (void)viewDidAppear:(BOOL)animated {
     if ([movesList count] < 2) {
         [self showSetup];
+    } else {
+        [self setBoardColor];
+        [self replayGame];
+        [self searchDB:nil];
     }
     [super viewDidAppear:animated];
 }
@@ -250,6 +256,33 @@ struct Capture {
 
 //- (void)adViewWillDismissScreen:(GADBannerView *)bannerView {
 //}
+-(void) setBoardColor {
+    
+    if ([game isEqualToString:@"Keryo-Pente"]) {
+        [board setBackgroundColor:[UIColor colorWithRed:0.702 green:1 blue:0.518 alpha:1]];
+        [zoomedBoard setBackgroundColor:[UIColor colorWithRed:0.702 green:1 blue:0.518 alpha:1]];
+    } else if ([game isEqualToString:@"Gomoku"]) {
+        [board setBackgroundColor:[UIColor colorWithRed:0.612 green:1 blue:0.898 alpha:1]];
+        [zoomedBoard setBackgroundColor:[UIColor colorWithRed:0.612 green:1 blue:0.898 alpha:1]];
+    } else if ([game isEqualToString:@"D-Pente"]) {
+        [board setBackgroundColor:[UIColor colorWithRed:0.584 green:0.753 blue:0.98 alpha:1]];
+        [zoomedBoard setBackgroundColor:[UIColor colorWithRed:0.584 green:0.753 blue:0.98 alpha:1]];
+    } else if ([game isEqualToString:@"G-Pente"]) {
+        [board setBackgroundColor:[UIColor colorWithRed:0.616 green:0.545 blue:0.965 alpha:1]];
+        [zoomedBoard setBackgroundColor:[UIColor colorWithRed:0.616 green:0.545 blue:0.965 alpha:1]];
+    } else if ([game isEqualToString:@"Poof-Pente"]) {
+        [board setBackgroundColor:[UIColor colorWithRed:0.929 green:0.639 blue:0.992 alpha:1]];
+        [zoomedBoard setBackgroundColor:[UIColor colorWithRed:0.929 green:0.639 blue:0.992 alpha:1]];
+    } else if ([game isEqualToString:@"Boat-Pente"]) {
+        [board setBackgroundColor:[UIColor colorWithRed:0.145 green:0.729 blue:1 alpha:1]];
+        [zoomedBoard setBackgroundColor:[UIColor colorWithRed:0.145 green:0.729 blue:1 alpha:1]];
+    } else if ([game isEqualToString:@"Pente"]) {
+        [board setBackgroundColor:[UIColor colorWithRed:0.984 green:0.851 blue:0.541 alpha:1]];
+        [zoomedBoard setBackgroundColor:[UIColor colorWithRed:0.984 green:0.851 blue:0.541 alpha:1]];
+    }
+    [board setNeedsDisplay];
+    [zoomedBoard setNeedsDisplay];
+}
 
 
 - (void)viewDidUnload
@@ -382,7 +415,9 @@ struct Capture {
 //                [self detectCaptureOfOpponent:(([[stone stoneColor] isEqual: [UIColor blackColor]]) ? 1 : 2) atPosition: finalMove];
                 abstractBoard[i][j] = 1 + ([movesList count]%2);
                 [movesList addObject:[NSNumber numberWithInt:finalMove]];
-                NSString *game = setupView.gameCell.detailTextLabel.text;
+                if (game == nil) {
+                    game = setupView.gameCell.detailTextLabel.text;
+                }
                 if (![game isEqualToString:@"Gomoku"]) {
                     int color = 2 - ([movesList count] % 2), opponentColor = (color == 2) ? 1 : 2;
                     if ([game isEqualToString:@"Poof-Pente"]) {
@@ -439,7 +474,7 @@ struct Capture {
                     }
                 }
                 if (([movesList count]%2) == 1) {
-                    [moveStatsString appendString: [NSString stringWithFormat:@"&nbsp; <b>%lu.</b> ", ([movesList count] >> 1) + 1]];
+                    [moveStatsString appendString: [NSString stringWithFormat:@"&nbsp; <b>%u.</b> ", ([movesList count] >> 1) + 1]];
                 } else {
                     [moveStatsString appendString: @" - "];
                 }
@@ -507,21 +542,41 @@ struct Capture {
             [movesStr appendString:[NSString stringWithFormat:@"%c%d,", coordinateLetters[moveInt % 19], 19 - (moveInt / 19)]];
         }
         NSString *winnerStr = @"0";
-        if ([setupView.winnerCell.detailTextLabel.text isEqualToString:@"player 1"]) {
-            winnerStr = @"1";
-        } else if ([setupView.winnerCell.detailTextLabel.text isEqualToString:@"player 2"]) {
-            winnerStr = @"2";
+        if (setupView.winnerCell.detailTextLabel.text) {
+            if ([setupView.winnerCell.detailTextLabel.text isEqualToString:@"player 1"]) {
+                winnerStr = @"1";
+            } else if ([setupView.winnerCell.detailTextLabel.text isEqualToString:@"player 2"]) {
+                winnerStr = @"2";
+            }
         }
         NSString *afterStr = setupView.afterCell.textField.text, *beforeStr = setupView.beforeCell.textField.text;
-        if (![afterStr isEqualToString:@""]) {
+        if (afterStr && ![afterStr isEqualToString:@""]) {
             afterStr = [NSString stringWithFormat:@"&after_date=%@", afterStr];
+        } else {
+            afterStr = @"";
         }
-        if (![beforeStr isEqualToString:@""]) {
+        if (beforeStr && ![beforeStr isEqualToString:@""]) {
             beforeStr = [NSString stringWithFormat:@"&before_date=%@", beforeStr];
+        } else {
+            beforeStr = @"";
+        }
+        NSString *p1Str = [setupView.player1Cell.textField.text lowercaseString];
+        if (p1Str == nil) {
+            p1Str = @"";
+        }
+        NSString *p2Str = [setupView.player1Cell.textField.text lowercaseString];
+        if (p2Str == nil) {
+            p2Str = @"";
+        }
+        NSString *gameStr;
+        if (game) {
+            gameStr = game;
+        } else {
+            gameStr = setupView.gameCell.detailTextLabel.text;
         }
         NSString *getStr = [NSString stringWithFormat:@"moves=%@&response_format=org.pente.gameDatabase.SimpleHtmlGameStorerSearchResponseFormat&response_params=%@&results_order=%i&filter_data=%@",[self URLEncodedString_ch:movesStr],
                             [self URLEncodedString_ch:@"zippedPartNumParam=1"],[setupView.sortCell.detailTextLabel.text isEqualToString:@"popularity"]?1:2,
-                            [self URLEncodedString_ch:[NSString stringWithFormat:@"start_game_num=0&end_game_num=100&player_1_name=%@&player_2_name=%@&game=%@&site=All%%20Sites&event=All%%20Events&round=All%%20Rounds&section=All%%20Sections&winner=%@%@%@", [setupView.player1Cell.textField.text lowercaseString], [setupView.player2Cell.textField.text lowercaseString],setupView.gameCell.detailTextLabel.text, winnerStr, afterStr, beforeStr]]];
+                            [self URLEncodedString_ch:[NSString stringWithFormat:@"start_game_num=0&end_game_num=100&player_1_name=%@&player_2_name=%@&game=%@&site=All%%20Sites&event=All%%20Events&round=All%%20Rounds&section=All%%20Sections&winner=%@%@%@", p1Str, p2Str, gameStr, winnerStr, afterStr, beforeStr]]];
         
 //        NSLog(@"\ngetkittyyyyyyString -\n%@-", [self URLEncodedString_ch:getStr]);
 //        NSLog(@"\n\ngetkittyyyyyyString -\n%@-", getStr);
@@ -534,7 +589,7 @@ struct Capture {
         NSError *error;
         NSData *responseData = [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
         NSString *dashboardString = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
-        //    NSLog(@"kittyyyyyyString -\n%@-", dashboardString);
+//            NSLog(@"kittyyyyyyString -\n%@-", dashboardString);
         
         if (error) {
             UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:[NSString stringWithFormat:@"Reason: %@", error.localizedDescription] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
@@ -612,32 +667,32 @@ struct Capture {
                 break;
             }
         }
-        if ([moves count] == 0) {
+        if ([moves count] == 0 && ![dashboardString containsString:@"https://www.pente.org/gameServer/viewLiveGame?mobile&g="]) {
             dashboardString = @"No search results";
         } else {
             NSString *p1Str = [setupView.player1Cell.textField.text lowercaseString], *p2Str = [setupView.player2Cell.textField.text lowercaseString];
-            if (!([p1Str isEqualToString:@""] && [p2Str isEqualToString:@""])) {
+            if ((p1Str || p2Str) && !([p1Str isEqualToString:@""] && [p2Str isEqualToString:@""])) {
                 NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
                     NSMutableArray *invitedHistory =  [[defaults objectForKey:@"invitedHistory"] mutableCopy];
                     if (invitedHistory) {
                         int i = 0;
                         for ( i = 0; i < [invitedHistory count]; ++i) {
-                            if (![p1Str isEqualToString:@""] && [[invitedHistory objectAtIndex:i] localizedCaseInsensitiveCompare:p1Str] == NSOrderedDescending) {
+                            if (p1Str && ![p1Str isEqualToString:@""] && [[invitedHistory objectAtIndex:i] localizedCaseInsensitiveCompare:p1Str] == NSOrderedDescending) {
                                 if (![invitedHistory containsObject:p1Str]) {
                                     [invitedHistory insertObject:p1Str atIndex:i];
                                 }
                             }
-                            if (![p2Str isEqualToString:@""] && [[invitedHistory objectAtIndex:i] localizedCaseInsensitiveCompare:p2Str] == NSOrderedDescending) {
+                            if (p2Str && ![p2Str isEqualToString:@""] && [[invitedHistory objectAtIndex:i] localizedCaseInsensitiveCompare:p2Str] == NSOrderedDescending) {
                                 if (![invitedHistory containsObject:p2Str]) {
                                     [invitedHistory insertObject:p2Str atIndex:i];
                                 }
                             }
                         }
                     } else {
-                        if (![p1Str isEqualToString:@""]) {
+                        if (p1Str && ![p1Str isEqualToString:@""]) {
                             invitedHistory = [NSMutableArray arrayWithObject:p1Str];
                         }
-                        if (![p2Str isEqualToString:@""]) {
+                        if (p2Str && ![p2Str isEqualToString:@""]) {
                             if (invitedHistory) {
                                 if ([[invitedHistory objectAtIndex:0] localizedCaseInsensitiveCompare:p2Str] == NSOrderedDescending) {
                                     if (![invitedHistory containsObject:p2Str]) {
@@ -706,11 +761,11 @@ struct Capture {
             }
             [self performSegueWithIdentifier:@"viewGameSegue" sender:self];
             //        NSLog(@"kittyy %@", gameStr);
-            Game *game = [[Game alloc] init];
-            [game setGameID: gameStr];
+            Game *gameObj = [[Game alloc] init];
+            [gameObj setGameID: gameStr];
             //        [game setGameType:@"Connect6"];
 //            [game setOpponentName:author];
-            [game setRemainingTime:@"0 days"];
+            [gameObj setRemainingTime:@"0 days"];
             //        [game setOpponentRating:[splitLine objectAtIndex:3]];
             //        [game setMyColor:[splitLine objectAtIndex:4]];
             //        [game setRemainingTime:[splitLine objectAtIndex:5]];
@@ -719,7 +774,7 @@ struct Capture {
             
             [boardController setShowAds: showAds];
             [boardController setActiveGame:NO];
-            [boardController setGame:game];
+            [boardController setGame:gameObj];
             [boardController replayGame];
             [[boardController boardTapRecognizer] setEnabled: NO];
             return NO;
@@ -777,7 +832,9 @@ struct Capture {
 -(void) replayGame {
     [self resetBoard];
     int i = 0;
-    NSString *game = setupView.gameCell.detailTextLabel.text;
+    if (game == nil) {
+        game = setupView.gameCell.detailTextLabel.text;
+    }
     for (NSNumber *move in movesList) {
         int rowCol = [move intValue];
         int color = (i % 2) + 1, opponentColor = (color == 2) ? 1 : 2;
