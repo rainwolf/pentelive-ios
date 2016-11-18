@@ -202,9 +202,13 @@
         }
     }
     if (indexPath.section == 0) {
-        cell.textLabel.text = [NSString stringWithFormat:@"Tap to %@ this hill", [hillSummary member]?@"leave":@"join"];
+        if ([hillSummary member]) {
+            cell.textLabel.text = NSLocalizedString(@"Tap to leave this hill",nil);
+        } else {
+            cell.textLabel.text = NSLocalizedString(@"Tap to join this hill",nil);
+        }
         if (![player subscriber] && ![hillSummary member]) {
-            cell.detailTextLabel.text = @"Warning: only subscribers can join multiple hills";
+            cell.detailTextLabel.text = NSLocalizedString(@"Warning: only subscribers can join multiple hills",nil);
         }
         [cell.textLabel setTextAlignment:NSTextAlignmentCenter];
     } else {
@@ -254,7 +258,7 @@
 //        } else {
 //            txtStr = (NSMutableString *) [NSString stringWithFormat:@"%@ (%@, %@) - %@", [[[player invitations] objectAtIndex:indexPath.row] gameType], [[[player invitations] objectAtIndex:indexPath.row] ratedNot], [[[[player invitations] objectAtIndex:indexPath.row] myColor] substringWithRange: NSMakeRange(0,5)], [[[player invitations] objectAtIndex:indexPath.row] remainingTime]];
 //        }
-        cell.detailTextLabel.text = [NSString stringWithFormat: @"Last game played on %@", [playr lastGame]];
+        cell.detailTextLabel.text = [NSString stringWithFormat: NSLocalizedString(@"Last game played on %@",nil), [playr lastGame]];
         [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
         if ([playr canBeChallenged]) {
             cell.backgroundColor = [UIColor colorWithRed: 222.0/256 green:236.0/256 blue:222.0/256 alpha:1];
@@ -275,7 +279,7 @@
     if (indexPath.section == 0) {
         dispatch_async(dispatch_get_main_queue(), ^{
             [TSMessage showNotificationInViewController:self
-                                                  title: @"Tap again here to confirm"
+                                                  title: NSLocalizedString(@"Tap again here to confirm",nil)
                                                subtitle: nil
                                                   image:nil
                                                    type: TSMessageNotificationTypeWarning
@@ -284,7 +288,7 @@
                                                    [TSMessage dismissActiveNotification];
                                                    [self joinLeave];
                                                }
-                                            buttonTitle: @"cancel"
+                                            buttonTitle: NSLocalizedString(@"cancel",nil)
                                          buttonCallback:^{
                                              [TSMessage dismissActiveNotification];
                                          }
@@ -313,11 +317,11 @@
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
     if (section == 0) {
-        return [NSString stringWithFormat:@"King of the Hill - %@", [hillSummary game]];
+        return [NSString stringWithFormat:NSLocalizedString(@"King of the Hill - %@",nil), [hillSummary game]];
     } else if (section == 1) {
-        return @"top of the hill";
+        return NSLocalizedString(@"top of the hill",nil);
     } else {
-        return [NSString stringWithFormat:@"step %lu", [hill.steps count] - section + 1] ;
+        return [NSString stringWithFormat:NSLocalizedString(@"step %lu",nil), [hill.steps count] - section + 1] ;
     }
 }
 
@@ -337,7 +341,7 @@
     [challengeView setInvitee:@""];
     [challengeView setDelegate: challengeView];
     [challengeView setDataSource: challengeView];
-    actionPopoverView = [PopoverView showPopoverAtPoint: CGPointMake(self.view.bounds.size.width/2, [self.tableView contentOffset].y + 66) inView:self.view withTitle: @"send open challenge" withContentView: challengeView delegate:self];
+    actionPopoverView = [PopoverView showPopoverAtPoint: CGPointMake(self.view.bounds.size.width/2, [self.tableView contentOffset].y + 66) inView:self.view withTitle: NSLocalizedString(@"send open challenge",nil) withContentView: challengeView delegate:self];
     [challengeView setPopoverView: actionPopoverView];
     [actionPopoverView layoutSubviews];
     ((PenteNavigationViewController *) self.navigationController).didMove = YES;

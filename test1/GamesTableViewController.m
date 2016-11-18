@@ -94,7 +94,7 @@
     player = [[PentePlayer alloc] init];
     ((PenteNavigationViewController *) self.navigationController).player = player;
     [super viewDidLoad];
-    [self setTitle:@"Home"];
+    [self setTitle:NSLocalizedString(@"home",nil)];
     
     // Uncomment the following line to preserve selection between presentations.
     // self.clearsSelectionOnViewWillAppear = NO;
@@ -304,18 +304,18 @@
             dashboardString = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
         }
         if (error) {
-            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:[NSString stringWithFormat: @"Trouble connecting to pente.org, please try again in a bit.\nReason: %@",  error.localizedDescription] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error",nil) message:[NSString stringWithFormat: @"Trouble connecting to pente.org, please try again in a bit.\nReason: %@",  error.localizedDescription] delegate:nil cancelButtonTitle:NSLocalizedString(@"OK",nil) otherButtonTitles:nil];
             [alert show];
             [self performSegueWithIdentifier:@"settingsTap" sender:self];
             return;
         } else if ([dashboardString isEqualToString:@""] || ([dashboardString rangeOfString:@"HTTP Error"].length != 0)) {
-            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:@"pente.org appears to be down, please try again later." delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error",nil) message:@"pente.org appears to be down, please try again later." delegate:nil cancelButtonTitle:NSLocalizedString(@"OK",nil) otherButtonTitles:nil];
             [alert show];
             [self performSegueWithIdentifier:@"settingsTap" sender:self];
             return;
         }
         else if ([dashboardString rangeOfString:@"<h2>Pente.org is undergoing maintenance.</h2>"].length != 0) {
-            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Maintenance" message:@"pente.org is undergoing maintenance, please try again in a few minutes." delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Maintenance" message:@"pente.org is undergoing maintenance, please try again in a few minutes." delegate:nil cancelButtonTitle:NSLocalizedString(@"OK",nil) otherButtonTitles:nil];
             [alert show];
             [self performSegueWithIdentifier:@"settingsTap" sender:self];
             return;
@@ -642,9 +642,9 @@
         [tmpStr appendAttributedString:crownStr];
         cell.textLabel.attributedText = tmpStr;
         if (![[game ratedNot] isEqualToString:@"Not Rated"]) {
-            txtStr = (NSMutableString *) [NSString stringWithFormat:@"%@ (%@) - %@", [game gameType], [game ratedNot], [game remainingTime]];
+            txtStr = (NSMutableString *) [NSString stringWithFormat:@"%@ (%@) - %@", [game gameType], [game localizedRatedNot], [game localizedTimeString]];
         } else {
-            txtStr = (NSMutableString *) [NSString stringWithFormat:@"%@ (%@, %@) - %@", [game gameType], [game ratedNot], [[game myColor] substringWithRange: NSMakeRange(0,5)], [game remainingTime]];
+            txtStr = (NSMutableString *) [NSString stringWithFormat:@"%@ (%@, %@) - %@", [game gameType], [game localizedRatedNot], [game myColor], [game localizedTimeString]];
         }
         cell.detailTextLabel.text = txtStr;
         [cell setUserInteractionEnabled: YES];
@@ -712,9 +712,9 @@
         cell.textLabel.attributedText = tmpStr;
         txtStr = [[NSMutableString alloc] initWithString:[game gameType]];
         [txtStr appendString:@" ("];
-        [txtStr appendString: [game ratedNot]];
+        [txtStr appendString: [game localizedRatedNot]];
         [txtStr appendString:@") - "];
-        [txtStr appendString: [game remainingTime]];
+        [txtStr appendString: [game localizedTimeString]];
         cell.detailTextLabel.text = txtStr;
         [cell setAccessoryType:UITableViewCellAccessoryDisclosureIndicator];
         [cell setUserInteractionEnabled:YES];
@@ -789,9 +789,10 @@
         [tmpStr appendAttributedString:crownStr];
         cell.textLabel.attributedText = tmpStr;
         if (![[game ratedNot] isEqualToString:@"Not Rated"]) {
-            txtStr = (NSMutableString *) [NSString stringWithFormat:@"%@ (%@) - %@", [game gameType], [game ratedNot], [game remainingTime]];
-        } else
-            txtStr = (NSMutableString *) [NSString stringWithFormat:@"%@ (%@, %@) - %@", [game gameType], [game ratedNot], [[game myColor] substringWithRange: NSMakeRange(0,5)], [game remainingTime]];
+            txtStr = (NSMutableString *) [NSString stringWithFormat:@"%@ (%@) - %@", [game gameType], [game localizedRatedNot], [game localizedTimeString]];
+        } else {
+            txtStr = (NSMutableString *) [NSString stringWithFormat:@"%@ (%@, %@) - %@", [game gameType], [game localizedRatedNot], [game myColor], [game localizedTimeString]];
+        }
         //        [[NSMutableString alloc] initWithString:[[[player invitations] objectAtIndex:indexPath.row] gameType]];
         //        [tmpStr appendString:@" ("];
         //        [tmpStr appendString: [[[player invitations] objectAtIndex:indexPath.row] ratedNot]];
@@ -825,7 +826,11 @@
 //        cell = nil;
 //        cell = [[GameTableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:CellIdentifier];
 //        [cell.imageView removeFromSuperview];
-        txtStr = [[NSMutableString alloc] initWithString:[game opponentName]];
+        if ([game.opponentName isEqualToString:@"Anyone"]) {
+            txtStr = [[NSMutableString alloc] initWithString:NSLocalizedString(@"Anyone", nil)];
+        } else {
+            txtStr = [[NSMutableString alloc] initWithString:[game opponentName]];
+        }
         int crown = [game crown];
         NSTextAttachment *textAttachment = [[NSTextAttachment alloc] init];
         switch (crown) {
@@ -846,7 +851,7 @@
                 break;
         }
         NSAttributedString *crownStr = [NSAttributedString attributedStringWithAttachment:textAttachment];
-        if ([txtStr rangeOfString:@"Anyone"].location != NSNotFound) {
+        if ([game.opponentName isEqualToString:@"Anyone"]) {
             cell.ratingLabel.text = @"";
         } else {
             NSMutableString *ratingStr = [NSMutableString stringWithString:@"\u25A0 "];
@@ -870,10 +875,9 @@
         cell.textLabel.attributedText = tmpStr;
         txtStr = [[NSMutableString alloc] initWithString:[game gameType]];
         [txtStr appendString:@" ("];
-        [txtStr appendString: [game ratedNot]];
+        [txtStr appendString: [game localizedRatedNot]];
         [txtStr appendString:@") - "];
-        [txtStr appendString: [game remainingTime]];
-        [txtStr appendString: @" per move"];
+        [txtStr appendString: [game localizedTimeString]];
         cell.detailTextLabel.text = txtStr;
         [cell setUserInteractionEnabled: YES];
         [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
@@ -940,10 +944,15 @@
         [tmpStr appendAttributedString:crownStr];
         cell.textLabel.attributedText = tmpStr;
         txtStr = [[NSMutableString alloc] initWithString:[game gameType]];
-        [txtStr appendString:@" ("];
-        [txtStr appendString: [game ratedNot]];
-        [txtStr appendString:@") - "];
-        [txtStr appendString: [game remainingTime]];
+        if (![[game ratedNot] isEqualToString:@"Not Rated"]) {
+            txtStr = (NSMutableString *) [NSString stringWithFormat:@"%@ (%@) - %@", [game gameType], [game localizedRatedNot], [game localizedTimeString]];
+        } else {
+            txtStr = (NSMutableString *) [NSString stringWithFormat:@"%@ (%@, %@) - %@", [game gameType], [game localizedRatedNot], [game myColor], [game localizedTimeString]];
+        }
+//        [txtStr appendString:@" ("];
+//        [txtStr appendString: [game ratedNot]];
+//        [txtStr appendString:@") - "];
+//        [txtStr appendString: [game remainingTime]];
         cell.detailTextLabel.text = txtStr;
         [cell setUserInteractionEnabled:YES];
         [cell setAccessoryType:UITableViewCellAccessoryDisclosureIndicator];
@@ -974,13 +983,13 @@
         UIColor *statusColor;
         if ([[tourney tournamentState] isEqualToString:@"2"]) {
             statusColor = [UIColor orangeColor];
-            cell.detailTextLabel.text = [NSString stringWithFormat: @"Registration closed. Starts %@", [tourney date]];
+            cell.detailTextLabel.text = [NSString stringWithFormat: NSLocalizedString(@"Registration closed. Starts %@",nil), [tourney date]];
         } else {
             statusColor = [UIColor greenColor];
             if ([[tourney tournamentState] isEqualToString:@"1"]) {
-                cell.detailTextLabel.text = [NSString stringWithFormat: @"Registration is open until %@", [tourney date]];
+                cell.detailTextLabel.text = [NSString stringWithFormat: NSLocalizedString(@"Registration is open until %@",nil), [tourney date]];
             } else {
-                cell.detailTextLabel.text = [NSString stringWithFormat: @"Tournament started. Current round: %@", [tourney round]];
+                cell.detailTextLabel.text = [NSString stringWithFormat: NSLocalizedString(@"Tournament started. Current round: %@",nil), [tourney round]];
             }
         }
         [tmpStr addAttribute:NSForegroundColorAttributeName value:statusColor range:NSMakeRange(0, 1)];
@@ -1016,14 +1025,14 @@
         }
         cell.textLabel.attributedText = tmpStr;
         if ([[koth currentKing] length] > 0) {
-            tmpStr = [[NSMutableAttributedString alloc] initWithString:[NSString stringWithFormat: @" %@ players ruled by %@ ", [koth numPlayers], [koth currentKing]]];
+            tmpStr = [[NSMutableAttributedString alloc] initWithString:[NSString stringWithFormat: NSLocalizedString(@" %@ players ruled by %@ ", nil), [koth numPlayers], [koth currentKing]]];
             NSTextAttachment *textAttachment = [[NSTextAttachment alloc] init];
             textAttachment.image = [UIImage imageNamed:@"kothcrown.gif"];
             NSAttributedString *crownStr = [NSAttributedString attributedStringWithAttachment:textAttachment];
             //            cell.ratingLabel.attributedText = crownStr;
             [tmpStr appendAttributedString:crownStr];
         } else {
-            tmpStr = [[NSMutableAttributedString alloc] initWithString:[NSString stringWithFormat: @" Number of players: %@", [koth numPlayers]]];
+            tmpStr = [[NSMutableAttributedString alloc] initWithString:[NSString stringWithFormat: NSLocalizedString(@" Number of players: %@",nil), [koth numPlayers]]];
         }
         cell.detailTextLabel.attributedText = tmpStr;
         [cell setUserInteractionEnabled:YES];
@@ -1269,27 +1278,27 @@
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section
 {
     if(section == MESSAGESSECTION)    {
-        return [NSString stringWithFormat: @"Messages (%lu)",(unsigned long)[[player messages] count]];
+        return [NSString stringWithFormat: NSLocalizedString(@"messages (%lu)", nil),(unsigned long)[[player messages] count]];
     }
     else if(section == INVITATIONSSECTION)    {
-        return [NSString stringWithFormat: @"Invitations (%lu)",(unsigned long)[[player invitations] count]];
+        return [NSString stringWithFormat: NSLocalizedString(@"invitations (%lu)",nil),(unsigned long)[[player invitations] count]];
     }
     else if(section == ACTIVEGAMESSECTION)    {
-        return [NSString stringWithFormat: @"Active Games (%lu)",(unsigned long)[[player activeGames] count]];
+        return [NSString stringWithFormat: NSLocalizedString(@"my turn (%lu)",nil),(unsigned long)[[player activeGames] count]];
     }
     else if(section == PUBLICINVITATIONSSECTION)    {
-        return [NSString stringWithFormat: @"Public Invitations (%lu)",(unsigned long)[[player publicInvitations] count]];
+        return [NSString stringWithFormat: NSLocalizedString(@"public invitations (%lu)",nil),(unsigned long)[[player publicInvitations] count]];
     }
     else if(section == SENTINVITATIONSSECTION)    {
-        return [NSString stringWithFormat: @"Invitations Sent (%lu)",(unsigned long)[[player sentInvitations] count]];
+        return [NSString stringWithFormat: NSLocalizedString(@"invitations sent (%lu)",nil),(unsigned long)[[player sentInvitations] count]];
     }
     else if(section == NONACTIVEGAMESSECTION)    {
-        return [NSString stringWithFormat: @"Non-Active Games (%lu)",(unsigned long)[[player nonActiveGames] count]];
+        return [NSString stringWithFormat: NSLocalizedString(@"opponent's turn (%lu)",nil),(unsigned long)[[player nonActiveGames] count]];
     }
     else if (section == TOURNAMENTSSECTION)   {
-        return [NSString stringWithFormat: @"Tournaments (%lu)",(unsigned long)[[player tournaments] count]];
+        return [NSString stringWithFormat: NSLocalizedString(@"tournaments (%lu)",nil),(unsigned long)[[player tournaments] count]];
     } else if (section == KOTHSECTION) {
-        return [NSString stringWithFormat: @"King of the Hill (%lu)",(unsigned long)[[player hills] count]];
+        return [NSString stringWithFormat: NSLocalizedString(@"King of the Hill (%lu)",nil),(unsigned long)[[player hills] count]];
     }
     return @"uh-oh";
 }
@@ -1676,7 +1685,7 @@
     NSError *error;
     [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
     if (error) {
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:[NSString stringWithFormat:@"Reason: %@", error.localizedDescription] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error",nil) message:[NSString stringWithFormat:NSLocalizedString(@"Reason: %@",nil), error.localizedDescription] delegate:nil cancelButtonTitle:NSLocalizedString(@"OK",nil) otherButtonTitles:nil];
         //        [alert show];
         [alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:YES];
         return;
@@ -1774,7 +1783,7 @@
     NSError *error;
     [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
     if (error) {
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:[NSString stringWithFormat:@"Reason: %@", error.localizedDescription] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error",nil) message:[NSString stringWithFormat:NSLocalizedString(@"Reason: %@",nil), error.localizedDescription] delegate:nil cancelButtonTitle:NSLocalizedString(@"OK",nil) otherButtonTitles:nil];
         //        [alert show];
         [alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:YES];
         return;
@@ -1821,21 +1830,21 @@
     cancelButton.backgroundColor = [UIColor clearColor];
     cancelButton.titleLabel.font = [UIFont boldSystemFontOfSize:20];
     [cancelButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
-    [cancelButton setTitle:@"cancel" forState:UIControlStateNormal];
+    [cancelButton setTitle:NSLocalizedString(@"cancel",nil) forState:UIControlStateNormal];
     [cancelButton addTarget:self action:@selector(cancelInvitation:) forControlEvents:UIControlEventTouchUpInside];
     
     acceptButton = [UIButton buttonWithType:UIButtonTypeCustom];
     acceptButton.backgroundColor = [UIColor clearColor];
     acceptButton.titleLabel.font = [UIFont boldSystemFontOfSize:20];
     [acceptButton setTitleColor:[UIColor colorWithRed:0 green:0.259 blue:0.145 alpha:1] forState:UIControlStateNormal];
-    [acceptButton setTitle:@"accept" forState:UIControlStateNormal];
+    [acceptButton setTitle:NSLocalizedString(@"accept",nil) forState:UIControlStateNormal];
     [acceptButton addTarget:self action:@selector(acceptInvitation:) forControlEvents:UIControlEventTouchUpInside];
     
     rejectButton = [UIButton buttonWithType:UIButtonTypeCustom];
     rejectButton.backgroundColor = [UIColor clearColor];
     rejectButton.titleLabel.font = [UIFont boldSystemFontOfSize:20];
     [rejectButton setTitleColor:[UIColor colorWithRed:0.698 green:0.133 blue:0.133 alpha:1] forState:UIControlStateNormal];
-    [rejectButton setTitle:@"decline" forState:UIControlStateNormal];
+    [rejectButton setTitle:NSLocalizedString(@"decline",nil) forState:UIControlStateNormal];
     [rejectButton addTarget:self action:@selector(rejectInvitation:) forControlEvents:UIControlEventTouchUpInside];
     
     CGFloat screenWidth = UIScreen.mainScreen.bounds.size.width, spacing;
@@ -1996,14 +2005,14 @@
     cancelButton.backgroundColor = [UIColor clearColor];
     cancelButton.titleLabel.font = [UIFont boldSystemFontOfSize:20];
     [cancelButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
-    [cancelButton setTitle:@"cancel" forState:UIControlStateNormal];
+    [cancelButton setTitle:NSLocalizedString(@"cancel",nil) forState:UIControlStateNormal];
     [cancelButton addTarget:self action:@selector(cancelPublicInvitation:) forControlEvents:UIControlEventTouchUpInside];
     
     acceptButton = [UIButton buttonWithType:UIButtonTypeCustom];
     acceptButton.backgroundColor = [UIColor clearColor];
     acceptButton.titleLabel.font = [UIFont boldSystemFontOfSize:20];
     [acceptButton setTitleColor:[UIColor colorWithRed:0 green:0.259 blue:0.145 alpha:1] forState:UIControlStateNormal];
-    [acceptButton setTitle:@"accept" forState:UIControlStateNormal];
+    [acceptButton setTitle:NSLocalizedString(@"accept",nil) forState:UIControlStateNormal];
     [acceptButton addTarget:self action:@selector(acceptPublicInvitation:) forControlEvents:UIControlEventTouchUpInside];
     
 
@@ -2046,13 +2055,13 @@
 
 -(NSString *)tableView:(UITableView *)tableView titleForDeleteConfirmationButtonForRowAtIndexPath:(NSIndexPath *)indexPath {
     if (indexPath.section == MESSAGESSECTION) {
-        return @"delete";
+        return NSLocalizedString(@"delete",nil);
     }
     if (indexPath.section == ACTIVEGAMESSECTION) {
-        return @"resign";
+        return NSLocalizedString(@"resign",nil);
     }
     if (indexPath.section == SENTINVITATIONSSECTION) {
-        return @"cancel";
+        return NSLocalizedString(@"cancel",nil);
     }
 //    if (indexPath.section == NONACTIVEGAMESSECTION) {
 //        return @"cancel set";
@@ -2104,7 +2113,7 @@
         NSError *error;
         [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
         if (error) {
-            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:[NSString stringWithFormat:@"Reason: %@", error.localizedDescription] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error",nil) message:[NSString stringWithFormat:NSLocalizedString(@"Reason: %@",nil), error.localizedDescription] delegate:nil cancelButtonTitle:NSLocalizedString(@"OK",nil) otherButtonTitles:nil];
             //        [alert show];
             [alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:YES];
             return;
@@ -2149,7 +2158,7 @@
         NSError *error;
         [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
         if (error) {
-            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:[NSString stringWithFormat:@"Reason: %@", error.localizedDescription] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error",nil) message:[NSString stringWithFormat:NSLocalizedString(@"Reason: %@",nil), error.localizedDescription] delegate:nil cancelButtonTitle:NSLocalizedString(@"OK",nil) otherButtonTitles:nil];
             //        [alert show];
             [alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:YES];
             return;
@@ -2190,7 +2199,7 @@
         NSError *error;
         [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
         if (error) {
-            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:[NSString stringWithFormat:@"Reason: %@", error.localizedDescription] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error",nil) message:[NSString stringWithFormat:NSLocalizedString(@"Reason: %@",nil), error.localizedDescription] delegate:nil cancelButtonTitle:NSLocalizedString(@"OK",nil) otherButtonTitles:nil];
             //        [alert show];
             [alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:YES];
             return;
@@ -2242,7 +2251,7 @@
 //        [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
         NSData *responseData = [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
         if (error) {
-            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:[NSString stringWithFormat:@"Reason: %@", error.localizedDescription] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error",nil) message:[NSString stringWithFormat:NSLocalizedString(@"Reason: %@",nil), error.localizedDescription] delegate:nil cancelButtonTitle:NSLocalizedString(@"OK",nil) otherButtonTitles:nil];
             //        [alert show];
             [alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:YES];
             return;
@@ -2251,7 +2260,7 @@
         movesRange = NSMakeRange(0,[dashboardString length]);
         movesRange = [dashboardString rangeOfString: @"Error: Cancel request already exists." options:0 range:movesRange];
         if (movesRange.location != NSNotFound) {
-            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:@"A cancel request already exists." delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error",nil) message:NSLocalizedString(@"A cancel request already exists.",nil) delegate:nil cancelButtonTitle:NSLocalizedString(@"OK",nil) otherButtonTitles:nil];
             [alert show];
             self.tableView.layer.borderWidth = 0.0;
             [self.tableView setEditing:FALSE animated:TRUE];
@@ -2307,7 +2316,7 @@
     [request setTimeoutInterval:7.0];
     responseData = [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
     if (error) {
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:[NSString stringWithFormat:@"Reason: %@", error.localizedDescription] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error",nil) message:[NSString stringWithFormat:NSLocalizedString(@"Reason: %@",nil), error.localizedDescription] delegate:nil cancelButtonTitle:NSLocalizedString(@"OK",nil) otherButtonTitles:nil];
         //        [alert show];
         [alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:YES];
         self.tableView.layer.borderWidth = 0.0;
@@ -2477,7 +2486,7 @@
             [game setOpponentName:[splitLine objectAtIndex:2]];
             [game setOpponentRating:[splitLine objectAtIndex:3]];
             [game setMyColor:[splitLine objectAtIndex:4]];
-            [game setRemainingTime:[splitLine objectAtIndex:5]];
+            [game setRemainingTime: [splitLine objectAtIndex:5]];
             [game setRatedNot:[splitLine objectAtIndex:6]];
             [game setNameColor: UIColorFromRGB([[splitLine objectAtIndex:7] intValue])];
             [game setCrown:[[splitLine objectAtIndex:8] intValue]];
@@ -2521,7 +2530,7 @@
             [game setOpponentName:[splitLine objectAtIndex:2]];
             [game setOpponentRating:[splitLine objectAtIndex:3]];
             [game setMyColor:[splitLine objectAtIndex:4]];
-            [game setRemainingTime:[splitLine objectAtIndex:5]];
+            [game setRemainingTime: [splitLine objectAtIndex:5]];
             [game setRatedNot:[splitLine objectAtIndex:6]];
             [game setNameColor: UIColorFromRGB([[splitLine objectAtIndex:7] intValue])];
             [game setCrown:[[splitLine objectAtIndex:8] intValue]];
@@ -2575,7 +2584,7 @@
             [game setOpponentName:[splitLine objectAtIndex:2]];
             [game setOpponentRating:[splitLine objectAtIndex:3]];
             [game setMyColor:[[splitLine objectAtIndex:4] substringToIndex:5]];
-            [game setRemainingTime:[splitLine objectAtIndex:6]];
+            [game setRemainingTime: [splitLine objectAtIndex:6]];
             [game setRatedNot:[splitLine objectAtIndex:7]];
             [game setNameColor: UIColorFromRGB([[splitLine objectAtIndex:8] intValue])];
             [game setCrown:[[splitLine objectAtIndex:9] intValue]];
@@ -2621,7 +2630,7 @@
             [game setOpponentName:[splitLine objectAtIndex:2]];
             [game setOpponentRating:[splitLine objectAtIndex:3]];
             [game setMyColor:[[splitLine objectAtIndex:4] substringToIndex:5]];
-            [game setRemainingTime:[splitLine objectAtIndex:6]];
+            [game setRemainingTime: [splitLine objectAtIndex:6]];
             [game setRatedNot:[splitLine objectAtIndex:7]];
             [game setNameColor: UIColorFromRGB([[splitLine objectAtIndex:8] intValue])];
             [game setCrown:[[splitLine objectAtIndex:9] intValue]];
@@ -2681,7 +2690,7 @@
             [game setOpponentName:[splitLine objectAtIndex:2]];
             [game setOpponentRating:[splitLine objectAtIndex:3]];
             [game setMyColor:[splitLine objectAtIndex:4]];
-            [game setRemainingTime:[splitLine objectAtIndex:5]];
+            [game setRemainingTime: [splitLine objectAtIndex:5]];
             [game setRatedNot:[splitLine objectAtIndex:6]];
             [game setNameColor: UIColorFromRGB([[splitLine objectAtIndex:7] intValue])];
             [game setCrown:[[splitLine objectAtIndex:8] intValue]];
@@ -2951,7 +2960,7 @@
                 if (!alreadyAskedAboutInvitations) {
                     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
                     if (![defaults boolForKey:@"doNotRemindOpenInvitation"]) {
-                            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Nothing to see here" message:@"You have no ongoing games, shall we post an open invitation and get you started?" delegate:self cancelButtonTitle:@"Remind me next time." otherButtonTitles:@"Sure!", @"Do not remind me again.", nil];
+                            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Nothing to see here",nil) message:NSLocalizedString(@"You have no ongoing games, shall we post an open invitation and get you started?",nil) delegate:self cancelButtonTitle:NSLocalizedString(@"Remind me next time.",nil) otherButtonTitles:NSLocalizedString(@"Sure!",nil), NSLocalizedString(@"Do not remind me again.",nil), nil];
                             [alert setTag: 0];
                             [alert show];
                     }
@@ -2984,7 +2993,7 @@
     button.backgroundColor = [UIColor clearColor];
 //    button.titleLabel.font = [UIFont boldSystemFontOfSize:17];
     [button setImage:[UIImage imageNamed:@"newmessage.png"] forState:UIControlStateNormal];
-    [button setTitle:@" new message" forState:UIControlStateNormal];
+    [button setTitle:NSLocalizedString(@" new message",nil) forState:UIControlStateNormal];
     [button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
     [button addTarget:self action:@selector(toComposer) forControlEvents:UIControlEventTouchUpInside];
 //    [button setFrame:frame];
@@ -2994,7 +3003,7 @@
     button = [UIButton buttonWithType:UIButtonTypeCustom];
     button.backgroundColor = [UIColor clearColor];
     [button setImage:[UIImage imageNamed:@"showstats.png"] forState:UIControlStateNormal];
-    [button setTitle:@" my ratings" forState:UIControlStateNormal];
+    [button setTitle:NSLocalizedString(@" my ratings",nil) forState:UIControlStateNormal];
     [button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
     [button addTarget:self action:@selector(showStats) forControlEvents:UIControlEventTouchUpInside];
     //    [button setFrame:frame];
@@ -3006,7 +3015,7 @@
     button = [UIButton buttonWithType:UIButtonTypeCustom];
     button.backgroundColor = [UIColor clearColor];
     [button setImage:[UIImage imageNamed:@"onlineUsers.png"] forState:UIControlStateNormal];
-    [button setTitle:@" online players" forState:UIControlStateNormal];
+    [button setTitle:NSLocalizedString(@" online players",nil) forState:UIControlStateNormal];
     [button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
     [button addTarget:self action:@selector(showOnlinePlayers) forControlEvents:UIControlEventTouchUpInside];
     //    [button setFrame:frame];
@@ -3068,7 +3077,7 @@
         //    NSLog(@"kittyyyyyyString -\n%@-", dashboardString);
         
         if (error) {
-            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:[NSString stringWithFormat:@"Reason: %@", error.localizedDescription] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error",nil) message:[NSString stringWithFormat:NSLocalizedString(@"Reason: %@",nil), error.localizedDescription] delegate:nil cancelButtonTitle:NSLocalizedString(@"OK",nil) otherButtonTitles:nil];
             //        [alert show];
             [alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:YES];
             [self.progressView stopAnimating];
@@ -3103,7 +3112,7 @@
             [playersView setDataSource: playersView];
             [playersView setPlayers:players];
             [playersView setVc: self];
-            actionPopoverView = [PopoverView showPopoverAtPoint: CGPointMake(self.view.bounds.size.width - 20, self.tableView.contentOffset.y) inView:self.view withTitle: @"who's online" withContentView:playersView delegate:self];
+            actionPopoverView = [PopoverView showPopoverAtPoint: CGPointMake(self.view.bounds.size.width - 20, self.tableView.contentOffset.y) inView:self.view withTitle: NSLocalizedString(@"who's online",nil) withContentView:playersView delegate:self];
             [actionPopoverView layoutSubviews];
             [playersView flashScrollIndicators];
         });
@@ -3124,7 +3133,7 @@
     CGRect frame = CGRectMake(0, 0, 45, 45);
     UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
     button.backgroundColor = [UIColor clearColor];
-    [button setTitle:@" Server AI" forState:UIControlStateNormal];
+    [button setTitle:NSLocalizedString(@" server AI",nil) forState:UIControlStateNormal];
     [button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
     [button setImage:[UIImage imageNamed:@"server.png"] forState:UIControlStateNormal];
     [button addTarget:self action:@selector(toAIInvitations) forControlEvents:UIControlEventTouchUpInside];
@@ -3133,7 +3142,7 @@
     frame = button.frame;
     [buttonsArray addObject: button];
     button = [UIButton buttonWithType:UIButtonTypeCustom];
-    [button setTitle:@" Onboard AI" forState:UIControlStateNormal];
+    [button setTitle:NSLocalizedString(@" onboard AI",nil) forState:UIControlStateNormal];
     [button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
     button.backgroundColor = [UIColor clearColor];
     [button setImage:[UIImage imageNamed:@"computer.png"] forState:UIControlStateNormal];
@@ -3144,7 +3153,7 @@
     }
     [buttonsArray addObject: button];
     button = [UIButton buttonWithType:UIButtonTypeCustom];
-    [button setTitle:@" Humans" forState:UIControlStateNormal];
+    [button setTitle:NSLocalizedString(@" humans",nil) forState:UIControlStateNormal];
     [button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
     button.backgroundColor = [UIColor clearColor];
     [button setImage:[UIImage imageNamed:@"person.png"] forState:UIControlStateNormal];
@@ -3155,7 +3164,7 @@
     }
     [buttonsArray addObject: button];
     button = [UIButton buttonWithType:UIButtonTypeCustom];
-    [button setTitle:@" Database" forState:UIControlStateNormal];
+    [button setTitle:NSLocalizedString(@" database",nil) forState:UIControlStateNormal];
     [button setImage:[UIImage imageNamed:@"database.png"] forState:UIControlStateNormal];
     [button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
     button.backgroundColor = [UIColor clearColor];
@@ -3243,7 +3252,7 @@
         }
         else if (buttonIndex == 1) {
 //            NSLog(@"button 1");
-            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"How to?" message:@"Pick any game but leave the opponent field empty and everyone will see your invitation." delegate:self cancelButtonTitle:@"Got it!" otherButtonTitles:nil, nil];
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"How to?",nil) message:NSLocalizedString(@"Pick any game but leave the opponent field empty and everyone will see your invitation.",nil) delegate:self cancelButtonTitle:NSLocalizedString(@"Got it!",nil) otherButtonTitles:nil, nil];
             [alert setTag: 1];
             [alert show];
         } else if (buttonIndex == 2) {
@@ -3277,16 +3286,17 @@
     return [tmpStrShocked stringByReplacingOccurrencesOfString:@"<img border=\"0\" src=\"http://[host]/gameServer/forums/images/emoticons/plain.gif\" alt=\"\">" withString: @":|"];
 }
 
-- (void)connection:(NSURLConnection *)connection didReceiveAuthenticationChallenge:(NSURLAuthenticationChallenge *)challenge {
-    NSArray *trustedHosts = [NSArray arrayWithObjects:@"mytrustedhost",nil];
-    
-    if ([challenge.protectionSpace.authenticationMethod isEqualToString:NSURLAuthenticationMethodServerTrust]){
-        if ([trustedHosts containsObject:challenge.protectionSpace.host]) {
-            [challenge.sender useCredential:[NSURLCredential credentialForTrust:challenge.protectionSpace.serverTrust] forAuthenticationChallenge:challenge];
-        }
-    }
-    [challenge.sender continueWithoutCredentialForAuthenticationChallenge:challenge];
-}
+//- (void)connection:(NSURLConnection *)connection didReceiveAuthenticationChallenge:(NSURLAuthenticationChallenge *)challenge {
+//    NSLog(@"kittennnnnn");
+//    NSArray *trustedHosts = [NSArray arrayWithObjects:@"mytrustedhost",nil];
+//    
+//    if ([challenge.protectionSpace.authenticationMethod isEqualToString:NSURLAuthenticationMethodServerTrust]){
+//        if ([trustedHosts containsObject:challenge.protectionSpace.host]) {
+//            [challenge.sender useCredential:[NSURLCredential credentialForTrust:challenge.protectionSpace.serverTrust] forAuthenticationChallenge:challenge];
+//        }
+//    }
+//    [challenge.sender continueWithoutCredentialForAuthenticationChallenge:challenge];
+//}
 
 
 - (void)viewDidUnload {

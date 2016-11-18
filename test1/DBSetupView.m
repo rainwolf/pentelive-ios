@@ -32,8 +32,8 @@
         datePickerToolbar = [[UIToolbar alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, 44)];
         [datePickerToolbar setBarStyle:UIBarStyleBlackTranslucent];
         UIBarButtonItem *extraSpace = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:nil];
-        UIBarButtonItem *doneButton = [[UIBarButtonItem alloc] initWithTitle:@"Done" style:UIBarButtonItemStyleDone target:self action:@selector(dismissPicker:)]; // method to dismiss the picker when the "Done" button is pressed
-        clearButton = [[UIBarButtonItem alloc] initWithTitle:@"Clear" style:UIBarButtonItemStyleDone target:self action:@selector(clearDate:)]; // method to dismiss the picker
+        UIBarButtonItem *doneButton = [[UIBarButtonItem alloc] initWithTitle:NSLocalizedString(@"Done",nil) style:UIBarButtonItemStyleDone target:self action:@selector(dismissPicker:)]; // method to dismiss the picker when the "Done" button is pressed
+        clearButton = [[UIBarButtonItem alloc] initWithTitle:NSLocalizedString(@"Clear",nil) style:UIBarButtonItemStyleDone target:self action:@selector(clearDate:)]; // method to dismiss the picker
         [datePickerToolbar setItems:[[NSArray alloc] initWithObjects: extraSpace, clearButton, doneButton, nil]];
         
 
@@ -58,7 +58,7 @@
         }
         [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
         
-        cell.textLabel.text =  @"Game:";
+        cell.textLabel.text =  NSLocalizedString(@"Game:",nil);
         NSString *str = [[NSUserDefaults standardUserDefaults] objectForKey: @"DBGame"];
         if (str) {
             cell.detailTextLabel.text = str;
@@ -78,12 +78,12 @@
         }
         [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
         
-        cell.textLabel.text =  @"Sort by";
+        cell.textLabel.text =  NSLocalizedString(@"Sort by",nil);
         NSString *str = [[NSUserDefaults standardUserDefaults] objectForKey: @"DBSort"];
         if (str) {
             cell.detailTextLabel.text = str;
         } else {
-            cell.detailTextLabel.text = @"win percentage";
+            cell.detailTextLabel.text = NSLocalizedString(@"win percentage",nil);
         }
         
         sortCell = cell;
@@ -97,7 +97,7 @@
         }
         [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
         
-        cell.textLabel.text =  @"Player 1:";
+        cell.textLabel.text =  NSLocalizedString(@"Player 1:",nil);
         
         player1Cell = cell;
         
@@ -110,7 +110,7 @@
         }
         [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
         
-        cell.textLabel.text =  @"Player 2:";
+        cell.textLabel.text =  NSLocalizedString(@"Player 2:",nil);
         
         player2Cell = cell;
         
@@ -123,8 +123,8 @@
         }
         [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
         
-        cell.textLabel.text =  @"Winner";
-        cell.detailTextLabel.text = @"either";
+        cell.textLabel.text =  NSLocalizedString(@"Winner",nil);
+        cell.detailTextLabel.text = NSLocalizedString(@"either",nil);
         
         winnerCell = cell;
         
@@ -137,7 +137,7 @@
         }
         [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
         
-        cell.textLabel.text =  @"After:";
+        cell.textLabel.text =  NSLocalizedString(@"After:",nil);
         //        NSString *str = [[NSUserDefaults standardUserDefaults] objectForKey: @"DBSort"];
         //        if (str) {
         //            cell.detailTextLabel.text = str;
@@ -161,7 +161,7 @@
         }
         [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
         
-        cell.textLabel.text =  @"Before:";
+        cell.textLabel.text =  NSLocalizedString(@"Before:",nil);
         cell.textField.tag = 2;
         cell.textField.delegate = self;
         cell.textField.inputView = beforePicker;
@@ -188,10 +188,10 @@
         [afterCell.textField resignFirstResponder];
         [player1Cell resignFirstResponder];
         [player2Cell resignFirstResponder];
-        if ([sortCell.detailTextLabel.text isEqualToString:@"popularity"]) {
-            [sortCell.detailTextLabel setText:@"win percentage"];
+        if ([sortCell.detailTextLabel.text isEqualToString:NSLocalizedString(@"popularity",nil)]) {
+            [sortCell.detailTextLabel setText:NSLocalizedString(@"win percentage",nil)];
         } else {
-            [sortCell.detailTextLabel setText:@"popularity"];
+            [sortCell.detailTextLabel setText:NSLocalizedString(@"popularity",nil)];
         }
         [[NSUserDefaults standardUserDefaults] setObject:sortCell.detailTextLabel.text forKey:@"DBSort"];
     }
@@ -200,12 +200,12 @@
         [afterCell.textField resignFirstResponder];
         [player1Cell resignFirstResponder];
         [player2Cell resignFirstResponder];
-        if ([winnerCell.detailTextLabel.text isEqualToString:@"either"]) {
-            [winnerCell.detailTextLabel setText:@"player 1"];
-        } else if ([winnerCell.detailTextLabel.text isEqualToString:@"player 1"]) {
-            [winnerCell.detailTextLabel setText:@"player 2"];
+        if ([winnerCell.detailTextLabel.text isEqualToString:NSLocalizedString(@"either",nil)]) {
+            [winnerCell.detailTextLabel setText:NSLocalizedString(@"player 1",nil)];
+        } else if ([winnerCell.detailTextLabel.text isEqualToString:NSLocalizedString(@"player 1",nil)]) {
+            [winnerCell.detailTextLabel setText:NSLocalizedString(@"player 2",nil)];
         } else {
-            [winnerCell.detailTextLabel setText:@"either"];
+            [winnerCell.detailTextLabel setText:NSLocalizedString(@"either",nil)];
         }
     }
     if (indexPath.row == 5 || indexPath.row == 6) {

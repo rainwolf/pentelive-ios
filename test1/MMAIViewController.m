@@ -126,7 +126,7 @@
     button.backgroundColor = [UIColor clearColor];
     button.titleLabel.font = [UIFont boldSystemFontOfSize:20];
     [button setTitleColor:[UIColor blueColor] forState:UIControlStateNormal];
-    [button setTitle:@"  start game  " forState:UIControlStateNormal];
+    [button setTitle:NSLocalizedString(@"  start game  ",nil) forState:UIControlStateNormal];
     [button addTarget:self action:@selector(startGame:) forControlEvents:UIControlEventTouchUpInside];
     rect = button.frame;
     rect.size = [button intrinsicContentSize];
@@ -271,14 +271,14 @@
 
 -(void) startGame: (id) sender {
     aiThinking = NO;
-    [((UIButton *) sender) setTitle:@"restart game" forState:UIControlStateNormal];
+    [((UIButton *) sender) setTitle:NSLocalizedString(@"restart game",nil) forState:UIControlStateNormal];
     if (aiPlayer == nil) {
 //        NSLog(@"kitty");
         aiPlayer = [[MMAI alloc] init];
     }
     [aiPlayer reset];
     [aiPlayer setLevel:[setupView.difficultyCell.detailTextLabel.text intValue]];
-    [aiPlayer setSeat: ([setupView.colorCell.detailTextLabel.text isEqualToString:@"white"]?2:1)];
+    [aiPlayer setSeat: ([setupView.colorCell.detailTextLabel.text isEqualToString:NSLocalizedString(@"white",nil)]?2:1)];
 //    NSLog(@"kitty %@", setupView.colorCell.detailTextLabel.text);
     [aiPlayer addMove:180];
     [aiPlayer setGame: ([setupView.gameCell.detailTextLabel.text isEqualToString:@"Pente"]?1:2)];
@@ -451,28 +451,28 @@
     BOOL iWin = YES;
     if ([self detectPenteOf: 2-([[aiPlayer moves] count]%2) atPosition: [[[aiPlayer moves] lastObject] intValue]]) {
         if (2-([[aiPlayer moves] count]%2) == 1) {
-            message = @"White wins";
+            message = NSLocalizedString(@"White wins",nil);
         } else {
-            message = @"Black wins";
+            message = NSLocalizedString(@"Black wins",nil);
         }
     } else if (whiteCaptures == 10) {
-        message = @"Black wins";
+        message = NSLocalizedString(@"Black wins",nil);
     } else if (blackCaptures == 10) {
-        message = @"White wins";
+        message = NSLocalizedString(@"White wins",nil);
     }
     if (message) {
         activeGame = NO;
-        if ([message isEqualToString:@"White wins"]) {
-            if ([setupView.colorCell.detailTextLabel.text isEqualToString:@"black"]) {
+        if ([message isEqualToString:NSLocalizedString(@"White wins",nil)]) {
+            if ([setupView.colorCell.detailTextLabel.text isEqualToString:NSLocalizedString(@"black",nil)]) {
                 iWin = NO;
             }
         } else {
-            if ([setupView.colorCell.detailTextLabel.text isEqualToString:@"white"]) {
+            if ([setupView.colorCell.detailTextLabel.text isEqualToString:NSLocalizedString(@"white",nil)]) {
                 iWin = NO;
             }
         }
         [TSMessage showNotificationInViewController:self.navigationController
-                                              title: @"Game Over"
+                                              title: NSLocalizedString(@"Game Over",nil)
                                            subtitle: message
                                               image:nil
                                                type: (iWin?TSMessageNotificationTypeSuccess:TSMessageNotificationTypeError)
@@ -485,8 +485,8 @@
                                          atPosition:TSMessageNotificationPositionBottom
                                canBeDismissedByUser:YES];
     }
-
-    moveStatsString = [[NSMutableString alloc] initWithString:[NSString stringWithFormat:@"<center><b>Color:</b> %@, <b>difficulty:</b> %@</center><hr>", setupView.colorCell.detailTextLabel.text, setupView.difficultyCell.detailTextLabel.text]];
+    NSString *colorStr = NSLocalizedString(@"Color:",nil), *difficultyStr = NSLocalizedString(@"difficulty:",nil);
+    moveStatsString = [[NSMutableString alloc] initWithString:[NSString stringWithFormat:@"<center><b>%@</b> %@, <b>%@</b> %@</center><hr>", colorStr, setupView.colorCell.detailTextLabel.text,difficultyStr, setupView.difficultyCell.detailTextLabel.text]];
     int i = 0;
     for (NSNumber *move in [aiPlayer moves]) {
         int rowCol = [move intValue];
@@ -544,28 +544,28 @@
     BOOL iWin = YES;
     if ([self detectPenteOf: 2-([[aiPlayer moves] count]%2) atPosition: [[[aiPlayer moves] lastObject] intValue]]) {
         if (2-([[aiPlayer moves] count]%2) == 1) {
-            message = @"White wins";
+            message = NSLocalizedString(@"White wins",nil);
         } else {
-            message = @"Black wins";
+            message = NSLocalizedString(@"Black wins",nil);
         }
     } else if (whiteCaptures >= 15) {
-        message = @"Black wins";
+        message = NSLocalizedString(@"Black wins",nil);
     } else if (blackCaptures >= 15) {
-        message = @"White wins";
+        message = NSLocalizedString(@"White wins",nil);
     }
     if (message) {
         activeGame = NO;
-        if ([message isEqualToString:@"White wins"]) {
-            if ([setupView.colorCell.detailTextLabel.text isEqualToString:@"black"]) {
+        if ([message isEqualToString:NSLocalizedString(@"White wins",nil)]) {
+            if ([setupView.colorCell.detailTextLabel.text isEqualToString:NSLocalizedString(@"black",nil)]) {
                 iWin = NO;
             }
         } else {
-            if ([setupView.colorCell.detailTextLabel.text isEqualToString:@"white"]) {
+            if ([setupView.colorCell.detailTextLabel.text isEqualToString:NSLocalizedString(@"white",nil)]) {
                 iWin = NO;
             }
         }
         [TSMessage showNotificationInViewController:self.navigationController
-                                              title: @"Game Over"
+                                              title: NSLocalizedString(@"Game Over",nil)
                                            subtitle: message
                                               image:nil
                                                type: (iWin?TSMessageNotificationTypeSuccess:TSMessageNotificationTypeError)
@@ -579,7 +579,8 @@
                                canBeDismissedByUser:YES];
     }
     
-    moveStatsString = [[NSMutableString alloc] initWithString:[NSString stringWithFormat:@"<center><b>Color:</b> %@, <b>difficulty:</b> %@</center><hr>", setupView.colorCell.detailTextLabel.text, setupView.difficultyCell.detailTextLabel.text]];
+    NSString *colorStr = NSLocalizedString(@"Color:",nil), *difficultyStr = NSLocalizedString(@"difficulty:",nil);
+    moveStatsString = [[NSMutableString alloc] initWithString:[NSString stringWithFormat:@"<center><b>%@</b> %@, <b>%@</b> %@</center><hr>", colorStr, setupView.colorCell.detailTextLabel.text,difficultyStr, setupView.difficultyCell.detailTextLabel.text]];
     int i = 0;
     for (NSNumber *move in [aiPlayer moves]) {
         int rowCol = [move intValue];
@@ -957,7 +958,7 @@
 
 -(void) showSetup {
     
-    messagePopover = [PopoverView showPopoverAtPoint: CGPointMake(self.view.bounds.size.width - 20, 0) inView:self.view withTitle: @"settings" withContentView: setupView delegate:self];
+    messagePopover = [PopoverView showPopoverAtPoint: CGPointMake(self.view.bounds.size.width - 20, 0) inView:self.view withTitle: NSLocalizedString(@"settings",nil) withContentView: setupView delegate:self];
     [messagePopover layoutSubviews];
     
 }

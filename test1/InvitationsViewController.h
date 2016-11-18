@@ -24,7 +24,8 @@
 @property(nonatomic,retain) NSString *challengedOpponent, *game;
 @property(atomic) BOOL openInvitationOnly;
 @property (weak, nonatomic) IBOutlet UISwitch *ratedSwitch;
-@property (weak, nonatomic) IBOutlet UILabel *sendCell;
+@property (weak, nonatomic) IBOutlet UILabel *sendLabel;
+@property (weak, nonatomic) IBOutlet UILabel *ratedLabel;
 @property (weak, nonatomic) IBOutlet SimplePickerInputTableViewCell *timeCell;
 @property (weak, nonatomic) IBOutlet SimplePickerInputTableViewCell *gameCell;
 @property (weak, nonatomic) IBOutlet StringInputTableViewCell *opponentCell;

@@ -43,7 +43,7 @@
             [cell.picker reloadAllComponents];
             [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
             
-            cell.textLabel.text =  @"Days per move:";
+            cell.textLabel.text =  NSLocalizedString(@"Days per move:",nil);
             int idx = (int) [[NSUserDefaults standardUserDefaults] integerForKey: @"kothTimeout"] - 1;
             if (idx < 0) {
                 idx = 2;
@@ -59,14 +59,14 @@
             if (cell == nil) {
                 cell = [[SimplePickerInputTableViewCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier: @"restrictionCell"];
             }
-            NSArray<NSString *> *restrictions = [[NSArray alloc] initWithObjects:@"of any rating",@"not already playing",@"of lower rating",@"of higher rating",@"of similar rating",@"in the same rating class", nil];
+            NSArray<NSString *> *restrictions = [[NSArray alloc] initWithObjects:NSLocalizedString(@"of any rating",nil),NSLocalizedString(@"not already playing",nil),NSLocalizedString(@"of lower rating",nil),NSLocalizedString(@"of higher rating",nil),NSLocalizedString(@"of similar rating",nil),NSLocalizedString(@"in the same rating class",nil), nil];
 
             cell.datarray = restrictions;
             [cell setDelegate: self];
             [cell.picker reloadAllComponents];
             [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
             
-            cell.textLabel.text =  @"To players";
+            cell.textLabel.text =  NSLocalizedString(@"To players",nil);
             int idx = (int) [[NSUserDefaults standardUserDefaults] integerForKey: @"kothRestriction"] - 1;
             if (idx < 0) {
                 idx = 0;
@@ -85,7 +85,7 @@
         }
         [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
         
-        cell.textLabel.text =  @"send challenge";
+        cell.textLabel.text =  NSLocalizedString(@"send challenge",nil);
         cell.textColor = [UIColor whiteColor];
         cell.backgroundColor = [UIColor blueColor];
         [cell.textLabel setTextAlignment: NSTextAlignmentCenter];
@@ -116,22 +116,22 @@
         if ([invitee isEqualToString:@""]) {
             [[NSUserDefaults standardUserDefaults] setInteger: [restrictionCell.detailTextLabel.text intValue] forKey:@"kothRestriction"];
             [restrictionCell doResign];
-            if ([restrictionCell.detailTextLabel.text isEqualToString:@"of any rating"]) {
+            if ([restrictionCell.detailTextLabel.text isEqualToString:NSLocalizedString(@"of any rating",nil)]) {
                 restrictString = @"A";
             }
-            if ([restrictionCell.detailTextLabel.text isEqualToString:@"not already playing"]) {
+            if ([restrictionCell.detailTextLabel.text isEqualToString:NSLocalizedString(@"not already playing",nil)]) {
                 restrictString = @"N";
             }
-            if ([restrictionCell.detailTextLabel.text isEqualToString:@"of lower rating"]) {
+            if ([restrictionCell.detailTextLabel.text isEqualToString:NSLocalizedString(@"of lower rating",nil)]) {
                 restrictString = @"L";
             }
-            if ([restrictionCell.detailTextLabel.text isEqualToString:@"of higher rating"]) {
+            if ([restrictionCell.detailTextLabel.text isEqualToString:NSLocalizedString(@"of higher rating",nil)]) {
                 restrictString = @"H";
             }
-            if ([restrictionCell.detailTextLabel.text isEqualToString:@"of similar rating"]) {
+            if ([restrictionCell.detailTextLabel.text isEqualToString:NSLocalizedString(@"of similar rating",nil)]) {
                 restrictString = @"S";
             }
-            if ([restrictionCell.detailTextLabel.text isEqualToString:@"in the same rating class"]) {
+            if ([restrictionCell.detailTextLabel.text isEqualToString:NSLocalizedString(@"in the same rating class",nil)]) {
                 restrictString = @"C";
             }
         }
@@ -157,7 +157,7 @@
         
 //        [spinner performSelectorOnMainThread:@selector(stopAnimating) withObject:nil waitUntilDone:NO];
         if (error) {
-            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:[NSString stringWithFormat:@"Reason: %@", error.localizedDescription] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error",nil) message:[NSString stringWithFormat:NSLocalizedString(@"Reason: %@",nil), error.localizedDescription] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
             //        [alert show];
             [alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:YES];
         }

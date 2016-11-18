@@ -1,0 +1,515 @@
+/* No comment provided by engineer. */
+"   search" = "   search";
+
+/* No comment provided by engineer. */
+"  search  " = "  search  ";
+
+/* No comment provided by engineer. */
+"  start game  " = "  start game  ";
+
+/* No comment provided by engineer. */
+" %@ players ruled by %@ " = " %1$@ players ruled by %2$@ ";
+
+/* No comment provided by engineer. */
+" database" = " database";
+
+/* No comment provided by engineer. */
+" humans" = " humans";
+
+/* No comment provided by engineer. */
+" my ratings" = " my ratings";
+
+/* No comment provided by engineer. */
+" new message" = " new message";
+
+/* No comment provided by engineer. */
+" Number of players: %@" = " Number of players: %@";
+
+/* No comment provided by engineer. */
+" onboard AI" = " onboard AI";
+
+/* No comment provided by engineer. */
+" online players" = " online players";
+
+/* No comment provided by engineer. */
+" server AI" = " server AI";
+
+/* No comment provided by engineer. */
+"%@ day per move" = "%@ day per move";
+
+/* No comment provided by engineer. */
+"%@ day, %@ hour" = "%1$@ day, %2$@ hour";
+
+/* No comment provided by engineer. */
+"%@ day, %@ hours" = "%1$@ day, %2$@ hours";
+
+/* No comment provided by engineer. */
+"%@ days per move" = "%@ days per move";
+
+/* No comment provided by engineer. */
+"%@ days, %@ hour" = "%1$@ days, %2$@ hour";
+
+/* No comment provided by engineer. */
+"%@ days, %@ hours" = "%1$@ days, %2$@ hours";
+
+/* No comment provided by engineer. */
+"%@ hour, %@ minute" = "%1$@ hour, %2$@ minute";
+
+/* No comment provided by engineer. */
+"%@ hour, %@ minutes" = "%1$@ hour, %2$@ minutes";
+
+/* No comment provided by engineer. */
+"%@ hours, %@ minute" = "%1$@ hours, %2$@ minute";
+
+/* No comment provided by engineer. */
+"%@ hours, %@ minutes" = "%1$@ hours, %2$@ minutes";
+
+/* No comment provided by engineer. */
+"(This subscription auto-renews every year.)" = "(This subscription auto-renews every year.)";
+
+/* No comment provided by engineer. */
+"<p>You can play with me on your <a href=\"https://itunes.apple.com/us/app/pente-live/id595426592?ls=1&mt=8\">iPhone</a> or <a href=\"https://play.google.com/store/apps/details?id=be.submanifold.pentelive\">Android Phone</a> <br> My username is %@" = "<p>You can play with me on your <a href=\"https://itunes.apple.com/us/app/pente-live/id595426592?ls=1&mt=8\">iPhone</a> or <a href=\"https://play.google.com/store/apps/details?id=be.submanifold.pentelive\">Android Phone</a> <br> My username is %@";
+
+/* No comment provided by engineer. */
+"A cancel request already exists." = "A cancel request already exists.";
+
+/* No comment provided by engineer. */
+"Accept" = "Accept";
+
+/* No comment provided by engineer. */
+"accept" = "accept";
+
+/* No comment provided by engineer. */
+"After:" = "After:";
+
+/* No comment provided by engineer. */
+"Anyone" = "Anyone";
+
+/* No comment provided by engineer. */
+"Before:" = "Before:";
+
+/* No comment provided by engineer. */
+"black" = "black";
+
+/* No comment provided by engineer. */
+"Black wins" = "Black wins";
+
+/* No comment provided by engineer. */
+"blank to invite anyone" = "blank to invite anyone";
+
+/* No comment provided by engineer. */
+"cancel" = "cancel";
+
+/* No comment provided by engineer. */
+"Cancel" = "Cancel";
+
+/* No comment provided by engineer. */
+"Cancel Set" = "Cancel Set";
+
+/* No comment provided by engineer. */
+"Choose from library" = "Choose from library";
+
+/* No comment provided by engineer. */
+"Clear" = "Clear";
+
+/* No comment provided by engineer. */
+"Color:" = "Color:";
+
+/* No comment provided by engineer. */
+"Database" = "Database";
+
+/* No comment provided by engineer. */
+"Database & AI" = "Database & AI";
+
+/* No comment provided by engineer. */
+"Days per move:" = "Days per move:";
+
+/* No comment provided by engineer. */
+"Decide later" = "Decide later";
+
+/* No comment provided by engineer. */
+"decline" = "decline";
+
+/* No comment provided by engineer. */
+"delete" = "delete";
+
+/* No comment provided by engineer. */
+"Difficulty:" = "Difficulty:";
+
+/* No comment provided by engineer. */
+"difficulty:" = "difficulty:";
+
+/* No comment provided by engineer. */
+"Dismiss" = "Dismiss";
+
+/* No comment provided by engineer. */
+"dismiss" = "dismiss";
+
+/* No comment provided by engineer. */
+"Do not remind me again." = "Do not remind me again.";
+
+/* No comment provided by engineer. */
+"Done" = "Done";
+
+/* No comment provided by engineer. */
+"either" = "either";
+
+/* No comment provided by engineer. */
+"Email" = "Email";
+
+/* No comment provided by engineer. */
+"Error" = "Error";
+
+/* No comment provided by engineer. */
+"Game Over" = "Game Over";
+
+/* No comment provided by engineer. */
+"Game:" = "Game:";
+
+/* No comment provided by engineer. */
+"Got it!" = "Got it!";
+
+/* No comment provided by engineer. */
+"home" = "home";
+
+/* No comment provided by engineer. */
+"How to?" = "How to?";
+
+/* No comment provided by engineer. */
+"in the same rating class" = "in the same rating class";
+
+/* No comment provided by engineer. */
+"invitations (%lu)" = "invitations (%lu)";
+
+/* No comment provided by engineer. */
+"invitations sent (%lu)" = "invitations sent (%lu)";
+
+/* No comment provided by engineer. */
+"Invite the AI" = "Invite the AI";
+
+/* No comment provided by engineer. */
+"is requesting that this set be cancelled. %@" = "is requesting that this set be cancelled. %@";
+
+/* No comment provided by engineer. */
+"King of the Hill (%lu)" = "King of the Hill (%lu)";
+
+/* No comment provided by engineer. */
+"King of the Hill - %@" = "King of the Hill - %@";
+
+/* No comment provided by engineer. */
+"KotH" = "KotH";
+
+/* No comment provided by engineer. */
+"Last game played on %@" = "Last game played on %@";
+
+/* label */
+"Last Updated: %@" = "Last Updated: %@";
+
+/* label */
+"Last Updated: Never" = "Last Updated: Never";
+
+/* No comment provided by engineer. */
+"Last: %@, total: %@" = "Last: %1$@, total: %2$@";
+
+/* No comment provided by engineer. */
+"Level up your game" = "Level up your game";
+
+/* label */
+"Loading..." = "Loading...";
+
+/* No comment provided by engineer. */
+"messages (%lu)" = "messages (%lu)";
+
+/* No comment provided by engineer. */
+"my turn (%lu)" = "my turn (%lu)";
+
+/* No comment provided by engineer. */
+"No message found." = "No message found.";
+
+/* No comment provided by engineer. */
+"No recipient entered." = "No recipient entered.";
+
+/* No comment provided by engineer. */
+"No search results" = "No search results";
+
+/* No comment provided by engineer. */
+"No subject entered." = "No subject entered.";
+
+/* No comment provided by engineer. */
+"not already playing" = "not already playing";
+
+/* No comment provided by engineer. */
+"Not Rated" = "Not Rated";
+
+/* No comment provided by engineer. */
+"Nothing to see here" = "Nothing to see here";
+
+/* No comment provided by engineer. */
+"of any rating" = "of any rating";
+
+/* No comment provided by engineer. */
+"of higher rating" = "of higher rating";
+
+/* No comment provided by engineer. */
+"of lower rating" = "of lower rating";
+
+/* No comment provided by engineer. */
+"of similar rating" = "of similar rating";
+
+/* No comment provided by engineer. */
+"OK" = "OK";
+
+/* No comment provided by engineer. */
+"only %@ / year" = "only %@ / year";
+
+/* No comment provided by engineer. */
+"opponent's turn (%lu)" = "opponent's turn (%lu)";
+
+/* No comment provided by engineer. */
+"Opponent:" = "Opponent:";
+
+/* No comment provided by engineer. */
+"Options" = "Options";
+
+/* No comment provided by engineer. */
+"Passwords don't match." = "Passwords don't match.";
+
+/* No comment provided by engineer. */
+"Pick any game but leave the opponent field empty and everyone will see your invitation." = "Pick any game but leave the opponent field empty and everyone will see your invitation.";
+
+/* No comment provided by engineer. */
+"Play as" = "Play as";
+
+/* No comment provided by engineer. */
+"Play as white and black" = "Play as white and black";
+
+/* No comment provided by engineer. */
+"Play as:" = "Play as:";
+
+/* No comment provided by engineer. */
+"Play Pente with me?" = "Play Pente with me?";
+
+/* No comment provided by engineer. */
+"Play the computer" = "Play the computer";
+
+/* No comment provided by engineer. */
+"player 1" = "player 1";
+
+/* No comment provided by engineer. */
+"Player 1:" = "Player 1:";
+
+/* No comment provided by engineer. */
+"player 2" = "player 2";
+
+/* No comment provided by engineer. */
+"Player 2:" = "Player 2:";
+
+/* No comment provided by engineer. */
+"Please enter a password, 5 to 16 characters long and consisting of letters, digits, and underscores only." = "Please enter a password, 5 to 16 characters long and consisting of letters, digits, and underscores only.";
+
+/* No comment provided by engineer. */
+"Please enter a username, 5 to 10 characters long and consisting of letters, digits, and underscores only." = "Please enter a username, 5 to 10 characters long and consisting of letters, digits, and underscores only.";
+
+/* No comment provided by engineer. */
+"popularity" = "popularity";
+
+/* No comment provided by engineer. */
+"Private game" = "Private game";
+
+/* No comment provided by engineer. */
+"public invitations (%lu)" = "public invitations (%lu)";
+
+/* label */
+"Pull down to refresh..." = "Pull down to refresh...";
+
+/* No comment provided by engineer. */
+"Purchase failed" = "Purchase failed";
+
+/* No comment provided by engineer. */
+"Purchase registration failed" = "Purchase registration failed";
+
+/* No comment provided by engineer. */
+"Purchase registration successful" = "Purchase registration successful";
+
+/* No comment provided by engineer. */
+"Rated" = "Rated";
+
+/* No comment provided by engineer. */
+"rating:" = "rating:";
+
+/* No comment provided by engineer. */
+"Reason: %@" = "Reason: %@";
+
+/* No comment provided by engineer. */
+"Registration closed. Starts %@" = "Registration closed. Starts %@";
+
+/* No comment provided by engineer. */
+"Registration is open until %@" = "Registration is open until %@";
+
+/* No comment provided by engineer. */
+"Reject" = "Reject";
+
+/* label */
+"Release to refresh..." = "Release to refresh...";
+
+/* No comment provided by engineer. */
+"Remaining time:" = "Remaining time:";
+
+/* No comment provided by engineer. */
+"Remind me next time." = "Remind me next time.";
+
+/* No comment provided by engineer. */
+"Resign" = "Resign";
+
+/* No comment provided by engineer. */
+"resign" = "resign";
+
+/* No comment provided by engineer. */
+"restart game" = "restart game";
+
+/* No comment provided by engineer. */
+"search parameters" = "search parameters";
+
+/* No comment provided by engineer. */
+"send" = "send";
+
+/* No comment provided by engineer. */
+"send challenge" = "send challenge";
+
+/* No comment provided by engineer. */
+"Send invitation" = "Send invitation";
+
+/* No comment provided by engineer. */
+"send invitation" = "send invitation";
+
+/* No comment provided by engineer. */
+"send open challenge" = "send open challenge";
+
+/* No comment provided by engineer. */
+"settings" = "settings";
+
+/* No comment provided by engineer. */
+"Sort by" = "Sort by";
+
+/* No comment provided by engineer. */
+"step %lu" = "step %lu";
+
+/* No comment provided by engineer. */
+"Subject: " = "Subject: ";
+
+/* No comment provided by engineer. */
+"submit" = "submit";
+
+/* No comment provided by engineer. */
+"submit: %c%d" = "submit: %1$c%2$d";
+
+/* No comment provided by engineer. */
+"submit: %c%d-%c%d" = "submit: %1$c%2$d-%3$c%4$d";
+
+/* No comment provided by engineer. */
+"submit: %c%d-%c%d-%c%d" = "submit: %1$c%2$d-%3$c%4$d-%5$c%6$d";
+
+/* No comment provided by engineer. */
+"subscribe now" = "subscribe now";
+
+/* No comment provided by engineer. */
+"Subscribe today and" = "Subscribe today and";
+
+/* No comment provided by engineer. */
+"Sure!" = "Sure!";
+
+/* No comment provided by engineer. */
+"Take a picture" = "Take a picture";
+
+/* No comment provided by engineer. */
+"Tap again here to confirm" = "Tap again here to confirm";
+
+/* No comment provided by engineer. */
+"Tap to join this hill" = "Tap to join this hill";
+
+/* No comment provided by engineer. */
+"Tap to leave this hill" = "Tap to leave this hill";
+
+/* No comment provided by engineer. */
+"The AI player will only play 1 game or set of each game at a time." = "The AI player will only play 1 game or set of each game at a time.";
+
+/* No comment provided by engineer. */
+"The app will retry purchase registration at pente.org every time the app starts" = "The app will retry purchase registration at pente.org every time the app starts";
+
+/* No comment provided by engineer. */
+"The database allows you to search games in the pente.org database by position. This powerful tool enables you to study and analyze games and opponents, practice opening moves, sort the results by most played or highest win percentage, and filter by player name and winner. More features will be added in the future.\n\nThe database is open to subscribers only." = "The database allows you to search games in the pente.org database by position. This powerful tool enables you to study and analyze games and opponents, practice opening moves, sort the results by most played or highest win percentage, and filter by player name and winner. More features will be added in the future.\n\nThe database is open to subscribers only.";
+
+/* No comment provided by engineer. */
+"The username %@ does not exist." = "The username %@ does not exist.";
+
+/* No comment provided by engineer. */
+"The username %@ is already taken, please choose another." = "The username %@ is already taken, please choose another.";
+
+/* No comment provided by engineer. */
+"This game is %@ and %@" = "This game is %1$@ and %2$@";
+
+/* No comment provided by engineer. */
+"To players" = "To players";
+
+/* No comment provided by engineer. */
+"To: " = "To: ";
+
+/* No comment provided by engineer. */
+"top of the hill" = "top of the hill";
+
+/* No comment provided by engineer. */
+"Total games: %@" = "Total games: %@";
+
+/* No comment provided by engineer. */
+"Tournament" = "Tournament";
+
+/* No comment provided by engineer. */
+"Tournament started. Current round: %@" = "Tournament started. Current round: %@";
+
+/* No comment provided by engineer. */
+"tournaments (%lu)" = "tournaments (%lu)";
+
+/* No comment provided by engineer. */
+"Trouble connecting to pente.org, please try again in a bit.\nReason: %@" = "Trouble connecting to pente.org, please try again in a bit.\nReason: %@";
+
+/* No comment provided by engineer. */
+"Warning: only subscribers can join multiple hills" = "Warning: only subscribers can join multiple hills";
+
+/* No comment provided by engineer. */
+"white" = "white";
+
+/* No comment provided by engineer. */
+"White" = "White";
+
+/* No comment provided by engineer. */
+"White wins" = "White wins";
+
+/* No comment provided by engineer. */
+"who's online" = "who's online";
+
+/* No comment provided by engineer. */
+"win percentage" = "win percentage";
+
+/* No comment provided by engineer. */
+"Winner" = "Winner";
+
+/* No comment provided by engineer. */
+"Wrong username or password" = "Wrong username or password";
+
+/* No comment provided by engineer. */
+"You have no ongoing games, shall we post an open invitation and get you started?" = "You have no ongoing games, shall we post an open invitation and get you started?";
+
+/* No comment provided by engineer. */
+"You need to be logged in to send a help message. Send an email instead?" = "You need to be logged in to send a help message. Send an email instead?";
+
+/* No comment provided by engineer. */
+"Your device is not configured to send mail" = "Your device is not configured to send mail";
+
+/* No comment provided by engineer. */
+"• remove limits on open invitations\n• participate in all King of the Hills\n• see no more ads\n• change your name color\n• upload an avatar\n• access the database!" = "• remove limits on open invitations\n• participate in all King of the Hills\n• see no more ads\n• change your name color\n• upload an avatar\n• access the database!";
+
+/* No comment provided by engineer. */
+"☆      subscribe      ☆" = "☆      subscribe      ☆";
+
+"Username:" = "UsrName:"
+

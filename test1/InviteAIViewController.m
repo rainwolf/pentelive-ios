@@ -21,11 +21,13 @@
 @synthesize opponentCell;
 @synthesize ratedSwitch;
 @synthesize playAsCell;
+@synthesize ratedCell;
 @synthesize playAsLabel;
 @synthesize playAsDetailLabel;
 @synthesize spinner;
 @synthesize game;
 @synthesize openInvitationOnly;
+@synthesize sendLabel;
 
 - (id)initWithStyle:(UITableViewStyle)style
 {
@@ -56,12 +58,12 @@
  
     // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
     // self.navigationItem.rightBarButtonItem = self.editButtonItem;
-    [self setTitle:@"Invite the AI"];
+    [self setTitle:NSLocalizedString(@"Invite the AI",nil)];
 
 //    games = [[NSArray alloc] initWithObjects:@"Pente",@"Keryo-Pente",@"Gomoku",@"D-Pente",@"G-Pente",@"Poof-Pente",@"Connect6",@"Boat-Pente", nil];
 //    games = [[NSMutableArray alloc] initWithObjects:@"Pente",@"Gomoku", nil];
     games = [[NSMutableArray alloc] initWithObjects:@"Pente", nil];
-    colors = [[NSMutableArray alloc] initWithObjects:@"White",@"Black", nil];
+    colors = [[NSMutableArray alloc] initWithObjects:NSLocalizedString(@"white",nil),NSLocalizedString(@"black",nil), nil];
     difficulties = [[NSMutableArray alloc] init];
     for ( int i = 1; i < 10; ++i) {
         [difficulties addObject:[NSString stringWithFormat:@"%i",i]];
@@ -69,6 +71,11 @@
     
     [self.tableView setSeparatorColor:[UIColor blueColor]];
     [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleSingleLine];
+    
+    opponentCell.textLabel.text = NSLocalizedString(@"Difficulty:", nil);
+    gameCell.textLabel.text = NSLocalizedString(@"Game:", nil);
+    ratedCell.textLabel.text = NSLocalizedString(@"Play as white and black", nil);
+    sendLabel.text = NSLocalizedString(@"Play the computer", nil);
 }
 
 - (void)viewWillDisappear:(BOOL)animated {
@@ -83,11 +90,12 @@
 
 - (void)viewWillAppear:(BOOL)animated {
     [spinner setHidden:YES];
-    [super viewWillAppear:animated];
+//    [super viewWillAppear:animated];
 }
 
 - (void)viewDidAppear:(BOOL)animated {
     [self.tableView setScrollEnabled:NO];
+//    [self.tableView setFrame:self.view.frame];
     PenteNavigationViewController *navController = (PenteNavigationViewController *) self.navigationController;
     [navController setChallengeCancelled:YES];
     
@@ -225,8 +233,8 @@
             }
             [tableView deselectRowAtIndexPath:indexPath animated:NO];
 
-            [tableView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:YES];
-            [tableView setScrollEnabled:YES];
+//            [tableView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:NO];
+//            [tableView setScrollEnabled:YES];
         }
         ++row;
         if (indexPath.row == row) {
@@ -235,10 +243,10 @@
             opponentCell.datarray = difficulties;
             [opponentCell.picker reloadAllComponents];
             
-            [tableView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:YES];
+//            [tableView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:YES];
             [tableView deselectRowAtIndexPath:indexPath animated:NO];
             //            [tableView scrollToRowAtIndexPath:indexPath atScrollPosition:UITableViewScrollPositionTop animated:YES];
-            [tableView setScrollEnabled:NO];
+//            [tableView setScrollEnabled:NO];
         }
         ++row;
         if (indexPath.row == row) {
@@ -248,8 +256,8 @@
             
             [ratedSwitch setOn: !ratedSwitch.on animated:YES];
             [self flipRatedSwitch:self];
-            [tableView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:YES];
-            [tableView setScrollEnabled:NO];
+//            [tableView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:YES];
+//            [tableView setScrollEnabled:NO];
         }
         ++row;
         if (indexPath.row == row) {
@@ -258,17 +266,17 @@
             
             playAsCell.datarray = colors;
             [playAsCell.picker reloadAllComponents];
-            [playAsCell.picker selectRow: ([playAsCell.detailTextLabel.text isEqualToString:@"White"] ? 0 : 1) inComponent:0 animated:YES];
+            [playAsCell.picker selectRow: ([playAsCell.detailTextLabel.text isEqualToString:NSLocalizedString(@"White",nil)] ? 0 : 1) inComponent:0 animated:YES];
             
-            [tableView setScrollEnabled:YES];
-            CGFloat scrollY = [tableView rectForRowAtIndexPath:indexPath].origin.y;
-            [tableView scrollRectToVisible:CGRectMake(0, scrollY, 1, 1) animated:YES];
+//            [tableView setScrollEnabled:YES];
+//            CGFloat scrollY = [tableView rectForRowAtIndexPath:indexPath].origin.y;
+//            [tableView scrollRectToVisible:CGRectMake(0, scrollY, 1, 1) animated:YES];
         }
     }
     if (indexPath.section == 1) {
         
-        [tableView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:YES];
-        [tableView setScrollEnabled:NO];
+//        [tableView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:YES];
+//        [tableView setScrollEnabled:NO];
         [opponentCell resign];
         [gameCell doResign];
         [playAsCell doResign];
@@ -293,7 +301,7 @@
     
     
 //    NSLog(@"kitty hi? %@", opponentCell.textField.text);
-    NSString *post = [NSString stringWithFormat:@"invitee=computer&game=%@&difficulty=%@&daysPerMove=30&rated=%@&playAs=%@&privateGame=N&mobile=", gameString, opponentCell.detailTextLabel.text, (ratedSwitch.on) ? @"Y" : @"N",([playAsDetailLabel.text isEqualToString:@"White"]) ? @"1" : @"2"];
+    NSString *post = [NSString stringWithFormat:@"invitee=computer&game=%@&difficulty=%@&daysPerMove=30&rated=%@&playAs=%@&privateGame=N&mobile=", gameString, opponentCell.detailTextLabel.text, (ratedSwitch.on) ? @"Y" : @"N",([playAsDetailLabel.text isEqualToString:NSLocalizedString(@"white",nil)]) ? @"1" : @"2"];
     NSData *postData = [post dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
     NSString *postLength = [NSString stringWithFormat:@"%lu", (unsigned long)[postData length]];
     
@@ -316,12 +324,12 @@
     [defaults setObject:opponentCell.detailTextLabel.text forKey:@"lastInvitedAIdifficulty"];
 
     if (error) {
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:[NSString stringWithFormat:@"Reason: %@", error.localizedDescription] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error",nil) message:[NSString stringWithFormat:NSLocalizedString(@"Reason: %@",nil), error.localizedDescription] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
         //        [alert show];
         [alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:YES];
         return;
     } else if ([dashboardString rangeOfString:@"against the AI player. You can start a new one after finishing the current one."].location != NSNotFound) {
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:@"The AI player will only play 1 game or set of each game at a time." delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error",nil) message:NSLocalizedString(@"The AI player will only play 1 game or set of each game at a time.",nil) delegate:nil cancelButtonTitle:NSLocalizedString(@"OK",nil) otherButtonTitles:nil];
         [alert show];
 
     } else {
@@ -346,7 +354,6 @@
 
 - (void)viewDidUnload {
     [self setRatedSwitch:nil];
-    [self setSendCell:nil];
     [self setGameCell:nil];
     [self setOpponentCell:nil];
     [self setPlayAsCell:nil];

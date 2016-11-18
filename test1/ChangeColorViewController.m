@@ -77,7 +77,7 @@
         ((PenteNavigationViewController *) self.navigationController).player.myColor = colorPickerView.color;
     }
     if (error) {
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:[NSString stringWithFormat:@"Reason: %@", error.localizedDescription] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error",nil) message:[NSString stringWithFormat:NSLocalizedString(@"Reason: %@",nil), error.localizedDescription] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
         //        [alert show];
         [alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:YES];
         return;

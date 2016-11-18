@@ -65,7 +65,15 @@
 {
     subscribing = NO;
 	// Do any additional setup after loading the view.
-    [self setNavC:(PenteNavigationViewController *) [UIApplication sharedApplication].keyWindow.rootViewController];
+    if ([self.navigationController isKindOfClass:[PenteNavigationViewController class]]) {
+//        NSLog(@"kitty navigationController");
+        self.navC = (PenteNavigationViewController *) self.navigationController;
+    } else {
+        if ([[UIApplication sharedApplication].keyWindow.rootViewController isKindOfClass:[PenteNavigationViewController class]]) {
+//            NSLog(@"kitty rootViewController");
+            [self setNavC:(PenteNavigationViewController *) [UIApplication sharedApplication].keyWindow.rootViewController];
+        }
+    }
 }
 
 - (void)viewDidAppear:(BOOL)animated {
@@ -222,7 +230,7 @@
                 //            NSLog(@"kittyyyyyyString -%@-", dashboardString);
     
                 if (error) {
-                    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:[NSString stringWithFormat: @"Trouble connecting to pente.org, please try again in a bit.\nReason: %@",  error.localizedDescription] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+                    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:[NSString stringWithFormat: NSLocalizedString(@"Trouble connecting to pente.org, please try again in a bit.\nReason: %@", nil),  error.localizedDescription] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
                     [alert show];
                 } else if ([dashboardString isEqualToString:@""]) {
                     [self.navC setLoggedIn: NO];
@@ -231,7 +239,7 @@
     
                 } else if ([dashboardString rangeOfString:@"Invalid name or password, please try again."].length != 0) {
                     [self.navC setLoggedIn: NO];
-                    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Wrong username or password" message:nil delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+                    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Wrong username or password", nil) message:nil delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
                     [alert show];
                 } else if ([dashboardString rangeOfString:@"<h2>Pente.org is undergoing maintenance.</h2>"].length != 0) {
                     UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Maintenance" message:@"pente.org is undergoing maintenance, please try again in a few minutes." delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
@@ -253,17 +261,17 @@
         NSString *passwordVerification = [defaults objectForKey:@"passwordVerification"];
 //        NSLog(@"kitty %@", username);
         if (((username == nil) || ![[username stringByTrimmingCharactersInSet:testChars] isEqualToString:@""] || ([username length] < 5) || ([username length] > 10))) {
-            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:@"Please enter a username, 5 to 10 characters long and consisting of letters, digits, and underscores only." delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:NSLocalizedString(@"Please enter a username, 5 to 10 characters long and consisting of letters, digits, and underscores only.",nil) delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
             [alert show];
             return;
         }
         if (((password == nil) || ![[password stringByTrimmingCharactersInSet:testChars] isEqualToString:@""] || ([password length] < 5) || ([password length] > 16))) {
-            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:@"Please enter a password, 5 to 16 characters long and consisting of letters, digits, and underscores only." delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:NSLocalizedString(@"Please enter a password, 5 to 16 characters long and consisting of letters, digits, and underscores only.", nil) delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
             [alert show];
             return;
         }
         if (![passwordVerification isEqualToString:password]) {
-            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:@"Passwords don't match." delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:NSLocalizedString(@"Passwords don't match.", nil) delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
             [alert show];
             return;
         }
@@ -299,18 +307,18 @@
 //                        NSLog(@"kittyyyyyyString -%@-", dashboardString);
         
         if (error) {
-            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:[NSString stringWithFormat:@"Reason: %@", error.localizedDescription] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error", nil) message:[NSString stringWithFormat:@"Reason: %@", error.localizedDescription] delegate:nil cancelButtonTitle:NSLocalizedString(@"OK",nil) otherButtonTitles:nil];
             //        [alert show];
             [alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:YES];
             return;
         } else if ([dashboardString isEqualToString:@""]) {
                 [self.navC setLoggedIn: NO];
-                UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:@"pente.org appears to be down, please try again later." delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+                UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error",nil) message:@"pente.org appears to be down, please try again later." delegate:nil cancelButtonTitle:NSLocalizedString(@"OK",nil) otherButtonTitles:nil];
                 [alert show];
                 
             } else if ([dashboardString rangeOfString:@" is already taken, please choose another."].length != 0) {
                 [self.navC setLoggedIn: NO];
-                UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:[NSString stringWithFormat:@"The username %@ is already taken, please choose another.",username] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+                UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error",nil) message:[NSString stringWithFormat:NSLocalizedString(@"The username %@ is already taken, please choose another.", nil),username] delegate:nil cancelButtonTitle:NSLocalizedString(@"OK", nil) otherButtonTitles:nil];
                 [alert show];
             } else if ([dashboardString rangeOfString:@"<h2>Pente.org is undergoing maintenance.</h2>"].length != 0) {
                 UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Maintenance" message:@"pente.org is undergoing maintenance, please try again in a few minutes." delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
@@ -331,7 +339,7 @@
 //    }
     if ([specifier.key isEqualToString:@"HelpButton"]) {
         if (![self.navC loggedIn]) {
-            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:@"You need to be logged in to send a help message. Send an email instead?" delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Email",nil];
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error",nil) message:NSLocalizedString(@"You need to be logged in to send a help message. Send an email instead?", nil) delegate:self cancelButtonTitle:NSLocalizedString(@"Cancel", nil) otherButtonTitles:NSLocalizedString(@"Email",nil),nil];
             [alert setTag:1];
             [alert show];
             return;
@@ -344,16 +352,16 @@
         if ([MFMailComposeViewController canSendMail]) {
             MFMailComposeViewController *mailer = [[MFMailComposeViewController alloc] init];
             mailer.mailComposeDelegate = self;
-            [mailer setSubject: @"Play Pente with me?"];
+            [mailer setSubject: NSLocalizedString(@"Play Pente with me?", nil)];
 //            NSArray *toRecipients = [NSArray arrayWithObjects:@"rainwolf@submanifold.be", nil];
 //            [mailer setToRecipients:toRecipients];
-            [mailer setMessageBody: [NSString stringWithFormat:@"<p>You can play with me on your <a href=\"https://itunes.apple.com/us/app/pente-live/id595426592?ls=1&mt=8\">iPhone</a> or <a href=\"https://play.google.com/store/apps/details?id=be.submanifold.pentelive\">Android Phone</a> <br> My username is %@", [[NSUserDefaults standardUserDefaults] objectForKey:@"username"]] isHTML:YES];
+            [mailer setMessageBody: [NSString stringWithFormat:NSLocalizedString(@"<p>You can play with me on your <a href=\"https://itunes.apple.com/us/app/pente-live/id595426592?ls=1&mt=8\">iPhone</a> or <a href=\"https://play.google.com/store/apps/details?id=be.submanifold.pentelive\">Android Phone</a> <br> My username is %@",nil), [[NSUserDefaults standardUserDefaults] objectForKey:@"username"]] isHTML:YES];
             [self presentViewController:mailer animated:YES completion:nil];
         } else {
-            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error"
-                                                            message:@"Your device is not configured to send mail"
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error", nil)
+                                                            message:NSLocalizedString(@"Your device is not configured to send mail", nil)
                                                            delegate:nil
-                                                  cancelButtonTitle:@"OK"
+                                                  cancelButtonTitle:NSLocalizedString(@"OK", nil)
                                                   otherButtonTitles:nil];
             [alert show];
         }
@@ -399,7 +407,7 @@
             picker.sourceType = UIImagePickerControllerSourceTypeCamera;
             [self presentViewController:picker animated:YES completion:nil];
         }];
-        UIAlertAction *albumAction = [UIAlertAction actionWithTitle: @"Choose from library" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+        UIAlertAction *albumAction = [UIAlertAction actionWithTitle: NSLocalizedString(@"Choose from library", nil) style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
             picker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
             [self presentViewController:picker animated:YES completion:nil];
         }];
@@ -434,7 +442,7 @@
     UILabel *subscribeText = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width*9/10, CGFLOAT_MAX)];
     [subscribeText setLineBreakMode:NSLineBreakByWordWrapping];
     [subscribeText setNumberOfLines:0];
-    NSString *subscribeString = @"\u2022 remove limits on open invitations\n\u2022 participate in all King of the Hills\n\u2022 see no more ads\n\u2022 change your name color\n\u2022 upload an avatar\n\u2022 access the database!";
+    NSString *subscribeString = NSLocalizedString(@"\u2022 remove limits on open invitations\n\u2022 participate in all King of the Hills\n\u2022 see no more ads\n\u2022 change your name color\n\u2022 upload an avatar\n\u2022 access the database!", nil);
     [subscribeText setText:subscribeString];
     [subscribeText sizeToFit];
     
@@ -442,7 +450,7 @@
     UILabel *priceText = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width*9/10, 50)];
     [priceText setLineBreakMode:NSLineBreakByWordWrapping];
     [priceText setNumberOfLines:0];
-    NSString *priceString = [NSString stringWithFormat:@"only %@ / year", formattedPrice];
+    NSString *priceString = [NSString stringWithFormat:NSLocalizedString(@"only %@ / year", nil), formattedPrice];
     //        [priceText setAdjustsFontSizeToFitWidth:YES];
     [priceText setText:priceString];
     [priceText setFont:[UIFont systemFontOfSize: 23]];
@@ -452,7 +460,7 @@
     UILabel *clearInfoText = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width*9/10, CGFLOAT_MAX)];
     [clearInfoText setLineBreakMode:NSLineBreakByWordWrapping];
     [clearInfoText setNumberOfLines:0];
-    NSString *clearInfoString = @"(This subscription auto-renews every year.)";
+    NSString *clearInfoString = NSLocalizedString(@"(This subscription auto-renews every year.)", nil);
     [clearInfoText setText:clearInfoString];
     [clearInfoText setFont:[UIFont systemFontOfSize: 14]];
     [clearInfoText sizeToFit];
@@ -461,7 +469,7 @@
     subscribeButton.backgroundColor = [UIColor clearColor];
     subscribeButton.titleLabel.font = [UIFont boldSystemFontOfSize:22];
     [subscribeButton setTitleColor:[UIColor colorWithRed:0 green:0.0 blue:0.9 alpha:1] forState:UIControlStateNormal];
-    [subscribeButton setTitle:@"\u2606      subscribe      \u2606" forState:UIControlStateNormal];
+    [subscribeButton setTitle:NSLocalizedString(@"\u2606      subscribe      \u2606",nil) forState:UIControlStateNormal];
     [subscribeButton addTarget:self action:@selector(subscribe:) forControlEvents:UIControlEventTouchUpInside];
     [subscribeButton setFrame:CGRectMake(0, 0, self.view.bounds.size.width*8/9, 60)];
     //        [subscribeButton setImage:[UIImage imageNamed:@"subscribeIcon"] forState:UIControlStateNormal];
@@ -472,7 +480,7 @@
     [self.progressView setAlpha:0.75];
     [self.progressView startAnimating];
     [self.view addSubview:self.progressView];
-    popoverView = [PopoverView showPopoverAtPoint: CGPointMake(self.view.bounds.size.width/2, [self.tableView contentOffset].y) inView:self.view withTitle: @"Subscribe today and" withViewArray: @[subscribeText, priceText, clearInfoText, subscribeButton] delegate:self];
+    popoverView = [PopoverView showPopoverAtPoint: CGPointMake(self.view.bounds.size.width/2, [self.tableView contentOffset].y) inView:self.view withTitle: NSLocalizedString(@"Subscribe today and",nil) withViewArray: @[subscribeText, priceText, clearInfoText, subscribeButton] delegate:self];
     [popoverView setDelegate:self];
 }
 
@@ -510,7 +518,7 @@
         if ([dashboardString containsString:@"success"]) {
             [[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"shouldSendReceipt"];
             [TSMessage showNotificationInViewController:self.navigationController
-                                                  title: @"Purchase registration successful"
+                                                  title: NSLocalizedString(@"Purchase registration successful",nil)
                                                subtitle: nil
                                                   image:nil
                                                    type: TSMessageNotificationTypeSuccess
@@ -524,8 +532,8 @@
                                    canBeDismissedByUser:YES];
         } else {
             [TSMessage showNotificationInViewController:self.navigationController
-                                                  title: @"Purchase registration failed"
-                                               subtitle: @"The app will retry purchase registration at pente.org every time the app starts"
+                                                  title: NSLocalizedString(@"Purchase registration failed", nil)
+                                               subtitle: NSLocalizedString(@"The app will retry purchase registration at pente.org every time the app starts",nil)
                                                   image:nil
                                                    type: TSMessageNotificationTypeWarning
                                                duration:TSMessageNotificationDurationAutomatic
@@ -542,8 +550,8 @@
         [self.progressView stopAnimating];
         [self.progressView removeFromSuperview];
         [TSMessage showNotificationInViewController:self.navigationController
-                                              title: @"Purchase failed"
-                                           subtitle: [NSString stringWithFormat:@"Reason: %@", error.localizedFailureReason]
+                                              title: NSLocalizedString(@"Purchase failed",nil)
+                                           subtitle: [NSString stringWithFormat:NSLocalizedString(@"Reason: %@",nil), error.localizedFailureReason]
                                               image:nil
                                                type: TSMessageNotificationTypeWarning
                                            duration:TSMessageNotificationDurationAutomatic
@@ -614,7 +622,7 @@
             NSError *error = nil;
             [NSURLConnection sendSynchronousRequest:request returningResponse:nil error: &error];
             if (error) {
-                UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:[NSString stringWithFormat:@"Reason: %@", error.localizedDescription] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+                UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error",nil) message:[NSString stringWithFormat:NSLocalizedString(@"Reason: %@",nil), error.localizedDescription] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
                 //        [alert show];
                 [alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:YES];
                 return;
@@ -665,10 +673,10 @@
                 
                 [self presentViewController:mailer animated:YES completion:nil];
             } else {
-                UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error"
-                                                                message:@"Your device is not configured to send mail"
+                UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error",nil)
+                                                                message:NSLocalizedString(@"Your device is not configured to send mail",nil)
                                                                delegate:nil
-                                                      cancelButtonTitle:@"OK"
+                                                      cancelButtonTitle:NSLocalizedString(@"OK",nil)
                                                       otherButtonTitles:nil];
                 [alert show];
             }
@@ -712,6 +720,10 @@
 {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
+}
+
+-(void) strings {
+    NSLocalizedString(@"Username:", nil);
 }
 
 @end

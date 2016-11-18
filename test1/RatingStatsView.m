@@ -31,7 +31,7 @@
     }
     
     cell.textLabel.text =  [ratingStats objectAtIndex: indexPath.row].game;
-    cell.detailTextLabel.text = [NSString stringWithFormat:@"Last: %@, total: %@", [ratingStats objectAtIndex: indexPath.row].lastPlayed, [ratingStats objectAtIndex: indexPath.row].totalGames];
+    cell.detailTextLabel.text = [NSString stringWithFormat:NSLocalizedString(@"Last: %@, total: %@",nil), [ratingStats objectAtIndex: indexPath.row].lastPlayed, [ratingStats objectAtIndex: indexPath.row].totalGames];
     NSMutableString *ratingStr = [NSMutableString stringWithString:@"\u25A0 "];
     if ([[ratingStats objectAtIndex: indexPath.row].rating length] == 3) {
         [ratingStr appendString:@"  "];

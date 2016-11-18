@@ -16,10 +16,65 @@
 @synthesize opponentRating;
 @synthesize myColor;
 @synthesize remainingTime;
+@synthesize localizedTime;
 @synthesize ratedNot;
+@synthesize localizedRatedNot;
 @synthesize privateGame;
 @synthesize nameColor;
 @synthesize crown;
+
+-(NSString *) localizedTimeString {
+    if (!localizedTime) {
+        if ([remainingTime containsString:@"minutes"]) {
+            NSArray<NSString *>* splitTime = [remainingTime componentsSeparatedByString:@" "];
+            NSString *hour = [splitTime objectAtIndex:0], *minutes = [splitTime objectAtIndex: 2];
+            if ([hour isEqualToString:@"1"] && [minutes isEqualToString:@"1"]) {
+                localizedTime = [NSString stringWithFormat: NSLocalizedString(@"%@ hour, %@ minute", nil), hour, minutes];
+            } else if ([hour isEqualToString:@"1"]) {
+                localizedTime = [NSString stringWithFormat: NSLocalizedString(@"%@ hour, %@ minutes", nil), hour, minutes];
+            } else if ([minutes isEqualToString:@"1"]) {
+                localizedTime = [NSString stringWithFormat: NSLocalizedString(@"%@ hours, %@ minute", nil), hour, minutes];
+            } else {
+                localizedTime = [NSString stringWithFormat: NSLocalizedString(@"%@ hours, %@ minutes", nil), hour, minutes];
+            }
+        } else if ([remainingTime containsString:@"hours"]) {
+            NSArray<NSString *>* splitTime = [remainingTime componentsSeparatedByString:@" "];
+            NSString *hour = [splitTime objectAtIndex:2], *days = [splitTime objectAtIndex: 0];
+            if ([hour isEqualToString:@"1"] && [days isEqualToString:@"1"]) {
+                localizedTime = [NSString stringWithFormat: NSLocalizedString(@"%@ day, %@ hour", nil), days, hour];
+            } else if ([hour isEqualToString:@"1"]) {
+                localizedTime = [NSString stringWithFormat: NSLocalizedString(@"%@ days, %@ hour", nil), days, hour];
+            } else if ([days isEqualToString:@"1"]) {
+                localizedTime = [NSString stringWithFormat: NSLocalizedString(@"%@ day, %@ hours", nil), days, hour];
+            } else {
+                localizedTime = [NSString stringWithFormat: NSLocalizedString(@"%@ days, %@ hours", nil), days, hour];
+            }
+        } else {
+            NSString *days = [remainingTime substringToIndex:[remainingTime rangeOfString:@"days"].location];
+            if ([days isEqualToString:@"1"]) {
+                localizedTime = [NSString stringWithFormat: NSLocalizedString(@"%@ day per move", nil), days];
+            } else {
+                localizedTime = [NSString stringWithFormat: NSLocalizedString(@"%@ days per move", nil), days];
+            }
+        }
+    }
+    return localizedTime;
+}
+-(NSString *) localizedRatedNot {
+    if (!localizedRatedNot) {
+        if ([ratedNot isEqualToString:@"Rated"]) {
+            localizedRatedNot = NSLocalizedString(@"Rated", nil);
+        } else if ([ratedNot isEqualToString:@"Not Rated"]) {
+            localizedRatedNot = NSLocalizedString(@"Not Rated", nil);
+        } else if ([ratedNot isEqualToString:@"KotH"]) {
+            localizedRatedNot = NSLocalizedString(@"KotH", nil);
+        } else if ([ratedNot isEqualToString:@"Tournament"]) {
+            localizedRatedNot = NSLocalizedString(@"Tournament", nil);
+        }
+    }
+    return localizedRatedNot;
+}
+
 @end
 
 @implementation Message

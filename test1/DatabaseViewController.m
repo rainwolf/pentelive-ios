@@ -109,8 +109,8 @@ struct Capture {
     UIBarButtonItem *setupButton = [[UIBarButtonItem alloc] initWithImage: [UIImage imageNamed:@"settings.png"] style: UIBarButtonItemStylePlain target:self action: @selector(showSetup)];
     [self.navigationItem setRightBarButtonItem:setupButton];
     
-    [self setTitle:@"Database & AI"];
-    [self setTitle:@"Database"];
+    [self setTitle:NSLocalizedString(@"Database & AI",nil)];
+    [self setTitle:NSLocalizedString(@"Database",nil)];
     
     
     [board setFrame:CGRectMake(0, 0, self.view.bounds.size.width, self.view.bounds.size.width)];
@@ -131,7 +131,7 @@ struct Capture {
     button.backgroundColor = [UIColor clearColor];
     button.titleLabel.font = [UIFont boldSystemFontOfSize:20];
     [button setTitleColor:[UIColor blueColor] forState:UIControlStateNormal];
-    [button setTitle:@"  search  " forState:UIControlStateNormal];
+    [button setTitle:NSLocalizedString(@"  search  ",nil) forState:UIControlStateNormal];
     [button addTarget:self action:@selector(searchDB:) forControlEvents:UIControlEventTouchUpInside];
     rect = button.frame;
     rect.size = [button intrinsicContentSize];
@@ -592,7 +592,7 @@ struct Capture {
 //            NSLog(@"kittyyyyyyString -\n%@-", dashboardString);
         
         if (error) {
-            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:[NSString stringWithFormat:@"Reason: %@", error.localizedDescription] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error",nil) message:[NSString stringWithFormat:NSLocalizedString(@"Reason: %@",nil), error.localizedDescription] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
             //        [alert show];
             [alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:YES];
             [self.progressView stopAnimating];
@@ -668,7 +668,7 @@ struct Capture {
             }
         }
         if ([moves count] == 0 && ![dashboardString containsString:@"https://www.pente.org/gameServer/viewLiveGame?mobile&g="]) {
-            dashboardString = @"No search results";
+            dashboardString = NSLocalizedString(@"No search results",nil);
         } else {
             NSString *p1Str = [setupView.player1Cell.textField.text lowercaseString], *p2Str = [setupView.player2Cell.textField.text lowercaseString];
             if ((p1Str || p2Str) && !([p1Str isEqualToString:@""] && [p2Str isEqualToString:@""])) {
@@ -1446,7 +1446,7 @@ struct Capture {
 
 
 -(void) showSetup {
-    messagePopover = [PopoverView showPopoverAtPoint: CGPointMake(self.view.bounds.size.width - 20, 0) inView:self.view withTitle: @"search parameters" withContentView: setupView delegate:self];
+    messagePopover = [PopoverView showPopoverAtPoint: CGPointMake(self.view.bounds.size.width - 20, 0) inView:self.view withTitle: NSLocalizedString(@"search parameters",nil) withContentView: setupView delegate:self];
     [messagePopover layoutSubviews];
     
 }

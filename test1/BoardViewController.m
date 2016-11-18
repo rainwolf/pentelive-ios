@@ -155,12 +155,12 @@ struct Capture {
     rect.origin.y = board.frame.size.height + 2 ;
     //    rect.origin.x = (board.frame.size.width - submitButton.frame.size.width)/2;
     player1Button.frame = rect;
-    [player1Button setTitle:@"white" forState:UIControlStateNormal];
+    [player1Button setTitle:NSLocalizedString(@"white",nil) forState:UIControlStateNormal];
     rect = player2Button.frame;
     rect.origin.y = board.frame.size.height + 2;
     //    rect.origin.x = (board.frame.size.width - submitButton.frame.size.width)/2;
     player2Button.frame = rect;
-    [player2Button setTitle:@"black" forState:UIControlStateNormal];
+    [player2Button setTitle:NSLocalizedString(@"black",nil) forState:UIControlStateNormal];
     rect = dPenteChoiceLabel.frame;
     rect.origin.y = (player1Button.frame.origin.y +3);
     dPenteChoiceLabel.frame = rect;
@@ -216,7 +216,10 @@ struct Capture {
 //        [self.view bringSubviewToFront:bannerView];
 //        NSLog(@"kittty");
     }
-    
+    [submitButton setEnabled:NO];
+    [submitButton setTitle:NSLocalizedString(@"submit",nil) forState:UIControlStateDisabled];
+    [submitButton setAlpha:0.5];
+
 
 }
 
@@ -237,9 +240,6 @@ struct Capture {
         dPenteMove3 = -1;
 //        dPenteChoice = NO;
 //        dPenteOpening = NO;
-        [submitButton setEnabled:NO];
-        [submitButton setTitle:@"submit" forState:UIControlStateDisabled];
-        [submitButton setAlpha:0.5];
         poofed = NO;
         [whiteStoneCaptures setStoneColor:[UIColor whiteColor]];
         [blackStoneCaptures setStoneColor:[UIColor blackColor]];
@@ -257,6 +257,7 @@ struct Capture {
     positiveSpacer.width = 16.0;// it was -6 in iOS 6
     UIBarButtonItem *messsageBarButton = self.navigationItem.rightBarButtonItem;
     [self.navigationItem setRightBarButtonItems:[NSArray arrayWithObjects: messsageBarButton, negativeSpacer, [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"cancel.png"] style:UIBarButtonItemStylePlain target:self action:@selector(cancelResign)], positiveSpacer, nil] animated:NO];
+    dPenteChoiceLabel.text = NSLocalizedString(@"Play as",nil);
 }
 
 
@@ -374,9 +375,11 @@ struct Capture {
     }
 //    NSLog(@"SwipeLeft %i", lastMove);
     finalMove = -1;
-    [submitButton setEnabled:NO];
-    [submitButton setTitle:@"submit" forState:UIControlStateDisabled];
-    [submitButton setAlpha:0.5];
+    if (!submitButton.imageView.image) {
+        [submitButton setEnabled:NO];
+        [submitButton setTitle:NSLocalizedString(@"submit",nil) forState:UIControlStateDisabled];
+        [submitButton setAlpha:0.5];
+    }
     [stone setHidden:YES];
     if (connect6Move1 != -1) {
         connect6Move1 = -1;
@@ -395,7 +398,7 @@ struct Capture {
             dPenteMove2 = -1;
             [board setNeedsDisplay];
             [zoomedBoard setNeedsDisplay];
-            [submitButton setTitle: [NSString stringWithFormat:@"submit: %c%d", coordinateLetters[dPenteMove1 % 19], 19 - (dPenteMove1 / 19)] forState:UIControlStateDisabled];
+            [submitButton setTitle: [NSString stringWithFormat:NSLocalizedString(@"submit: %c%d",nil), coordinateLetters[dPenteMove1 % 19], 19 - (dPenteMove1 / 19)] forState:UIControlStateDisabled];
         } else if (dPenteMove1 != -1) {
             abstractBoard[dPenteMove1 / 19][dPenteMove1 % 19] = 0;
             [board setAbstractBoard: abstractBoard];
@@ -486,7 +489,7 @@ struct Capture {
 //            NSLog(@"hi ended");
             if ([zoomedBoard isHidden]) {
                 [submitButton setEnabled:NO];
-                [submitButton setTitle:@"submit" forState:UIControlStateDisabled];
+                [submitButton setTitle:NSLocalizedString(@"submit",nil) forState:UIControlStateDisabled];
                 [submitButton setAlpha:0.5];
                 break;
             }
@@ -504,11 +507,11 @@ struct Capture {
                 if (!([[game gameType] isEqualToString:@"Connect6"] && (connect6Move1 == -1)) && !(dPenteOpening && [[game gameType] isEqualToString:@"D-Pente"] && (dPenteMove2 == -1))) {
                     [submitButton setEnabled:YES];
                     if ([[game gameType] isEqualToString:@"Connect6"]) {
-                        [submitButton setTitle: [NSString stringWithFormat:@"submit: %c%d-%c%d", coordinateLetters[connect6Move1 % 19], 19 - (connect6Move1 / 19), coordinateLetters[finalMove % 19], 19 - (finalMove / 19)] forState:UIControlStateNormal];
+                        [submitButton setTitle: [NSString stringWithFormat:NSLocalizedString(@"submit: %c%d-%c%d",nil), coordinateLetters[connect6Move1 % 19], 19 - (connect6Move1 / 19), coordinateLetters[finalMove % 19], 19 - (finalMove / 19)] forState:UIControlStateNormal];
                     } else if ([[game gameType] isEqualToString:@"D-Pente"] && dPenteOpening) {
-                        [submitButton setTitle: [NSString stringWithFormat:@"submit: %c%d-%c%d-%c%d", coordinateLetters[dPenteMove1 % 19], 19 - (dPenteMove1 / 19), coordinateLetters[dPenteMove2 % 19], 19 - (dPenteMove2 / 19), coordinateLetters[finalMove % 19], 19 - (finalMove / 19)] forState:UIControlStateNormal];
+                        [submitButton setTitle: [NSString stringWithFormat:NSLocalizedString(@"submit: %c%d-%c%d-%c%d",nil), coordinateLetters[dPenteMove1 % 19], 19 - (dPenteMove1 / 19), coordinateLetters[dPenteMove2 % 19], 19 - (dPenteMove2 / 19), coordinateLetters[finalMove % 19], 19 - (finalMove / 19)] forState:UIControlStateNormal];
                     } else {
-                        [submitButton setTitle: [NSString stringWithFormat:@"submit: %c%d", coordinateLetters[finalMove % 19], 19 - (finalMove / 19)] forState:UIControlStateNormal];
+                        [submitButton setTitle: [NSString stringWithFormat:NSLocalizedString(@"submit: %c%d",nil), coordinateLetters[finalMove % 19], 19 - (finalMove / 19)] forState:UIControlStateNormal];
                     }
                     [submitButton setAlpha:1];
                 }
@@ -538,7 +541,7 @@ struct Capture {
                         [zoomedBoard setAbstractBoard: abstractBoard];
                         [board setNeedsDisplay];
                         [zoomedBoard setNeedsDisplay];
-                        [submitButton setTitle: [NSString stringWithFormat:@"submit: %c%d", coordinateLetters[finalMove % 19], 19 - (finalMove / 19)] forState:UIControlStateDisabled];
+                        [submitButton setTitle: [NSString stringWithFormat:NSLocalizedString(@"submit: %c%d",nil), coordinateLetters[finalMove % 19], 19 - (finalMove / 19)] forState:UIControlStateDisabled];
                     } else if (dPenteMove2 == -1) {
                         dPenteMove2 = finalMove;
                         abstractBoard[i][j] = 1;
@@ -546,7 +549,7 @@ struct Capture {
                         [zoomedBoard setAbstractBoard: abstractBoard];
                         [board setNeedsDisplay];
                         [zoomedBoard setNeedsDisplay];
-                        [submitButton setTitle: [NSString stringWithFormat:@"submit: %c%d-%c%d", coordinateLetters[dPenteMove1 % 19], 19 - (dPenteMove1 / 19), coordinateLetters[finalMove % 19], 19 - (finalMove / 19)] forState:UIControlStateDisabled];
+                        [submitButton setTitle: [NSString stringWithFormat:NSLocalizedString(@"submit: %c%d-%c%d",nil), coordinateLetters[dPenteMove1 % 19], 19 - (dPenteMove1 / 19), coordinateLetters[finalMove % 19], 19 - (finalMove / 19)] forState:UIControlStateDisabled];
                     } else {
                         dPenteMove3 = finalMove;
                         //[self detectCaptureOfOpponent:1 atPosition:finalMove];
@@ -576,7 +579,7 @@ struct Capture {
             } else {
                 finalMove = -1;
                 [submitButton setEnabled:NO];
-                [submitButton setTitle:@"submit" forState:UIControlStateDisabled];
+                [submitButton setTitle:NSLocalizedString(@"submit",nil) forState:UIControlStateDisabled];
                 [submitButton setAlpha:0.5];
             }
             break;
@@ -714,7 +717,7 @@ struct Capture {
 
     [spinner performSelectorOnMainThread:@selector(stopAnimating) withObject:nil waitUntilDone:NO];
     if (error) {
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:[NSString stringWithFormat:@"Reason: %@", error.localizedDescription] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error",nil) message:[NSString stringWithFormat:NSLocalizedString(@"Reason: %@",nil), error.localizedDescription] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
         //        [alert show];
         [alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:YES];
         return;
@@ -730,7 +733,7 @@ struct Capture {
         finalMove = -1;
         activeGame = NO;
         [submitButton setEnabled:NO];
-        [submitButton setTitle:@"submit" forState:UIControlStateDisabled];
+        [submitButton setTitle:NSLocalizedString(@"submit",nil) forState:UIControlStateDisabled];
         [submitButton setAlpha:0.5];
         [zoomedStone setHidden:YES];
         [stone setHidden:YES];
@@ -936,11 +939,14 @@ struct Capture {
     replyMessageView.layer.borderWidth = 2.0f;
     replyMessageView.layer.borderColor = [[UIColor grayColor] CGColor];
 
-
+    NSString *locRating = NSLocalizedString(@"rating:",nil);
+    NSString *remTime = NSLocalizedString(@"Remaining time:",nil);
+    NSString *ratedPrivate = [NSString stringWithFormat:NSLocalizedString(@"This game is %@ and %@", nil), [game localizedRatedNot], [game privateGame]];
+    
     if (![myUsername isEqualToString:p1Name] && ![myUsername isEqualToString:p2Name]) {
-        playerStatsBaseString = [NSString stringWithFormat:@"<font size=\"3.5\"><a href=\"https://pente.org/gameServer/profile?viewName=%@\">%@</a> vs <a href=\"https://pente.org/gameServer/profile?viewName=%@\">%@</a>, rating: %@ <br> Remaining time: %@ <br> %@ and %@ game.</font><hr>",p1Name, p1Name, p2Name, p2Name ,[game opponentRating],[game remainingTime],[game ratedNot],[game privateGame]];
+        playerStatsBaseString = [NSString stringWithFormat:@"<font size=\"3.5\"><a href=\"https://pente.org/gameServer/profile?viewName=%@\">%@</a> vs <a href=\"https://pente.org/gameServer/profile?viewName=%@\">%@</a>, %@ %@ <br> %@ %@ <br> %@ </font><hr>",p1Name, p1Name, p2Name, p2Name, locRating, [game opponentRating], remTime,[game localizedTimeString], ratedPrivate];
     } else {
-        playerStatsBaseString = [NSString stringWithFormat:@"<font size=\"3.5\">Opponent: <a href=\"https://pente.org/gameServer/profile?viewName=%@\">%@</a>, rating: %@ <br> Remaining time: %@ <br> %@ and %@ game.</font><hr>",[game opponentName],[game opponentName],[game opponentRating],[game remainingTime],[game ratedNot],[game privateGame]];
+        playerStatsBaseString = [NSString stringWithFormat:@"<font size=\"3.5\">Opponent: <a href=\"https://pente.org/gameServer/profile?viewName=%@\">%@</a>, %@ %@ <br> %@ %@ <br> %@</font><hr>",[game opponentName],[game opponentName],locRating,[game opponentRating],remTime,[game remainingTime],ratedPrivate];
     }
 
     
@@ -1090,7 +1096,7 @@ struct Capture {
     [zoomedBoard setNeedsDisplay];
 
     if (cancelRequest) {
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:[NSString stringWithFormat:@"%@", [game opponentName]] message:[NSString stringWithFormat:@"is requesting that this set be cancelled. %@", cancelMsg] delegate:self cancelButtonTitle:@"Decide later" otherButtonTitles:@"Accept", @"Reject", nil];
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:[NSString stringWithFormat:@"%@", [game opponentName]] message:[NSString stringWithFormat:NSLocalizedString(@"is requesting that this set be cancelled. %@",nil), cancelMsg] delegate:self cancelButtonTitle:NSLocalizedString(@"Decide later",nil) otherButtonTitles:NSLocalizedString(@"Accept",nil), NSLocalizedString(@"Reject",nil), nil];
         [alert setTag: 0];
         
         [alert show];
@@ -1106,14 +1112,14 @@ struct Capture {
         BOOL iWin = YES;
         if ([self detectPenteOf: 2-([movesList count]%2) atPosition: [[movesList lastObject] intValue]]) {
             if (2-([movesList count]%2) == 1) {
-                message = @"White wins";
+                message = NSLocalizedString(@"White wins",nil);
             } else {
-                message = @"Black wins";
+                message = NSLocalizedString(@"Black wins",nil);
             }
         } else if (whiteCaptures == 10) {
-            message = @"Black wins";
+            message = NSLocalizedString(@"Black wins",nil);
         } else if (blackCaptures == 10) {
-            message = @"White wins";
+            message = NSLocalizedString(@"White wins",nil);
         }
         if (message) {
             activeGame = NO;
@@ -1127,7 +1133,7 @@ struct Capture {
                 }
             }
             [TSMessage showNotificationInViewController:self.navigationController
-                                                  title: @"Game Over"
+                                                  title: NSLocalizedString(@"Game Over",nil)
                                                subtitle: message
                                                   image:nil
                                                    type: (iWin?TSMessageNotificationTypeSuccess:TSMessageNotificationTypeError)
@@ -1143,11 +1149,18 @@ struct Capture {
     }
     if (![htmlString containsString:@"state=active"]) {
         activeGame = NO;
-        PenteNavigationViewController *navC = (PenteNavigationViewController *) self.navigationController;
-        if (navC.player.subscriber) {
-            [lockButton setImage:[UIImage imageNamed:@"database.png"] forState:UIControlStateNormal];
-            [lockButton removeTarget:self action:@selector(toggleBoardLock:) forControlEvents:UIControlEventTouchUpInside];
-            [lockButton addTarget:self action:@selector(toDB) forControlEvents:UIControlEventTouchUpInside];
+        if (![game.gameType isEqualToString:@"Connect6"]) {
+            PenteNavigationViewController *navC = (PenteNavigationViewController *) self.navigationController;
+            if (navC.player.subscriber) {
+                [submitButton setImage:[UIImage imageNamed:@"database.png"] forState:UIControlStateNormal];
+                [submitButton removeTarget:self action:@selector(submitMove:) forControlEvents:UIControlEventTouchUpInside];
+                [submitButton addTarget:self action:@selector(toDB) forControlEvents:UIControlEventTouchUpInside];
+                [submitButton setTitle:NSLocalizedString(@"   search",nil) forState:UIControlStateNormal];
+                [submitButton setAlpha:1.0f];
+                [submitButton setEnabled:YES];
+                [submitButton setNeedsDisplay];
+                [lockButton removeFromSuperview];
+            }
         }
     }
 }
@@ -1261,7 +1274,7 @@ struct Capture {
             movesRange = NSMakeRange(0,[dashboardString length]);
             movesRange = [dashboardString rangeOfString: @"Error: Cancel request already exists." options:0 range:movesRange];
             if (movesRange.location != NSNotFound) {
-                UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:@"A cancel request already exists." delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+                UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error",nil) message:NSLocalizedString(@"A cancel request already exists.",nil) delegate:nil cancelButtonTitle:NSLocalizedString(@"OK",nil) otherButtonTitles:nil];
                 [alert show];
             } else {
                 PenteNavigationViewController *navControllor = (PenteNavigationViewController *) self.navigationController;
@@ -2310,7 +2323,7 @@ struct Capture {
 - (void) cancelResign {
     UIAlertView *alert;
     if (activeGame) {
-        alert = [[UIAlertView alloc] initWithTitle:@"Options" message:nil delegate:self cancelButtonTitle:@"Dismiss" otherButtonTitles:@"Resign", @"Cancel Set", nil];
+        alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Options",nil) message:nil delegate:self cancelButtonTitle:NSLocalizedString(@"Dismiss",nil) otherButtonTitles:NSLocalizedString(@"Resign",nil), NSLocalizedString(@"Cancel Set",nil), nil];
         [alert setTag: 1];
         [alert show];
     }

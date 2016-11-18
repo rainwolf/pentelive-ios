@@ -241,7 +241,7 @@ InvitationsViewController *invitationVC;
     self.toField.rightViewMode         = UITextFieldViewModeAlways;
     UILabel *tmpLabel = [[UILabel alloc] initWithFrame:CGRectMake(5, 5, 40, 20)];
     [tmpLabel setFont:[UIFont fontWithName:@"HelveticaNeue-Bold" size:15.f]];
-    [tmpLabel setText:@"To: "];
+    [tmpLabel setText:NSLocalizedString(@"To: ",nil)];
     [self.toField addSubview:tmpLabel];
     [toField setAutocapitalizationType:UITextAutocapitalizationTypeNone];
     [toField setAutocorrectionType:UITextAutocorrectionTypeNo];
@@ -260,7 +260,7 @@ InvitationsViewController *invitationVC;
     paddingView           = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 75, 20)];
     tmpLabel = [[UILabel alloc] initWithFrame:CGRectMake(5, 5, 75, 20)];
     [tmpLabel setFont:[UIFont fontWithName:@"HelveticaNeue-Bold" size:15.f]];
-    [tmpLabel setText:@"Subject: "];
+    [tmpLabel setText:NSLocalizedString(@"Subject: ",nil)];
     [self.subjectField addSubview:tmpLabel];
     self.subjectField.leftView             = paddingView;
     self.subjectField.leftViewMode         = UITextFieldViewModeAlways;
@@ -309,7 +309,7 @@ InvitationsViewController *invitationVC;
     sendButton.titleLabel.font = [UIFont fontWithName:@"HelveticaNeue-Bold" size:17.f];
     [sendButton setTitleColor:[UIColor blueColor] forState:UIControlStateNormal];
     [sendButton addTarget:self action:@selector(sendButtonTap:) forControlEvents:UIControlEventTouchUpInside];
-    [sendButton setTitle:@"send" forState:UIControlStateNormal];
+    [sendButton setTitle:NSLocalizedString(@"send",nil) forState:UIControlStateNormal];
     [sendButton setFrame:CGRectMake(2, replyMessageView.frame.origin.y - 40, self.view.bounds.size.width , 40)];
     sendButton.layer.borderWidth = 1.5f;
     sendButton.layer.borderColor = [[UIColor blueColor] CGColor];
@@ -328,17 +328,17 @@ InvitationsViewController *invitationVC;
 
 -(void) sendButtonTap: (UIButton *) sender {
     if (!messageID && ([toField.text length] == 0)) {
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"No recipient entered." message:nil delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"No recipient entered.",nil) message:nil delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
         [alert show];
         return;
     }
     if ([subjectField.text length] == 0) {
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"No subject entered." message:nil delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"No subject entered.",nil) message:nil delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
         [alert show];
         return;
     }
     if ([replyMessageView.text length] == 0) {
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"No message found." message:nil delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"No message found.",nil) message:nil delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
         [alert show];
         return;
     }
@@ -376,11 +376,11 @@ InvitationsViewController *invitationVC;
 //    NSLog(@"kitty %@", dashboardString);
 
     if (error) {
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:[NSString stringWithFormat:@"Reason: %@", error.localizedDescription] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error",nil) message:[NSString stringWithFormat:NSLocalizedString(@"Reason: %@",nil), error.localizedDescription] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
         //        [alert show];
         [alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:YES];
     } else if ([dashboardString rangeOfString:[NSString stringWithFormat:@"Error: Player %@ not found.",toField.text]].length != 0) {
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:[NSString stringWithFormat:@"The username %@ does not exist.", toField.text] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error",nil) message:[NSString stringWithFormat:NSLocalizedString(@"The username %@ does not exist.",nil), toField.text] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
         //        [alert show];
         [alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:YES];
     } else {
@@ -459,26 +459,6 @@ InvitationsViewController *invitationVC;
 
 
 - (void) challengeTap {
-    long count = [[player activeGames] count] + [[player nonActiveGames] count];
-    for (Game *game in [player sentInvitations]) {
-        if ([[game opponentName] isEqualToString:@"Anyone"]) {
-            continue;
-        }
-        if ([[game ratedNot] isEqualToString:@"rated"]) {
-            count += 2;
-        } else {
-            ++count;
-        }
-    }
-    if (count > gamesLimit) {
-        NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-        if (![defaults boolForKey:@"stopGamesLimitHassle"]) {
-            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Free account limit reached." message:@"You can only post open invitations until the number of (non-)active games drops below the limit.\n To remove this limit, log in at pente.org and upgrade your account." delegate:self cancelButtonTitle:@"Got it." otherButtonTitles:@"Do not remind me again.", nil];
-            [alert setTag: 0];
-            [alert show];
-        }
-        return;
-    }
     PenteNavigationViewController *navControllor = (PenteNavigationViewController *) self.navigationController;
     [navControllor setDidMove: YES];
     spinner.center = CGPointMake(sendButton.frame.size.width/4, sendButton.frame.size.height/2);

@@ -31,12 +31,14 @@
 @synthesize playAsDetailLabel;
 @synthesize privateCell;
 @synthesize privateCellLabel;
+@synthesize ratedLabel,sendLabel;
 @synthesize spinner;
 @synthesize challengedOpponent;
 @synthesize game;
 @synthesize openInvitationOnly;
 @synthesize restrictionCell;
 @synthesize restrictions;
+
 
 - (id)initWithStyle:(UITableViewStyle)style
 {
@@ -67,11 +69,11 @@
  
     // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
     // self.navigationItem.rightBarButtonItem = self.editButtonItem;
-    [self setTitle:@"Send invitation"];
+    [self setTitle:NSLocalizedString(@"Send invitation",nil)];
 
     games = [[NSArray alloc] initWithObjects:@"Pente",@"Keryo-Pente",@"Gomoku",@"D-Pente",@"G-Pente",@"Poof-Pente",@"Connect6",@"Boat-Pente", nil];
-    colors = [[NSArray alloc] initWithObjects:@"White",@"Black", nil];
-    restrictions = [[NSArray alloc] initWithObjects:@"of any rating",@"not already playing",@"of lower rating",@"of higher rating",@"of similar rating",@"in the same rating class", nil];
+    colors = [[NSArray alloc] initWithObjects:NSLocalizedString(@"white",nil),NSLocalizedString(@"black",nil), nil];
+    restrictions = [[NSArray alloc] initWithObjects:NSLocalizedString(@"of any rating",nil),NSLocalizedString(@"not already playing",nil),NSLocalizedString(@"of lower rating",nil),NSLocalizedString(@"of higher rating",nil),NSLocalizedString(@"of similar rating",nil),NSLocalizedString(@"in the same rating class",nil), nil];
     moveDurations = [[NSMutableArray alloc] init];
     for ( int i = 1; i < 31; ++i) {
         [moveDurations addObject:[NSString stringWithFormat:@"%i",i]];
@@ -102,6 +104,16 @@
 //    game = @"";
     [self.tableView setSeparatorColor:[UIColor blueColor]];
     [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleSingleLine];
+    
+    opponentCell.textLabel.text = NSLocalizedString(@"Opponent:",nil);
+    gameCell.textLabel.text = NSLocalizedString(@"Game:",nil);
+    timeCell.textLabel.text = NSLocalizedString(@"Days per move:",nil);
+    ratedLabel.text = NSLocalizedString(@"Rated",nil);
+    restrictionCell.textLabel.text = NSLocalizedString(@"To players",nil);
+    playAsCell.textLabel.text = NSLocalizedString(@"Play as",nil);
+    privateCellLabel.text = NSLocalizedString(@"Private game",nil);
+    sendLabel.text = NSLocalizedString(@"send invitation",nil);
+    
 }
 
 - (void)viewWillDisappear:(BOOL)animated {
@@ -120,8 +132,8 @@
 
 - (void)viewWillAppear:(BOOL)animated {
     [spinner setHidden:YES];
-    opponentCell.textField.placeholder = @"blank to invite anyone";
-    [super viewWillAppear:animated];
+    opponentCell.textField.placeholder = NSLocalizedString(@"blank to invite anyone",nil);
+//    [super viewWillAppear:animated];
 }
 
 - (void)viewDidAppear:(BOOL)animated {
@@ -377,7 +389,7 @@
             
             playAsCell.datarray = colors;
             [playAsCell.picker reloadAllComponents];
-            [playAsCell.picker selectRow: ([playAsCell.detailTextLabel.text isEqualToString:@"White"] ? 0 : 1) inComponent:0 animated:YES];
+            [playAsCell.picker selectRow: ([playAsCell.detailTextLabel.text isEqualToString:NSLocalizedString(@"white",nil)] ? 0 : 1) inComponent:0 animated:YES];
             
             [tableView setScrollEnabled:YES];
             CGFloat scrollY = [tableView rectForRowAtIndexPath:indexPath].origin.y;
@@ -437,22 +449,22 @@
         gameString = @"53";
     
     NSString *restrictString = @"A";
-    if ([restrictionCell.detailTextLabel.text isEqualToString:@"of any rating"]) {
+    if ([restrictionCell.detailTextLabel.text isEqualToString:NSLocalizedString(@"of any rating",nil)]) {
         restrictString = @"A";
     }
-    if ([restrictionCell.detailTextLabel.text isEqualToString:@"not already playing"]) {
+    if ([restrictionCell.detailTextLabel.text isEqualToString:NSLocalizedString(@"not already playing",nil)]) {
         restrictString = @"N";
     }
-    if ([restrictionCell.detailTextLabel.text isEqualToString:@"of lower rating"]) {
+    if ([restrictionCell.detailTextLabel.text isEqualToString:NSLocalizedString(@"of lower rating",nil)]) {
         restrictString = @"L";
     }
-    if ([restrictionCell.detailTextLabel.text isEqualToString:@"of higher rating"]) {
+    if ([restrictionCell.detailTextLabel.text isEqualToString:NSLocalizedString(@"of higher rating",nil)]) {
         restrictString = @"H";
     }
-    if ([restrictionCell.detailTextLabel.text isEqualToString:@"of similar rating"]) {
+    if ([restrictionCell.detailTextLabel.text isEqualToString:NSLocalizedString(@"of similar rating",nil)]) {
         restrictString = @"S";
     }
-    if ([restrictionCell.detailTextLabel.text isEqualToString:@"in the same rating class"]) {
+    if ([restrictionCell.detailTextLabel.text isEqualToString:NSLocalizedString(@"in the same rating class",nil)]) {
         restrictString = @"C";
     }
     
@@ -464,7 +476,7 @@
     }
     
 //    NSLog(@"kitty hi? %@", opponentCell.textField.text);
-    NSString *post = [NSString stringWithFormat:@"invitationRestriction=%@&invitee=%@&game=%@&daysPerMove=%@&rated=%@&playAs=%@&privateGame=%@&inviterMessage=&mobile=", restrictString, opponentCell.textField.text ,gameString,timeCell.detailTextLabel.text,(ratedSwitch.on) ? @"Y" : @"N",([playAsDetailLabel.text isEqualToString:@"White"]) ? @"1" : @"2",(privateSwitch.on) ? @"Y" : @"N"];
+    NSString *post = [NSString stringWithFormat:@"invitationRestriction=%@&invitee=%@&game=%@&daysPerMove=%@&rated=%@&playAs=%@&privateGame=%@&inviterMessage=&mobile=", restrictString, opponentCell.textField.text ,gameString,timeCell.detailTextLabel.text,(ratedSwitch.on) ? @"Y" : @"N",([playAsDetailLabel.text isEqualToString:NSLocalizedString(@"white",nil)]) ? @"1" : @"2",(privateSwitch.on) ? @"Y" : @"N"];
     NSData *postData = [post dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
     NSString *postLength = [NSString stringWithFormat:@"%lu", (unsigned long)[postData length]];
     
@@ -483,12 +495,12 @@
     [spinner performSelectorOnMainThread:@selector(stopAnimating) withObject:nil waitUntilDone:NO];
 
     if (error) {
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:[NSString stringWithFormat:@"Reason: %@", error.localizedDescription] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error",nil) message:[NSString stringWithFormat:NSLocalizedString(@"Reason: %@",nil), error.localizedDescription] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
         //        [alert show];
         [alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:YES];
         return;
     } else if ([dashboardString rangeOfString:[NSString stringWithFormat:@"Player not found: %@",opponentCell.textField.text]].length != 0) {
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:[NSString stringWithFormat:@"The username %@ does not exist.", opponentCell.textField.text] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error",nil) message:[NSString stringWithFormat:NSLocalizedString(@"The username %@ does not exist.",nil), opponentCell.textField.text] delegate:nil cancelButtonTitle:NSLocalizedString(@"OK",nil) otherButtonTitles:nil];
         [alert show];
     } else {
         PenteNavigationViewController *navController = (PenteNavigationViewController *) self.navigationController;
@@ -537,7 +549,6 @@
 
 - (void)viewDidUnload {
     [self setRatedSwitch:nil];
-    [self setSendCell:nil];
     [self setTimeCell:nil];
     [self setGameCell:nil];
     [self setRestrictionCell:nil];

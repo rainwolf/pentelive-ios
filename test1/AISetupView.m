@@ -38,7 +38,7 @@
         //        [cell.picker reloadAllComponents];
         [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
         
-        cell.textLabel.text =  @"Game:";
+        cell.textLabel.text =  NSLocalizedString(@"Game:",nil);
         NSString *str = [[NSUserDefaults standardUserDefaults] objectForKey: @"MMAIGame"];
         if (str) {
             cell.detailTextLabel.text = str;
@@ -63,7 +63,7 @@
         [cell.picker reloadAllComponents];
         [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
        
-        cell.textLabel.text =  @"Difficulty:";
+        cell.textLabel.text =  NSLocalizedString(@"Difficulty:",nil);
         int idx = (int) [[NSUserDefaults standardUserDefaults] integerForKey: @"MMAILevel"] - 1;
         if (idx < 0) {
             idx = 0;
@@ -85,12 +85,12 @@
 //        [cell.picker reloadAllComponents];
         [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
         
-        cell.textLabel.text =  @"Play as:";
+        cell.textLabel.text =  NSLocalizedString(@"Play as:",nil);
         NSString *str = [[NSUserDefaults standardUserDefaults] objectForKey: @"MMAIColor"];
         if (str) {
             cell.detailTextLabel.text = str;
         } else {
-            cell.detailTextLabel.text = @"white";
+            cell.detailTextLabel.text = NSLocalizedString(@"white",nil);
         }
         
         colorCell = cell;
@@ -103,10 +103,10 @@
 -(void) tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     if (indexPath.row == 2) {
         [difficultyCell doResign];
-        if ([colorCell.detailTextLabel.text isEqualToString:@"white"]) {
-            [colorCell.detailTextLabel setText:@"black"];
+        if ([colorCell.detailTextLabel.text isEqualToString:NSLocalizedString(@"white",nil)]) {
+            [colorCell.detailTextLabel setText:NSLocalizedString(@"black",nil)];
         } else {
-            [colorCell.detailTextLabel setText:@"white"];
+            [colorCell.detailTextLabel setText:NSLocalizedString(@"white",nil)];
         }
     }
     if (indexPath.row == 0) {

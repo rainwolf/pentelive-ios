@@ -15,7 +15,7 @@ blue:((float)((rgbValue & 0x0000FF) >>  0))/255.0 \
 alpha:1.0]
 
 @interface Game : NSObject {
-    NSString *gameID, *setID, *gameType, *opponentName, *opponentRating, *myColor, *remainingTime, *ratedNot, *privateGame;
+    NSString *gameID, *setID, *gameType, *opponentName, *opponentRating, *myColor, *remainingTime, *ratedNot, *privateGame, *localizedTime, *localizedRatedNot;
     UIColor *nameColor;
     int crown;
 }
@@ -26,6 +26,9 @@ alpha:1.0]
 @property(nonatomic,retain) NSString *opponentRating;
 @property(nonatomic,retain) NSString *myColor;
 @property(nonatomic,retain) NSString *remainingTime;
+@property(nonatomic,retain, getter=localizedTimeString) NSString *localizedTime;
+@property(nonatomic,retain, getter=localizedRatedNot) NSString *localizedRatedNot;
+
 @property(nonatomic,retain) NSString *ratedNot;
 @property(nonatomic,retain) NSString *privateGame;
 @property(nonatomic,retain) UIColor *nameColor;
