@@ -46,7 +46,7 @@
             cell.textLabel.text =  NSLocalizedString(@"Days per move:",nil);
             int idx = (int) [[NSUserDefaults standardUserDefaults] integerForKey: @"kothTimeout"] - 1;
             if (idx < 0) {
-                idx = 2;
+                idx = 6;
             }
             [cell.picker selectRow:idx inComponent:0 animated:NO];
             cell.detailTextLabel.text = [timouts objectAtIndex:idx];

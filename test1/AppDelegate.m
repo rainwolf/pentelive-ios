@@ -54,13 +54,13 @@
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
     if (![defaults boolForKey:@"termsAccepted"]) {
         NSString *message =
-        @"This app uses device identifiers to personalise content and ads, delivered by Google's Adsense network.";
+        NSLocalizedString(@"This app uses device identifiers to personalise content and ads, delivered by Google's Adsense network.",nil);
         UIAlertView *alert =
-        [[UIAlertView alloc] initWithTitle:@"Cookies"
+        [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Cookies", nil)
                                    message:message
                                   delegate:self
                          cancelButtonTitle:nil
-                         otherButtonTitles:@"Close message", nil];
+                         otherButtonTitles:NSLocalizedString(@"Close message",nil), nil];
         [alert show];
     }
     
@@ -107,7 +107,7 @@
         if ([dashboardString containsString:@"success"]) {
             [[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"shouldSendReceipt"];
             [TSMessage showNotificationInViewController:((PenteNavigationViewController *)self.window.rootViewController)
-                                                  title: @"Purchase registration successful"
+                                                  title: NSLocalizedString(@"Purchase registration successful",nil)
                                                subtitle: nil
                                                   image:nil
                                                    type: TSMessageNotificationTypeSuccess
@@ -121,8 +121,8 @@
                                    canBeDismissedByUser:YES];
         } else {
             [TSMessage showNotificationInViewController:((PenteNavigationViewController *)self.window.rootViewController)
-                                                  title: @"Purchase registration failed"
-                                               subtitle: @"The app will retry purchase registration at pente.org every time the app starts"
+                                                  title: NSLocalizedString(@"Purchase registration failed",nil)
+                                               subtitle: NSLocalizedString(@"The app will retry purchase registration at pente.org every time the app starts",nil)
                                                   image:nil
                                                    type: TSMessageNotificationTypeWarning
                                                duration:TSMessageNotificationDurationAutomatic
@@ -222,14 +222,18 @@
         }
     }
 
-    if ([message rangeOfString:@"your move"].location != NSNotFound) {
-        title = @"It's your turn";
-    }
-    if ([message rangeOfString:@"new message"].location != NSNotFound) {
-        title = @"New Message";
-    }
-    if ([message rangeOfString:@"invited you"].location != NSNotFound) {
-        title = @"New invitation";
+    if ([message containsString:@"your move"]) {
+        title = NSLocalizedString(@"It's your turn",nil);
+        NSArray<NSString *>* splitStr = [[message stringByReplacingOccurrencesOfString:@"It's your move in a game of " withString:@""] componentsSeparatedByString:@" against "];
+        message = [NSString stringWithFormat:NSLocalizedString(@"It's your move against %@ in a game of %@.", nil), [splitStr objectAtIndex:1], [splitStr objectAtIndex:0]];
+    } else if ([message containsString:@"new message"]) {
+        NSArray<NSString *>* splitStr = [message componentsSeparatedByString:@" sent you a new message! "];
+        title = [NSString stringWithFormat:NSLocalizedString(@"New Message from %@",nil), [splitStr objectAtIndex:0]];
+        message = [splitStr objectAtIndex:1];
+    } else if ([message containsString:@"invited you"]) {
+        title = NSLocalizedString(@"New invitation",nil);
+        NSArray<NSString *>* splitStr = [message componentsSeparatedByString:@" has invited you to a game of "];
+        message = [NSString stringWithFormat:NSLocalizedString(@"%@ has invited you to a game of %@.", nil), [splitStr objectAtIndex:0], [splitStr objectAtIndex:1]];
     }
     if ([message rangeOfString:@"device has been registered for notifications"].location == NSNotFound) {
         [TSMessage showNotificationInViewController:self.window.rootViewController
@@ -255,10 +259,10 @@
                                canBeDismissedByUser:YES];
     } else {
         [TSMessage showNotificationInViewController:self.window.rootViewController
-                                              title: title
-                                           subtitle: message
+                                              title: NSLocalizedString(@"Registration success!", nil)
+                                           subtitle: NSLocalizedString(@"Your device has been registered for push notifications", nil)
                                               image:nil
-                                               type:TSMessageNotificationTypeMessage
+                                               type:TSMessageNotificationTypeSuccess
                                            duration:TSMessageNotificationDurationAutomatic
                                            callback:nil
                                         buttonTitle:buttonTitle

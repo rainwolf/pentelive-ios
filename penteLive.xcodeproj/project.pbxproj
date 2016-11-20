@@ -257,6 +257,7 @@
 		63B625F91C138E42000AC164 /* splash_750x1334.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = splash_750x1334.png; sourceTree = "<group>"; };
 		63BBB6F51DDDBC3B00D27D33 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = en; path = en.lproj/MainStoryboard.storyboard; sourceTree = "<group>"; };
 		63BBB6FD1DDF907600D27D33 /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = Base; path = Base.lproj/Localizable.strings; sourceTree = "<group>"; };
+		63BBB6FE1DE042CB00D27D33 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		63C4198A17B0E03200983B57 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = penteLive/Images.xcassets; sourceTree = SOURCE_ROOT; };
 		63C4199217B0FD2000983B57 /* icon_58x58.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = icon_58x58.png; sourceTree = "<group>"; };
 		63C4199317B0FD2000983B57 /* icon_80x80.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = icon_80x80.png; sourceTree = "<group>"; };
@@ -644,6 +645,7 @@
 			knownRegions = (
 				en,
 				Base,
+				"zh-Hans",
 			);
 			mainGroup = 633C9D0D15BD5B98009AD00A;
 			productRefGroup = 633C9D1915BD5B98009AD00A /* Products */;
@@ -860,6 +862,7 @@
 			isa = PBXVariantGroup;
 			children = (
 				63BBB6FD1DDF907600D27D33 /* Base */,
+				63BBB6FE1DE042CB00D27D33 /* zh-Hans */,
 			);
 			name = Localizable.strings;
 			sourceTree = "<group>";

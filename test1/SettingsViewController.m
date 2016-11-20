@@ -79,10 +79,10 @@
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
     if ([[NSUserDefaults standardUserDefaults] boolForKey:@"registrationSuccess"]) {
-        if ([[[[self.tableView cellForRowAtIndexPath: [NSIndexPath indexPathForRow:0 inSection:1]] textLabel] text] isEqualToString:@"Username:"]) {
+        if ([[[[self.tableView cellForRowAtIndexPath: [NSIndexPath indexPathForRow:0 inSection:1]] textLabel] text] isEqualToString:NSLocalizedString(@"Username:",nil)]) {
             [self.tableView cellForRowAtIndexPath: [NSIndexPath indexPathForRow:0 inSection:1]].userInteractionEnabled = NO;
         }
-        if ([[[[self.tableView cellForRowAtIndexPath: [NSIndexPath indexPathForRow:1 inSection:1]] textLabel] text] isEqualToString:@"Password:"]) {
+        if ([[[[self.tableView cellForRowAtIndexPath: [NSIndexPath indexPathForRow:1 inSection:1]] textLabel] text] isEqualToString:NSLocalizedString(@"Password:",nil)]) {
             [self.tableView cellForRowAtIndexPath: [NSIndexPath indexPathForRow:1 inSection:1]].userInteractionEnabled = NO;
         }
     }
@@ -93,10 +93,10 @@
 }
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
     if ([[NSUserDefaults standardUserDefaults] boolForKey:@"registrationSuccess"]) {
-        if ([[[[self.tableView cellForRowAtIndexPath: [NSIndexPath indexPathForRow:0 inSection:1]] textLabel] text] isEqualToString:@"Username:"]) {
+        if ([[[[self.tableView cellForRowAtIndexPath: [NSIndexPath indexPathForRow:0 inSection:1]] textLabel] text] isEqualToString:NSLocalizedString(@"Username:",nil)]) {
             [self.tableView cellForRowAtIndexPath: [NSIndexPath indexPathForRow:0 inSection:1]].userInteractionEnabled = NO;
         }
-        if ([[[[self.tableView cellForRowAtIndexPath: [NSIndexPath indexPathForRow:1 inSection:1]] textLabel] text] isEqualToString:@"Password:"]) {
+        if ([[[[self.tableView cellForRowAtIndexPath: [NSIndexPath indexPathForRow:1 inSection:1]] textLabel] text] isEqualToString:NSLocalizedString(@"Password:",nil)]) {
             [self.tableView cellForRowAtIndexPath: [NSIndexPath indexPathForRow:1 inSection:1]].userInteractionEnabled = NO;
         }
     }
