@@ -151,7 +151,6 @@
 }
 
 
-
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
 //    NSLog(@"kitty %lu", [[hill steps] count]);
     return 1 + [[hill steps] count];

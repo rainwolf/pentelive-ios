@@ -368,15 +368,15 @@
         return;
     }
     if ([specifier.key isEqualToString:@"GameRulesButton"]) {
-        SVWebViewController *webViewController = [[SVWebViewController alloc] initWithAddress: @"https://pente.org/help/playGameRulesMobile.jsp"];
+        SVWebViewController *webViewController = [[SVWebViewController alloc] initWithAddress: @"https://www.pente.org/help/playGameRulesMobile.jsp"];
         [self.navigationController pushViewController:webViewController animated:YES];
     }
     if ([specifier.key isEqualToString:@"penteOrgPreferencesButton"]) {
-        SVWebViewController *webViewController = [[SVWebViewController alloc] initWithAddress: @"https://pente.org/gameServer/myprofile/prefs"];
+        SVWebViewController *webViewController = [[SVWebViewController alloc] initWithAddress: @"https://www.pente.org/gameServer/myprofile/prefs"];
         [self.navigationController pushViewController:webViewController animated:YES];
     }
     if ([specifier.key isEqualToString:@"penteOrgPrivacyPolicyButton"]) {
-        SVWebViewController *webViewController = [[SVWebViewController alloc] initWithAddress: @"https://pente.org/help/helpWindow.jsp?file=privacyPolicy"];
+        SVWebViewController *webViewController = [[SVWebViewController alloc] initWithAddress: @"https://www.pente.org/help/helpWindow.jsp?file=privacyPolicy"];
         [self.navigationController pushViewController:webViewController animated:YES];
     }
     if ([specifier.key isEqualToString:@"changeColorButton"]) {

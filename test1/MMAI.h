@@ -14,11 +14,13 @@
 
 @interface MMAI : NSObject {
     NSMutableArray<NSNumber *> *moves;
+    BOOL useOpeningBook;
     int seat, level, game;
     short int *scores, *table, *obk;
     int *pFk, *pFh, *pTr, *pTm, *pTo, *pTi, *pfhn;
 }
 @property(retain, nonatomic, readwrite) NSMutableArray<NSNumber *> *moves;
+@property(assign, atomic, readwrite, getter=useOpeningBook, setter=setUseOpeningBook:) BOOL useOpeningBook;
 @property(assign, readwrite, atomic, setter=setSeat:, getter=seat) int seat;
 @property(assign, readwrite, atomic) int game;
 @property(assign, readwrite, atomic, setter=setLevel:, getter=level) int level;

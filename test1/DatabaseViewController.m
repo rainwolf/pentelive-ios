@@ -67,6 +67,8 @@
 @synthesize playerStatsBaseString,game;
 @synthesize setupView;
 @synthesize progressView;
+@synthesize aiButton;
+@synthesize aiSetupView;
 
 BoardViewController *boardController;
 
@@ -139,6 +141,18 @@ struct Capture {
     rect.origin.x = self.view.bounds.size.width/2 - rect.size.width /2;
     button.frame = rect;
     [self.view addSubview: button];
+    aiButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    aiButton.backgroundColor = [UIColor clearColor];
+    aiButton.titleLabel.font = [UIFont boldSystemFontOfSize:20];
+    [aiButton setTitleColor:[UIColor blueColor] forState:UIControlStateNormal];
+//    [aiButton setTitle:NSLocalizedString(@"  search  ",nil) forState:UIControlStateNormal];
+    [aiButton setImage:[UIImage imageNamed:@"computer"] forState:UIControlStateNormal];
+    [aiButton addTarget:self action:@selector(askAI:) forControlEvents:UIControlEventTouchUpInside];
+    rect = button.frame;
+    rect.size = [aiButton intrinsicContentSize];
+    rect.origin.x = self.view.bounds.size.width - rect.size.width - 15;
+    aiButton.frame = rect;
+    [self.view addSubview: aiButton];
 
     
     rect = whiteCapturesCountLabel.frame;
@@ -235,7 +249,8 @@ struct Capture {
 
 
 - (void)viewDidAppear:(BOOL)animated {
-    if ([movesList count] < 2) {
+//    if ([movesList count] < 2 && game == nil) {
+    if (game == nil) {
         [self showSetup];
     } else {
         [self setBoardColor];
@@ -282,6 +297,12 @@ struct Capture {
     }
     [board setNeedsDisplay];
     [zoomedBoard setNeedsDisplay];
+    if ([game isEqualToString:@"Pente"] || [game isEqualToString:@"Keryo-Pente"]) {
+        [aiButton setHidden:NO];
+    } else {
+        [aiButton setHidden:YES];
+    }
+
 }
 
 
@@ -314,39 +335,9 @@ struct Capture {
     //    return UIInterfaceOrientationLandscapeLeft | UIInterfaceOrientationLandscapeRight | UIInterfaceOrientationPortrait;
 }
 
-//-(void) startGame: (id) sender {
-//    aiThinking = NO;
-//    [((UIButton *) sender) setTitle:@"restart game" forState:UIControlStateNormal];
-//    if (aiPlayer == nil) {
-////        NSLog(@"kitty");
-//        aiPlayer = [[MMAI alloc] init];
-//    }
-//    [aiPlayer reset];
-////    [aiPlayer setLevel:[setupView.difficultyCell.detailTextLabel.text intValue]];
-////    [aiPlayer setSeat: ([setupView.colorCell.detailTextLabel.text isEqualToString:@"white"]?2:1)];
-////    NSLog(@"kitty %@", setupView.colorCell.detailTextLabel.text);
-//    [aiPlayer addMove:180];
-//    [aiPlayer setGame: ([setupView.gameCell.detailTextLabel.text isEqualToString:@"Pente"]?1:2)];
-//    if (aiPlayer.seat == 1) {
-//        [stone setStoneColor: [UIColor blackColor]];
-//        [zoomedStone setStoneColor: [UIColor blackColor]];
-//        activeGame = YES;
-//        [self replayGame:[[aiPlayer moves] count]];
-//    } else {
-//        [stone setStoneColor: [UIColor whiteColor]];
-//        [zoomedStone setStoneColor: [UIColor whiteColor]];
-//        [self getNewAImove];
-//    }
-//    [stone setNeedsDisplay];
-//    [zoomedStone setNeedsDisplay];
-//    
-//    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-//    [defaults setInteger:[aiPlayer level] forKey:@"MMAILevel"];
-////    [defaults setObject: setupView.colorCell.detailTextLabel.text forKey: @"MMAIColor"];
-//    [defaults setObject: setupView.gameCell.detailTextLabel.text forKey: @"MMAIGame"];
-//}
 
 - (IBAction)goBackOneMoveSwipe:(UISwipeGestureRecognizer *)sender {
+    [board setLastMove: -1];
     if ([movesList count] > 1) {
         [movesList removeLastObject];
         [self replayGame];
@@ -373,6 +364,7 @@ struct Capture {
     
     switch ([recognizer state]) {
         case UIGestureRecognizerStateBegan:
+            [board setLastMove: -1];
             if ([movesList count]%2 == 1) {
                 [stone setStoneColor:[UIColor blackColor]];
                 [zoomedStone setStoneColor:[UIColor blackColor]];
@@ -400,17 +392,6 @@ struct Capture {
 
                 finalMove = 19*i + j;
                 
-//                [aiPlayer addMove: finalMove];
-//                [self replayGame:[[aiPlayer moves] count]];
-//                if (activeGame) {
-//                    activeGame = NO;
-//                    spinner.center = stone.center;
-//                    [spinner setColor: ([[aiPlayer moves] count]%2 == 1) ? [UIColor blackColor]:[UIColor whiteColor]];
-//                    [spinner setHidden:NO];
-//                    [spinner startAnimating];
-//                    aiThinking = YES;
-//                    [NSThread detachNewThreadSelector:@selector(getNewAImove) toTarget:self withObject:nil];
-//                }
                 
 //                [self detectCaptureOfOpponent:(([[stone stoneColor] isEqual: [UIColor blackColor]]) ? 1 : 2) atPosition: finalMove];
                 abstractBoard[i][j] = 1 + ([movesList count]%2);
@@ -532,6 +513,7 @@ struct Capture {
 }
 
 -(void) searchDB: (UIButton *) sender {
+    [board setLastMove: -1];
     [self.progressView startAnimating];
     [self.view addSubview:self.progressView];
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
@@ -808,16 +790,69 @@ struct Capture {
 }
 
 
+-(void) startThinking {
+    [messagePopover dismiss];
+    if (aiPlayer == nil) {
+//        NSLog(@"kitty");
+        aiPlayer = [[MMAI alloc] init];
+    }
+    [aiPlayer reset];
+    [aiPlayer setLevel:[aiSetupView.difficultyCell.detailTextLabel.text intValue]];
+    [aiPlayer setSeat: 1 + ([movesList count] % 2)];
+    [aiPlayer setMoves:movesList];
+    if (game) {
+        if ([game isEqualToString:@"Pente"]) {
+            [aiPlayer setGame:1];
+        } else if ([game isEqualToString:@"Keryo-Pente"]) {
+            [aiPlayer setGame:2];
+        }
+    } else {
+        [aiPlayer setGame: ([setupView.gameCell.detailTextLabel.text isEqualToString:@"Pente"]?1:2)];
+    }
+    [self.progressView startAnimating];
+    [self.view addSubview:self.progressView];
+    [NSThread detachNewThreadSelector:@selector(getNewAImove) toTarget:self withObject:nil];
+}
 
-//-(void) getNewAImove {
-//    [aiPlayer getMove];
-////    NSLog(@"kitty move %i", newMove);
-//    activeGame = YES;
-//    [self replayGame:[[aiPlayer moves] count]];
-//    aiThinking = NO;
-//    [spinner performSelectorOnMainThread:@selector(stopAnimating) withObject:nil waitUntilDone:NO];
-//}
 
+-(void) getNewAImove {
+    finalMove = [aiPlayer getMove];
+    [self performSelectorOnMainThread:@selector(stopThinking) withObject:nil waitUntilDone:NO];
+}
+-(void) stopThinking {
+    int i = finalMove / 19;
+    int j = finalMove % 19;
+    [board setLastMove:finalMove];
+    
+    //                [self detectCaptureOfOpponent:(([[stone stoneColor] isEqual: [UIColor blackColor]]) ? 1 : 2) atPosition: finalMove];
+    abstractBoard[i][j] = 1 + ([movesList count]%2);
+    [movesList addObject:[NSNumber numberWithInt:finalMove]];
+    if (game == nil) {
+        game = setupView.gameCell.detailTextLabel.text;
+    }
+    int color = 2 - ([movesList count] % 2), opponentColor = (color == 2) ? 1 : 2;
+    [self detectCaptureOfOpponent:opponentColor atPosition:finalMove];
+    if ([game isEqualToString:@"Keryo-Pente"]) {
+        [self detectKeryoCaptureOfOpponent:opponentColor atPosition:finalMove];
+    }
+    if (([movesList count]%2) == 1) {
+        [moveStatsString appendString: [NSString stringWithFormat:@"&nbsp; <b>%u.</b> ", ([movesList count] >> 1) + 1]];
+    } else {
+        [moveStatsString appendString: @" - "];
+    }
+    [moveStatsString appendString:[NSString stringWithFormat:@"%c%d", coordinateLetters[finalMove % 19], 19 - (finalMove / 19)]];
+    [playerStats loadHTMLString: [playerStatsBaseString stringByAppendingString:moveStatsString] baseURL:nil];
+    [board setAbstractBoard: abstractBoard];
+    [zoomedBoard setAbstractBoard: abstractBoard];
+    [board setDbOptions:nil];
+    [zoomedBoard setDbOptions:nil];
+    [board setNeedsDisplay];
+    [zoomedBoard setNeedsDisplay];
+    [self updateCaptures];
+
+    [progressView stopAnimating];
+    [progressView removeFromSuperview];
+}
 
 
 
@@ -1446,13 +1481,28 @@ struct Capture {
 
 
 -(void) showSetup {
+    game = nil;
     messagePopover = [PopoverView showPopoverAtPoint: CGPointMake(self.view.bounds.size.width - 20, 0) inView:self.view withTitle: NSLocalizedString(@"search parameters",nil) withContentView: setupView delegate:self];
     [messagePopover layoutSubviews];
-    
+}
+
+-(void) askAI: (UIButton *) sender {
+    if (!aiSetupView) {
+        aiSetupView = [[DBAISetupView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width*2/3, 147)];
+//        aiSetupView.layer.cornerRadius = 5.0f;
+//        aiSetupView.layer.borderWidth = 1.0f;
+        [aiSetupView setScrollEnabled:NO];
+        [aiSetupView setDelegate: aiSetupView];
+        [aiSetupView setDataSource: aiSetupView];
+        [aiSetupView setVc:self];
+    }
+    messagePopover = [PopoverView showPopoverAtPoint: CGPointMake(aiButton.center.x, aiButton.frame.origin.y) inView:self.view withTitle: NSLocalizedString(@"ask the AI",nil) withContentView: aiSetupView delegate:self];
+    [messagePopover layoutSubviews];
 }
 
 - (void)popoverViewDidDismiss:(PopoverView *)popoverView {
-    if ([setupView.gameCell.detailTextLabel.text isEqualToString:@"Gomoku"]) {
+    NSString *str = setupView.gameCell.detailTextLabel.text;
+    if ([str isEqualToString:@"Gomoku"]) {
         [whiteStoneCaptures setHidden:YES];
         [whiteCapturesCountLabel setHidden:YES];
         [blackStoneCaptures setHidden:YES];
@@ -1462,6 +1512,11 @@ struct Capture {
         [whiteCapturesCountLabel setHidden:NO];
         [blackStoneCaptures setHidden:NO];
         [blackCapturesCountLabel setHidden:NO];
+    }
+    if ([str isEqualToString:@"Pente"] || [str isEqualToString:@"Keryo-Pente"]) {
+        [aiButton setHidden:NO];
+    } else {
+        [aiButton setHidden:YES];
     }
 }
 

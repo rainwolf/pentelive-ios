@@ -13,6 +13,7 @@
 #import <GoogleMobileAds/GoogleMobileAds.h>
 #import "PopoverView.h"
 #import "DBSetupView.h"
+#import "DBAISetupView.h"
 #import "ICDMaterialActivityIndicatorView.h"
 @class MMAI;
 
@@ -29,7 +30,9 @@
     BOOL activeGame, showAds;
     MMAI *aiPlayer;
     DBSetupView *setupView;
+    DBAISetupView *aiSetupView;
     ICDMaterialActivityIndicatorView *progressView;
+    UIButton *aiButton;
     
 }
 @property(atomic) BOOL showedAd;
@@ -61,6 +64,9 @@
 
 @property(nonatomic, retain, readwrite) MMAI *aiPlayer;
 @property(nonatomic, retain, readwrite) DBSetupView *setupView;
+@property(nonatomic, retain, readwrite) DBAISetupView *aiSetupView;
 @property (strong,nonatomic) ICDMaterialActivityIndicatorView *progressView;
+@property(nonatomic, retain, readwrite) UIButton *aiButton;
+-(void) startThinking;
 
 @end

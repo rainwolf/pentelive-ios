@@ -347,7 +347,7 @@
         }
         
         NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
-        NSString *url = [NSString stringWithFormat:@"https://pente.org/gameServer/notifications/registerDevice.jsp?name=%@&password=%@&token=%@",username,password,storedTokenString];
+        NSString *url = [NSString stringWithFormat:@"https://www.pente.org/gameServer/notifications/registerDevice.jsp?name=%@&password=%@&token=%@",username,password,storedTokenString];
         [request setURL:[NSURL URLWithString:url]];
         [request setHTTPMethod:@"GET"];
         [request setTimeoutInterval:7.0];
@@ -2099,7 +2099,7 @@
         
         NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
         
-        [request setURL:[NSURL URLWithString:@"https://pente.org/gameServer/mymessages"]];
+        [request setURL:[NSURL URLWithString:@"https://www.pente.org/gameServer/mymessages"]];
         [request setHTTPMethod:@"POST"];
         [request setValue:postLength forHTTPHeaderField:@"Content-Length"];
         [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];

@@ -139,7 +139,7 @@
     [pendingAvatarChecks addObject:username];
     
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-        NSURL *url = [NSURL URLWithString: [NSString stringWithFormat:@"https://pente.org/gameServer/avatar?name=%@", username]];
+        NSURL *url = [NSURL URLWithString: [NSString stringWithFormat:@"https://www.pente.org/gameServer/avatar?name=%@", username]];
         NSURLSessionDownloadTask *downloadPhotoTask = [[NSURLSession sharedSession]
                                                        downloadTaskWithURL:url completionHandler:^(NSURL *location, NSURLResponse *response, NSError *error) {
                                                            UIImage *downloadedImage = [UIImage imageWithData: [NSData dataWithContentsOfURL:location]];

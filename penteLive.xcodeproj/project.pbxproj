@@ -12,6 +12,7 @@
 		63052FBD1D047F9000F78B30 /* lock.png in Resources */ = {isa = PBXBuildFile; fileRef = 63052FB91D047F9000F78B30 /* lock.png */; };
 		63052FBE1D047F9000F78B30 /* lock@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 63052FBA1D047F9000F78B30 /* lock@2x.png */; };
 		63052FC31D056BF300F78B30 /* opngbk.pen in Resources */ = {isa = PBXBuildFile; fileRef = 63052FC01D056BF300F78B30 /* opngbk.pen */; };
+		63178F031DE5FF2B00EA41D7 /* DBAISetupView.m in Sources */ = {isa = PBXBuildFile; fileRef = 63178F021DE5FF2B00EA41D7 /* DBAISetupView.m */; };
 		631B675E169DA7FE0098B3E1 /* Settings.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 631B675D169DA7FE0098B3E1 /* Settings.bundle */; };
 		631BF3191CFAD1C3002AB5C3 /* kothcrown.gif in Resources */ = {isa = PBXBuildFile; fileRef = 631BF3151CFAD1C3002AB5C3 /* kothcrown.gif */; };
 		631BF31A1CFAD1C3002AB5C3 /* bcrown.gif in Resources */ = {isa = PBXBuildFile; fileRef = 631BF3161CFAD1C3002AB5C3 /* bcrown.gif */; };
@@ -149,6 +150,8 @@
 		63052FB91D047F9000F78B30 /* lock.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = lock.png; sourceTree = "<group>"; };
 		63052FBA1D047F9000F78B30 /* lock@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "lock@2x.png"; sourceTree = "<group>"; };
 		63052FC01D056BF300F78B30 /* opngbk.pen */ = {isa = PBXFileReference; lastKnownFileType = file; name = opngbk.pen; path = files/opngbk.pen; sourceTree = "<group>"; };
+		63178F021DE5FF2B00EA41D7 /* DBAISetupView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DBAISetupView.m; sourceTree = "<group>"; };
+		63178F041DE5FF3C00EA41D7 /* DBAISetupView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DBAISetupView.h; sourceTree = "<group>"; };
 		631B675D169DA7FE0098B3E1 /* Settings.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = Settings.bundle; sourceTree = "<group>"; };
 		631BF3151CFAD1C3002AB5C3 /* kothcrown.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; path = kothcrown.gif; sourceTree = "<group>"; };
 		631BF3161CFAD1C3002AB5C3 /* bcrown.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; path = bcrown.gif; sourceTree = "<group>"; };
@@ -257,7 +260,6 @@
 		63B625F91C138E42000AC164 /* splash_750x1334.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = splash_750x1334.png; sourceTree = "<group>"; };
 		63BBB6F51DDDBC3B00D27D33 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = en; path = en.lproj/MainStoryboard.storyboard; sourceTree = "<group>"; };
 		63BBB6FD1DDF907600D27D33 /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = Base; path = Base.lproj/Localizable.strings; sourceTree = "<group>"; };
-		63BBB6FE1DE042CB00D27D33 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		63C4198A17B0E03200983B57 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = penteLive/Images.xcassets; sourceTree = SOURCE_ROOT; };
 		63C4199217B0FD2000983B57 /* icon_58x58.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = icon_58x58.png; sourceTree = "<group>"; };
 		63C4199317B0FD2000983B57 /* icon_80x80.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = icon_80x80.png; sourceTree = "<group>"; };
@@ -426,6 +428,8 @@
 				63EFAEAA1DB570A50029DA41 /* DatabaseViewController.m */,
 				63EFAEAF1DB579DB0029DA41 /* DBSetupView.h */,
 				63EFAEB01DB579DB0029DA41 /* DBSetupView.m */,
+				63178F021DE5FF2B00EA41D7 /* DBAISetupView.m */,
+				63178F041DE5FF3C00EA41D7 /* DBAISetupView.h */,
 				63D299F11D991196005AED78 /* penteLive.entitlements */,
 				6322A5A41D2BB18D0023304F /* KOTHChallengeView.h */,
 				6322A5A21D2BB1830023304F /* KOTHChallengeView.m */,
@@ -645,7 +649,6 @@
 			knownRegions = (
 				en,
 				Base,
-				"zh-Hans",
 			);
 			mainGroup = 633C9D0D15BD5B98009AD00A;
 			productRefGroup = 633C9D1915BD5B98009AD00A /* Products */;
@@ -829,6 +832,7 @@
 				63FEFD751693200C0070E9AA /* SimplePickerInputTableViewCell.m in Sources */,
 				63FEFD78169320AB0070E9AA /* PickerInputTableViewCell.m in Sources */,
 				639F1A201D08AD46008BD3DE /* MMAI.m in Sources */,
+				63178F031DE5FF2B00EA41D7 /* DBAISetupView.m in Sources */,
 				63DFC581169D7332006F9A3C /* PenteNavigationViewController.m in Sources */,
 				639F1A1D1D06B8B1008BD3DE /* MMAIViewController.m in Sources */,
 				63E5B3CE16D3C2D900010B4F /* HTAutocompleteTextField.m in Sources */,
@@ -862,7 +866,6 @@
 			isa = PBXVariantGroup;
 			children = (
 				63BBB6FD1DDF907600D27D33 /* Base */,
-				63BBB6FE1DE042CB00D27D33 /* zh-Hans */,
 			);
 			name = Localizable.strings;
 			sourceTree = "<group>";

@@ -10,11 +10,12 @@ platform :ios, '7.0'
 	pod 'Firebase/Core'
 	pod 'Firebase/AdMob'
 	pod 'TSMessages', :git => 'https://github.com/rainwolf/TSMessages.git'
-	pod 'PopoverView'
+	pod 'PopoverView', :git => 'https://github.com/runway20/PopoverView.git'
 	pod 'SVWebViewController'
 	pod "Color-Picker-for-iOS", "~> 2.0"
 	pod "UIColor+Hex"
 	pod 'ICDMaterialActivityIndicatorView'
 	pod 'RMStore', '~> 0.7'
 	pod 'InAppSettingsKit'
+	pod 'NSHash', '~> 1.1.0'
 end

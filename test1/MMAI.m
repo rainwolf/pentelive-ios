@@ -272,6 +272,20 @@ short int *pAs, *pAt;//*pPbk, *pKbk, *pPNm, *pPOs, *pKNm, *pKOs;
     
 }
 
+-(void) setUseOpeningBook:(BOOL)useOpeningBk {
+    if (useOpeningBk) {
+        obfl = 1;
+    } else {
+        obfl = 0;
+    }
+}
+-(BOOL) useOpeningBook {
+    if (obfl) {
+        return YES;
+    }
+    return NO;
+}
+
 
 -(void) setSeat: (int) st {
     seat = st;

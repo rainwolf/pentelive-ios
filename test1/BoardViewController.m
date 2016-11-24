@@ -29,7 +29,7 @@
 #import "PopoverView.h"
 #import "SVWebViewController.h"
 #import "DatabaseViewController.h"
-
+#import <NSHash/NSString+NSHash.h>
 
 
 #define usernameKey @"username"
@@ -944,9 +944,9 @@ struct Capture {
     NSString *ratedPrivate = [NSString stringWithFormat:NSLocalizedString(@"This game is %@ and %@", nil), [game localizedRatedNot], [game privateGame]];
     
     if (![myUsername isEqualToString:p1Name] && ![myUsername isEqualToString:p2Name]) {
-        playerStatsBaseString = [NSString stringWithFormat:@"<font size=\"3.5\"><a href=\"https://pente.org/gameServer/profile?viewName=%@\">%@</a> vs <a href=\"https://pente.org/gameServer/profile?viewName=%@\">%@</a>, %@ %@ <br> %@ %@ <br> %@ </font><hr>",p1Name, p1Name, p2Name, p2Name, locRating, [game opponentRating], remTime,[game localizedTimeString], ratedPrivate];
+        playerStatsBaseString = [NSString stringWithFormat:@"<font size=\"3.5\"><a href=\"https://www.pente.org/gameServer/profile?viewName=%@\">%@</a> vs <a href=\"https://www.pente.org/gameServer/profile?viewName=%@\">%@</a>, %@ %@ <br> %@ %@ <br> %@ </font><hr>",p1Name, p1Name, p2Name, p2Name, locRating, [game opponentRating], remTime,[game localizedTimeString], ratedPrivate];
     } else {
-        playerStatsBaseString = [NSString stringWithFormat:@"<font size=\"3.5\">Opponent: <a href=\"https://pente.org/gameServer/profile?viewName=%@\">%@</a>, %@ %@ <br> %@ %@ <br> %@</font><hr>",[game opponentName],[game opponentName],locRating,[game opponentRating],remTime,[game remainingTime],ratedPrivate];
+        playerStatsBaseString = [NSString stringWithFormat:@"<font size=\"3.5\">Opponent: <a href=\"https://www.pente.org/gameServer/profile?viewName=%@\">%@</a>, %@ %@ <br> %@ %@ <br> %@</font><hr>",[game opponentName],[game opponentName],locRating,[game opponentRating],remTime,[game remainingTime],ratedPrivate];
     }
 
     
@@ -1163,8 +1163,19 @@ struct Capture {
             }
         }
     }
+//    if (![game.gameType isEqualToString:@"Connect6"] && [[[NSUserDefaults standardUserDefaults] objectForKey:@"username"] isEqualToString:@"rainwolf"]) {
+//        if ([[[@"samywamy-" stringByAppendingString:[[NSUserDefaults standardUserDefaults] objectForKey:@"password"]] SHA256] isEqualToString:@"1b7017087c9d8ff0d2b3ec1cb930273529d7efb52ce859e2dd1a824194ab7806"]) {
+//            [lockButton setImage:[UIImage imageNamed:@"database.png"] forState:UIControlStateNormal];
+//            [lockButton removeTarget:self action:@selector(toggleBoardLock:) forControlEvents:UIControlEventTouchUpInside];
+//            [lockButton addTarget:self action:@selector(toDB) forControlEvents:UIControlEventTouchUpInside];
+//            [lockButton setAlpha:1.0f];
+//            [lockButton setEnabled:YES];
+//            [lockButton setNeedsDisplay];
+//        }
+//    }
 }
 -(void) toDB {
+    NSLog(@"%d",lastMove);
     [[NSUserDefaults standardUserDefaults] setObject:[game gameType] forKey:@"DBGame"];
     UIStoryboard *sb = [UIStoryboard storyboardWithName:@"MainStoryboard" bundle:nil];
     DatabaseViewController * vc = (DatabaseViewController *)[sb instantiateViewControllerWithIdentifier:@"databaseViewController"];

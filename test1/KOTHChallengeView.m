@@ -51,6 +51,11 @@
             [cell.picker selectRow:idx inComponent:0 animated:NO];
             cell.detailTextLabel.text = [timouts objectAtIndex:idx];
             
+            if (![invitee isEqualToString:@""]) {
+                cell.contentView.layer.cornerRadius = 5.0f;
+                cell.contentView.layer.borderWidth = 1.0f;
+            }
+
             timeoutCell = cell;
             
             return cell;
@@ -74,6 +79,9 @@
             [cell.picker selectRow:idx inComponent:0 animated:NO];
             cell.detailTextLabel.text = [restrictions objectAtIndex:idx];
             
+//            cell.contentView.layer.cornerRadius = 5.0f;
+//            cell.contentView.layer.borderWidth = 1.0f;
+
             restrictionCell = cell;
             
             return cell;
@@ -108,6 +116,7 @@
     if (indexPath.section == 1) {
         [[NSUserDefaults standardUserDefaults] setInteger: [timeoutCell.detailTextLabel.text intValue] forKey:@"kothTimeout"];
         [timeoutCell doResign];
+        [restrictionCell doResign];
         
 
         NSString *gameString = self.gameStr;
