@@ -1037,6 +1037,11 @@
         cell.detailTextLabel.attributedText = tmpStr;
         [cell setUserInteractionEnabled:YES];
         [cell setAccessoryType:UITableViewCellAccessoryDisclosureIndicator];
+        if ([koth king]) {
+            cell.backgroundColor = [UIColor colorWithRed: 222.0/256 green:236.0/256 blue:222.0/256 alpha:1];
+        } else {
+            cell.backgroundColor = [UIColor whiteColor];
+        }
     }
     
 //    NSLog(@"kittyfontcell %@",cell.textLabel.font);

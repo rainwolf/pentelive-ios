@@ -7,6 +7,7 @@ source 'https://github.com/CocoaPods/Specs.git'
 
 target "penteLive" do
 platform :ios, '7.0'
+#	use_frameworks!
 	pod 'Firebase/Core'
 	pod 'Firebase/AdMob'
 	pod 'TSMessages', :git => 'https://github.com/rainwolf/TSMessages.git'
@@ -18,4 +19,5 @@ platform :ios, '7.0'
 	pod 'RMStore', '~> 0.7'
 	pod 'InAppSettingsKit'
 	pod 'NSHash', '~> 1.1.0'
+	pod 'CocoaAsyncSocket'
 end

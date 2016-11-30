@@ -297,10 +297,12 @@ struct Capture {
     }
     [board setNeedsDisplay];
     [zoomedBoard setNeedsDisplay];
-    if ([game isEqualToString:@"Pente"] || [game isEqualToString:@"Keryo-Pente"]) {
-        [aiButton setHidden:NO];
-    } else {
-        [aiButton setHidden:YES];
+    if (game) {
+        if ([game isEqualToString:@"Pente"] || [game isEqualToString:@"Keryo-Pente"]) {
+            [aiButton setHidden:NO];
+        } else {
+            [aiButton setHidden:YES];
+        }
     }
 
 }
@@ -1501,7 +1503,10 @@ struct Capture {
 }
 
 - (void)popoverViewDidDismiss:(PopoverView *)popoverView {
-    NSString *str = setupView.gameCell.detailTextLabel.text;
+    NSString *str = game;
+    if (!str) {
+        str = setupView.gameCell.detailTextLabel.text;
+    }
     if ([str isEqualToString:@"Gomoku"]) {
         [whiteStoneCaptures setHidden:YES];
         [whiteCapturesCountLabel setHidden:YES];

@@ -1,22 +1,25 @@
 PODS:
+  - CocoaAsyncSocket (7.5.1):
+    - CocoaAsyncSocket/GCD (= 7.5.1)
+  - CocoaAsyncSocket/GCD (7.5.1)
   - Color-Picker-for-iOS (2.0.2)
-  - Firebase/AdMob (3.9.0):
+  - Firebase/AdMob (3.10.0):
     - Firebase/Core
-    - Google-Mobile-Ads-SDK (= 7.14.0)
-  - Firebase/Core (3.9.0):
-    - FirebaseAnalytics (= 3.5.1)
-    - FirebaseCore (= 3.4.4)
-  - FirebaseAnalytics (3.5.1):
+    - Google-Mobile-Ads-SDK (= 7.15.0)
+  - Firebase/Core (3.10.0):
+    - FirebaseAnalytics (= 3.6.0)
+    - FirebaseCore (= 3.4.5)
+  - FirebaseAnalytics (3.6.0):
     - FirebaseCore (~> 3.4)
     - FirebaseInstanceID (~> 1.0)
     - GoogleInterchangeUtilities (~> 1.2)
     - GoogleSymbolUtilities (~> 1.1)
     - GoogleToolboxForMac/NSData+zlib (~> 2.1)
-  - FirebaseCore (3.4.4):
+  - FirebaseCore (3.4.5):
     - GoogleInterchangeUtilities (~> 1.2)
     - GoogleToolboxForMac/NSData+zlib (~> 2.1)
   - FirebaseInstanceID (1.0.8)
-  - Google-Mobile-Ads-SDK (7.14.0)
+  - Google-Mobile-Ads-SDK (7.15.0)
   - GoogleInterchangeUtilities (1.2.2):
     - GoogleSymbolUtilities (~> 1.1)
   - GoogleSymbolUtilities (1.1.2)
@@ -40,6 +43,7 @@ PODS:
   - UIColor+Hex/UIColor (1.0.1)
 
 DEPENDENCIES:
+  - CocoaAsyncSocket
   - Color-Picker-for-iOS (~> 2.0)
   - Firebase/AdMob
   - Firebase/Core
@@ -67,12 +71,13 @@ CHECKOUT OPTIONS:
     :git: https://github.com/rainwolf/TSMessages.git
 
 SPEC CHECKSUMS:
+  CocoaAsyncSocket: e0a7e93b2ffa411592ff87e58524fbbc9b95b4fa
   Color-Picker-for-iOS: 4980589b3e3cfe7198f227dd50be9adb02d8bc0b
-  Firebase: ff77ffb77b317c3720fef57a60e9335cebf962e6
-  FirebaseAnalytics: 6e58fc9b397664369ac7617fb0ba93fab6ba7b5b
-  FirebaseCore: d0ed25f27b6f9158eccc439f1be6f92e81207e28
+  Firebase: 387f37c7dca894a02708da9ff35ba147040eae9e
+  FirebaseAnalytics: 9c67af0ebeb8d2146c9b4ea2616439affa947b58
+  FirebaseCore: 1e383fdfe37b6b5d6ff88e84204bdee30276af0f
   FirebaseInstanceID: ba1e640935235e5fac39dfa816fe7660e72e1a8a
-  Google-Mobile-Ads-SDK: dbb0211c52ca02f72331b831ce4ccd218cf08748
+  Google-Mobile-Ads-SDK: 75d41dfcf06f7666ab211573d212768b0f766c5d
   GoogleInterchangeUtilities: d5bc4d88d5b661ab72f9d70c58d02ca8c27ad1f7
   GoogleSymbolUtilities: 631ee17048aa5e9ab133470d768ea997a5ef9b96
   GoogleToolboxForMac: 2b2596cbb7186865e98cadf2b1e262d851c2b168
@@ -86,6 +91,6 @@ SPEC CHECKSUMS:
   TSMessages: 6e403b790139636c15ab4f51946537095e03e79c
   UIColor+Hex: 9fee91bb8e19f17dd40a79ae1e98949a6a84489d
 
-PODFILE CHECKSUM: f176c286e630a820936ec29f16e4ee37d4d6b707
+PODFILE CHECKSUM: 289866f5c6c8186038e491e6b73840cfaa2b7bbc
 
 COCOAPODS: 1.0.1

@@ -141,7 +141,7 @@
 		63FEFD7216931A970070E9AA /* StringInputTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 63FEFD7016931A960070E9AA /* StringInputTableViewCell.m */; };
 		63FEFD751693200C0070E9AA /* SimplePickerInputTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 63FEFD741693200B0070E9AA /* SimplePickerInputTableViewCell.m */; };
 		63FEFD78169320AB0070E9AA /* PickerInputTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 63FEFD77169320AA0070E9AA /* PickerInputTableViewCell.m */; };
-		67680830FF63A8CB2F206687 /* libPods-penteLive.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 75A3EEE797C12FF6AF1498C4 /* libPods-penteLive.a */; };
+		B744649A8C1C5A8B20080766 /* libPods-penteLive.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 793293EC19FDA58453A89F1B /* libPods-penteLive.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -316,7 +316,7 @@
 		63FEFD76169320AA0070E9AA /* PickerInputTableViewCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PickerInputTableViewCell.h; sourceTree = "<group>"; };
 		63FEFD77169320AA0070E9AA /* PickerInputTableViewCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PickerInputTableViewCell.m; sourceTree = "<group>"; };
 		6FFDDFE4BFE3714BE2BCC000 /* Pods-penteLive.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-penteLive.debug.xcconfig"; path = "Pods/Target Support Files/Pods-penteLive/Pods-penteLive.debug.xcconfig"; sourceTree = "<group>"; };
-		75A3EEE797C12FF6AF1498C4 /* libPods-penteLive.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-penteLive.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		793293EC19FDA58453A89F1B /* libPods-penteLive.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-penteLive.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		EC2523E9488B160980129A1F /* Pods-penteLive.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-penteLive.release.xcconfig"; path = "Pods/Target Support Files/Pods-penteLive/Pods-penteLive.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -342,7 +342,7 @@
 				633C9D1D15BD5B98009AD00A /* UIKit.framework in Frameworks */,
 				633C9D1F15BD5B98009AD00A /* Foundation.framework in Frameworks */,
 				633C9D2115BD5B98009AD00A /* CoreGraphics.framework in Frameworks */,
-				67680830FF63A8CB2F206687 /* libPods-penteLive.a in Frameworks */,
+				B744649A8C1C5A8B20080766 /* libPods-penteLive.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -413,7 +413,7 @@
 				633C9D1E15BD5B98009AD00A /* Foundation.framework */,
 				633C9D2015BD5B98009AD00A /* CoreGraphics.framework */,
 				633C9D3A15BD5B98009AD00A /* SenTestingKit.framework */,
-				75A3EEE797C12FF6AF1498C4 /* libPods-penteLive.a */,
+				793293EC19FDA58453A89F1B /* libPods-penteLive.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
