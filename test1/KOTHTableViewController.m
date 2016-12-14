@@ -58,6 +58,66 @@
 @synthesize name, rating, lastGame, numberOfGames;
 @synthesize canBeChallenged;
 @synthesize crown, color;
+-(NSAttributedString *) attributedName {
+    NSMutableAttributedString *txtStr;
+    if ([name isEqualToString:@"Anyone"]) {
+        txtStr = [[NSMutableAttributedString alloc] initWithString:NSLocalizedString(@"Anyone", nil)];
+    } else {
+        txtStr = [[NSMutableAttributedString alloc] initWithString:name];
+    }
+    if (color != 0) {
+        [txtStr addAttribute:NSFontAttributeName value: [UIFont fontWithName:@"HelveticaNeue-Bold" size:16] range:NSMakeRange(0, [txtStr length])];
+    }
+    [txtStr addAttribute:NSForegroundColorAttributeName value:UIColorFromRGB(color) range:NSMakeRange(0, [txtStr length])];
+    [txtStr appendAttributedString:[[NSMutableAttributedString alloc] initWithString:@" "]];
+    if (crown > 0) {
+        NSTextAttachment *textAttachment = [[NSTextAttachment alloc] init];
+        switch (crown) {
+            case 1:
+                textAttachment.image = [UIImage imageNamed:@"crown.gif"];
+                break;
+            case 2:
+                textAttachment.image = [UIImage imageNamed:@"scrown.gif"];
+                break;
+            case 3:
+                textAttachment.image = [UIImage imageNamed:@"bcrown.gif"];
+                break;
+            case 4:
+                textAttachment.image = [UIImage imageNamed:@"kothcrown.gif"];
+                break;
+                
+            default:
+                break;
+        }
+        NSAttributedString *crownStr = [NSAttributedString attributedStringWithAttachment:textAttachment];
+        [txtStr appendAttributedString:crownStr];
+    }
+    return txtStr;
+}
+
+-(NSAttributedString *) ratingString {
+    int ratingInt = [rating intValue];
+    UIColor *ratingColor;
+    if (ratingInt >= 1900) {
+        ratingColor = [UIColor redColor];
+    } else if (ratingInt >= 1700) {
+        ratingColor = [UIColor colorWithRed:0.98 green:0.96 blue:0.03 alpha:1.0];
+    } else if (ratingInt >= 1400) {
+        ratingColor = [UIColor blueColor];
+    } else if (ratingInt >= 1000) {
+        ratingColor = [UIColor colorWithRed:30.0/255 green: 130.0/255 blue:76.0/255 alpha:1.0];
+    } else {
+        ratingColor = [UIColor grayColor];
+    }
+    NSMutableAttributedString *txtStr = [[NSMutableAttributedString alloc] initWithString:@"\u25A0 "];
+    [txtStr addAttribute:NSForegroundColorAttributeName value: ratingColor range: NSMakeRange(0, 1)];
+    if ([rating length]<4) {
+        [txtStr appendAttributedString:[[NSAttributedString alloc] initWithString:@"  "]];
+    }
+    [txtStr addAttribute:NSFontAttributeName value:[UIFont fontWithName:@"HelveticaNeue-Bold" size:12.f] range: NSMakeRange(0, 1)];
+    [txtStr appendAttributedString:[[NSAttributedString alloc] initWithString:rating]];
+    return txtStr;
+}
 @end
 @interface Hill : NSObject {
     NSMutableArray<NSMutableArray<Player *> *> *steps;
@@ -213,50 +273,8 @@
     } else {
         Player *playr = [[[hill steps] objectAtIndex: indexPath.section - 1] objectAtIndex:indexPath.row];
         [cell setAccessoryType:UITableViewCellAccessoryDisclosureIndicator];
-        NSMutableString *txtStr = [[NSMutableString alloc] initWithString: [playr name]];
-        int crown = [playr crown];
-        NSTextAttachment *textAttachment = [[NSTextAttachment alloc] init];
-        switch (crown) {
-            case 1:
-                textAttachment.image = [UIImage imageNamed:@"crown.gif"];
-                break;
-            case 2:
-                textAttachment.image = [UIImage imageNamed:@"scrown.gif"];
-                break;
-            case 3:
-                textAttachment.image = [UIImage imageNamed:@"bcrown.gif"];
-                break;
-            case 4:
-                textAttachment.image = [UIImage imageNamed:@"kothcrown.gif"];
-                break;
-                
-            default:
-                break;
-        }
-        NSAttributedString *crownStr = [NSAttributedString attributedStringWithAttachment:textAttachment];
-        NSMutableString *ratingStr = [NSMutableString stringWithString:@"\u25A0 "];
-        if ([[playr rating] length] == 3) {
-            [ratingStr appendString:@"  "];
-        }
-        [ratingStr appendString: [playr rating]];
-        NSMutableAttributedString *tmpStr = [[NSMutableAttributedString alloc] initWithString: ratingStr];
-        [self addColorOfRating: [playr rating] toString: tmpStr];
-        ((PlayerTableViewCell *) cell).ratingLabel.attributedText = tmpStr;
-        
-        tmpStr = [[NSMutableAttributedString alloc] initWithString: txtStr];
-        [tmpStr addAttribute:NSForegroundColorAttributeName value:UIColorFromRGB([playr color]) range:NSMakeRange(0, [[playr name] length])];
-        [tmpStr addAttribute:NSFontAttributeName value:[UIFont fontWithName:@"HelveticaNeue" size:16.f] range:NSMakeRange(0, [tmpStr length])];
-        if ([playr color] != 0) {
-            [tmpStr addAttribute:NSFontAttributeName value: [UIFont fontWithName:@"HelveticaNeue-Bold" size:16] range:NSMakeRange(0, [[playr name] length])];
-        }
-        [tmpStr appendAttributedString:[[NSMutableAttributedString alloc] initWithString:@" "]];
-        [tmpStr appendAttributedString:crownStr];
-        cell.textLabel.attributedText = tmpStr;
-//        if ([[[[player invitations] objectAtIndex:indexPath.row] ratedNot] isEqualToString:@"Rated"]) {
-//            txtStr = (NSMutableString *) [NSString stringWithFormat:@"%@ (%@) - %@", [[[player invitations] objectAtIndex:indexPath.row] gameType], [[[player invitations] objectAtIndex:indexPath.row] ratedNot], [[[player invitations] objectAtIndex:indexPath.row] remainingTime]];
-//        } else {
-//            txtStr = (NSMutableString *) [NSString stringWithFormat:@"%@ (%@, %@) - %@", [[[player invitations] objectAtIndex:indexPath.row] gameType], [[[player invitations] objectAtIndex:indexPath.row] ratedNot], [[[[player invitations] objectAtIndex:indexPath.row] myColor] substringWithRange: NSMakeRange(0,5)], [[[player invitations] objectAtIndex:indexPath.row] remainingTime]];
-//        }
+        ((PlayerTableViewCell *) cell).ratingLabel.attributedText = [playr ratingString];
+        cell.textLabel.attributedText = [playr attributedName];
         cell.detailTextLabel.text = [NSString stringWithFormat: NSLocalizedString(@"Last game played on %@",nil), [playr lastGame]];
         [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
         if ([playr canBeChallenged]) {
@@ -372,7 +390,7 @@
     NSString *url;
     NSURLResponse *response;
     NSError *error;
-    NSData *responseData;
+//    NSData *responseData;
     
     // connect to the game server
     url =  @"https://www.pente.org/gameServer/koth";
@@ -463,7 +481,7 @@
 //                    NSLog(@"result: %@",dashboardString);
         
         NSMutableArray *sectionItems;
-        NSMutableArray *indexSet;
+//        NSMutableArray *indexSet;
         int dashIDX = 0;
 
         hill = [[Hill alloc] init];

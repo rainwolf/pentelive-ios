@@ -33,6 +33,9 @@ alpha:1.0]
 @property(nonatomic,retain) NSString *privateGame;
 @property(nonatomic,retain) UIColor *nameColor;
 @property(atomic, assign) int crown;
+
+-(NSAttributedString *) attributedName;
+-(NSAttributedString *) ratingString;
 @end
 
 @interface Message : NSObject {
@@ -47,6 +50,7 @@ alpha:1.0]
 @property(nonatomic,retain) NSString *unread;
 @property(nonatomic,retain) UIColor *nameColor;
 @property(atomic, assign) int crown;
+-(NSAttributedString *) attributedName;
 @end
 
 @interface RatingStat : NSObject {

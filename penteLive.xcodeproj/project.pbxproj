@@ -21,6 +21,7 @@
 		6322A5A31D2BB1830023304F /* KOTHChallengeView.m in Sources */ = {isa = PBXBuildFile; fileRef = 6322A5A21D2BB1830023304F /* KOTHChallengeView.m */; };
 		6322ECFA1744C93D00793511 /* preferencesBG@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 6322ECF81744C93D00793511 /* preferencesBG@2x.png */; };
 		6322ECFB1744C93D00793511 /* preferencesBG.png in Resources */ = {isa = PBXBuildFile; fileRef = 6322ECF91744C93D00793511 /* preferencesBG.png */; };
+		63288F4D1DF198BF006F73EF /* HelperClasses.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63288F4C1DF198BF006F73EF /* HelperClasses.swift */; };
 		6333AF871DC8BB030023BAAF /* WhosOnlineView.m in Sources */ = {isa = PBXBuildFile; fileRef = 6333AF861DC8BB030023BAAF /* WhosOnlineView.m */; };
 		6333AF8B1DC8C9580023BAAF /* onlineUsers.png in Resources */ = {isa = PBXBuildFile; fileRef = 6333AF891DC8C9580023BAAF /* onlineUsers.png */; };
 		6333AF8C1DC8C9580023BAAF /* onlineUsers@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 6333AF8A1DC8C9580023BAAF /* onlineUsers@2x.png */; };
@@ -39,6 +40,9 @@
 		633C9D3015BD5B98009AD00A /* MainStoryboard.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 633C9D2E15BD5B98009AD00A /* MainStoryboard.storyboard */; };
 		634832CB172FEB9300044FBC /* trash.png in Resources */ = {isa = PBXBuildFile; fileRef = 634832C9172FEB9300044FBC /* trash.png */; };
 		634832CC172FEB9300044FBC /* trash@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 634832CA172FEB9300044FBC /* trash@2x.png */; };
+		6353F6721DF497C50094BB3B /* TableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6353F6711DF497C50094BB3B /* TableViewController.swift */; };
+		6353F6741DF569EB0094BB3B /* SeatsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6353F6731DF569EB0094BB3B /* SeatsView.swift */; };
+		6353F6761DF5C2EB0094BB3B /* LiveBoard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6353F6751DF5C2EA0094BB3B /* LiveBoard.swift */; };
 		635ADAD3167880D9001041E3 /* BoardViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 635ADAD2167880D9001041E3 /* BoardViewController.m */; };
 		635ADAD9167882EC001041E3 /* GamesTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 635ADAD8167882EC001041E3 /* GamesTableViewController.m */; };
 		635B13CB189A540000B07A9B /* CoreTelephony.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 635B13CA189A540000B07A9B /* CoreTelephony.framework */; };
@@ -54,10 +58,16 @@
 		6391953919D91B71007FBEE7 /* EventKitUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6391953819D91B71007FBEE7 /* EventKitUI.framework */; };
 		6392B08219C354CB00916D41 /* Icon-76.png in Resources */ = {isa = PBXBuildFile; fileRef = 6392B08019C354CB00916D41 /* Icon-76.png */; };
 		6392B08319C354CB00916D41 /* Icon-76@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 6392B08119C354CB00916D41 /* Icon-76@2x.png */; };
+		63933F321DFAF5D3008FD0D6 /* TablePlayers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63933F311DFAF5D3008FD0D6 /* TablePlayers.swift */; };
+		63933F3A1DFB3AA1008FD0D6 /* invite.caf in Resources */ = {isa = PBXBuildFile; fileRef = 63933F381DFB3AA1008FD0D6 /* invite.caf */; };
+		63933F3B1DFB3AA1008FD0D6 /* newplayer.caf in Resources */ = {isa = PBXBuildFile; fileRef = 63933F391DFB3AA1008FD0D6 /* newplayer.caf */; };
 		6396A3781D367105004BC68D /* moreSettings.png in Resources */ = {isa = PBXBuildFile; fileRef = 6396A3761D367105004BC68D /* moreSettings.png */; };
 		6396A3791D367105004BC68D /* moreSettings@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 6396A3771D367105004BC68D /* moreSettings@2x.png */; };
 		6396A37C1D38DE81004BC68D /* ChangeColorViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 6396A37B1D38DE81004BC68D /* ChangeColorViewController.m */; };
 		6397574A1667A4F100008555 /* BoardView.m in Sources */ = {isa = PBXBuildFile; fileRef = 6362A55816677BEC00204445 /* BoardView.m */; };
+		639A4BAA1DEF6F92000894F5 /* LobbyViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 639A4BA91DEF6F92000894F5 /* LobbyViewController.swift */; };
+		639A4BAE1DF038A7000894F5 /* RoomViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 639A4BAD1DF038A7000894F5 /* RoomViewController.swift */; };
+		639A4BB01DF04902000894F5 /* PenteLiveSocket.swift in Sources */ = {isa = PBXBuildFile; fileRef = 639A4BAF1DF04902000894F5 /* PenteLiveSocket.swift */; };
 		639A9CEF1D00C2FF0065B2FA /* InviteAIViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 639A9CEE1D00C2FF0065B2FA /* InviteAIViewController.m */; };
 		639A9CF51D0168910065B2FA /* person.png in Resources */ = {isa = PBXBuildFile; fileRef = 639A9CF11D0168910065B2FA /* person.png */; };
 		639A9CF61D0168910065B2FA /* person@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 639A9CF21D0168910065B2FA /* person@2x.png */; };
@@ -75,6 +85,10 @@
 		63A196C316FB936800986CDF /* openEnvelope.png in Resources */ = {isa = PBXBuildFile; fileRef = 63A196BF16FB936800986CDF /* openEnvelope.png */; };
 		63A196C416FB936800986CDF /* openEnvelope@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 63A196C016FB936800986CDF /* openEnvelope@2x.png */; };
 		63A56016167BB86D00AB91D2 /* PentePlayer.m in Sources */ = {isa = PBXBuildFile; fileRef = 63A56015167BB86D00AB91D2 /* PentePlayer.m */; };
+		63A680221DF9568B005E1B65 /* gamesettings.png in Resources */ = {isa = PBXBuildFile; fileRef = 63A680201DF9568B005E1B65 /* gamesettings.png */; };
+		63A680231DF9568B005E1B65 /* gamesettings@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 63A680211DF9568B005E1B65 /* gamesettings@2x.png */; };
+		63A680261DF9B330005E1B65 /* lightning.png in Resources */ = {isa = PBXBuildFile; fileRef = 63A680241DF9B330005E1B65 /* lightning.png */; };
+		63A680271DF9B330005E1B65 /* lightning@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 63A680251DF9B330005E1B65 /* lightning@2x.png */; };
 		63A6C22116C5142200718708 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 63A6C22016C5142200718708 /* QuartzCore.framework */; };
 		63A6C22F16C5B2A800718708 /* blueGradientBackground.png in Resources */ = {isa = PBXBuildFile; fileRef = 63A6C22E16C5B2A800718708 /* blueGradientBackground.png */; };
 		63A6C23116C5C4CB00718708 /* UINavigationBarBlackOpaqueButton.png in Resources */ = {isa = PBXBuildFile; fileRef = 63A6C23016C5C4CB00718708 /* UINavigationBarBlackOpaqueButton.png */; };
@@ -112,6 +126,7 @@
 		63DFC581169D7332006F9A3C /* PenteNavigationViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 63DFC580169D7332006F9A3C /* PenteNavigationViewController.m */; };
 		63E5B3CD16D3C2D900010B4F /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = 63E5B3CA16D3C2D900010B4F /* .gitignore */; };
 		63E5B3CE16D3C2D900010B4F /* HTAutocompleteTextField.m in Sources */ = {isa = PBXBuildFile; fileRef = 63E5B3CC16D3C2D900010B4F /* HTAutocompleteTextField.m */; };
+		63E69B0F1DF73FDE00BD21B7 /* TableSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63E69B0E1DF73FDE00BD21B7 /* TableSetupView.swift */; };
 		63EACA5D1712EA1200E3902B /* acceptButton.png in Resources */ = {isa = PBXBuildFile; fileRef = 63EACA5B1712EA1200E3902B /* acceptButton.png */; };
 		63EACA5E1712EA1200E3902B /* acceptButton@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 63EACA5C1712EA1200E3902B /* acceptButton@2x.png */; };
 		63EFAEAB1DB570A50029DA41 /* DatabaseViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 63EFAEAA1DB570A50029DA41 /* DatabaseViewController.m */; };
@@ -161,6 +176,7 @@
 		6322A5A41D2BB18D0023304F /* KOTHChallengeView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KOTHChallengeView.h; sourceTree = "<group>"; };
 		6322ECF81744C93D00793511 /* preferencesBG@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "preferencesBG@2x.png"; sourceTree = "<group>"; };
 		6322ECF91744C93D00793511 /* preferencesBG.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = preferencesBG.png; sourceTree = "<group>"; };
+		63288F4C1DF198BF006F73EF /* HelperClasses.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HelperClasses.swift; sourceTree = "<group>"; };
 		6333AF861DC8BB030023BAAF /* WhosOnlineView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WhosOnlineView.m; sourceTree = "<group>"; };
 		6333AF881DC8BB180023BAAF /* WhosOnlineView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WhosOnlineView.h; sourceTree = "<group>"; };
 		6333AF891DC8C9580023BAAF /* onlineUsers.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = onlineUsers.png; sourceTree = "<group>"; };
@@ -184,6 +200,9 @@
 		633C9D3A15BD5B98009AD00A /* SenTestingKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SenTestingKit.framework; path = Library/Frameworks/SenTestingKit.framework; sourceTree = DEVELOPER_DIR; };
 		634832C9172FEB9300044FBC /* trash.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = trash.png; sourceTree = "<group>"; };
 		634832CA172FEB9300044FBC /* trash@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "trash@2x.png"; sourceTree = "<group>"; };
+		6353F6711DF497C50094BB3B /* TableViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TableViewController.swift; sourceTree = "<group>"; };
+		6353F6731DF569EB0094BB3B /* SeatsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SeatsView.swift; sourceTree = "<group>"; };
+		6353F6751DF5C2EA0094BB3B /* LiveBoard.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LiveBoard.swift; sourceTree = "<group>"; };
 		635ADAD1167880D9001041E3 /* BoardViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BoardViewController.h; sourceTree = "<group>"; };
 		635ADAD2167880D9001041E3 /* BoardViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BoardViewController.m; sourceTree = "<group>"; };
 		635ADAD7167882EC001041E3 /* GamesTableViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GamesTableViewController.h; sourceTree = "<group>"; };
@@ -207,10 +226,20 @@
 		6391953819D91B71007FBEE7 /* EventKitUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = EventKitUI.framework; path = System/Library/Frameworks/EventKitUI.framework; sourceTree = SDKROOT; };
 		6392B08019C354CB00916D41 /* Icon-76.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Icon-76.png"; sourceTree = "<group>"; };
 		6392B08119C354CB00916D41 /* Icon-76@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Icon-76@2x.png"; sourceTree = "<group>"; };
+		63933F311DFAF5D3008FD0D6 /* TablePlayers.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TablePlayers.swift; sourceTree = "<group>"; };
+		63933F331DFB0FC0008FD0D6 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
+		63933F361DFB1583008FD0D6 /* zh-Hans */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Localizable.strings"; sourceTree = "<group>"; };
+		63933F371DFB1583008FD0D6 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/InfoPlist.strings"; sourceTree = "<group>"; };
+		63933F381DFB3AA1008FD0D6 /* invite.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = invite.caf; sourceTree = SOURCE_ROOT; };
+		63933F391DFB3AA1008FD0D6 /* newplayer.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = newplayer.caf; sourceTree = SOURCE_ROOT; };
 		6396A3761D367105004BC68D /* moreSettings.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = moreSettings.png; sourceTree = "<group>"; };
 		6396A3771D367105004BC68D /* moreSettings@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "moreSettings@2x.png"; sourceTree = "<group>"; };
 		6396A37A1D38DE81004BC68D /* ChangeColorViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ChangeColorViewController.h; sourceTree = "<group>"; };
 		6396A37B1D38DE81004BC68D /* ChangeColorViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ChangeColorViewController.m; sourceTree = "<group>"; };
+		639A4BA81DEF6F92000894F5 /* penteLive-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "penteLive-Bridging-Header.h"; sourceTree = "<group>"; };
+		639A4BA91DEF6F92000894F5 /* LobbyViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LobbyViewController.swift; sourceTree = "<group>"; };
+		639A4BAD1DF038A7000894F5 /* RoomViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RoomViewController.swift; sourceTree = "<group>"; };
+		639A4BAF1DF04902000894F5 /* PenteLiveSocket.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PenteLiveSocket.swift; sourceTree = "<group>"; };
 		639A9CEE1D00C2FF0065B2FA /* InviteAIViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = InviteAIViewController.m; sourceTree = "<group>"; };
 		639A9CF01D00C3060065B2FA /* InviteAIViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = InviteAIViewController.h; sourceTree = "<group>"; };
 		639A9CF11D0168910065B2FA /* person.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = person.png; sourceTree = "<group>"; };
@@ -233,6 +262,10 @@
 		63A196C016FB936800986CDF /* openEnvelope@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "openEnvelope@2x.png"; sourceTree = "<group>"; };
 		63A56014167BB86D00AB91D2 /* PentePlayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PentePlayer.h; sourceTree = "<group>"; };
 		63A56015167BB86D00AB91D2 /* PentePlayer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PentePlayer.m; sourceTree = "<group>"; };
+		63A680201DF9568B005E1B65 /* gamesettings.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = gamesettings.png; sourceTree = "<group>"; };
+		63A680211DF9568B005E1B65 /* gamesettings@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gamesettings@2x.png"; sourceTree = "<group>"; };
+		63A680241DF9B330005E1B65 /* lightning.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = lightning.png; sourceTree = "<group>"; };
+		63A680251DF9B330005E1B65 /* lightning@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "lightning@2x.png"; sourceTree = "<group>"; };
 		63A6C22016C5142200718708 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		63A6C22E16C5B2A800718708 /* blueGradientBackground.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = blueGradientBackground.png; sourceTree = "<group>"; };
 		63A6C23016C5C4CB00718708 /* UINavigationBarBlackOpaqueButton.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = UINavigationBarBlackOpaqueButton.png; sourceTree = "<group>"; };
@@ -276,6 +309,7 @@
 		63E5B3CA16D3C2D900010B4F /* .gitignore */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 		63E5B3CB16D3C2D900010B4F /* HTAutocompleteTextField.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HTAutocompleteTextField.h; sourceTree = "<group>"; };
 		63E5B3CC16D3C2D900010B4F /* HTAutocompleteTextField.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HTAutocompleteTextField.m; sourceTree = "<group>"; };
+		63E69B0E1DF73FDE00BD21B7 /* TableSetupView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TableSetupView.swift; sourceTree = "<group>"; };
 		63EACA5B1712EA1200E3902B /* acceptButton.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = acceptButton.png; sourceTree = "<group>"; };
 		63EACA5C1712EA1200E3902B /* acceptButton@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "acceptButton@2x.png"; sourceTree = "<group>"; };
 		63EFAEA91DB570A50029DA41 /* DatabaseViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DatabaseViewController.h; sourceTree = "<group>"; };
@@ -439,12 +473,7 @@
 				639F1A1C1D06B8B1008BD3DE /* MMAIViewController.h */,
 				639F1A1E1D08AD2D008BD3DE /* MMAI.h */,
 				639F1A1F1D08AD46008BD3DE /* MMAI.m */,
-				63FEFC551689BFB30070E9AA /* UIPullToReloadHeaderView.h */,
-				63FEFC561689BFB30070E9AA /* UIPullToReloadHeaderView.m */,
-				63FEFC571689BFB30070E9AA /* UIPullToReloadTableViewController.h */,
-				63FEFC581689BFB30070E9AA /* UIPullToReloadTableViewController.m */,
-				63FEFD6F16931A950070E9AA /* StringInputTableViewCell.h */,
-				63FEFD7016931A960070E9AA /* StringInputTableViewCell.m */,
+				639A4BAC1DF02825000894F5 /* Helper Classes */,
 				635ADAD1167880D9001041E3 /* BoardViewController.h */,
 				635ADAD2167880D9001041E3 /* BoardViewController.m */,
 				63DFC57F169D7332006F9A3C /* PenteNavigationViewController.h */,
@@ -453,18 +482,15 @@
 				63FEFD631691CA9D0070E9AA /* InvitationsViewController.h */,
 				639A9CEE1D00C2FF0065B2FA /* InviteAIViewController.m */,
 				639A9CF01D00C3060065B2FA /* InviteAIViewController.h */,
-				63FEFD731693200A0070E9AA /* SimplePickerInputTableViewCell.h */,
-				63FEFD741693200B0070E9AA /* SimplePickerInputTableViewCell.m */,
 				633C9D2815BD5B98009AD00A /* main.m */,
 				633C9D2B15BD5B98009AD00A /* AppDelegate.h */,
 				633C9D2C15BD5B98009AD00A /* AppDelegate.m */,
 				637EA04016F645EF00DD499A /* MessagesViewController.h */,
 				637EA04116F645EF00DD499A /* MessagesViewController.m */,
 				633C9D2E15BD5B98009AD00A /* MainStoryboard.storyboard */,
-				63FEFD76169320AA0070E9AA /* PickerInputTableViewCell.h */,
-				63FEFD77169320AA0070E9AA /* PickerInputTableViewCell.m */,
 				6362A55716677BEC00204445 /* BoardView.h */,
 				6362A55816677BEC00204445 /* BoardView.m */,
+				639A4BAB1DF027EC000894F5 /* Live Game */,
 				633C9D2315BD5B98009AD00A /* Supporting Files */,
 				63FEFD52168DFDA20070E9AA /* SettingsViewController.h */,
 				63FEFD53168DFDA20070E9AA /* SettingsViewController.m */,
@@ -490,6 +516,8 @@
 		633C9D2315BD5B98009AD00A /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				63933F381DFB3AA1008FD0D6 /* invite.caf */,
+				63933F391DFB3AA1008FD0D6 /* newplayer.caf */,
 				63052FBF1D056BE200F78B30 /* files */,
 				63E5B3C916D3C2D900010B4F /* HTAutocompleteTextField */,
 				63FEFC86168CAAC50070E9AA /* images */,
@@ -498,6 +526,40 @@
 				633C9D2A15BD5B98009AD00A /* penteLive-Prefix.pch */,
 			);
 			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		639A4BAB1DF027EC000894F5 /* Live Game */ = {
+			isa = PBXGroup;
+			children = (
+				639A4BA91DEF6F92000894F5 /* LobbyViewController.swift */,
+				639A4BA81DEF6F92000894F5 /* penteLive-Bridging-Header.h */,
+				639A4BAD1DF038A7000894F5 /* RoomViewController.swift */,
+				639A4BAF1DF04902000894F5 /* PenteLiveSocket.swift */,
+				63288F4C1DF198BF006F73EF /* HelperClasses.swift */,
+				6353F6711DF497C50094BB3B /* TableViewController.swift */,
+				6353F6731DF569EB0094BB3B /* SeatsView.swift */,
+				6353F6751DF5C2EA0094BB3B /* LiveBoard.swift */,
+				63E69B0E1DF73FDE00BD21B7 /* TableSetupView.swift */,
+				63933F311DFAF5D3008FD0D6 /* TablePlayers.swift */,
+			);
+			name = "Live Game";
+			sourceTree = "<group>";
+		};
+		639A4BAC1DF02825000894F5 /* Helper Classes */ = {
+			isa = PBXGroup;
+			children = (
+				63FEFC551689BFB30070E9AA /* UIPullToReloadHeaderView.h */,
+				63FEFC561689BFB30070E9AA /* UIPullToReloadHeaderView.m */,
+				63FEFC571689BFB30070E9AA /* UIPullToReloadTableViewController.h */,
+				63FEFC581689BFB30070E9AA /* UIPullToReloadTableViewController.m */,
+				63FEFD6F16931A950070E9AA /* StringInputTableViewCell.h */,
+				63FEFD7016931A960070E9AA /* StringInputTableViewCell.m */,
+				63FEFD731693200A0070E9AA /* SimplePickerInputTableViewCell.h */,
+				63FEFD741693200B0070E9AA /* SimplePickerInputTableViewCell.m */,
+				63FEFD76169320AA0070E9AA /* PickerInputTableViewCell.h */,
+				63FEFD77169320AA0070E9AA /* PickerInputTableViewCell.m */,
+			);
+			name = "Helper Classes";
 			sourceTree = "<group>";
 		};
 		63E5B3C916D3C2D900010B4F /* HTAutocompleteTextField */ = {
@@ -513,6 +575,10 @@
 		63FEFC86168CAAC50070E9AA /* images */ = {
 			isa = PBXGroup;
 			children = (
+				63A680241DF9B330005E1B65 /* lightning.png */,
+				63A680251DF9B330005E1B65 /* lightning@2x.png */,
+				63A680201DF9568B005E1B65 /* gamesettings.png */,
+				63A680211DF9568B005E1B65 /* gamesettings@2x.png */,
 				6333AF891DC8C9580023BAAF /* onlineUsers.png */,
 				6333AF8A1DC8C9580023BAAF /* onlineUsers@2x.png */,
 				63EFAEB21DB647C60029DA41 /* database.png */,
@@ -622,11 +688,12 @@
 		633C9D0F15BD5B98009AD00A /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0800;
+				LastUpgradeCheck = 0810;
 				ORGANIZATIONNAME = Triade;
 				TargetAttributes = {
 					633C9D1715BD5B98009AD00A = {
 						DevelopmentTeam = CT6S5R75J5;
+						LastSwiftMigration = 0810;
 						ProvisioningStyle = Manual;
 						SystemCapabilities = {
 							com.apple.InAppPurchase = {
@@ -649,6 +716,7 @@
 			knownRegions = (
 				en,
 				Base,
+				"zh-Hans",
 			);
 			mainGroup = 633C9D0D15BD5B98009AD00A;
 			productRefGroup = 633C9D1915BD5B98009AD00A /* Products */;
@@ -669,6 +737,7 @@
 				633C9D2715BD5B98009AD00A /* InfoPlist.strings in Resources */,
 				633C9D3015BD5B98009AD00A /* MainStoryboard.storyboard in Resources */,
 				6396A3781D367105004BC68D /* moreSettings.png in Resources */,
+				63933F3B1DFB3AA1008FD0D6 /* newplayer.caf in Resources */,
 				63B3AC6A1CF64C0F00362111 /* newmessage.png in Resources */,
 				6336480C1CEDB6C600F432E2 /* help@2x.png in Resources */,
 				6333AF8C1DC8C9580023BAAF /* onlineUsers@2x.png in Resources */,
@@ -708,6 +777,7 @@
 				639A9CF61D0168910065B2FA /* person@2x.png in Resources */,
 				631B675E169DA7FE0098B3E1 /* Settings.bundle in Resources */,
 				63CEADCC16A5EA6F00F0D32A /* Default.png in Resources */,
+				63933F3A1DFB3AA1008FD0D6 /* invite.caf in Resources */,
 				63AEDEF91875AFAA006892F7 /* cancel.png in Resources */,
 				63CEADCF16A5EA7700F0D32A /* Default@2x.png in Resources */,
 				637CC49416BAB32D00C4F10A /* PlainTableViewSectionHeader.png in Resources */,
@@ -728,12 +798,14 @@
 				63052FBE1D047F9000F78B30 /* lock@2x.png in Resources */,
 				63A196C116FB936800986CDF /* closedEnvelope.png in Resources */,
 				63A196C216FB936800986CDF /* closedEnvelope@2x.png in Resources */,
+				63A680231DF9568B005E1B65 /* gamesettings@2x.png in Resources */,
 				63A196C316FB936800986CDF /* openEnvelope.png in Resources */,
 				63A196C416FB936800986CDF /* openEnvelope@2x.png in Resources */,
 				635E3B6A17008AF5007E470E /* unread.png in Resources */,
 				631BF31C1CFAD1C3002AB5C3 /* scrown.gif in Resources */,
 				63FBF2701706FC8B004308E1 /* Default-568h@2x.png in Resources */,
 				63EACA5D1712EA1200E3902B /* acceptButton.png in Resources */,
+				63A680261DF9B330005E1B65 /* lightning.png in Resources */,
 				63C4198B17B0E03200983B57 /* Images.xcassets in Resources */,
 				63B3AC6B1CF64C0F00362111 /* newmessage@2x.png in Resources */,
 				63EACA5E1712EA1200E3902B /* acceptButton@2x.png in Resources */,
@@ -752,7 +824,9 @@
 				639A9CF81D0168910065B2FA /* computer@2x.png in Resources */,
 				63EFAEB51DB647C60029DA41 /* database@2x.png in Resources */,
 				633648081CEDB48700F432E2 /* friends@2x.png in Resources */,
+				63A680271DF9B330005E1B65 /* lightning@2x.png in Resources */,
 				6322ECFB1744C93D00793511 /* preferencesBG.png in Resources */,
+				63A680221DF9568B005E1B65 /* gamesettings.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -811,10 +885,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				63288F4D1DF198BF006F73EF /* HelperClasses.swift in Sources */,
 				633648111CF350C600F432E2 /* RatingStatsView.m in Sources */,
+				639A4BAE1DF038A7000894F5 /* RoomViewController.swift in Sources */,
 				633C9D2915BD5B98009AD00A /* main.m in Sources */,
 				633C9D2D15BD5B98009AD00A /* AppDelegate.m in Sources */,
 				6397574A1667A4F100008555 /* BoardView.m in Sources */,
+				639A4BB01DF04902000894F5 /* PenteLiveSocket.swift in Sources */,
 				635ADAD3167880D9001041E3 /* BoardViewController.m in Sources */,
 				635ADAD9167882EC001041E3 /* GamesTableViewController.m in Sources */,
 				639A9CEF1D00C2FF0065B2FA /* InviteAIViewController.m in Sources */,
@@ -825,13 +902,18 @@
 				63FEFC5A1689BFB30070E9AA /* UIPullToReloadTableViewController.m in Sources */,
 				63FEFD54168DFDA30070E9AA /* SettingsViewController.m in Sources */,
 				6396A37C1D38DE81004BC68D /* ChangeColorViewController.m in Sources */,
+				63933F321DFAF5D3008FD0D6 /* TablePlayers.swift in Sources */,
 				63FEFD651691CA9E0070E9AA /* InvitationsViewController.m in Sources */,
 				63EFAEAB1DB570A50029DA41 /* DatabaseViewController.m in Sources */,
+				6353F6721DF497C50094BB3B /* TableViewController.swift in Sources */,
 				63FEFD7216931A970070E9AA /* StringInputTableViewCell.m in Sources */,
 				63EFAEAE1DB576F60029DA41 /* DBBoardView.m in Sources */,
 				63FEFD751693200C0070E9AA /* SimplePickerInputTableViewCell.m in Sources */,
+				63E69B0F1DF73FDE00BD21B7 /* TableSetupView.swift in Sources */,
 				63FEFD78169320AB0070E9AA /* PickerInputTableViewCell.m in Sources */,
+				6353F6741DF569EB0094BB3B /* SeatsView.swift in Sources */,
 				639F1A201D08AD46008BD3DE /* MMAI.m in Sources */,
+				639A4BAA1DEF6F92000894F5 /* LobbyViewController.swift in Sources */,
 				63178F031DE5FF2B00EA41D7 /* DBAISetupView.m in Sources */,
 				63DFC581169D7332006F9A3C /* PenteNavigationViewController.m in Sources */,
 				639F1A1D1D06B8B1008BD3DE /* MMAIViewController.m in Sources */,
@@ -839,6 +921,7 @@
 				637EA04216F645EF00DD499A /* MessagesViewController.m in Sources */,
 				6322A5A31D2BB1830023304F /* KOTHChallengeView.m in Sources */,
 				639F1A2B1D0975D6008BD3DE /* AISetupView.m in Sources */,
+				6353F6761DF5C2EB0094BB3B /* LiveBoard.swift in Sources */,
 				63EFAEB11DB579DB0029DA41 /* DBSetupView.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -850,6 +933,7 @@
 			isa = PBXVariantGroup;
 			children = (
 				633C9D2615BD5B98009AD00A /* en */,
+				63933F371DFB1583008FD0D6 /* zh-Hans */,
 			);
 			name = InfoPlist.strings;
 			sourceTree = "<group>";
@@ -866,6 +950,8 @@
 			isa = PBXVariantGroup;
 			children = (
 				63BBB6FD1DDF907600D27D33 /* Base */,
+				63933F331DFB0FC0008FD0D6 /* en */,
+				63933F361DFB1583008FD0D6 /* zh-Hans */,
 			);
 			name = Localizable.strings;
 			sourceTree = "<group>";
@@ -952,6 +1038,7 @@
 				PROVISIONING_PROFILE = "";
 				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "6ea8bf66-aa8d-4414-ad2e-2988df9647e5";
 				SDKROOT = iphoneos;
+				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
@@ -968,13 +1055,13 @@
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				DEVELOPMENT_TEAM = CT6S5R75J5;
-				ENABLE_BITCODE = NO;
+				ENABLE_BITCODE = YES;
 				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "test1/penteLive-Prefix.pch";
 				INFOPLIST_FILE = "test1/penteLive-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
-				LD_RUNPATH_SEARCH_PATHS = "";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				OTHER_LDFLAGS = (
 					"-ObjC",
@@ -985,6 +1072,9 @@
 				PROVISIONING_PROFILE = "29dfd606-7be8-4a05-a2a2-352466692045";
 				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
 				PROVISIONING_PROFILE_SPECIFIER = "iOS Distribution Ad Hoc";
+				SWIFT_OBJC_BRIDGING_HEADER = "test1/penteLive-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 3.0;
 				TARGETED_DEVICE_FAMILY = 1;
 				WRAPPER_EXTENSION = app;
 			};
@@ -1002,13 +1092,13 @@
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				DEVELOPMENT_TEAM = CT6S5R75J5;
-				ENABLE_BITCODE = NO;
+				ENABLE_BITCODE = YES;
 				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "test1/penteLive-Prefix.pch";
 				INFOPLIST_FILE = "test1/penteLive-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
-				LD_RUNPATH_SEARCH_PATHS = "";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				OTHER_LDFLAGS = (
 					"-ObjC",
@@ -1019,6 +1109,8 @@
 				PROVISIONING_PROFILE = "6ea8bf66-aa8d-4414-ad2e-2988df9647e5";
 				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
 				PROVISIONING_PROFILE_SPECIFIER = "BeSubmanifoldPenteLive iOS Distribution";
+				SWIFT_OBJC_BRIDGING_HEADER = "test1/penteLive-Bridging-Header.h";
+				SWIFT_VERSION = 3.0;
 				TARGETED_DEVICE_FAMILY = 1;
 				WRAPPER_EXTENSION = app;
 			};

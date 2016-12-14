@@ -24,18 +24,35 @@
 //@synthesize color, crown;
 //@end
 
+
+@implementation Room
+@synthesize name;
+@synthesize players;
+
+-(void) addPlayer: (Player *) player {
+    if (!players) {
+        players = [[NSMutableArray alloc] init];
+    }
+    [players addObject:player];
+}
+@end
+
 @implementation WhosOnlineView
 @synthesize player;
-@synthesize players;
+@synthesize rooms;
 @synthesize vc;
 
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
-    return 1;
+    return [rooms count];
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    return [players count];
+    return [[rooms objectAtIndex:section].players count];
+}
+
+-(NSString *) tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
+    return [[rooms objectAtIndex:section] name];
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -45,7 +62,13 @@
     if (cell == nil) {
         cell = [[PlayerCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:cellIdentifier];
     }
-    Player *playr = [players objectAtIndex:indexPath.row];
+    Player *playr = [[rooms objectAtIndex:indexPath.section].players objectAtIndex:indexPath.row];
+    if ([[[rooms objectAtIndex:indexPath.section] name] isEqualToString:@"Mobile"]) {
+        [cell setUserInteractionEnabled:YES];
+    } else {
+//        [cell setAccessoryType:UITableViewCellAccessoryNone];
+        [cell setUserInteractionEnabled:NO];
+    }
     [cell setAccessoryType:UITableViewCellAccessoryDisclosureIndicator];
     NSMutableString *txtStr = [[NSMutableString alloc] initWithString: [playr name]];
     int crown = [playr crown];
@@ -113,7 +136,7 @@
 
 -(void) tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     
-    [vc toInvitationsWithPlayer:[players objectAtIndex:indexPath.row].name];
+    [vc toInvitationsWithPlayer:[[rooms objectAtIndex:indexPath.section].players objectAtIndex:indexPath.row].name];
 
 //    NSString *username = [[NSUserDefaults standardUserDefaults] objectForKey:@"username"];
 //    NSString *game = nil;

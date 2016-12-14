@@ -75,6 +75,67 @@
     return localizedRatedNot;
 }
 
+-(NSAttributedString *) attributedName {
+    NSMutableAttributedString *txtStr;
+    if ([opponentName isEqualToString:@"Anyone"]) {
+        txtStr = [[NSMutableAttributedString alloc] initWithString:NSLocalizedString(@"Anyone", nil)];
+    } else {
+        txtStr = [[NSMutableAttributedString alloc] initWithString:opponentName];
+    }
+    if (![nameColor isEqual:UIColorFromRGB(0)]) {
+        [txtStr addAttribute:NSFontAttributeName value: [UIFont fontWithName:@"HelveticaNeue-Bold" size:16] range:NSMakeRange(0, [txtStr length])];
+    }
+    [txtStr addAttribute:NSForegroundColorAttributeName value:nameColor range:NSMakeRange(0, [txtStr length])];
+    [txtStr appendAttributedString:[[NSMutableAttributedString alloc] initWithString:@" "]];
+    if (crown > 0) {
+        NSTextAttachment *textAttachment = [[NSTextAttachment alloc] init];
+        switch (crown) {
+            case 1:
+                textAttachment.image = [UIImage imageNamed:@"crown.gif"];
+                break;
+            case 2:
+                textAttachment.image = [UIImage imageNamed:@"scrown.gif"];
+                break;
+            case 3:
+                textAttachment.image = [UIImage imageNamed:@"bcrown.gif"];
+                break;
+            case 4:
+                textAttachment.image = [UIImage imageNamed:@"kothcrown.gif"];
+                break;
+                
+            default:
+                break;
+        }
+        NSAttributedString *crownStr = [NSAttributedString attributedStringWithAttachment:textAttachment];
+        [txtStr appendAttributedString:crownStr];
+    }
+    return txtStr;
+}
+
+-(NSAttributedString *) ratingString {
+    int ratingInt = [opponentRating intValue];
+    UIColor *ratingColor;
+    if (ratingInt >= 1900) {
+        ratingColor = [UIColor redColor];
+    } else if (ratingInt >= 1700) {
+        ratingColor = [UIColor colorWithRed:0.98 green:0.96 blue:0.03 alpha:1.0];
+    } else if (ratingInt >= 1400) {
+        ratingColor = [UIColor blueColor];
+    } else if (ratingInt >= 1000) {
+        ratingColor = [UIColor colorWithRed:30.0/255 green: 130.0/255 blue:76.0/255 alpha:1.0];
+    } else {
+        ratingColor = [UIColor grayColor];
+    }
+    NSMutableAttributedString *txtStr = [[NSMutableAttributedString alloc] initWithString:@"\u25A0 "];
+    [txtStr addAttribute:NSForegroundColorAttributeName value: ratingColor range: NSMakeRange(0, 1)];
+    if ([opponentRating length]<4) {
+        [txtStr appendAttributedString:[[NSAttributedString alloc] initWithString:@"  "]];
+    }
+    [txtStr addAttribute:NSFontAttributeName value:[UIFont fontWithName:@"HelveticaNeue-Bold" size:12.f] range: NSMakeRange(0, 1)];
+    [txtStr appendAttributedString:[[NSAttributedString alloc] initWithString:opponentRating]];
+    return txtStr;
+}
+
 @end
 
 @implementation Message
@@ -85,6 +146,38 @@
 @synthesize unread;
 @synthesize nameColor;
 @synthesize crown;
+-(NSAttributedString *) attributedName {
+    NSMutableAttributedString *txtStr;
+    txtStr = [[NSMutableAttributedString alloc] initWithString:author];
+    if (![nameColor isEqual:UIColorFromRGB(0)]) {
+        [txtStr addAttribute:NSFontAttributeName value: [UIFont fontWithName:@"HelveticaNeue-Bold" size:16] range:NSMakeRange(0, [txtStr length])];
+    }
+    [txtStr addAttribute:NSForegroundColorAttributeName value:nameColor range:NSMakeRange(0, [txtStr length])];
+    [txtStr appendAttributedString:[[NSMutableAttributedString alloc] initWithString:@" "]];
+    if (crown > 0) {
+        NSTextAttachment *textAttachment = [[NSTextAttachment alloc] init];
+        switch (crown) {
+            case 1:
+                textAttachment.image = [UIImage imageNamed:@"crown.gif"];
+                break;
+            case 2:
+                textAttachment.image = [UIImage imageNamed:@"scrown.gif"];
+                break;
+            case 3:
+                textAttachment.image = [UIImage imageNamed:@"bcrown.gif"];
+                break;
+            case 4:
+                textAttachment.image = [UIImage imageNamed:@"kothcrown.gif"];
+                break;
+                
+            default:
+                break;
+        }
+        NSAttributedString *crownStr = [NSAttributedString attributedStringWithAttachment:textAttachment];
+        [txtStr appendAttributedString:crownStr];
+    }
+    return txtStr;
+}
 @end
 
 @implementation RatingStat

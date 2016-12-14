@@ -26,7 +26,7 @@
 
 @end
 
-@interface GamesTableViewController : UIPullToReloadTableViewController <GADBannerViewDelegate, UIGestureRecognizerDelegate, GADBannerViewDelegate, GADInterstitialDelegate, NSURLConnectionDelegate, PopoverViewDelegate> {
+@interface GamesTableViewController : UIPullToReloadTableViewController <UIGestureRecognizerDelegate, GADBannerViewDelegate, GADInterstitialDelegate, NSURLConnectionDelegate, PopoverViewDelegate> {
     PentePlayer *player;
     Game *selectedGame;
     BoardViewController *boardController;

@@ -28,7 +28,7 @@ PODS:
     - GoogleToolboxForMac/Defines (= 2.1.0)
   - HexColors (2.3.0)
   - ICDMaterialActivityIndicatorView (0.1.2)
-  - InAppSettingsKit (2.8)
+  - InAppSettingsKit (2.8.1)
   - NSHash (1.1.0)
   - PopoverView (0.0.2)
   - RMStore (0.7.1):
@@ -83,7 +83,7 @@ SPEC CHECKSUMS:
   GoogleToolboxForMac: 2b2596cbb7186865e98cadf2b1e262d851c2b168
   HexColors: 6ad3947c3447a055a3aa8efa859def096351fe5f
   ICDMaterialActivityIndicatorView: 3f02a9dc9e52417023a98385d631c93d3f95c465
-  InAppSettingsKit: fe3e73f8f9530cdd6270065cd7df7b3773f557e6
+  InAppSettingsKit: 94d2fba3ccd700fc4e32c6d09fabcc0af2426744
   NSHash: 61d598c6d48957c5557f1eef0aeafd6ef5ec5fb7
   PopoverView: 51d31a7f2398afbff710dc7933a357bf2c3cbe72
   RMStore: 64ba13a9c040e3b7572765d169f77175cd3243e5

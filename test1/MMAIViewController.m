@@ -119,6 +119,8 @@
     [board setLastConnect6Move: -1];
     [zoomedBoard setLastMove: -1];
     [zoomedBoard setLastConnect6Move: -1];
+    [board setAbstractBoard: abstractBoard];
+    [zoomedBoard setAbstractBoard: abstractBoard];
     
     CGRect rect;
 
@@ -218,7 +220,6 @@
     } else {
         showedAd = NO;
     }
-    
 }
 
 

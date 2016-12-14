@@ -219,6 +219,8 @@ struct Capture {
     [submitButton setEnabled:NO];
     [submitButton setTitle:NSLocalizedString(@"submit",nil) forState:UIControlStateDisabled];
     [submitButton setAlpha:0.5];
+    [board setAbstractBoard: abstractBoard];
+    [zoomedBoard setAbstractBoard: abstractBoard];
 
 
 }
@@ -552,11 +554,11 @@ struct Capture {
                         [submitButton setTitle: [NSString stringWithFormat:NSLocalizedString(@"submit: %c%d-%c%d",nil), coordinateLetters[dPenteMove1 % 19], 19 - (dPenteMove1 / 19), coordinateLetters[finalMove % 19], 19 - (finalMove / 19)] forState:UIControlStateDisabled];
                     } else {
                         dPenteMove3 = finalMove;
-                        //[self detectCaptureOfOpponent:1 atPosition:finalMove];
-                        //[board setAbstractBoard: abstractBoard];
-                        //[zoomedBoard setAbstractBoard: abstractBoard];
-                        //[board setNeedsDisplay];
-                        //[zoomedBoard setNeedsDisplay];
+                        [self detectCaptureOfOpponent:1 atPosition:finalMove];
+                        [board setAbstractBoard: abstractBoard];
+                        [zoomedBoard setAbstractBoard: abstractBoard];
+                        [board setNeedsDisplay];
+                        [zoomedBoard setNeedsDisplay];
                     }
                 }
                 if (!([[game gameType] isEqualToString:@"Connect6"] || [[game gameType] isEqualToString:@"Gomoku"])) {
@@ -1175,7 +1177,7 @@ struct Capture {
     }
 }
 -(void) toDB {
-    NSLog(@"%d",lastMove);
+//    NSLog(@"%d",lastMove);
     [[NSUserDefaults standardUserDefaults] setObject:[game gameType] forKey:@"DBGame"];
     UIStoryboard *sb = [UIStoryboard storyboardWithName:@"MainStoryboard" bundle:nil];
     DatabaseViewController * vc = (DatabaseViewController *)[sb instantiateViewControllerWithIdentifier:@"databaseViewController"];

@@ -164,7 +164,10 @@
 #pragma mark UIPopoverControllerDelegate Protocol Methods
 
 - (void)popoverControllerDidDismissPopover:(UIPopoverController *)popoverController {
-	UITableView *tableView = (UITableView *)self.superview;
+    UITableView *tableView = (UITableView *)self.superview;
+    if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
+        tableView = (UITableView *)self.superview.superview;
+    }
 	[tableView deselectRowAtIndexPath:[tableView indexPathForCell:self] animated:YES];
 	[self resignFirstResponder];
 }

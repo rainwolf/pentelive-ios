@@ -33,15 +33,24 @@
 @property(nonatomic, retain, readwrite) UILabel *ratingLabel;
 
 @end
+@interface Room : NSObject {
+    NSString *name;
+    NSMutableArray<Player *> *players;
+}
+@property(nonatomic, retain, readwrite) NSString *name;
+@property(nonatomic, retain, readwrite) NSMutableArray<Player *> *players;
+-(void) addPlayer: (Player *) player;
+
+@end
 
 
 @interface WhosOnlineView : UITableView <UITableViewDelegate, UITableViewDataSource> {
     PentePlayer *player;
-    NSArray<Player *> *players;
+    NSArray<Room *> *rooms;
     GamesTableViewController *vc;
 }
 
-@property(retain, nonatomic, readwrite) NSArray<Player *> *players;
+@property(retain, nonatomic, readwrite) NSArray<Room *> *rooms;
 @property(retain, nonatomic, readwrite) GamesTableViewController *vc;
 @property(retain, nonatomic, readwrite) PentePlayer *player;
 

@@ -126,6 +126,8 @@ struct Capture {
     }
     [board setLastMove: -1];
     [zoomedBoard setLastMove: -1];
+    [board setAbstractBoard: abstractBoard];
+    [zoomedBoard setAbstractBoard: abstractBoard];
     
     CGRect rect;
 

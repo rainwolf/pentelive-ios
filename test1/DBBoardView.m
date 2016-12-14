@@ -15,10 +15,11 @@
 @synthesize lastMove;
 @synthesize dbOptions;
 
--(void) setAbstractBoard: (int[19][19]) board {
-    for(int i = 0; i < 19; ++i)
-        for(int j = 0; j < 19; ++j)
-            abstractBoard[i][j] = board[i][j];
+-(void) setAbstractBoard: (AbstractBoard*) board {
+    abstractBoard = board;
+//    for(int i = 0; i < 19; ++i)
+//        for(int j = 0; j < 19; ++j)
+//            abstractBoard[i][j] = board[i][j];
 }
 
 -(instancetype) init {

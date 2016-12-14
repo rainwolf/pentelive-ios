@@ -195,7 +195,9 @@
 			<string>IASKUITextAlignmentCenter</string>
 		</dict>
 	</array>
-	<key>StringsTable</key>
+	<key>Strings Table</key>
+	<string>Root</string>
+	<key>Strings Filename</key>
 	<string>Root</string>
 	<key>Title</key>
 	<string>Settings</string>

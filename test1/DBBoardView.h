@@ -8,9 +8,10 @@
 
 #import <UIKit/UIKit.h>
 #import "PentePlayer.h"
+typedef int AbstractBoard[19];
 
 @interface DBBoardView : UIView {
-    int abstractBoard[19][19];
+    AbstractBoard* abstractBoard;
     int lastMove;
     NSDictionary<NSNumber *, UIColor *> *dbOptions;
 }
@@ -18,7 +19,7 @@
 @property(retain, nonatomic) NSDictionary<NSNumber *, UIColor *> *dbOptions;
 -(instancetype) init;
 - (id)initWithFrame:(CGRect)frame;
--(void) setAbstractBoard: (int[19][19]) board;
+-(void) setAbstractBoard: (AbstractBoard*) board;
 - (void)drawRect:(CGRect)rect;
 
 @end

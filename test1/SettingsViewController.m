@@ -79,6 +79,8 @@
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
     if ([[NSUserDefaults standardUserDefaults] boolForKey:@"registrationSuccess"]) {
+//        NSLog([[[self.tableView cellForRowAtIndexPath: [NSIndexPath indexPathForRow:0 inSection:1]] textLabel] text]);
+//        NSLog(NSLocalizedString(@"Username:",nil));
         if ([[[[self.tableView cellForRowAtIndexPath: [NSIndexPath indexPathForRow:0 inSection:1]] textLabel] text] isEqualToString:NSLocalizedString(@"Username:",nil)]) {
             [self.tableView cellForRowAtIndexPath: [NSIndexPath indexPathForRow:0 inSection:1]].userInteractionEnabled = NO;
         }

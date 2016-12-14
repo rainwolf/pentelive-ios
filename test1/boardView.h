@@ -8,9 +8,10 @@
 
 #import <UIKit/UIKit.h>
 #import "PentePlayer.h"
+typedef int AbstractBoard[19];
 
 @interface BoardView : UIView {
-    int abstractBoard[19][19];
+    AbstractBoard* abstractBoard;
     int lastMove;
     int lastConnect6Move;
 }
@@ -18,7 +19,7 @@
 @property int lastConnect6Move;
 -(instancetype) init;
 - (id)initWithFrame:(CGRect)frame;
--(void) setAbstractBoard: (int[19][19]) board;
+-(void) setAbstractBoard: (AbstractBoard*) board;
 - (void)drawRect:(CGRect)rect;
 
 @end
