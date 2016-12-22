@@ -9,6 +9,12 @@
 import UIKit
 import AudioToolbox
 
+class PlayerTableCell: UITableViewCell {
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        frame.size.height = 44
+    }
+}
 
 class RoomViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, UITextFieldDelegate, GADBannerViewDelegate, GADInterstitialDelegate {
     
@@ -187,7 +193,7 @@ class RoomViewController: UIViewController, UITableViewDelegate, UITableViewData
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         if segmentControl.selectedSegmentIndex == 0 {
-            let cell = tableView.dequeueReusableCell(withIdentifier: "playerCell") ?? UITableViewCell(style: .value1, reuseIdentifier: "playerCell")
+            let cell = tableView.dequeueReusableCell(withIdentifier: "playerCell") ?? PlayerTableCell(style: .value1, reuseIdentifier: "playerCell")
             let playerNamesArray = Array(playersAndTables.players.keys)
             let player = playersAndTables.players[playerNamesArray[indexPath.row]]!
             cell.textLabel?.textAlignment = .center
@@ -199,15 +205,14 @@ class RoomViewController: UIViewController, UITableViewDelegate, UITableViewData
             if wantsToSeeAvatars {
                 if let image = pentePlayer.avatars.object(forKey: player.name) as? UIImage {
                     cell.imageView?.image = image
-                    let height = image.size.height
-                    let width = image.size.width
-                    let maxhw = max(height, width)
-                    let itemSize = CGSize(width: 44*width/maxhw, height: 44*height/maxhw)
-                    UIGraphicsBeginImageContextWithOptions(itemSize, false, 0.0)
-                    let imageRect = CGRect(x: 0.0, y: 0.0, width: itemSize.width, height: itemSize.height)
-                    cell.imageView?.image!.draw(in: imageRect)
-                    cell.imageView?.image! = UIGraphicsGetImageFromCurrentImageContext()!
-                    UIGraphicsEndImageContext()
+//                    let height = image.size.height
+//                    let width = image.size.width
+//                    let itemSize = CGSize(width: 44*width/height, height: 44)
+//                    UIGraphicsBeginImageContextWithOptions(itemSize, false, 0.0)
+//                    let imageRect = CGRect(x: 0.0, y: 0.0, width: itemSize.width, height: itemSize.height)
+//                    cell.imageView?.image!.draw(in: imageRect)
+//                    cell.imageView?.image! = UIGraphicsGetImageFromCurrentImageContext()!
+//                    UIGraphicsEndImageContext()
                 }
             } else {
                 cell.imageView?.image = nil
@@ -329,7 +334,7 @@ class RoomViewController: UIViewController, UITableViewDelegate, UITableViewData
         let playerName = event["player"] as! String
         let text = event["text"] as! String
         DispatchQueue.main.async {
-            self.addText(text: "\(playerName): \(text)\n")
+            self.addText(text: "\(playerName): \(text)")
         }
     }
     func addText(text: String) {
@@ -442,6 +447,7 @@ class RoomViewController: UIViewController, UITableViewDelegate, UITableViewData
             self.tableView.reloadData()
             if playerName == self.me {
                 self.tableViewController = TableViewController(table: table!, socket: self.socket, tablesAndPlayers: self.playersAndTables)
+                self.tableViewController?.pentePlayer = self.pentePlayer
                 self.navigationController?.pushViewController(self.tableViewController!, animated: true)
                 if self.showAds {
                     self.interstitial?.present(fromRootViewController: self.tableViewController!)

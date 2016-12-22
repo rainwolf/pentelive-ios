@@ -36,6 +36,7 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
     var waitAlertController, invitationAlertController, inviteAlertController: UIAlertController?
     var tablesAndPlayers: TablesAndPlayer!
     var invitablePlayers: [String]!
+    var pentePlayer: PentePlayer!
     
     
     init(table: Table, socket: PenteLiveSocket, tablesAndPlayers: TablesAndPlayer) {
@@ -346,7 +347,8 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
     
     func showTablePlayers() {
         let popover = PopoverView()
-        let playerView = TablePlayers(frame: CGRect(x: 0, y: 0, width: self.view.frame.width * 2 / 3, height: self.view.frame.size.height*2/3), style: .plain)
+        let playerView = TablePlayers(frame: CGRect(x: 0, y: 0, width: 260, height: self.view.frame.size.height*2/3), style: .plain)
+        playerView.pentePlayer = self.pentePlayer
         playerView.game = table.game
         playerView.players = Array(table.players.values)
         playerView.delegate = playerView

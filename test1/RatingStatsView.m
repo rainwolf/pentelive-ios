@@ -112,21 +112,25 @@
 - (void) layoutSubviews {
     [super layoutSubviews];
     CGFloat screenWidth = self.contentView.bounds.size.width;
-    CGFloat imageWidth = 0;
-    if (self.imageView) {
-        imageWidth = self.imageView.frame.size.width;
-    }
-    CGFloat accessoryWidth;
-//    if (self.accessoryType == UITableViewCellAccessoryDisclosureIndicator) {
-//        accessoryWidth = 20;
-//    } else {
-//        accessoryWidth = 0;
+//    CGFloat imageWidth = 0;
+//    if (self.imageView) {
+//        imageWidth = self.imageView.frame.size.width;
 //    }
-    accessoryWidth = 0;
-    [self.textLabel setFrame:CGRectMake(imageWidth + 10, 2, (screenWidth - imageWidth - accessoryWidth + 60)/2, 22)];
-    [self.ratingLabel setFrame:CGRectMake(imageWidth + 10 + (screenWidth - imageWidth - accessoryWidth - 20)/2, 2, (screenWidth - imageWidth - accessoryWidth - 60)/2, 22)];
-    [self.detailTextLabel setFrame:CGRectMake(imageWidth + 10, 24, screenWidth - imageWidth - accessoryWidth - 20, 18)];
-    [self.imageView setFrame:CGRectMake(0, 0, imageWidth, imageWidth)];
+    CGFloat accessoryWidth;
+    if (self.accessoryType != UITableViewCellAccessoryNone) {
+        accessoryWidth = 20;
+    } else {
+        accessoryWidth = 0;
+    }
+    [self.textLabel setFrame:CGRectMake(10, 2, (screenWidth - accessoryWidth + 60)/2, 22)];
+    [self.ratingLabel setFrame:CGRectMake(10 + (screenWidth - accessoryWidth - 20)/2, 2, (screenWidth + accessoryWidth - 20)/2, 22)];
+    [self.detailTextLabel setFrame:CGRectMake(10, 24, screenWidth - accessoryWidth - 20, 18)];
+//    [self.imageView setFrame:CGRectMake(0, 0, imageWidth, imageWidth)];
+
+//    [self.textLabel setFrame:CGRectMake(imageWidth + 10, 2, (screenWidth - imageWidth - accessoryWidth + 60)/2, 22)];
+//    [self.ratingLabel setFrame:CGRectMake(imageWidth + 10 + (screenWidth - imageWidth - accessoryWidth - 20)/2, 2, (screenWidth - accessoryWidth - 60)/2, 22)];
+//    [self.detailTextLabel setFrame:CGRectMake(imageWidth + 10, 24, screenWidth - imageWidth - accessoryWidth - 20, 18)];
+//    [self.imageView setFrame:CGRectMake(0, 0, imageWidth, imageWidth)];
     
     //        NSLog(@"kittenfont ");
 }

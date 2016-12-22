@@ -2828,7 +2828,7 @@
 -(void) showStats {
     [actionPopoverView dismiss];
     
-    RatingStatsView *ratingView = [[RatingStatsView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width*4/5, 44*[[player ratingStats] count])];
+    RatingStatsView *ratingView = [[RatingStatsView alloc] initWithFrame:CGRectMake(0, 0, 260, 44*[[player ratingStats] count])];
     ratingView.layer.cornerRadius = 5.0f;
     ratingView.layer.borderWidth = 1.0f;
     [ratingView setDelegate: ratingView];
@@ -2901,7 +2901,7 @@
         }
         
         dispatch_async(dispatch_get_main_queue(), ^{
-            WhosOnlineView *playersView = [[WhosOnlineView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width*5/6, floor(self.view.frame.size.height*2/(3*44))*44)];
+            WhosOnlineView *playersView = [[WhosOnlineView alloc] initWithFrame:CGRectMake(0, 0, 260, floor(self.view.frame.size.height*2/(3*44))*44)];
             [playersView setPlayer: player];
             playersView.layer.cornerRadius = 5.0f;
             playersView.layer.borderWidth = 1.0f;

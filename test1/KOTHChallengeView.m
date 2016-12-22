@@ -169,7 +169,7 @@
             UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error",nil) message:[NSString stringWithFormat:NSLocalizedString(@"Reason: %@",nil), error.localizedDescription] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
             //        [alert show];
             [alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:YES];
-        }
+        } else {
             NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
                 NSString *opponent = self.invitee;
                 NSMutableArray *invitedHistory =  [[defaults objectForKey:@"invitedHistory"] mutableCopy];
@@ -186,6 +186,7 @@
                     invitedHistory = [NSMutableArray arrayWithObject:opponent];
                 }
                 [defaults setObject:invitedHistory forKey:@"invitedHistory"];
+        }
 
         
         [popoverView dismiss];

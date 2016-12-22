@@ -66,6 +66,7 @@ import UIKit
     func loadServers() {
         do {
             let activeServers = try String(contentsOf: URL(string: "https://www.pente.org/gameServer/activeServers")!, encoding: String.Encoding.utf8)
+//            let activeServers = try String(contentsOf: URL(string: "https://development.pente.org/gameServer/activeServers")!, encoding: String.Encoding.utf8)
 //            print(activeServers)
             let serverLines = activeServers.components(separatedBy: "\n")
             for line in serverLines {

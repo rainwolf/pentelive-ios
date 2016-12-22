@@ -783,7 +783,7 @@ struct Capture {
     NSString *tmpStr = [NSString stringWithFormat:@"https://www.pente.org/gameServer/mobile/game.jsp?gid=%@",[game gameID]];
     NSURL *url = [NSURL URLWithString: tmpStr];
     NSError *error;
-    NSString *htmlString = [NSString stringWithContentsOfURL:url encoding:NSASCIIStringEncoding error:&error];
+    NSString *htmlString = [NSString stringWithContentsOfURL:url encoding:NSUTF8StringEncoding error:&error];
 //        NSLog(@"kitty %@", htmlString);
     
 //    NSLog(@"kitty \n%@", htmlString);
