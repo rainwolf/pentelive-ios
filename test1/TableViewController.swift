@@ -504,6 +504,12 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
             if table.timed {
                 timer = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(countDownTimer), userInfo: nil, repeats: true)
             }
+            if waitTimer != nil {
+                waitTimer?.invalidate()
+            }
+            if waitAlertController != nil {
+                waitAlertController?.dismiss(animated: true, completion: nil)
+            }
         } else {
             timer?.invalidate()
             if table.state.state == .paused && table.amIseated(i: me) {
@@ -526,6 +532,12 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
                 waitTimer = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(countDownWait), userInfo: nil, repeats: true)
             }
         }
+//        playButton.isHidden = (table.seats.count < 2 || !table.amIseated(i: me)) || (table.state.state != GameState.State.notStarted && table.state.state != GameState.State.halfSet)
+//        if playButton.isHidden {
+//            seatsView.ratedTimerLabel.alpha = 1
+//        } else {
+//            seatsView.ratedTimerLabel.alpha = 0.3
+//        }
     }
     func countDownWait() {
         waitSeconds = waitSeconds - 1

@@ -550,7 +550,7 @@ struct Capture {
         if (p1Str == nil) {
             p1Str = @"";
         }
-        NSString *p2Str = [setupView.player1Cell.textField.text lowercaseString];
+        NSString *p2Str = [setupView.player2Cell.textField.text lowercaseString];
         if (p2Str == nil) {
             p2Str = @"";
         }

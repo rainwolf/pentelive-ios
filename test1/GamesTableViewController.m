@@ -680,7 +680,7 @@
         if (!cell) {
             cell = [[GameTableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:tmpIdentifier];
         }
-        if ([game.opponentName isEqualToString:@"Anyone"]) {
+        if ([game.opponentName rangeOfString:@"Anyone"].location == 0) {
             cell.ratingLabel.text = @"";
         } else {
             cell.ratingLabel.attributedText = [game ratingString];
@@ -2828,14 +2828,15 @@
 -(void) showStats {
     [actionPopoverView dismiss];
     
-    RatingStatsView *ratingView = [[RatingStatsView alloc] initWithFrame:CGRectMake(0, 0, 260, 44*[[player ratingStats] count])];
+    CGFloat maxHeight = floor(self.view.frame.size.height*4/(5*44))*44;
+    
+    RatingStatsView *ratingView = [[RatingStatsView alloc] initWithFrame:CGRectMake(0, 0, 260, MIN(44*[[player ratingStats] count], maxHeight))];
     ratingView.layer.cornerRadius = 5.0f;
     ratingView.layer.borderWidth = 1.0f;
     [ratingView setDelegate: ratingView];
     [ratingView setDataSource: ratingView];
     [ratingView setRatingStats: [player ratingStats]];
     //    [ratingView setUserInteractionEnabled:NO];
-    [ratingView setScrollEnabled: NO];
     [ratingView setVc: self];
     
     actionPopoverView = [PopoverView showPopoverAtPoint: CGPointMake(self.view.bounds.size.width - 20, self.tableView.contentOffset.y) inView:self.view withTitle: @"rating stats" withContentView: ratingView delegate:self];
@@ -3047,7 +3048,7 @@
         UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"dismiss", nil) style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {
             //            NSLog(@"Cancel action");
         }];
-        UIAlertAction *subscribeAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"subscribe now", nil) style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+        UIAlertAction *subscribeAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"subscription info", nil) style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
             ((PenteNavigationViewController *) self.navigationController).showSubscribe = YES;
             [self performSegueWithIdentifier:@"settingsTap" sender:self];
         }];

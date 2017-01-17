@@ -214,7 +214,7 @@
     NSString *title = @"";
     NSString *buttonTitle = @"close";
     if ([message rangeOfString:@"your move"].location != NSNotFound) {
-        if ([((PenteNavigationViewController *)self.window.rootViewController).visibleViewController isKindOfClass:[BoardViewController class]] && [[NSUserDefaults standardUserDefaults] boolForKey:@"notBack2Dash"]) {
+        if ([((PenteNavigationViewController *)self.window.rootViewController).visibleViewController isKindOfClass:[BoardViewController class]]) {
             BoardViewController *vc = (BoardViewController *) ((PenteNavigationViewController *)self.window.rootViewController).visibleViewController;
             if ([[[vc game] gameID] isEqualToString: [userInfo objectForKey:@"gameID"]]) {
                 [vc replayGame];

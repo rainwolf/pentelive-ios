@@ -170,7 +170,12 @@
             //        [alert show];
             [alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:YES];
         } else {
-            NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+            if ([invitee isEqualToString:@""]) {
+                long openInvitationsLimit = [[NSUserDefaults standardUserDefaults] integerForKey:@"openInvitationsLimit"];
+                openInvitationsLimit += 2;
+                [[NSUserDefaults standardUserDefaults] setInteger: openInvitationsLimit forKey:@"openInvitationsLimit"];
+            } else {
+                NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
                 NSString *opponent = self.invitee;
                 NSMutableArray *invitedHistory =  [[defaults objectForKey:@"invitedHistory"] mutableCopy];
                 if (invitedHistory) {
@@ -186,6 +191,7 @@
                     invitedHistory = [NSMutableArray arrayWithObject:opponent];
                 }
                 [defaults setObject:invitedHistory forKey:@"invitedHistory"];
+            }
         }
 
         

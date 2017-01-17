@@ -182,11 +182,43 @@ class Table: NSObject {
                         }
                     }
                 }
+                if (game == 9 || game == 10) {
+                    for i in 1..<3 {
+                        if (abstractBoard[9][11 + i] == 0) {
+                            abstractBoard[9][11 + i] = -1
+                        }
+                        if (abstractBoard[9][7 - i] == 0) {
+                            abstractBoard[9][7 - i] = -1
+                        }
+                        if (abstractBoard[11 + i][9] == 0) {
+                            abstractBoard[11 + i][9] = -1
+                        }
+                        if (abstractBoard[7 - i][9] == 0) {
+                            abstractBoard[7 - i][9] = -1
+                        }
+                    }
+                }
             } else if moves.count == 3 {
                 for i in 7..<12 {
                     for j in 7..<12 {
                         if (abstractBoard[i][j] == -1) {
                             abstractBoard[i][j] = 0
+                        }
+                    }
+                }
+                if (game == 9 || game == 10) {
+                    for i in 1..<3 {
+                        if (abstractBoard[9][11 + i] == -1) {
+                            abstractBoard[9][11 + i] = 0
+                        }
+                        if (abstractBoard[9][7 - i] == -1) {
+                            abstractBoard[9][7 - i] = 0
+                        }
+                        if (abstractBoard[11 + i][9] == -1) {
+                            abstractBoard[11 + i][9] = 0
+                        }
+                        if (abstractBoard[7 - i][9] == -1) {
+                            abstractBoard[7 - i][9] = 0
                         }
                     }
                 }
@@ -795,7 +827,7 @@ class TablesAndPlayer: NSObject {
             return
         }
         let table = self.tables[tableId]!
-        if state == .started {
+        if state == .started && table.state.state != .paused {
             table.reset()
         }
         table.state.state = state
