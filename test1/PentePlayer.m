@@ -182,7 +182,7 @@
 
 @implementation RatingStat
 @synthesize game, rating, totalGames, lastPlayed;
-@synthesize crown;
+@synthesize crown, gameId;
 @end
 
 @implementation Tournament
@@ -192,6 +192,7 @@
 @implementation KingOfTheHill
 @synthesize game, numPlayers, currentKing;
 @synthesize member, king, canSendOpen;
+@synthesize gameId;
 
 @end
 

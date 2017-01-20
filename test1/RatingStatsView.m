@@ -29,7 +29,6 @@
     if (cell == nil) {
         cell = [[RatingStatCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:cellIdentifier];
     }
-    
     cell.textLabel.text =  [ratingStats objectAtIndex: indexPath.row].game;
     cell.detailTextLabel.text = [NSString stringWithFormat:NSLocalizedString(@"Last: %@, total: %@",nil), [ratingStats objectAtIndex: indexPath.row].lastPlayed, [ratingStats objectAtIndex: indexPath.row].totalGames];
     NSMutableString *ratingStr = [NSMutableString stringWithString:@"\u25A0 "];
@@ -47,24 +46,39 @@
 
 -(void) tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     NSString *username = [[NSUserDefaults standardUserDefaults] objectForKey:@"username"];
-    NSString *game = nil;
-    if ([[[ratingStats objectAtIndex: indexPath.row] game] isEqualToString:@"Pente"])
-        game = @"51";
-    if ([[[ratingStats objectAtIndex: indexPath.row] game] isEqualToString:@"Gomoku"])
-        game = @"55";
-    if ([[[ratingStats objectAtIndex: indexPath.row] game] isEqualToString:@"D-Pente"])
-        game = @"57";
-    if ([[[ratingStats objectAtIndex: indexPath.row] game] isEqualToString:@"G-Pente"])
-        game = @"59";
-    if ([[[ratingStats objectAtIndex: indexPath.row] game] isEqualToString:@"Boat-Pente"])
-        game = @"65";
-    if ([[[ratingStats objectAtIndex: indexPath.row] game] isEqualToString:@"Poof-Pente"])
-        game = @"61";
-    if ([[[ratingStats objectAtIndex: indexPath.row] game] isEqualToString:@"Connect6"])
-        game = @"63";
-    if ([[[ratingStats objectAtIndex: indexPath.row] game] isEqualToString:@"Keryo-Pente"])
-        game = @"53";
-    NSString *urlString = [NSString stringWithFormat:@"https://www.pente.org/gameServer/viewLiveGames?p=%@&g=%@", username, game];
+    int gameInt = [[ratingStats objectAtIndex: indexPath.row] gameId];
+//    NSString *game = [[ratingStats objectAtIndex: indexPath.row] game];
+//    if ([game containsString:@"Pente"]) {
+//        gameInt = 1;
+//    }
+//    if ([game containsString:@"Keryo-Pente"]) {
+//        gameInt = 3;
+//    }
+//    if ([game containsString:@"Gomoku"]) {
+//        gameInt = 5;
+//    }
+//    if ([game containsString:@"D-Pente"]) {
+//        gameInt = 7;
+//    }
+//    if ([game containsString:@"G-Pente"]) {
+//        gameInt = 9;
+//    }
+//    if ([game containsString:@"Poof-Pente"]) {
+//        gameInt = 11;
+//    }
+//    if ([game containsString:@"Connect6"]) {
+//        gameInt = 13;
+//    }
+//    if ([game containsString:@"Boat-Pente"]) {
+//        gameInt = 15;
+//    }
+//    if ([game containsString:@"Speed"]) {
+//        gameInt += 1;
+//    }
+//    if ([game containsString:@"tb-"]) {
+//        gameInt += 50;
+//    }
+    NSString *urlString = [NSString stringWithFormat:@"https://www.pente.org/gameServer/viewLiveGames?p=%@&g=%i", username, gameInt];
     SVWebViewController *webViewController = [[SVWebViewController alloc] initWithAddress: urlString];
     [vc.actionPopoverView dismiss];
     [vc.navigationController pushViewController:webViewController animated:YES];

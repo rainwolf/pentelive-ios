@@ -151,7 +151,7 @@
                             action:@selector(loadKoth)
                   forControlEvents:UIControlEventValueChanged];
 
-    if ([hillSummary canSendOpen]) {
+    if ([hillSummary canSendOpen] && hillSummary.gameId > 50) {
         UIBarButtonItem *barButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAction target:self action:@selector(loadWebsiteHill)];
         UIBarButtonItem *inviteButton = [[UIBarButtonItem alloc] initWithImage: [UIImage imageNamed:@"person.png"] style: UIBarButtonItemStylePlain target:self action: @selector(showOpenChallengeView)];
         //    statsButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem: UIBarButtonSystemItem target:self action: @selector(showStats)];
@@ -261,10 +261,14 @@
         }
     }
     if (indexPath.section == 0) {
-        if ([hillSummary member]) {
-            cell.textLabel.text = NSLocalizedString(@"Tap to leave this hill",nil);
+        if (hillSummary.gameId < 50) {
+            cell.textLabel.text = NSLocalizedString(@"join by playing in the live KotH room",nil);
         } else {
-            cell.textLabel.text = NSLocalizedString(@"Tap to join this hill",nil);
+            if ([hillSummary member]) {
+                cell.textLabel.text = NSLocalizedString(@"Tap to leave this hill",nil);
+            } else {
+                cell.textLabel.text = NSLocalizedString(@"Tap to join this hill",nil);
+            }
         }
         if (![player subscriber] && ![hillSummary member]) {
             cell.detailTextLabel.text = NSLocalizedString(@"Warning: only subscribers can join multiple hills",nil);
@@ -292,6 +296,9 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
+    if (hillSummary.gameId < 50) {
+        return;
+    }
     [TSMessage dismissActiveNotification];
     if (indexPath.section == 0) {
         dispatch_async(dispatch_get_main_queue(), ^{
@@ -318,7 +325,7 @@
         
         challengeView = [[KOTHChallengeView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width*2/3, 103)];
         [challengeView setScrollEnabled:NO];
-        [challengeView setGameStr:[self getGameString:[hillSummary game]]];
+        [challengeView setGameId:[hillSummary gameId]];
         [challengeView setInvitee:[[[[hill steps] objectAtIndex: indexPath.section - 1] objectAtIndex:indexPath.row] name]];
         [challengeView setDelegate: challengeView];
         [challengeView setDataSource: challengeView];
@@ -354,7 +361,7 @@
 -(void) showOpenChallengeView {
     challengeView = [[KOTHChallengeView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width*4/5, 147)];
     [challengeView setScrollEnabled:NO];
-    [challengeView setGameStr:[self getGameString:[hillSummary game]]];
+    [challengeView setGameId:[hillSummary gameId]];
     [challengeView setInvitee:@""];
     [challengeView setDelegate: challengeView];
     [challengeView setDataSource: challengeView];
@@ -385,7 +392,6 @@
 
 -(void) joinLeave {
 
-    NSString *gameString = [self getGameString:[hillSummary game]];
 
     NSString *url;
     NSURLResponse *response;
@@ -396,7 +402,7 @@
     url =  @"https://www.pente.org/gameServer/koth";
 //    url =  @"https://development.pente.org/gameServer/koth";
 
-    NSString *postString = [NSString stringWithFormat:@"%@&game=%@",[hillSummary member]?@"leave=":@"join=", gameString];
+    NSString *postString = [NSString stringWithFormat:@"%@&game=%i",[hillSummary member]?@"leave=":@"join=", hillSummary.gameId];
     NSData *postData = [postString dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
     NSString *postLength = [NSString stringWithFormat:@"%lu", (unsigned long)[postData length]];
     
@@ -427,7 +433,7 @@
     
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
     NSString *username = [defaults objectForKey: @"username"];
-    NSString *gameString = [self getGameString:[hillSummary game]];
+    int gameId = [hillSummary gameId];
 
     self.tableView.layer.borderWidth = 1.5;
     
@@ -439,7 +445,7 @@
     NSData *responseData;
     
     // connect to the game server
-    url =  [NSString stringWithFormat:@"https://www.pente.org/gameServer/mobile/koth.jsp?name=%@&game=%@",username, gameString];
+    url =  [NSString stringWithFormat:@"https://www.pente.org/gameServer/mobile/koth.jsp?name=%@&game=%i",username, gameId];
 //    url =  [NSString stringWithFormat:@"https://development.pente.org/gameServer/mobile/koth.jsp?name=%@&game=%@",username, gameString];
     [request setURL:[NSURL URLWithString:url]];
     [request setHTTPMethod:@"GET"];
@@ -554,29 +560,6 @@
 }
 
 
--(NSString *) getGameString: (NSString *) inStr {
-    NSString *gameString;
-    if ([inStr isEqualToString:@"Pente"])
-        gameString = @"51";
-    if ([inStr isEqualToString:@"Gomoku"])
-        gameString = @"55";
-    if ([inStr isEqualToString:@"D-Pente"])
-        gameString = @"57";
-    if ([inStr isEqualToString:@"G-Pente"])
-        gameString = @"59";
-    if ([inStr isEqualToString:@"Boat-Pente"])
-        gameString = @"65";
-    if ([inStr isEqualToString:@"Poof-Pente"])
-        gameString = @"61";
-    if ([inStr isEqualToString:@"Connect6"])
-        gameString = @"63";
-    if ([inStr isEqualToString:@"Keryo-Pente"])
-        gameString = @"53";
-    
-    return gameString;
-}
-
-
 
 - (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
     //    NSLog(@"kitttttttyyyyyyyyy %i", section);
@@ -650,7 +633,7 @@
 }
 
 -(void) loadWebsiteHill {
-    NSString *urlString = [NSString stringWithFormat:@"https://www.pente.org/gameServer/stairs.jsp?game=%@", [self getGameString: hillSummary.game]];
+    NSString *urlString = [NSString stringWithFormat:@"https://www.pente.org/gameServer/stairs.jsp?game=%i", hillSummary.gameId];
     SVWebViewController *webViewController = [[SVWebViewController alloc] initWithAddress: urlString];
     [self.navigationController pushViewController:webViewController animated:YES];
 }

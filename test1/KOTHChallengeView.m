@@ -11,7 +11,8 @@
 @implementation KOTHChallengeView
 @synthesize timeoutCell, restrictionCell;
 @synthesize popoverView;
-@synthesize gameStr, invitee;
+@synthesize invitee;
+@synthesize gameId;
 
 
 
@@ -146,7 +147,7 @@
         }
 
 
-        NSString *post = [NSString stringWithFormat:@"invitee=%@&game=%@&daysPerMove=%@&invitationRestriction=%@&rated=Y&inviterMessage=&mobile=&koth=", self.invitee ,gameString, timeoutCell.detailTextLabel.text, restrictString];
+        NSString *post = [NSString stringWithFormat:@"invitee=%@&game=%i&daysPerMove=%@&invitationRestriction=%@&rated=Y&inviterMessage=&mobile=&koth=", self.invitee ,gameId, timeoutCell.detailTextLabel.text, restrictString];
         NSData *postData = [post dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
         NSString *postLength = [NSString stringWithFormat:@"%lu", (unsigned long)[postData length]];
         

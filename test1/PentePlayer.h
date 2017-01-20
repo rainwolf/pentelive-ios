@@ -55,10 +55,10 @@ alpha:1.0]
 
 @interface RatingStat : NSObject {
     NSString *game, *rating, *lastPlayed, *totalGames;
-    int crown;
+    int crown, gameId;
 }
 @property(nonatomic,retain) NSString *game, *rating, *lastPlayed, *totalGames;
-@property(atomic, assign) int crown;
+@property(atomic, assign) int crown, gameId;
 @end
 
 @interface Tournament : NSObject {
@@ -70,9 +70,11 @@ alpha:1.0]
 @interface KingOfTheHill : NSObject {
     NSString *game, *numPlayers, *currentKing;
     BOOL member, king, canSendOpen;
+    int gameId;
 }
 @property(nonatomic,retain) NSString *game, *numPlayers, *currentKing;
 @property(assign, atomic) BOOL member, king, canSendOpen;
+@property(assign, atomic) int gameId;
 @end
 
 

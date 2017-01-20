@@ -14,10 +14,12 @@
 @interface KOTHChallengeView : UITableView <UITableViewDelegate, UITableViewDataSource, SimplePickerInputTableViewCellDelegate> {
     SimplePickerInputTableViewCell *timeoutCell, *restrictionCell;
     PopoverView *popoverView;
-    NSString *gameStr, *invitee;
+    NSString *invitee;
+    int gameId;
 }
 @property(nonatomic, retain, readwrite) SimplePickerInputTableViewCell *timeoutCell, *restrictionCell;
 @property(nonatomic, retain, readwrite) PopoverView *popoverView;
 @property(nonatomic, retain, readwrite) NSString *gameStr, *invitee;
+@property(atomic, assign, readwrite) int gameId;
 
 @end

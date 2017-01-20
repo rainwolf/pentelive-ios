@@ -2214,6 +2214,36 @@
                 [hill setKing: [[splitLine objectAtIndex: 3] isEqualToString:@"1"]];
                 [hill setCurrentKing: [splitLine objectAtIndex: 4]];
                 [hill setCanSendOpen:[[splitLine objectAtIndex: 5] isEqualToString:@"1"]];
+                [hill setGameId:[[splitLine objectAtIndex:6] intValue]];
+                NSString *gameStr = @"Pente";
+                int gameInt = hill.gameId;
+                if (gameInt > 50) {
+                    gameInt -= 50;
+                }
+                if (gameInt < 3) {
+                    gameStr = @"Pente";
+                } else if (gameInt < 5) {
+                    gameStr = @"Keryo-Pente";
+                } else if (gameInt < 7) {
+                    gameStr = @"Gomoku";
+                } else if (gameInt < 9) {
+                    gameStr = @"D-Pente";
+                } else if (gameInt < 11) {
+                    gameStr = @"G-Pente";
+                } else if (gameInt < 13) {
+                    gameStr = @"Poof-Pente";
+                } else if (gameInt < 15) {
+                    gameStr = @"Connect6";
+                } else {
+                    gameStr = @"Boat-Pente";
+                }
+                if (hill.gameId > 50) {
+                    [hill setGame: [@"tb-" stringByAppendingString:gameStr]];
+                } else if (hill.gameId % 2 == 0) {
+                    [hill setGame: [@"Speed " stringByAppendingString:gameStr]];
+                } else {
+                    [hill setGame:gameStr];
+                }
                 [sectionItems addObject:hill];
                 dashIDX++;
             }
@@ -2252,7 +2282,37 @@
                 [ratingStat setTotalGames: [splitLine objectAtIndex: 2]];
                 [ratingStat setLastPlayed: [splitLine objectAtIndex: 4]];
                 [ratingStat setCrown: [[splitLine objectAtIndex: 3] intValue]];
+                [ratingStat setGameId: [[splitLine objectAtIndex: 5] intValue]];
                 [[player ratingStats] addObject:ratingStat];
+                NSString *gameStr = @"Pente";
+                int gameInt = ratingStat.gameId;
+                if (gameInt > 50) {
+                    gameInt -= 50;
+                }
+                if (gameInt < 3) {
+                    gameStr = @"Pente";
+                } else if (gameInt < 5) {
+                    gameStr = @"Keryo-Pente";
+                } else if (gameInt < 7) {
+                    gameStr = @"Gomoku";
+                } else if (gameInt < 9) {
+                    gameStr = @"D-Pente";
+                } else if (gameInt < 11) {
+                    gameStr = @"G-Pente";
+                } else if (gameInt < 13) {
+                    gameStr = @"Poof-Pente";
+                } else if (gameInt < 15) {
+                    gameStr = @"Connect6";
+                } else {
+                    gameStr = @"Boat-Pente";
+                }
+                if (ratingStat.gameId > 50) {
+                    [ratingStat setGame: [@"tb-" stringByAppendingString:gameStr]];
+                } else if (ratingStat.gameId % 2 == 0) {
+                    [ratingStat setGame: [@"Speed " stringByAppendingString:gameStr]];
+                } else {
+                    [ratingStat setGame:gameStr];
+                }
                 dashIDX++;
             }
         }
@@ -2830,7 +2890,7 @@
     
     CGFloat maxHeight = floor(self.view.frame.size.height*4/(5*44))*44;
     
-    RatingStatsView *ratingView = [[RatingStatsView alloc] initWithFrame:CGRectMake(0, 0, 260, MIN(44*[[player ratingStats] count], maxHeight))];
+    RatingStatsView *ratingView = [[RatingStatsView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width*9/10, MIN(44*[[player ratingStats] count], maxHeight))];
     ratingView.layer.cornerRadius = 5.0f;
     ratingView.layer.borderWidth = 1.0f;
     [ratingView setDelegate: ratingView];
@@ -3162,7 +3222,7 @@
     } else {
         accessoryWidth = 0;
     }
-    if ([self.reuseIdentifier isEqualToString: @"tournament"]) {
+    if ([self.reuseIdentifier isEqualToString: @"tournament"] || [self.reuseIdentifier isEqualToString: @"kingOfTheHill"]) {
         [self.textLabel setFrame:CGRectMake(10, 2, (screenWidth - accessoryWidth - 10), 22)];
         [self.detailTextLabel setFrame:CGRectMake(10, 24, screenWidth - accessoryWidth - 20, 18)];
 //        [self.imageView setFrame:CGRectMake(0, 0, imageWidth, imageWidth)];
