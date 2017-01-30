@@ -39,7 +39,7 @@ import UIKit
     }
     
     func socket(_ sock: GCDAsyncSocket, didConnectToHost host: String, port: UInt16) {
-        let username = UserDefaults.standard.string(forKey: "username")!
+        let username = (UserDefaults.standard.string(forKey: "username")!).lowercased()
         let password = UserDefaults.standard.string(forKey: "password")!
         let url = URL(string: "https://\(server)/gameServer/login.jsp?name2=\(username)&password2=\(password)")
         let session = URLSession.shared

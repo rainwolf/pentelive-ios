@@ -243,15 +243,15 @@
     }
     if (navControllor.didMove) {
         [navControllor setDidMove: NO];
-        if (!activeGamesCollapsed) {
-            for( int i = 0; i < [[player activeGames] count]; ++i) {
-                if ([navControllor.activeGameToRemove isEqualToString:[[[player activeGames] objectAtIndex:i] gameID]]) {
-                    [[player activeGames] removeObjectAtIndex:i];
-                    [self.tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject:[NSIndexPath indexPathForRow:i inSection:2]] withRowAnimation:UITableViewRowAnimationFade];
-                    break;
-                }
-            }
-        }
+//        if (!activeGamesCollapsed) {
+//            for( int i = 0; i < [[player activeGames] count]; ++i) {
+//                if ([navControllor.activeGameToRemove isEqualToString:[[[player activeGames] objectAtIndex:i] gameID]]) {
+//                    [[player activeGames] removeObjectAtIndex:i];
+//                    [self.tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject:[NSIndexPath indexPathForRow:i inSection:2]] withRowAnimation:UITableViewRowAnimationFade];
+//                    break;
+//                }
+//            }
+//        }
         [self dashboardParse];
     } else if (navControllor.messageDeleted) {
         [navControllor setMessageDeleted:NO];
@@ -341,6 +341,7 @@
 }
 
 -(void) handleDeviceToken {
+//    NSLog(@"kittnnn");
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
     NSString *storedTokenString = [defaults objectForKey: @"deviceToken"];
     if (storedTokenString) {
@@ -353,7 +354,7 @@
         }
         
         NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
-        NSString *url = [NSString stringWithFormat:@"https://www.pente.org/gameServer/notifications/registerDevice.jsp?name=%@&password=%@&token=%@",username,password,storedTokenString];
+        NSString *url = [NSString stringWithFormat:@"https://www.pente.org/gameServer/notification?device=iOS&token=%@",storedTokenString];
         [request setURL:[NSURL URLWithString:url]];
         [request setHTTPMethod:@"GET"];
         [request setTimeoutInterval:7.0];
@@ -363,7 +364,7 @@
         NSString *replyString = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
 
 //        NSLog(@"wth \n %@", replyString);
-        if ([replyString rangeOfString:@"It seems to have worked"].location != NSNotFound) {
+        if ([replyString containsString:@"It seems to have worked"]) {
             [defaults setObject:[NSDate date] forKey:@"lastPing"];
         }
     } else {
@@ -3223,11 +3224,11 @@
         accessoryWidth = 0;
     }
     if ([self.reuseIdentifier isEqualToString: @"tournament"] || [self.reuseIdentifier isEqualToString: @"kingOfTheHill"]) {
-        [self.textLabel setFrame:CGRectMake(10, 2, (screenWidth - accessoryWidth - 10), 22)];
+        [self.textLabel setFrame:CGRectMake(10, 0, (screenWidth - accessoryWidth - 10), 22)];
         [self.detailTextLabel setFrame:CGRectMake(10, 24, screenWidth - accessoryWidth - 20, 18)];
 //        [self.imageView setFrame:CGRectMake(0, 0, imageWidth, imageWidth)];
     } else {
-        [self.textLabel setFrame:CGRectMake(imageWidth + 10, 2, (screenWidth - imageWidth - accessoryWidth + 60)/2, 22)];
+        [self.textLabel setFrame:CGRectMake(imageWidth + 10, 0, (screenWidth - imageWidth - accessoryWidth + 60)/2, 22)];
         [self.ratingLabel setFrame:CGRectMake(imageWidth + 10 + (screenWidth - imageWidth - accessoryWidth - 20)/2, 2, (screenWidth - imageWidth - accessoryWidth - 60)/2, 22)];
         [self.detailTextLabel setFrame:CGRectMake(imageWidth + 10, 24, screenWidth - imageWidth - accessoryWidth - 20, 18)];
         [self.imageView setFrame:CGRectMake(0, 0, imageWidth, imageWidth)];

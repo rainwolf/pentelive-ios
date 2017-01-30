@@ -67,6 +67,7 @@
     
     [FIRApp configure];
 
+    [[TSMessageView appearance] setAlpha:0.9f];
 
     NSSet *products = [NSSet setWithArray:@[@"1YRNOADSORLIMITS"]];
     [[RMStore defaultStore] requestProducts:products success:^(NSArray *products, NSArray *invalidProductIdentifiers) {
@@ -78,6 +79,7 @@
     } failure:^(NSError *error) {
         NSLog(@"Something went wrong");
     }];
+    
     
     if ([[NSUserDefaults standardUserDefaults] boolForKey:@"shouldSendReceipt"]) {
         NSURL *receiptURL = [[NSBundle mainBundle] appStoreReceiptURL];

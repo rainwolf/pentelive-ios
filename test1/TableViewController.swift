@@ -63,29 +63,14 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
         playButton.titleLabel?.font = UIFont.boldSystemFont(ofSize:25)
         playButton.setTitleColor(UIColor.blue, for: .normal)
         playButton.addTarget(self, action: #selector(play), for: .touchUpInside)
-//        let spacer = UIBarButtonItem(barButtonSystemItem: .fixedSpace, target: nil, action: nil)
-//        spacer.width = -10.0
-//                let settingsItemBtn = UIButton(frame: CGRect(x: 0, y: 0, width: 50, height: 50))
-//                settingsItemBtn.setImage(UIImage(named: "gamesettings"), for: .normal)
-//                settingsItemBtn.addTarget(self, action: #selector(showSettings), for: .touchUpInside)
-//        let settingsItem = UIBarButtonItem(customView: settingsItemBtn)
         let settingsItem = UIBarButtonItem(image: UIImage(named: "gamesettings"), style: .plain, target: self, action: #selector(showSettings))
         settingsItem.imageInsets = UIEdgeInsetsMake(0, -25.0, 0, 0)
-//        let optionsItemBtn = UIButton(frame: CGRect(x: 0, y: 0, width: 50, height: 50))
-//        optionsItemBtn.setImage(UIImage(named: "cancel"), for: .normal)
-//        optionsItemBtn.addTarget(self, action: #selector(showOptions), for: .touchUpInside)
-//        let optionsItem = UIBarButtonItem(customView: optionsItemBtn)
         let optionsItem = UIBarButtonItem(image: UIImage(named: "cancel"), style: .plain, target: self, action: #selector(showOptions))
         optionsItem.imageInsets = UIEdgeInsetsMake(0, -30.0, 0, -30.0)
-//        let onlineUsersItem = UIButton(frame: CGRect(x: 0, y: 0, width: 50, height: 50))
-//        onlineUsersItem.setImage(UIImage(named: "onlineUsers"), for: .normal)
-//        onlineUsersItem.addTarget(self, action: #selector(showOptions), for: .touchUpInside)
         let onlineUsersItem = UIBarButtonItem(image: UIImage(named: "onlineUsers"), style: .plain, target: self, action: #selector(showPlayersOptions))
         onlineUsersItem.imageInsets = UIEdgeInsetsMake(0, 0, 0, -30.0)
         self.navigationItem.setRightBarButtonItems([settingsItem,
-//                                                    spacer,
                                                     optionsItem,
-//                                                    spacer,
                                                     onlineUsersItem], animated: true)
     }
     required init(coder aDecoder: NSCoder) {

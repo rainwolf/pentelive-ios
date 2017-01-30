@@ -64,9 +64,11 @@
     }
     Player *playr = [[rooms objectAtIndex:indexPath.section].players objectAtIndex:indexPath.row];
     if ([[[rooms objectAtIndex:indexPath.section] name] isEqualToString:@"Mobile"]) {
+        cell.backgroundColor = [UIColor colorWithRed: 222.0/256 green:236.0/256 blue:222.0/256 alpha:1];
         [cell setUserInteractionEnabled:YES];
     } else {
 //        [cell setAccessoryType:UITableViewCellAccessoryNone];
+        cell.backgroundColor = [UIColor whiteColor];
         [cell setUserInteractionEnabled:NO];
     }
     [cell setAccessoryType:UITableViewCellAccessoryDisclosureIndicator];
@@ -112,7 +114,6 @@
     [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
 
     cell.detailTextLabel.text = [NSString stringWithFormat: NSLocalizedString(@"Total games: %@",nil), [playr numberOfGames]];
-    cell.backgroundColor = [UIColor colorWithRed: 222.0/256 green:236.0/256 blue:222.0/256 alpha:1];
 
     if (playr.color != 0) {
         UIImage *imgV = [player.avatars objectForKey: playr.name];

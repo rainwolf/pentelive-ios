@@ -211,7 +211,7 @@ struct Capture {
         [self.view addSubview:bannerView];
     }
 
-    setupView = [[DBSetupView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width*2/3, 308)];
+    setupView = [[DBSetupView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width*4/5, 308)];
     setupView.layer.cornerRadius = 5.0f;
     setupView.layer.borderWidth = 1.0f;
     [setupView setScrollEnabled:NO];
