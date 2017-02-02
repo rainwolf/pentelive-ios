@@ -8,3 +8,4 @@
 #import "TSMessage.h"
 #import "TSMessageView.h"
 #import "PopoverView.h"
+#import "SVWebViewController.h"

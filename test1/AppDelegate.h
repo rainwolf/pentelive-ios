@@ -17,6 +17,6 @@
 
 @property (strong, nonatomic) UIWindow *window;
 @property (retain, nonatomic, readwrite) NSDictionary *notification;
-@property (atomic) SystemSoundID sndID;
+@property (atomic) SystemSoundID sndID, broadcastSndID;
 
 @end

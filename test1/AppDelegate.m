@@ -18,7 +18,7 @@
 
 @synthesize window = _window;
 @synthesize notification;
-@synthesize sndID;
+@synthesize sndID, broadcastSndID;
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
@@ -47,6 +47,9 @@
     NSString *penteSndPath = [[NSBundle mainBundle] pathForResource:@"penteLiveNotificationSound" ofType:@"caf"];
     NSURL *penteSndURL = [NSURL fileURLWithPath:penteSndPath];
     AudioServicesCreateSystemSoundID((__bridge CFURLRef)penteSndURL, &sndID);
+    NSString *broadcastSndPath = [[NSBundle mainBundle] pathForResource:@"newplayer" ofType:@"caf"];
+    NSURL *broadcastSndURL = [NSURL fileURLWithPath:broadcastSndPath];
+    AudioServicesCreateSystemSoundID((__bridge CFURLRef)broadcastSndURL, &broadcastSndID);
     
     [[TSMessageView appearance] setContentTextColor:[UIColor blackColor]];
     [[TSMessageView appearance] setTitleTextColor:[UIColor blackColor]];
@@ -204,7 +207,13 @@
 {
 //    NSLog(@"Received notification: %@", [userInfo objectForKey:@"gameID"]);
 //    [self addMessageFromRemoteNotification:userInfo updateUI:YES];
-    AudioServicesPlaySystemSound(self.sndID);
+
+    NSString *message = [[userInfo objectForKey:@"aps"] objectForKey:@"alert"];
+    if ([message containsString:@"Live Game Alert"] && [message containsString:@"wants to play live"] && [userInfo objectForKey:@"liveBroadCastPlayer"] && [userInfo objectForKey:@"liveBroadCastGame"]) {
+        AudioServicesPlaySystemSound(self.broadcastSndID);
+    } else {
+        AudioServicesPlaySystemSound(self.sndID);
+    }
 
     if ([((PenteNavigationViewController *)self.window.rootViewController).visibleViewController respondsToSelector:@selector(dashboardParse)]) {
         [((GamesTableViewController *)((PenteNavigationViewController *)self.window.rootViewController).visibleViewController) dashboardParse];
@@ -212,10 +221,9 @@
         [(PenteNavigationViewController *)self.window.rootViewController setDidMove:YES];
     }
 
-    NSString *message = [[userInfo objectForKey:@"aps"] objectForKey:@"alert"];
     NSString *title = @"";
     NSString *buttonTitle = @"close";
-    if ([message rangeOfString:@"your move"].location != NSNotFound) {
+    if ([message containsString:@"your move"]) {
         if ([((PenteNavigationViewController *)self.window.rootViewController).visibleViewController isKindOfClass:[BoardViewController class]]) {
             BoardViewController *vc = (BoardViewController *) ((PenteNavigationViewController *)self.window.rootViewController).visibleViewController;
             if ([[[vc game] gameID] isEqualToString: [userInfo objectForKey:@"gameID"]]) {
@@ -237,8 +245,13 @@
         title = NSLocalizedString(@"New invitation",nil);
         NSArray<NSString *>* splitStr = [message componentsSeparatedByString:@" has invited you to a game of "];
         message = [NSString stringWithFormat:NSLocalizedString(@"%@ has invited you to a game of %@.", nil), [splitStr objectAtIndex:0], [splitStr objectAtIndex:1]];
+    } else if ([message containsString:@"Live Game Alert"] && [message containsString:@"wants to play live"] && [userInfo objectForKey:@"liveBroadCastPlayer"] && [userInfo objectForKey:@"liveBroadCastGame"]) {
+        title = NSLocalizedString(@"live game room alert",nil);
+        NSString *player = [userInfo objectForKey:@"liveBroadCastPlayer"];
+        NSString *game = [userInfo objectForKey:@"liveBroadCastGame"];
+        message = [NSString stringWithFormat:NSLocalizedString(@"%@ wants to play a live game of %@.", nil), player, game];
     }
-    if ([message rangeOfString:@"device has been registered for notifications"].location == NSNotFound) {
+    if (![message containsString:@"device has been registered for notifications"]) {
         [TSMessage showNotificationInViewController:self.window.rootViewController
                                               title: title
                                            subtitle: message

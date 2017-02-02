@@ -13,6 +13,26 @@ class PlayerTableCell: UITableViewCell {
     override func layoutSubviews() {
         super.layoutSubviews()
         frame.size.height = 44
+        if (imageView?.image) != nil {
+//            let height = image.size.height
+//            let width = image.size.width
+//            var itemSize: CGSize
+//            if height < width {
+//                itemSize = CGSize(width: 44, height: 44*height/width)
+//            } else {
+//                itemSize = CGSize(width: 44*width/height, height: 44)
+//            }
+//            UIGraphicsBeginImageContextWithOptions(itemSize, false, 0.0)
+//            let imageRect = CGRect(x: 0.0, y: 0.0, width: itemSize.width, height: itemSize.height)
+//            imageView?.image!.draw(in: imageRect)
+//            imageView?.image! = UIGraphicsGetImageFromCurrentImageContext()!
+//            UIGraphicsEndImageContext()
+            imageView?.frame = CGRect(x: 10, y: 0, width: 44, height: 44)
+            imageView?.contentMode = .scaleAspectFit
+            var frame = textLabel?.frame
+            frame?.origin.x = (imageView?.frame.origin.x)! + 54
+            textLabel?.frame = frame!
+        }
     }
 }
 
@@ -20,7 +40,7 @@ class RoomViewController: UIViewController, UITableViewDelegate, UITableViewData
     
     var room: GameRoom!
     var socket: PenteLiveSocket!
-    let segmentControl = UISegmentedControl(items: ["players", "tables"])
+    let segmentControl = UISegmentedControl(items: [NSLocalizedString("players", comment: ""), NSLocalizedString("tables", comment: "")])
     var playersAndTables = TablesAndPlayer()
 //    var players: [String:LivePlayer] = [String:LivePlayer]()
 //    var tables: [Int:Table] = [Int:Table]()
@@ -175,8 +195,8 @@ class RoomViewController: UIViewController, UITableViewDelegate, UITableViewData
         return 1
     }
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        segmentControl.setTitle("players (\(playersAndTables.players.count))", forSegmentAt: 0)
-        segmentControl.setTitle("tables (\(playersAndTables.tables.count))", forSegmentAt: 1)
+        segmentControl.setTitle("\(NSLocalizedString("players", comment: "")) (\(playersAndTables.players.count))", forSegmentAt: 0)
+        segmentControl.setTitle("\(NSLocalizedString("tables", comment: "")) (\(playersAndTables.tables.count))", forSegmentAt: 1)
         if segmentControl.selectedSegmentIndex == 0 {
             return playersAndTables.players.count
         } else {
@@ -205,14 +225,8 @@ class RoomViewController: UIViewController, UITableViewDelegate, UITableViewData
             if wantsToSeeAvatars {
                 if let image = pentePlayer.avatars.object(forKey: player.name) as? UIImage {
                     cell.imageView?.image = image
-//                    let height = image.size.height
-//                    let width = image.size.width
-//                    let itemSize = CGSize(width: 44*width/height, height: 44)
-//                    UIGraphicsBeginImageContextWithOptions(itemSize, false, 0.0)
-//                    let imageRect = CGRect(x: 0.0, y: 0.0, width: itemSize.width, height: itemSize.height)
-//                    cell.imageView?.image!.draw(in: imageRect)
-//                    cell.imageView?.image! = UIGraphicsGetImageFromCurrentImageContext()!
-//                    UIGraphicsEndImageContext()
+                } else {
+                    cell.imageView?.image = nil
                 }
             } else {
                 cell.imageView?.image = nil
@@ -276,6 +290,9 @@ class RoomViewController: UIViewController, UITableViewDelegate, UITableViewData
                     }
                 }
             }
+        }
+        if wantsToSeeAvatars {
+            pentePlayer.addUser(playerName)
         }
         if let colorData = (playerData["nameColor"] as? [String:AnyObject]) {
             let colorInt = colorData["value"] as! Int

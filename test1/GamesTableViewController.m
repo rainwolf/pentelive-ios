@@ -194,7 +194,10 @@
     if (!navController.loggedIn) {
         self.tableView.layer.borderWidth = 1.5;
         [self login];
+    } else if (navController.showSubscribe) {
+        [self performSegueWithIdentifier:@"settingsTap" sender:self];
     }
+
 //    bannerView = navController.bannerView;
     [navController setChallengeCancelled:NO];
 //    bannerView.rootViewController = self;
@@ -269,6 +272,8 @@
     selectedInvitationIndexPath = nil;
     selectedInvitationCell = nil;
     [super viewWillAppear:animated];
+    
+    
 }
 
 - (void)viewWillDisappear:(BOOL)animated {
@@ -2870,6 +2875,18 @@
         frame = button.frame;
     }
     [buttonsArray addObject: button];
+    button = [UIButton buttonWithType:UIButtonTypeCustom];
+    button.backgroundColor = [UIColor clearColor];
+    [button setImage:[UIImage imageNamed:@"footprint"] forState:UIControlStateNormal];
+    [button setTitle:NSLocalizedString(@" social",nil) forState:UIControlStateNormal];
+    [button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+    [button addTarget:self action:@selector(toSocial) forControlEvents:UIControlEventTouchUpInside];
+    //    [button setFrame:frame];
+    [button sizeToFit];
+    if (button.frame.size.width > frame.size.width) {
+        frame = button.frame;
+    }
+    [buttonsArray addObject: button];
     for (UIButton *bttn in buttonsArray) {
         bttn.contentHorizontalAlignment = UIControlContentHorizontalAlignmentLeft;
         bttn.frame = frame;
@@ -2877,6 +2894,12 @@
     
     actionPopoverView = [PopoverView showPopoverAtPoint: CGPointMake(self.view.bounds.size.width - 20, self.tableView.contentOffset.y) inView:self.view withViewArray: buttonsArray delegate:self];
     
+}
+
+-(void) toSocial {
+    [actionPopoverView dismiss];
+    SocialViewController *vc = [[SocialViewController alloc] initWithPlayer:player];
+    [self.navigationController pushViewController:vc animated:YES];
 }
 
 
@@ -2963,7 +2986,7 @@
         }
         
         dispatch_async(dispatch_get_main_queue(), ^{
-            WhosOnlineView *playersView = [[WhosOnlineView alloc] initWithFrame:CGRectMake(0, 0, 260, floor(self.view.frame.size.height*2/(3*44))*44)];
+            WhosOnlineView *playersView = [[WhosOnlineView alloc] initWithFrame:CGRectMake(0, 0, 285, floor(self.view.frame.size.height*2/(3*44))*44)];
             [playersView setPlayer: player];
             playersView.layer.cornerRadius = 5.0f;
             playersView.layer.borderWidth = 1.0f;
