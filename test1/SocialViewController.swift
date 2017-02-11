@@ -79,7 +79,7 @@ class SocialViewController: UIViewController, UITableViewDelegate, UITableViewDa
             bannerView!.frame = frame
             bannerView!.adUnitID = "ca-app-pub-3326997956703582/3285001842"
             let request = GADRequest()
-            request.testDevices = [kGADSimulatorID]
+//            request.testDevices = [kGADSimulatorID]
             bannerView!.load(request)
             self.view.addSubview(bannerView!)
         }

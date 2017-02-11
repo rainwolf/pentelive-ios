@@ -27,16 +27,16 @@ class LivePlayer: NSObject {
         }
         let textAttachment = NSTextAttachment()
         switch crown {
-        case 1:
-            textAttachment.image = UIImage(named:"crown.gif")
-        case 2:
-            textAttachment.image = UIImage(named:"scrown.gif")
-        case 3:
-            textAttachment.image = UIImage(named:"bcrown.gif")
-        case 4:
-            textAttachment.image = UIImage(named:"kothcrown.gif")
-        default:
-            break
+            case 1:
+                textAttachment.image = UIImage(named:"crown.gif")
+            case 2:
+                textAttachment.image = UIImage(named:"scrown.gif")
+            case 3:
+                textAttachment.image = UIImage(named:"bcrown.gif")
+            default:
+                if (crown > 3) {
+                    textAttachment.image = UIImage(named:"kothcrown\((crown-3))")
+                }
         }
         if crown > 0 {
             let crownStr = NSAttributedString(attachment: textAttachment)

@@ -99,11 +99,10 @@
             case 3:
                 textAttachment.image = [UIImage imageNamed:@"bcrown.gif"];
                 break;
-            case 4:
-                textAttachment.image = [UIImage imageNamed:@"kothcrown.gif"];
-                break;
-                
             default:
+                if (crown > 3) {
+                    textAttachment.image = [UIImage imageNamed: [NSString stringWithFormat:@"kothcrown%i", crown-3]];
+                }
                 break;
         }
         NSAttributedString *crownStr = [NSAttributedString attributedStringWithAttachment:textAttachment];
@@ -166,11 +165,10 @@
             case 3:
                 textAttachment.image = [UIImage imageNamed:@"bcrown.gif"];
                 break;
-            case 4:
-                textAttachment.image = [UIImage imageNamed:@"kothcrown.gif"];
-                break;
-                
             default:
+                if (crown > 3) {
+                    textAttachment.image = [UIImage imageNamed: [NSString stringWithFormat:@"kothcrown%i", crown-3]];
+                }
                 break;
         }
         NSAttributedString *crownStr = [NSAttributedString attributedStringWithAttachment:textAttachment];
