@@ -65,11 +65,11 @@
     Player *playr = [[rooms objectAtIndex:indexPath.section].players objectAtIndex:indexPath.row];
     if ([[[rooms objectAtIndex:indexPath.section] name] isEqualToString:@"Mobile"]) {
         cell.backgroundColor = [UIColor colorWithRed: 222.0/256 green:236.0/256 blue:222.0/256 alpha:1];
-        [cell setUserInteractionEnabled:YES];
+//        [cell setUserInteractionEnabled:YES];
     } else {
 //        [cell setAccessoryType:UITableViewCellAccessoryNone];
         cell.backgroundColor = [UIColor whiteColor];
-        [cell setUserInteractionEnabled:NO];
+//        [cell setUserInteractionEnabled:NO];
     }
     [cell setAccessoryType:UITableViewCellAccessoryDisclosureIndicator];
     NSMutableString *txtStr = [[NSMutableString alloc] initWithString: [playr name]];
@@ -135,8 +135,14 @@
 }
 
 -(void) tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    
-    [vc toInvitationsWithPlayer:[[rooms objectAtIndex:indexPath.section].players objectAtIndex:indexPath.row].name];
+    if ([[self tableView:tableView titleForHeaderInSection:indexPath.section] isEqualToString:@"Mobile"]) {
+        [vc toInvitationsWithPlayer:[[rooms objectAtIndex:indexPath.section].players objectAtIndex:indexPath.row].name];
+    } else {
+        SVWebViewController *webVC = [[SVWebViewController alloc] initWithURL:[NSURL URLWithString: [NSString stringWithFormat:@"https://www.pente.org/gameServer/profile?viewName=%@", [[rooms objectAtIndex:indexPath.section].players objectAtIndex:indexPath.row].name]]];
+        [vc.navigationController pushViewController:webVC animated:YES];
+        [vc.actionPopoverView dismiss];
+    }
+
 
 //    NSString *username = [[NSUserDefaults standardUserDefaults] objectForKey:@"username"];
 //    NSString *game = nil;

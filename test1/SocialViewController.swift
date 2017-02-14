@@ -17,7 +17,7 @@ import UIKit
 
 class SocialViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, GADBannerViewDelegate, GADInterstitialDelegate, UIPickerViewDelegate, UIPickerViewDataSource {
     
-    let segmentControl = UISegmentedControl(items: [NSLocalizedString("followers", comment: ""), NSLocalizedString("following", comment: "")])
+    let segmentControl = UISegmentedControl(items: [NSLocalizedString("following", comment: ""), NSLocalizedString("followers", comment: "")])
     var refreshControl = UIRefreshControl()
     var tableView: UITableView = UITableView()
     var showAds = true
@@ -119,9 +119,9 @@ class SocialViewController: UIViewController, UITableViewDelegate, UITableViewDa
         return 1
     }
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        segmentControl.setTitle("\(NSLocalizedString("followers", comment: "")) (\(followers.count))", forSegmentAt: 0)
-        segmentControl.setTitle("\(NSLocalizedString("following", comment: "")) (\(following.count))", forSegmentAt: 1)
-        if segmentControl.selectedSegmentIndex == 0 {
+        segmentControl.setTitle("\(NSLocalizedString("following", comment: "")) (\(following.count))", forSegmentAt: 0)
+        segmentControl.setTitle("\(NSLocalizedString("followers", comment: "")) (\(followers.count))", forSegmentAt: 1)
+        if segmentControl.selectedSegmentIndex == 1 {
             return followers.count
         } else {
             return following.count
@@ -131,7 +131,7 @@ class SocialViewController: UIViewController, UITableViewDelegate, UITableViewDa
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "playerCell") ?? PlayerTableCell(style: .value1, reuseIdentifier: "playerCell")
         let player: LivePlayer
-        if segmentControl.selectedSegmentIndex == 0 {
+        if segmentControl.selectedSegmentIndex == 1 {
             player = followers[indexPath.row]
         } else {
             player = following[indexPath.row]
@@ -158,7 +158,7 @@ class SocialViewController: UIViewController, UITableViewDelegate, UITableViewDa
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         var playerName: String
-        if segmentControl.selectedSegmentIndex == 0 {
+        if segmentControl.selectedSegmentIndex == 1 {
             playerName = followers[indexPath.row].name
         } else {
             playerName = following[indexPath.row].name
@@ -169,7 +169,7 @@ class SocialViewController: UIViewController, UITableViewDelegate, UITableViewDa
     
     
     func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
-        if segmentControl.selectedSegmentIndex == 1 {
+        if segmentControl.selectedSegmentIndex == 0 {
             return true
         }
         return false
