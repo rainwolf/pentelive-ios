@@ -274,25 +274,34 @@ class RoomViewController: UIViewController, UITableViewDelegate, UITableViewData
         }
     }
     func joinMainRoomEvent(event: [String: Any]) {
+//        print(event)
         let playerName = event["player"] as! String
         let playerData = event["dsgPlayerData"] as! [String:Any]
         let gameData: [[String:AnyObject]] = playerData["gameData"] as! [[String:AnyObject]]
         let player = LivePlayer(name: playerName)
+        var myCrown = 0
+        var myKotHCrown = 0
         for singleGame in gameData {
             if (singleGame["computer"] as! String) == "N" {
                 player.ratings.updateValue(Int(singleGame["rating"] as! Double), forKey: singleGame["game"] as! Int)
                 let tourneyWinner = singleGame["tourneyWinner"] as! Int
                 if tourneyWinner != 0 {
-                    if player.crown != 0 {
-                        player.crown = min(tourneyWinner, player.crown)
-                    } else {
-                        player.crown = tourneyWinner
+                    if tourneyWinner == 4 {
+                        myKotHCrown = myKotHCrown + 1
+                    } else if myCrown == 0 {
+                        myCrown = tourneyWinner
+                    } else if tourneyWinner < myCrown {
+                        myCrown = tourneyWinner
                     }
                 }
             }
         }
-        if wantsToSeeAvatars {
-            pentePlayer.addUser(playerName)
+        if myCrown > 0 {
+            player.crown = myCrown
+        } else if myKotHCrown > 0 {
+            player.crown = myKotHCrown + 3
+        } else {
+            player.crown = 0
         }
         if let colorData = (playerData["nameColor"] as? [String:AnyObject]) {
             let colorInt = colorData["value"] as! Int
@@ -302,6 +311,9 @@ class RoomViewController: UIViewController, UITableViewDelegate, UITableViewData
         }
 //        player.color = UIColor.black
         player.subscriber = playerData["unlimitedTBGames"] as! Bool
+        if wantsToSeeAvatars && player.subscriber {
+            pentePlayer.addUser(playerName)
+        }
         DispatchQueue.main.async {
             AudioServicesPlaySystemSound(self.newplayerSndID)
             self.playersAndTables.addPlayer(player: player)
@@ -314,18 +326,29 @@ class RoomViewController: UIViewController, UITableViewDelegate, UITableViewData
         let gameData: [[String:AnyObject]] = playerData["gameData"] as! [[String:AnyObject]]
         let playerName = playerData["name"] as! String
         let player = LivePlayer(name: playerName)
+        var myCrown = 0
+        var myKotHCrown = 0
         for singleGame in gameData {
             if (singleGame["computer"] as! String) == "N" {
                 player.ratings.updateValue(Int(singleGame["rating"] as! Double), forKey: singleGame["game"] as! Int)
                 let tourneyWinner = singleGame["tourneyWinner"] as! Int
                 if tourneyWinner != 0 {
-                    if player.crown != 0 {
-                        player.crown = min(tourneyWinner, player.crown)
-                    } else {
-                        player.crown = tourneyWinner
+                    if tourneyWinner == 4 {
+                        myKotHCrown = myKotHCrown + 1
+                    } else if myCrown == 0 {
+                        myCrown = tourneyWinner
+                    } else if tourneyWinner < myCrown {
+                        myCrown = tourneyWinner
                     }
                 }
             }
+        }
+        if myCrown > 0 {
+            player.crown = myCrown
+        } else if myKotHCrown > 0 {
+            player.crown = myKotHCrown + 3
+        } else {
+            player.crown = 0
         }
         if let colorData = (playerData["nameColor"] as? [String:AnyObject]) {
             let colorInt = colorData["value"] as! Int

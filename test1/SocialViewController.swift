@@ -259,7 +259,7 @@ class SocialViewController: UIViewController, UITableViewDelegate, UITableViewDa
                     } else {
                         followers.append(player)
                     }
-                    if wantsToSeeAvatars {
+                    if wantsToSeeAvatars && player.subscriber {
                         pentePlayer.addUser(player.name)
                     }
                 }

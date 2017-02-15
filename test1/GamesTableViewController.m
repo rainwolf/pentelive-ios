@@ -2136,7 +2136,40 @@
         [defaults setBool:YES forKey:@"registrationSuccess"];
     }
 
-    showAds = ([dashboardString rangeOfString:@"No Ads"].location == NSNotFound) || ([dashboardString rangeOfString:@"No Ads"].location > 30);
+    
+    NSArray *splitDash = [dashboardString componentsSeparatedByString:@"\n"];
+    NSString *dashLine;
+    NSArray *splitLine;
+//            NSLog(@"result: %@",dashboardString);
+    
+        NSMutableArray *sectionItems;
+        NSMutableArray *indexSet;
+    int dashIDX = 0;
+//    while ((dashIDX < [splitDash count]) && (![[splitDash objectAtIndex:dashIDX] isEqualToString: @"EndOfSettingsParameters"])) {
+//        if ([[splitDash objectAtIndex:dashIDX] rangeOfString:@"tbGamesLimit"].location != NSNotFound) {
+//            dashLine = [splitDash objectAtIndex:dashIDX];
+//            splitLine = [dashLine componentsSeparatedByString:@";"];
+//            gamesLimit = [[splitLine objectAtIndex:1] intValue];
+//            if (gamesLimit == 0) {
+//                gamesLimit = 200;
+//            }
+////            NSLog(@"kitty");
+//        }
+//        dashIDX++;
+//    }
+
+        while ((dashIDX < [splitDash count]) && ([[splitDash objectAtIndex:dashIDX] rangeOfString: [username lowercaseString]].location != 0)) {
+            dashIDX++;
+        }
+        if ((dashIDX < [splitDash count]) && ([[splitDash objectAtIndex:dashIDX] rangeOfString: [username lowercaseString]].location == 0)) {
+            dashLine = [splitDash objectAtIndex:dashIDX];
+            splitLine = [dashLine componentsSeparatedByString:@";"];
+            [player setMyColor:UIColorFromRGB([[splitLine objectAtIndex:1] intValue])];
+            showAds = ![[splitLine objectAtIndex:2] isEqualToString:@"NoAds"];
+            [player setShowAds: showAds];
+            [player setSubscriber: [[splitLine objectAtIndex:3] isEqualToString:@"subscriber"]];
+        }
+//        showAds = ([dashboardString rangeOfString:@"No Ads"].location == NSNotFound) || ([dashboardString rangeOfString:@"No Ads"].location > 30);
         if (showAds && bannerView == nil) {
             CGPoint origin = CGPointMake(0.0, self.view.frame.size.height - self.navigationController.navigationBar.frame.size.height - kGADAdSizeBanner.size.height);
             bannerView = [[GADBannerView alloc] initWithAdSize:kGADAdSizeBanner origin:origin];
@@ -2152,56 +2185,28 @@
             //    bannerView.adUnitID = @"567b72e8189a488c";
             bannerView.adUnitID = @"ca-app-pub-3326997956703582/8641559446";
             GADRequest *request = [GADRequest request];
-//            request.testDevices = [NSArray arrayWithObjects:@"simulator", nil];
-//            request.testDevices = [NSArray arrayWithObjects:kGADSimulatorID, nil];
+            //            request.testDevices = [NSArray arrayWithObjects:@"simulator", nil];
+            //            request.testDevices = [NSArray arrayWithObjects:kGADSimulatorID, nil];
             [bannerView loadRequest:request];
-
+            
             self.interstitial = [[GADInterstitial alloc] initWithAdUnitID:@"ca-app-pub-3326997956703582/8641559446"];
             [self.interstitial setDelegate:self];
             //    [self.interstitial setAdUnitID:@"567b72e8189a488c"];
             [self.interstitial loadRequest:[GADRequest request]];
         }
-    [player setShowAds: showAds];
-    [player setSubscriber: ([dashboardString rangeOfString:@"tb GamesLimit"].location == NSNotFound) || ([dashboardString rangeOfString:@"tb GamesLimit"].location > 30)];
+//        [player setShowAds: showAds];
+//        [player setSubscriber: ([dashboardString rangeOfString:@"tb GamesLimit"].location == NSNotFound) || ([dashboardString rangeOfString:@"tb GamesLimit"].location > 30)];
         if ([player subscriber]) {
             [[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"shouldSendReceipt"];
         }
-    if (([dashboardString rangeOfString:@"Unlimited Games"].location != NSNotFound) && ([dashboardString rangeOfString:@"Unlimited Games"].location < 30)) {
-        gamesLimit = INT_MAX;
-    }
-    if (!showAds) {
-        [bannerView removeFromSuperview];
-        [self.tableView setTableFooterView:nil];
-    }
-    
-    NSArray *splitDash = [dashboardString componentsSeparatedByString:@"\n"];
-    NSString *dashLine;
-    NSArray *splitLine;
-//            NSLog(@"result: %@",dashboardString);
-    
-        NSMutableArray *sectionItems;
-        NSMutableArray *indexSet;
-    int dashIDX = 0;
-    while ((dashIDX < [splitDash count]) && (![[splitDash objectAtIndex:dashIDX] isEqualToString: @"EndOfSettingsParameters"])) {
-        if ([[splitDash objectAtIndex:dashIDX] rangeOfString:@"tbGamesLimit"].location != NSNotFound) {
-            dashLine = [splitDash objectAtIndex:dashIDX];
-            splitLine = [dashLine componentsSeparatedByString:@";"];
-            gamesLimit = [[splitLine objectAtIndex:1] intValue];
-            if (gamesLimit == 0) {
-                gamesLimit = 200;
-            }
-//            NSLog(@"kitty");
+        if (([dashboardString rangeOfString:@"Unlimited Games"].location != NSNotFound) && ([dashboardString rangeOfString:@"Unlimited Games"].location < 30)) {
+            gamesLimit = INT_MAX;
+        } else {
+            gamesLimit = 200;
         }
-        dashIDX++;
-    }
-
-        while ((dashIDX < [splitDash count]) && ([[splitDash objectAtIndex:dashIDX] rangeOfString: [username lowercaseString]].location != 0)) {
-            dashIDX++;
-        }
-        if ((dashIDX < [splitDash count]) && ([[splitDash objectAtIndex:dashIDX] rangeOfString: [username lowercaseString]].location == 0)) {
-            dashLine = [splitDash objectAtIndex:dashIDX];
-            splitLine = [dashLine componentsSeparatedByString:@";"];
-            [player setMyColor:UIColorFromRGB([[splitLine objectAtIndex:1] intValue])];
+        if (!showAds) {
+            [bannerView removeFromSuperview];
+            [self.tableView setTableFooterView:nil];
         }
 
         sectionItems = [[NSMutableArray alloc] init];
