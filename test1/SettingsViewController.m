@@ -9,9 +9,9 @@
 #import "SettingsViewController.h"
 #import "IASKSettingsReader.h"
 #import "GamesTableViewController.h"
-#import "SVWebViewController.h"
 #import "ChangeColorViewController.h"
 #import "RMStore.h"
+#import "PenteLive-swift.h"
 
 
 #define usernameKey @"username"
@@ -370,15 +370,15 @@
         return;
     }
     if ([specifier.key isEqualToString:@"GameRulesButton"]) {
-        SVWebViewController *webViewController = [[SVWebViewController alloc] initWithAddress: @"https://www.pente.org/help/playGameRulesMobile.jsp"];
+        PenteWebViewController *webViewController = [[PenteWebViewController alloc] initWithAddress: @"https://www.pente.org/help/playGameRulesMobile.jsp"];
         [self.navigationController pushViewController:webViewController animated:YES];
     }
     if ([specifier.key isEqualToString:@"penteOrgPreferencesButton"]) {
-        SVWebViewController *webViewController = [[SVWebViewController alloc] initWithAddress: @"https://www.pente.org/gameServer/myprofile/prefs"];
+        PenteWebViewController *webViewController = [[PenteWebViewController alloc] initWithAddress: @"https://www.pente.org/gameServer/myprofile/prefs"];
         [self.navigationController pushViewController:webViewController animated:YES];
     }
     if ([specifier.key isEqualToString:@"penteOrgPrivacyPolicyButton"]) {
-        SVWebViewController *webViewController = [[SVWebViewController alloc] initWithAddress: @"https://www.pente.org/help/helpWindow.jsp?file=privacyPolicy"];
+        PenteWebViewController *webViewController = [[PenteWebViewController alloc] initWithAddress: @"https://www.pente.org/help/helpWindow.jsp?file=privacyPolicy"];
         [self.navigationController pushViewController:webViewController animated:YES];
     }
     if ([specifier.key isEqualToString:@"changeColorButton"]) {

@@ -26,7 +26,9 @@
 
 @end
 
-@interface GamesTableViewController : UIPullToReloadTableViewController <UIGestureRecognizerDelegate, GADBannerViewDelegate, GADInterstitialDelegate, NSURLConnectionDelegate, PopoverViewDelegate> {
+@interface GamesTableViewController : UIPullToReloadTableViewController <UIGestureRecognizerDelegate,
+                GADBannerViewDelegate, GADInterstitialDelegate, NSURLConnectionDelegate,
+                PopoverViewDelegate, UIWebViewDelegate> {
     PentePlayer *player;
     Game *selectedGame;
     BoardViewController *boardController;
@@ -76,6 +78,7 @@ sentInvitationsCollapsed, nonActiveGamesCollapsed, alreadyAskedAboutInvitations,
 -(void) dashboardParse;
 -(void) parseMessages;
 -(void) toInvitationsWithPlayer: (NSString *) playerName;
+- (BOOL)webView:(UIWebView *)webView shouldStartLoadWithRequest:(NSURLRequest *)request navigationType:(UIWebViewNavigationType)navigationType;
 
 
 @end

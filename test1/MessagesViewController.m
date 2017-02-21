@@ -9,7 +9,7 @@
 #import "MessagesViewController.h"
 #import <QuartzCore/QuartzCore.h>
 #import "InvitationsViewController.h"
-#import "SVWebViewController.h"
+#import "PenteLive-swift.h"
 
 #define IS_IPHONE_5 ( fabs( ( double )[ [ UIScreen mainScreen ] bounds ].size.height - ( double )568 ) < DBL_EPSILON )
 #define usernameKey @"username"
@@ -861,7 +861,7 @@ InvitationsViewController *invitationVC;
 
         return NO;
     } else {
-        SVWebViewController *webViewController = [[SVWebViewController alloc] initWithAddress: urlString];
+        PenteWebViewController *webViewController = [[PenteWebViewController alloc] initWithAddress: urlString];
         [self.navigationController pushViewController:webViewController animated:YES];
         return NO;
     }

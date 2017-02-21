@@ -163,7 +163,7 @@ class SocialViewController: UIViewController, UITableViewDelegate, UITableViewDa
         } else {
             playerName = following[indexPath.row].name
         }
-        let vc = SVWebViewController(address: "https://www.pente.org/gameServer/profile?viewName=\(playerName)")
+        let vc = PenteWebViewController(address: "https://www.pente.org/gameServer/profile?viewName=\(playerName)")
         self.navigationController?.pushViewController(vc!, animated: true)
     }
     

@@ -9,3 +9,4 @@
 #import "TSMessageView.h"
 #import "PopoverView.h"
 #import "SVWebViewController.h"
+#import "BoardViewController.h"

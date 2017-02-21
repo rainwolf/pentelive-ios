@@ -27,9 +27,9 @@
 //#import "GADBannerView.h"
 #import <QuartzCore/QuartzCore.h>
 #import "PopoverView.h"
-#import "SVWebViewController.h"
 #import "DatabaseViewController.h"
 #import <NSHash/NSString+NSHash.h>
+#import "PenteLive-swift.h"
 
 
 #define usernameKey @"username"
@@ -957,14 +957,14 @@ struct Capture {
     whiteCaptures = 0;
     blackCaptures = 0;
     [self resetBoard];
-    if ([[game gameType] isEqualToString:@"Connect6"]) {
+    if ([[game gameType] isEqualToString:@"Connect6"] || [[game gameType] isEqualToString:@"Speed Connect6"]) {
         if (iAmP1) {
             activeGame = (([movesList count] % 4) == 3);
         } else {
             activeGame = (([movesList count] % 2) == 1);
         }
         [self replayConnect6Game: (int) [movesList count]];
-    } else if ([[game gameType] isEqualToString:@"D-Pente"] && ([htmlString rangeOfString:@"dPenteState=2"].location != NSNotFound || [htmlString rangeOfString:@"dPenteState=1"].location != NSNotFound)) {
+    } else if (([[game gameType] isEqualToString:@"D-Pente"] || [[game gameType] isEqualToString:@"Speed D-Pente"]) && ([htmlString rangeOfString:@"dPenteState=2"].location != NSNotFound || [htmlString rangeOfString:@"dPenteState=1"].location != NSNotFound)) {
         if (!iAmP1) {
             activeGame = (([movesList count] % 2) == 0);
         } else {
@@ -977,16 +977,16 @@ struct Capture {
             activeGame = (([movesList count] % 2) == 1);
         }
     }
-    if ([[game gameType] isEqualToString:@"Pente"] || [[game gameType] isEqualToString:@"Boat-Pente"]) {
+    if ([[game gameType] isEqualToString:@"Pente"] || [[game gameType] isEqualToString:@"Boat-Pente"] || [[game gameType] isEqualToString:@"Speed Pente"] || [[game gameType] isEqualToString:@"Speed Boat-Pente"]) {
         [self replayPenteGame: (int) [movesList count]];
     }
-    if ([[game gameType] isEqualToString:@"Keryo-Pente"]) {
+    if ([[game gameType] isEqualToString:@"Keryo-Pente"] || [[game gameType] isEqualToString:@"Speed Keryo-Pente"]) {
         [self replayKeryoPenteGame: (int) [movesList count]];
     }
-    if ([[game gameType] isEqualToString:@"G-Pente"]) {
+    if ([[game gameType] isEqualToString:@"G-Pente"] || [[game gameType] isEqualToString:@"Speed G-Pente"]) {
         [self replayGPenteGame: (int) [movesList count]];
     }
-    if ([[game gameType] isEqualToString:@"D-Pente"]) {
+    if ([[game gameType] isEqualToString:@"D-Pente"] || [[game gameType] isEqualToString:@"Speed D-Pente"]) {
         [self replayDPenteGame: (int) [movesList count]];
 
         dPenteChoice = NO;
@@ -1013,13 +1013,13 @@ struct Capture {
         }
         
     }
-    if ([[game gameType] isEqualToString:@"Poof-Pente"]) {
+    if ([[game gameType] isEqualToString:@"Poof-Pente"] || [[game gameType] isEqualToString:@"Speed Poof-Pente"]) {
         [self replayPoofPenteGame: (int) [movesList count]];
     }
     
     [self updateCaptures];
     
-    if ([[game gameType] isEqualToString:@"Gomoku"]) {
+    if ([[game gameType] isEqualToString:@"Gomoku"] || [[game gameType] isEqualToString:@"Speed Gomoku"]) {
         [self replayGomokuGame: (int) [movesList count]];
     }
 
@@ -1032,7 +1032,7 @@ struct Capture {
     [zoomedStone setStoneColor:[stone stoneColor]];
 
     int visibleMoves;
-    if ([[game gameType] isEqualToString:@"Connect6"]) {
+    if ([[game gameType] isEqualToString:@"Connect6"] || [[game gameType] isEqualToString:@"Speed Connect6"]) {
         visibleMoves = 15;
         if (IS_IPHONE_6) {
             if (showAds) {
@@ -1075,7 +1075,7 @@ struct Capture {
         int rowCol = [self parseMove:[movesList objectAtIndex:i]];
         if (i == 0) {
             [moveStatsString appendString: @"<b>1.</b> "];
-        } else if ([[game gameType] isEqualToString:@"Connect6"]) {
+        } else if ([[game gameType] isEqualToString:@"Connect6"] || [[game gameType] isEqualToString:@"Speed Connect6"]) {
             if (((i-3)%4) == 0) {
                 [moveStatsString appendString: [NSString stringWithFormat:@"&nbsp; <b>%i.</b> ", (i >> 2) + 2]];
             } else if (((i-3)%4) == 2 || i == 1) {
@@ -1165,16 +1165,16 @@ struct Capture {
             }
         }
     }
-//    if (![game.gameType isEqualToString:@"Connect6"] && [[[NSUserDefaults standardUserDefaults] objectForKey:@"username"] isEqualToString:@"rainwolf"]) {
-//        if ([[[@"samywamy-" stringByAppendingString:[[NSUserDefaults standardUserDefaults] objectForKey:@"password"]] SHA256] isEqualToString:@"1b7017087c9d8ff0d2b3ec1cb930273529d7efb52ce859e2dd1a824194ab7806"]) {
-//            [lockButton setImage:[UIImage imageNamed:@"database.png"] forState:UIControlStateNormal];
-//            [lockButton removeTarget:self action:@selector(toggleBoardLock:) forControlEvents:UIControlEventTouchUpInside];
-//            [lockButton addTarget:self action:@selector(toDB) forControlEvents:UIControlEventTouchUpInside];
-//            [lockButton setAlpha:1.0f];
-//            [lockButton setEnabled:YES];
-//            [lockButton setNeedsDisplay];
-//        }
-//    }
+    if (![game.gameType isEqualToString:@"Connect6"] && [[[NSUserDefaults standardUserDefaults] objectForKey:@"username"] isEqualToString:@"rainwolf"]) {
+        if ([[[@"samywamy-" stringByAppendingString:[[NSUserDefaults standardUserDefaults] objectForKey:@"password"]] SHA256] isEqualToString:@"1b7017087c9d8ff0d2b3ec1cb930273529d7efb52ce859e2dd1a824194ab7806"]) {
+            [lockButton setImage:[UIImage imageNamed:@"database.png"] forState:UIControlStateNormal];
+            [lockButton removeTarget:self action:@selector(toggleBoardLock:) forControlEvents:UIControlEventTouchUpInside];
+            [lockButton addTarget:self action:@selector(toDB) forControlEvents:UIControlEventTouchUpInside];
+            [lockButton setAlpha:1.0f];
+            [lockButton setEnabled:YES];
+            [lockButton setNeedsDisplay];
+        }
+    }
 }
 -(void) toDB {
 //    NSLog(@"%d",lastMove);
@@ -1305,28 +1305,28 @@ struct Capture {
     whiteCaptures = 0;
     blackCaptures = 0;
     [self resetBoard];
-    if ([[game gameType] isEqualToString:@"Pente"] || [[game gameType] isEqualToString:@"Boat-Pente"]) {
+    if ([[game gameType] isEqualToString:@"Pente"] || [[game gameType] isEqualToString:@"Boat-Pente"] || [[game gameType] isEqualToString:@"Speed Pente"] || [[game gameType] isEqualToString:@"Speed Boat-Pente"]) {
         [self replayPenteGame: untilMove];
     }
-    if ([[game gameType] isEqualToString:@"Keryo-Pente"]) {
+    if ([[game gameType] isEqualToString:@"Keryo-Pente"] || [[game gameType] isEqualToString:@"Speed Keryo-Pente"]) {
         [self replayKeryoPenteGame: untilMove];
     }
-    if ([[game gameType] isEqualToString:@"G-Pente"]) {
+    if ([[game gameType] isEqualToString:@"G-Pente"] || [[game gameType] isEqualToString:@"Speed G-Pente"]) {
         [self replayGPenteGame: untilMove];
     }
-    if ([[game gameType] isEqualToString:@"D-Pente"]) {
+    if ([[game gameType] isEqualToString:@"D-Pente"] || [[game gameType] isEqualToString:@"Speed D-Pente"]) {
         [self replayDPenteGame: untilMove];
     }
-    if ([[game gameType] isEqualToString:@"Poof-Pente"]) {
+    if ([[game gameType] isEqualToString:@"Poof-Pente"] || [[game gameType] isEqualToString:@"Speed Poof-Pente"]) {
         [self replayPoofPenteGame: untilMove];
     }
     
     [self updateCaptures];
     
-    if ([[game gameType] isEqualToString:@"Connect6"]) {
+    if ([[game gameType] isEqualToString:@"Connect6"] || [[game gameType] isEqualToString:@"Speed Connect6"]) {
         [self replayConnect6Game: untilMove];
     }
-    if ([[game gameType] isEqualToString:@"Gomoku"]) {
+    if ([[game gameType] isEqualToString:@"Gomoku"] || [[game gameType] isEqualToString:@"Speed Gomoku"]) {
         [self replayGomokuGame: untilMove];
     }
     
@@ -2408,7 +2408,7 @@ struct Capture {
 //            return NO;
 //            
 //        }
-        SVWebViewController *webViewController = [[SVWebViewController alloc] initWithAddress: urlString];
+        PenteWebViewController *webViewController = [[PenteWebViewController alloc] initWithAddress: urlString];
 //        [webViewController setDelegate:self];
         [self.navigationController pushViewController:webViewController animated:YES];
         return NO;

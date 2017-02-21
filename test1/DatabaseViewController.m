@@ -27,11 +27,11 @@
 //#import "GADBannerView.h"
 #import <QuartzCore/QuartzCore.h>
 #import "PopoverView.h"
-#import "SVWebViewController.h"
 #import "TSMessage.h"
 #import "TSMessageView.h"
 #import "MMAI.h"
 #import "BoardViewController.h"
+#import "PenteLive-swift.h"
 
 
 
@@ -739,25 +739,11 @@ struct Capture {
         if ([urlString rangeOfString:@"mobile&g="].location != NSNotFound) {
             
             NSString *gameStr = [urlString substringFromIndex:[urlString rangeOfString:@"="].location + 1];
-            if ([gameStr length] == 14 && [gameStr rangeOfString:@"5"].location != 0) {
-                SVWebViewController *webViewController = [[SVWebViewController alloc] initWithAddress: urlString];
-                //        [webViewController setDelegate:self];
-                [self.navigationController pushViewController:webViewController animated:YES];
-                return NO;
-            }
             [self performSegueWithIdentifier:@"viewGameSegue" sender:self];
-            //        NSLog(@"kittyy %@", gameStr);
             Game *gameObj = [[Game alloc] init];
             [gameObj setGameID: gameStr];
-            //        [game setGameType:@"Connect6"];
-//            [game setOpponentName:author];
             [gameObj setRemainingTime:@"0 days"];
-            //        [game setOpponentRating:[splitLine objectAtIndex:3]];
-            //        [game setMyColor:[splitLine objectAtIndex:4]];
-            //        [game setRemainingTime:[splitLine objectAtIndex:5]];
-            //        [game setRatedNot:[splitLine objectAtIndex:6]];
-            //        [game setNameColor: UIColorFromRGB([[splitLine objectAtIndex:7] intValue])];
-            
+
             [boardController setShowAds: showAds];
             [boardController setActiveGame:NO];
             [boardController setGame:gameObj];
@@ -766,26 +752,7 @@ struct Capture {
             return NO;
             
         }
-        //        if ([urlString rangeOfString:@"mobile&g="].location != NSNotFound) {
-        //            [self performSegueWithIdentifier:@"viewGameTap" sender:self];
-        //            BoardViewController *boardController = [[BoardViewController alloc] init];
-        //
-        //            NSString *gameStr = [urlString substringFromIndex:[urlString rangeOfString:@"="].location + 1];
-        //            Game *game = [[Game alloc] init];
-        //            [game setGameID: gameStr];
-        ////            [game setOpponentName:author];
-        //            [game setRemainingTime:@"0 days"];
-        //
-        //            [boardController setShowAds: showAds];
-        //            [boardController setActiveGame:NO];
-        //            [boardController setGame:game];
-        //            [boardController replayGame];
-        //            [[boardController boardTapRecognizer] setEnabled: NO];
-        //            return NO;
-        //
-        //        }
-        SVWebViewController *webViewController = [[SVWebViewController alloc] initWithAddress: urlString];
-        //        [webViewController setDelegate:self];
+        PenteWebViewController *webViewController = [[PenteWebViewController alloc] initWithAddress: urlString];
         [self.navigationController pushViewController:webViewController animated:YES];
         return NO;
     }

@@ -8,7 +8,7 @@
 
 #import "KOTHTableViewController.h"
 #import "PenteNavigationViewController.h"
-#import "SVWebViewController.h"
+#import "PenteLive-swift.h"
 
 @interface PlayerTableViewCell : UITableViewCell {
     UILabel *ratingLabel;
@@ -633,7 +633,7 @@
 
 -(void) loadWebsiteHill {
     NSString *urlString = [NSString stringWithFormat:@"https://www.pente.org/gameServer/stairs.jsp?game=%i", hillSummary.gameId];
-    SVWebViewController *webViewController = [[SVWebViewController alloc] initWithAddress: urlString];
+    PenteWebViewController *webViewController = [[PenteWebViewController alloc] initWithAddress: urlString];
     [self.navigationController pushViewController:webViewController animated:YES];
 }
 

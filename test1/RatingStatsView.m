@@ -7,7 +7,8 @@
 //
 
 #import "RatingStatsView.h"
-#import "SVWebViewController.h"
+#import "PenteLive-swift.h"
+
 
 @implementation RatingStatsView
 @synthesize ratingStats;
@@ -79,7 +80,7 @@
 //        gameInt += 50;
 //    }
     NSString *urlString = [NSString stringWithFormat:@"https://www.pente.org/gameServer/viewLiveGames?p=%@&g=%i", username, gameInt];
-    SVWebViewController *webViewController = [[SVWebViewController alloc] initWithAddress: urlString];
+    PenteWebViewController *webViewController = [[PenteWebViewController alloc] initWithAddress: urlString];
     [vc.actionPopoverView dismiss];
     [vc.navigationController pushViewController:webViewController animated:YES];
 

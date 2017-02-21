@@ -12,7 +12,6 @@
 #import <QuartzCore/QuartzCore.h>
 #import "BoardView.h"
 #import "RatingStatsView.h"
-#import "SVWebViewController.h"
 #import "MMAIViewController.h"
 #import "KOTHTableViewController.h"
 #import "WhosOnlineView.h"
@@ -1433,7 +1432,7 @@
             url = [NSString stringWithFormat:@"https://www.pente.org/gameServer/tournaments/statusRound.jsp?eid=%@&round=%@", [[[player tournaments] objectAtIndex: indexPath.row] tournamentID], [[[player tournaments] objectAtIndex: indexPath.row] round]];
 //            url = [NSString stringWithFormat:@"https://development.pente.org/gameServer/tournaments/statusRound.jsp?eid=%@&round=%@", [[[player tournaments] objectAtIndex: indexPath.row] tournamentID], [[[player tournaments] objectAtIndex: indexPath.row] round]];
         }
-        SVWebViewController *webViewController = [[SVWebViewController alloc] initWithAddress: url];
+        PenteWebViewController *webViewController = [[PenteWebViewController alloc] initWithAddress: url];
         [self.navigationController pushViewController:webViewController animated:YES];
 
     }
@@ -3211,6 +3210,31 @@
 //    [challenge.sender continueWithoutCredentialForAuthenticationChallenge:challenge];
 //}
 
+- (BOOL)webView:(UIWebView *)webView shouldStartLoadWithRequest:(NSURLRequest *)request navigationType:(UIWebViewNavigationType)navigationType {
+    if ( navigationType == UIWebViewNavigationTypeLinkClicked || navigationType == UIWebViewNavigationTypeOther) {
+        NSString *urlString = [[request URL] absoluteString];
+        NSLog(@"kittyy %@", urlString);
+        
+        if ([urlString rangeOfString:@"mobile&g="].location != NSNotFound) {
+            
+            NSString *gameStr = [urlString substringFromIndex:[urlString rangeOfString:@"="].location + 1];
+            [self performSegueWithIdentifier:@"gameTap" sender:self];
+//                    NSLog(@"kittyy %@", gameStr);
+            Game *gameObj = [[Game alloc] init];
+            [gameObj setGameID: gameStr];
+            [gameObj setRemainingTime:@"0 days"];
+            
+            [boardController setShowAds: showAds];
+            [boardController setActiveGame:NO];
+            [boardController setGame:gameObj];
+            [boardController replayGame];
+            [[boardController boardTapRecognizer] setEnabled: NO];
+            return NO;
+        }
+        return YES;
+    }
+    return YES;
+}
 
 - (void)viewDidUnload {
     [super viewDidUnload];

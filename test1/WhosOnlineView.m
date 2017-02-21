@@ -17,7 +17,8 @@
 //
 
 #import "WhosOnlineView.h"
-#import "SVWebViewController.h"
+
+#import "penteLive-Swift.h"
 
 //@implementation Player
 //@synthesize playerName, rating;
@@ -138,7 +139,7 @@
     if ([[self tableView:tableView titleForHeaderInSection:indexPath.section] isEqualToString:@"Mobile"]) {
         [vc toInvitationsWithPlayer:[[rooms objectAtIndex:indexPath.section].players objectAtIndex:indexPath.row].name];
     } else {
-        SVWebViewController *webVC = [[SVWebViewController alloc] initWithURL:[NSURL URLWithString: [NSString stringWithFormat:@"https://www.pente.org/gameServer/profile?viewName=%@", [[rooms objectAtIndex:indexPath.section].players objectAtIndex:indexPath.row].name]]];
+        PenteWebViewController *webVC = [[PenteWebViewController alloc] initWithURL:[NSURL URLWithString: [NSString stringWithFormat:@"https://www.pente.org/gameServer/profile?viewName=%@", [[rooms objectAtIndex:indexPath.section].players objectAtIndex:indexPath.row].name]]];
         [vc.navigationController pushViewController:webVC animated:YES];
         [vc.actionPopoverView dismiss];
     }
