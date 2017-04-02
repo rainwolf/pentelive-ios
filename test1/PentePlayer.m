@@ -84,6 +84,8 @@
     }
     if (![nameColor isEqual:UIColorFromRGB(0)]) {
         [txtStr addAttribute:NSFontAttributeName value: [UIFont fontWithName:@"HelveticaNeue-Bold" size:16] range:NSMakeRange(0, [txtStr length])];
+    } else {
+        [txtStr addAttribute:NSFontAttributeName value: [UIFont fontWithName:@"HelveticaNeue" size:16] range:NSMakeRange(0, [txtStr length])];
     }
     [txtStr addAttribute:NSForegroundColorAttributeName value:nameColor range:NSMakeRange(0, [txtStr length])];
     [txtStr appendAttributedString:[[NSMutableAttributedString alloc] initWithString:@" "]];
@@ -150,6 +152,8 @@
     txtStr = [[NSMutableAttributedString alloc] initWithString:author];
     if (![nameColor isEqual:UIColorFromRGB(0)]) {
         [txtStr addAttribute:NSFontAttributeName value: [UIFont fontWithName:@"HelveticaNeue-Bold" size:16] range:NSMakeRange(0, [txtStr length])];
+    } else {
+        [txtStr addAttribute:NSFontAttributeName value: [UIFont fontWithName:@"HelveticaNeue" size:16] range:NSMakeRange(0, [txtStr length])];
     }
     [txtStr addAttribute:NSForegroundColorAttributeName value:nameColor range:NSMakeRange(0, [txtStr length])];
     [txtStr appendAttributedString:[[NSMutableAttributedString alloc] initWithString:@" "]];

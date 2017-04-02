@@ -26,6 +26,7 @@ class TablePlayers: UITableView, UITableViewDelegate, UITableViewDataSource {
         let player = players?[indexPath.row]
         cell.textLabel?.textAlignment = .center
         
+        cell.textLabel?.font = UIFont(name: "HelveticaNeue", size: 16)
         cell.textLabel?.attributedText = player?.getNameString()
         cell.textLabel?.numberOfLines = 0
         cell.detailTextLabel?.attributedText = player?.getRatingString(game: game!)

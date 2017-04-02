@@ -202,6 +202,7 @@
         ratingLabel = [[UILabel alloc] init];
         [ratingLabel setTextAlignment:NSTextAlignmentRight];
         [self.ratingLabel setFont:[UIFont fontWithName:@"HelveticaNeue" size:16.f]];
+        [self.textLabel setFont:[UIFont fontWithName:@"HelveticaNeue" size:16.f]];
         [self.contentView addSubview: ratingLabel];
     }
     return self;

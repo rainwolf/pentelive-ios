@@ -8,7 +8,7 @@
 
 #import "KOTHTableViewController.h"
 #import "PenteNavigationViewController.h"
-#import "PenteLive-swift.h"
+#import "penteLive-Swift.h"
 
 @interface PlayerTableViewCell : UITableViewCell {
     UILabel *ratingLabel;
@@ -23,6 +23,7 @@
         ratingLabel = [[UILabel alloc] init];
         [ratingLabel setTextAlignment:NSTextAlignmentRight];
         [self.ratingLabel setFont:[UIFont fontWithName:@"HelveticaNeue" size:16.f]];
+        [self.textLabel setFont:[UIFont fontWithName:@"HelveticaNeue" size:16.f]];
         [self.contentView addSubview: ratingLabel];
         self.imageView.contentMode = UIViewContentModeScaleAspectFit;
         self.imageView.clipsToBounds = YES;
@@ -45,7 +46,7 @@
     } else {
         accessoryWidth = 0;
     }
-    [self.textLabel setFrame:CGRectMake(imageWidth + 10, 2, (screenWidth - imageWidth - accessoryWidth + 60)/2, 22)];
+    [self.textLabel setFrame:CGRectMake(imageWidth + 10, 3, (screenWidth - imageWidth - accessoryWidth + 60)/2, 22)];
     [self.ratingLabel setFrame:CGRectMake(imageWidth + 10 + (screenWidth - imageWidth - accessoryWidth - 20)/2, 2, (screenWidth - imageWidth - accessoryWidth - 60)/2, 22)];
     [self.detailTextLabel setFrame:CGRectMake(imageWidth + 10, 24, screenWidth - imageWidth - accessoryWidth - 20, 18)];
     [self.imageView setFrame:CGRectMake(0, 0, imageWidth, imageWidth)];
@@ -150,7 +151,8 @@
                             action:@selector(loadKoth)
                   forControlEvents:UIControlEventValueChanged];
 
-    if ([hillSummary canSendOpen] && hillSummary.gameId > 50) {
+//    if ([hillSummary canSendOpen] && hillSummary.gameId > 50) {
+    if (hillSummary.member && hillSummary.gameId > 50) {
         UIBarButtonItem *barButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAction target:self action:@selector(loadWebsiteHill)];
         UIBarButtonItem *inviteButton = [[UIBarButtonItem alloc] initWithImage: [UIImage imageNamed:@"person.png"] style: UIBarButtonItemStylePlain target:self action: @selector(showOpenChallengeView)];
         //    statsButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem: UIBarButtonSystemItem target:self action: @selector(showStats)];
@@ -358,16 +360,39 @@
 
 
 -(void) showOpenChallengeView {
-    challengeView = [[KOTHChallengeView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width*4/5, 147)];
-    [challengeView setScrollEnabled:NO];
-    [challengeView setGameId:[hillSummary gameId]];
-    [challengeView setInvitee:@""];
-    [challengeView setDelegate: challengeView];
-    [challengeView setDataSource: challengeView];
-    actionPopoverView = [PopoverView showPopoverAtPoint: CGPointMake(self.view.bounds.size.width/2, [self.tableView contentOffset].y + 66) inView:self.view withTitle: NSLocalizedString(@"send open challenge",nil) withContentView: challengeView delegate:self];
-    [challengeView setPopoverView: actionPopoverView];
-    [actionPopoverView layoutSubviews];
-    ((PenteNavigationViewController *) self.navigationController).didMove = YES;
+    if (![hillSummary canSendOpen] && !player.subscriber) {
+//    if (YES) {
+        UIAlertController *alertDialog = [UIAlertController
+                                                        alertControllerWithTitle:NSLocalizedString(@"KotH limit", nil)
+                                                        message: NSLocalizedString(@"Free players can play, at most, 2 KotH sets at a time, this includes sent and received invitations, you can post invitations again after you finish a set.\n Subscribers don't have this limit.", nil)
+                                                        preferredStyle:UIAlertControllerStyleActionSheet];
+        UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"dismiss", nil) style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {
+            //            NSLog(@"Cancel action");
+        }];
+        UIAlertAction *subscribeAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"subscription info", nil) style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+            ((PenteNavigationViewController *) self.navigationController).showSubscribe = YES;
+            [self.navigationController popToRootViewControllerAnimated:YES];
+        }];
+        [alertDialog addAction:cancelAction];
+        [alertDialog addAction:subscribeAction];
+        
+        if (alertDialog.popoverPresentationController != nil) {
+            alertDialog.popoverPresentationController.barButtonItem = self.navigationItem.rightBarButtonItems[1];
+        }
+        
+        [self presentViewController:alertDialog animated:NO completion:nil];
+    } else if ([hillSummary canSendOpen]) {
+        challengeView = [[KOTHChallengeView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width*4/5, 147)];
+        [challengeView setScrollEnabled:NO];
+        [challengeView setGameId:[hillSummary gameId]];
+        [challengeView setInvitee:@""];
+        [challengeView setDelegate: challengeView];
+        [challengeView setDataSource: challengeView];
+        actionPopoverView = [PopoverView showPopoverAtPoint: CGPointMake(self.view.bounds.size.width/2, [self.tableView contentOffset].y + 66) inView:self.view withTitle: NSLocalizedString(@"send open challenge",nil) withContentView: challengeView delegate:self];
+        [challengeView setPopoverView: actionPopoverView];
+        [actionPopoverView layoutSubviews];
+        ((PenteNavigationViewController *) self.navigationController).didMove = YES;
+    }
 }
 
 -(void) addColorOfRating: (NSString *) rating toString: (NSMutableAttributedString *) str {

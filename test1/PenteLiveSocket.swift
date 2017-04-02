@@ -62,7 +62,7 @@ import UIKit
         }
 //        print("disconnected \(sock.connectedHost)")
 //        print("disconnected \(sock.connectedPort)")
-        print("disconnected \(err?.localizedDescription)")
+        print("disconnected \(String(describing: err?.localizedDescription))")
     }
     func socket(_ sock: GCDAsyncSocket, didRead data: Data, withTag tag: Int) {
 //        for byte in data {

@@ -755,7 +755,7 @@
             cell = [[GameTableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:@"tournament"];
         }
         tmpStr = [[NSMutableAttributedString alloc] initWithString: [NSString stringWithFormat:@"\u25CF  %@ - (%@)", [tourney name], [tourney game]]];
-        [tmpStr addAttribute:NSFontAttributeName value: [UIFont fontWithName:@"HelveticaNeue-Bold" size:25] range:NSMakeRange(0, 1)];
+        [tmpStr addAttribute:NSFontAttributeName value: [UIFont fontWithName:@"HelveticaNeue-Bold" size:18] range:NSMakeRange(0, 1)];
         long len = [[tourney game] length];
         [tmpStr addAttribute:NSFontAttributeName value: [UIFont fontWithName:@"HelveticaNeue" size: 14] range:NSMakeRange([tmpStr length] - 2 - len, len + 2)];
         UIColor *statusColor;
@@ -784,7 +784,7 @@
             cell = [[GameTableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:@"kingOfTheHill"];
         }
         tmpStr = [[NSMutableAttributedString alloc] initWithString: [NSString stringWithFormat:@"\u25CF  %@ ", [koth game]]];
-        [tmpStr addAttribute:NSFontAttributeName value: [UIFont fontWithName:@"HelveticaNeue-Bold" size:25] range:NSMakeRange(0, 1)];
+        [tmpStr addAttribute:NSFontAttributeName value: [UIFont fontWithName:@"HelveticaNeue-Bold" size:18] range:NSMakeRange(0, 1)];
         long len = [[koth game] length];
         [tmpStr addAttribute:NSFontAttributeName value: [UIFont fontWithName:@"HelveticaNeue" size: 16] range:NSMakeRange([tmpStr length] - 1 - len, len)];
         UIColor *statusColor;
@@ -1074,7 +1074,17 @@
         return [NSString stringWithFormat: NSLocalizedString(@"my turn (%lu)",nil),(unsigned long)[[player activeGames] count]];
     }
     else if(section == PUBLICINVITATIONSSECTION)    {
-        return [NSString stringWithFormat: NSLocalizedString(@"public invitations (%lu)",nil),(unsigned long)[[player publicInvitations] count]];
+        int kothInvitations = 0;
+        for (Game *game in [player publicInvitations]) {
+            if ([[game ratedNot] isEqualToString:@"KotH"]) {
+                kothInvitations += 1;
+            }
+        }
+        if (kothInvitations == 0) {
+            return [NSString stringWithFormat: NSLocalizedString(@"public invitations (%lu)",nil),(unsigned long)[[player publicInvitations] count]];
+        } else {
+            return [NSString stringWithFormat: NSLocalizedString(@"public invitations (%lu + %i KotH)",nil),(unsigned long)[[player publicInvitations] count]-kothInvitations, kothInvitations];
+        }
     }
     else if(section == SENTINVITATIONSSECTION)    {
         return [NSString stringWithFormat: NSLocalizedString(@"invitations sent (%lu)",nil),(unsigned long)[[player sentInvitations] count]];
@@ -1085,7 +1095,17 @@
     else if (section == TOURNAMENTSSECTION)   {
         return [NSString stringWithFormat: NSLocalizedString(@"tournaments (%lu)",nil),(unsigned long)[[player tournaments] count]];
     } else if (section == KOTHSECTION) {
-        return [NSString stringWithFormat: NSLocalizedString(@"King of the Hill (%lu)",nil),(unsigned long)[[player hills] count]];
+        int hills = 0;
+        for (KingOfTheHill *hill in [player hills]) {
+            if ([hill king]) {
+                hills += 1;
+            }
+        }
+        if (hills > 0) {
+            return [NSString stringWithFormat: NSLocalizedString(@"King of the Hill (%i/%lu)",nil),hills,(unsigned long)[[player hills] count]];
+        } else {
+            return [NSString stringWithFormat: NSLocalizedString(@"King of the Hill (%lu)",nil),(unsigned long)[[player hills] count]];
+        }
     }
     return @"uh-oh";
 }
@@ -1662,10 +1682,12 @@
 
 
 -(void) acceptPublicInvitation: (UIButton *) sender {
+//    if (true || !player.subscriber) {
     if (!player.subscriber) {
         long openInvitationsLimit = [[NSUserDefaults standardUserDefaults] integerForKey:@"openInvitationsLimit"];
+//        if (true || openInvitationsLimit <= 1) {
         if (openInvitationsLimit <= 1) {
-            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Open invitations limit reached" message:@"After taking 2 open invitations, you have to post one before you can accept 2 more.\n To post an open invitation, press the play button and leave the opponent field blank." delegate:self cancelButtonTitle:@"Got it." otherButtonTitles: nil];
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Public invitations limit reached",nil) message:NSLocalizedString(@"After posting a public invitation, you you will be able to accept 2 more. To post a public invitation, select humans in the play menu and leave the opponent field blank.\n\nSubscribers can accept public invitations without limits.", nil) delegate:self cancelButtonTitle:NSLocalizedString(@"Got it.",nil) otherButtonTitles: NSLocalizedString(@"Post now",nil),NSLocalizedString(@"Subscription info",nil),nil];
             [alert setTag: 2];
             [alert show];
             return;
@@ -3174,6 +3196,13 @@
         }
     } else if (alertView.tag == 1) {
         [self performSegueWithIdentifier:@"addInvitationsTap" sender:self];
+    } else if (alertView.tag == 2) {
+        if (buttonIndex == 1) {
+            [self performSegueWithIdentifier:@"addInvitationsTap" sender: self];
+        } else if (buttonIndex == 2) {
+            ((PenteNavigationViewController *) self.navigationController).showSubscribe = YES;
+            [self performSegueWithIdentifier:@"settingsTap" sender:self];
+        }
     }
 }
 
@@ -3256,6 +3285,7 @@
         [self.contentView addSubview: ratingLabel];
         self.imageView.contentMode = UIViewContentModeScaleAspectFit;
         self.imageView.clipsToBounds = YES;
+        self.textLabel.font = [UIFont fontWithName:@"HelveticaNeue" size:16];
     }
     return self;
 }
@@ -3276,11 +3306,11 @@
         accessoryWidth = 0;
     }
     if ([self.reuseIdentifier isEqualToString: @"tournament"] || [self.reuseIdentifier isEqualToString: @"kingOfTheHill"]) {
-        [self.textLabel setFrame:CGRectMake(10, 0, (screenWidth - accessoryWidth - 10), 22)];
+        [self.textLabel setFrame:CGRectMake(10, 2, (screenWidth - accessoryWidth - 10), 22)];
         [self.detailTextLabel setFrame:CGRectMake(10, 24, screenWidth - accessoryWidth - 20, 18)];
 //        [self.imageView setFrame:CGRectMake(0, 0, imageWidth, imageWidth)];
     } else {
-        [self.textLabel setFrame:CGRectMake(imageWidth + 10, 0, (screenWidth - imageWidth - accessoryWidth + 60)/2, 22)];
+        [self.textLabel setFrame:CGRectMake(imageWidth + 10, 2, (screenWidth - imageWidth - accessoryWidth + 60)/2, 22)];
         [self.ratingLabel setFrame:CGRectMake(imageWidth + 10 + (screenWidth - imageWidth - accessoryWidth - 20)/2, 2, (screenWidth - imageWidth - accessoryWidth - 60)/2, 22)];
         [self.detailTextLabel setFrame:CGRectMake(imageWidth + 10, 24, screenWidth - imageWidth - accessoryWidth - 20, 18)];
         [self.imageView setFrame:CGRectMake(0, 0, imageWidth, imageWidth)];

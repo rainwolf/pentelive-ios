@@ -218,6 +218,7 @@ class RoomViewController: UIViewController, UITableViewDelegate, UITableViewData
             let player = playersAndTables.players[playerNamesArray[indexPath.row]]!
             cell.textLabel?.textAlignment = .center
 
+            cell.textLabel?.font = UIFont(name: "HelveticaNeue", size: 16)
             cell.textLabel?.attributedText = player.getNameString()
             cell.textLabel?.numberOfLines = 0
             cell.detailTextLabel?.attributedText = player.getRatingString(game: 1)

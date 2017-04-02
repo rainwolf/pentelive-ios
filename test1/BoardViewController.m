@@ -29,7 +29,7 @@
 #import "PopoverView.h"
 #import "DatabaseViewController.h"
 #import <NSHash/NSString+NSHash.h>
-#import "PenteLive-swift.h"
+#import "penteLive-Swift.h"
 
 
 #define usernameKey @"username"

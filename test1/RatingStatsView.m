@@ -7,7 +7,7 @@
 //
 
 #import "RatingStatsView.h"
-#import "PenteLive-swift.h"
+#import "penteLive-Swift.h"
 
 
 @implementation RatingStatsView

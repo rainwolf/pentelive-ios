@@ -136,6 +136,7 @@ class SocialViewController: UIViewController, UITableViewDelegate, UITableViewDa
         } else {
             player = following[indexPath.row]
         }
+        cell.textLabel?.font = UIFont(name: "HelveticaNeue", size: 16)
         cell.textLabel?.textAlignment = .center
         cell.textLabel?.attributedText = player.getNameString()
         cell.textLabel?.numberOfLines = 0

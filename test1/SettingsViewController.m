@@ -11,7 +11,7 @@
 #import "GamesTableViewController.h"
 #import "ChangeColorViewController.h"
 #import "RMStore.h"
-#import "PenteLive-swift.h"
+#import "penteLive-Swift.h"
 
 
 #define usernameKey @"username"

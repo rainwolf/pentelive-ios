@@ -31,7 +31,7 @@
 #import "TSMessageView.h"
 #import "MMAI.h"
 #import "BoardViewController.h"
-#import "PenteLive-swift.h"
+#import "penteLive-Swift.h"
 
 
 
@@ -459,7 +459,7 @@ struct Capture {
                     }
                 }
                 if (([movesList count]%2) == 1) {
-                    [moveStatsString appendString: [NSString stringWithFormat:@"&nbsp; <b>%u.</b> ", ([movesList count] >> 1) + 1]];
+                    [moveStatsString appendString: [NSString stringWithFormat:@"&nbsp; <b>%lu.</b> ", ([movesList count] >> 1) + 1]];
                 } else {
                     [moveStatsString appendString: @" - "];
                 }
@@ -807,7 +807,7 @@ struct Capture {
         [self detectKeryoCaptureOfOpponent:opponentColor atPosition:finalMove];
     }
     if (([movesList count]%2) == 1) {
-        [moveStatsString appendString: [NSString stringWithFormat:@"&nbsp; <b>%u.</b> ", ([movesList count] >> 1) + 1]];
+        [moveStatsString appendString: [NSString stringWithFormat:@"&nbsp; <b>%lu.</b> ", ([movesList count] >> 1) + 1]];
     } else {
         [moveStatsString appendString: @" - "];
     }
