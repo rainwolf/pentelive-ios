@@ -17,6 +17,9 @@
 #import "WhosOnlineView.h"
 #import "SettingsViewController.h"
 
+#import "UIButton+Badge.h"
+#import "UIBarButtonItem+Badge.h"
+
 #import "penteLive-Swift.h"
 
 #define usernameKey @"username"
@@ -59,6 +62,9 @@
 @synthesize showAds;
 @synthesize actionPopoverView;
 @synthesize progressView;
+
+UIBarButtonItem *inviteButton;
+NSString *livePlayers;
 
 
 //- (void)adViewWillLeaveApplication:(GADBannerView *)bannerView {
@@ -112,7 +118,8 @@
 //    messageButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"messageBubble0.png"] style:UIBarButtonItemStylePlain target:self action:@selector(messageTap)];
 //    [messageButton setImage:[UIImage imageNamed:@"messageBubbleEnd.png"]];
 //    inviteButton = [self.navigationItem rightBarButtonItem];
-    UIBarButtonItem *inviteButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemPlay target:self action: @selector(showInvitationActions)];
+    inviteButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemPlay target:self action: @selector(showInvitationActions)];
+//    inviteButton.shouldHideBadgeAtZero = YES;
     UIBarButtonItem *moreButton = [[UIBarButtonItem alloc] initWithImage: [UIImage imageNamed:@"showpopup.png"] style: UIBarButtonItemStylePlain target:self action: @selector(showActions)];
 //    statsButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem: UIBarButtonSystemItem target:self action: @selector(showStats)];
 //    friendsButton = [[UIBarButtonItem alloc] initWithImage: [UIImage imageNamed:@"friends.png"] style: UIBarButtonItemStylePlain target:self action:@selector(toFriends)];
@@ -2189,6 +2196,8 @@
             showAds = ![[splitLine objectAtIndex:2] isEqualToString:@"NoAds"];
             [player setShowAds: showAds];
             [player setSubscriber: [[splitLine objectAtIndex:3] isEqualToString:@"subscriber"]];
+            livePlayers = [splitLine objectAtIndex:4];
+            inviteButton.badgeValue = livePlayers;
         }
 //        showAds = ([dashboardString rangeOfString:@"No Ads"].location == NSNotFound) || ([dashboardString rangeOfString:@"No Ads"].location > 30);
         if (showAds && bannerView == nil) {
@@ -3088,21 +3097,23 @@
     }
     [buttonsArray addObject: button];
 
-        button = [UIButton buttonWithType:UIButtonTypeCustom];
-        [button setTitle:NSLocalizedString(@" Live Games",nil) forState:UIControlStateNormal];
-        [button setImage:[UIImage imageNamed:@"lightning"] forState:UIControlStateNormal];
-        [button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
-        button.backgroundColor = [UIColor clearColor];
-        //    if (player && ![player subscriber]) {
-        //        [button setAlpha:0.5f];
-        //    }
-        //    [button setImage:[UIImage imageNamed:@"person.png"] forState:UIControlStateNormal];
-        [button addTarget:self action:@selector(toLive) forControlEvents:UIControlEventTouchUpInside];
-        [button sizeToFit];
-        if (button.frame.size.width > frame.size.width) {
-            frame = button.frame;
-        }
-        [buttonsArray addObject: button];
+    button = [UIButton buttonWithType:UIButtonTypeCustom];
+    [button setTitle:NSLocalizedString(@" Live Games",nil) forState:UIControlStateNormal];
+    [button setImage:[UIImage imageNamed:@"lightning"] forState:UIControlStateNormal];
+    [button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+    button.backgroundColor = [UIColor clearColor];
+    //    if (player && ![player subscriber]) {
+    //        [button setAlpha:0.5f];
+    //    }
+    //    [button setImage:[UIImage imageNamed:@"person.png"] forState:UIControlStateNormal];
+    [button addTarget:self action:@selector(toLive) forControlEvents:UIControlEventTouchUpInside];
+    button.shouldHideBadgeAtZero = YES;
+    button.badgeValue = livePlayers;
+    [button sizeToFit];
+    if (button.frame.size.width > frame.size.width) {
+        frame = button.frame;
+    }
+    [buttonsArray addObject: button];
     for (UIButton *bttn in buttonsArray) {
         bttn.contentHorizontalAlignment = UIControlContentHorizontalAlignmentLeft;
         bttn.frame = frame;

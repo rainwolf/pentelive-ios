@@ -20,4 +20,5 @@ platform :ios, '7.0'
 	pod 'InAppSettingsKit'
 	pod 'NSHash', '~> 1.1.0'
 	pod 'CocoaAsyncSocket'
+	pod 'UIBarButtonItem-Badge', :git => 'https://github.com/mikeMTOL/UIBarButtonItem-Badge.git'
 end

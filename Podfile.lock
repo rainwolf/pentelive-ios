@@ -1,20 +1,21 @@
 PODS:
   - CocoaAsyncSocket (7.6.0)
   - Color-Picker-for-iOS (2.0.2)
-  - Firebase/AdMob (3.15.0):
+  - Firebase/AdMob (3.16.0):
     - Firebase/Core
-    - Google-Mobile-Ads-SDK (= 7.19.0)
-  - Firebase/Core (3.15.0):
-    - FirebaseAnalytics (= 3.7.0)
-    - FirebaseCore (= 3.5.2)
-  - FirebaseAnalytics (3.7.0):
-    - FirebaseCore (~> 3.5)
+    - Google-Mobile-Ads-SDK (= 7.19.1)
+  - Firebase/Core (3.16.0):
+    - FirebaseAnalytics (= 3.8.0)
+    - FirebaseCore (= 3.6.0)
+  - FirebaseAnalytics (3.8.0):
+    - FirebaseCore (~> 3.6)
     - FirebaseInstanceID (~> 1.0)
     - GoogleToolboxForMac/NSData+zlib (~> 2.1)
-  - FirebaseCore (3.5.2):
+  - FirebaseCore (3.6.0):
     - GoogleToolboxForMac/NSData+zlib (~> 2.1)
-  - FirebaseInstanceID (1.0.9)
-  - Google-Mobile-Ads-SDK (7.19.0)
+  - FirebaseInstanceID (1.0.10):
+    - FirebaseCore (~> 3.6)
+  - Google-Mobile-Ads-SDK (7.19.1)
   - GoogleToolboxForMac/Defines (2.1.1)
   - GoogleToolboxForMac/NSData+zlib (2.1.1):
     - GoogleToolboxForMac/Defines (= 2.1.1)
@@ -29,6 +30,7 @@ PODS:
   - SVWebViewController (1.0)
   - TSMessages (0.9.13):
     - HexColors (~> 2.3.0)
+  - UIBarButtonItem-Badge (0.0.1)
   - UIColor+Hex (1.0.1):
     - UIColor+Hex/NSColor (= 1.0.1)
     - UIColor+Hex/UIColor (= 1.0.1)
@@ -46,6 +48,7 @@ DEPENDENCIES:
   - RMStore (~> 0.7)
   - SVWebViewController (from `https://github.com/TransitApp/SVWebViewController.git`)
   - TSMessages (from `https://github.com/rainwolf/TSMessages.git`)
+  - UIBarButtonItem-Badge (from `https://github.com/mikeMTOL/UIBarButtonItem-Badge.git`)
   - UIColor+Hex
 
 EXTERNAL SOURCES:
@@ -55,6 +58,8 @@ EXTERNAL SOURCES:
     :git: https://github.com/TransitApp/SVWebViewController.git
   TSMessages:
     :git: https://github.com/rainwolf/TSMessages.git
+  UIBarButtonItem-Badge:
+    :git: https://github.com/mikeMTOL/UIBarButtonItem-Badge.git
 
 CHECKOUT OPTIONS:
   PopoverView:
@@ -66,15 +71,18 @@ CHECKOUT OPTIONS:
   TSMessages:
     :commit: 6ecb24ffdaf4b3019e2818e95075315cf40d2bf1
     :git: https://github.com/rainwolf/TSMessages.git
+  UIBarButtonItem-Badge:
+    :commit: a335f0481d5e7fdb43932d06a787ebddb67fcda9
+    :git: https://github.com/mikeMTOL/UIBarButtonItem-Badge.git
 
 SPEC CHECKSUMS:
   CocoaAsyncSocket: b9d5589f07baf9de8f34cc25abd4fcba28f13805
   Color-Picker-for-iOS: 4980589b3e3cfe7198f227dd50be9adb02d8bc0b
-  Firebase: 2b1cdfba1cda8589f32904a697cc753322bff9d8
-  FirebaseAnalytics: 0d1b7d81d5021155be37702a94ba1ec16d45365d
-  FirebaseCore: a024587e43778508700af8c6b1209f7c4516ba02
-  FirebaseInstanceID: 2d0518b1378fe9d685ef40cbdd63d2fdc1125339
-  Google-Mobile-Ads-SDK: d1bcdbd8347a105a687345b8511701172a5074e9
+  Firebase: 21bf4a89d3f01bfbe11adc3a5d934a4a3d3a5fd6
+  FirebaseAnalytics: 920e46455f27b0a52a80907a6d9b73ee4bd1c635
+  FirebaseCore: 9691ee2ade70c098d7cf92440f4303f16d83ca75
+  FirebaseInstanceID: b9eedd6846fb5e1f0f7279e1deaa7a7e4cf8392e
+  Google-Mobile-Ads-SDK: 43ac87810e4961f5093024d3525bfe022f956da3
   GoogleToolboxForMac: 8e329f1b599f2512c6b10676d45736bcc2cbbeb0
   HexColors: 6ad3947c3447a055a3aa8efa859def096351fe5f
   ICDMaterialActivityIndicatorView: 52e3f11f27ebf0b53a7bc7725f416b1a182367b6
@@ -84,8 +92,9 @@ SPEC CHECKSUMS:
   RMStore: 64ba13a9c040e3b7572765d169f77175cd3243e5
   SVWebViewController: aa2e18a41ff5f45be7aeec8e92ca5bcc50b5ebb1
   TSMessages: 6e403b790139636c15ab4f51946537095e03e79c
+  UIBarButtonItem-Badge: 8f5ed4d32d32dbb03034d4f273d02c8da680236b
   UIColor+Hex: 9fee91bb8e19f17dd40a79ae1e98949a6a84489d
 
-PODFILE CHECKSUM: bd8a68e0e3cb048d99dbc9f4e8f739285f4082a4
+PODFILE CHECKSUM: 9c640c6d6b8a9c85920b76de301340607119d09d
 
 COCOAPODS: 1.1.1
