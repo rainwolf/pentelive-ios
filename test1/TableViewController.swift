@@ -451,7 +451,7 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
             seatsView.ratedTimerLabel.alpha = 0.3
         }
         seatsView.setTimers(timers: table.state.timers)
-        if table.game == 7 || table.game == 8 {
+        if table.game == 7 || table.game == 8 || table.game == 17 || table.game == 18 {
             if table.seats[2] != nil && me == table.seats[2]?.name && table.moves.count == 4 && table.state.dPenteState == .noChoice {
                 let alertController = UIAlertController(title: NSLocalizedString("Continue play as", comment: ""), message: nil, preferredStyle: .actionSheet)
                 
@@ -629,7 +629,7 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
 
     func countDownTimer() {
         var seat = table.currentPlayer()
-        if (table.game == 7 || table.game == 8) {
+        if (table.game == 7 || table.game == 8 || table.game == 17 || table.game == 18) {
             if table.moves.count < 4 {
                 seat = 1
             } else if table.moves.count == 4 && table.state.dPenteState == .noChoice {

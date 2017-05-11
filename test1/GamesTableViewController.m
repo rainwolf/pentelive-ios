@@ -2275,8 +2275,10 @@ NSString *livePlayers;
                     gameStr = @"Poof-Pente";
                 } else if (gameInt < 15) {
                     gameStr = @"Connect6";
-                } else {
+                } else if (gameInt < 17) {
                     gameStr = @"Boat-Pente";
+                } else {
+                    gameStr = @"DK-Pente";
                 }
                 if (hill.gameId > 50) {
                     [hill setGame: [@"tb-" stringByAppendingString:gameStr]];
@@ -2344,8 +2346,10 @@ NSString *livePlayers;
                     gameStr = @"Poof-Pente";
                 } else if (gameInt < 15) {
                     gameStr = @"Connect6";
-                } else {
+                } else if (gameInt < 17) {
                     gameStr = @"Boat-Pente";
+                } else {
+                    gameStr = @"DK-Pente";
                 }
                 if (ratingStat.gameId > 50) {
                     [ratingStat setGame: [@"tb-" stringByAppendingString:gameStr]];

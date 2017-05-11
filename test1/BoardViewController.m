@@ -535,7 +535,7 @@ struct Capture {
                         connect6Move2 = finalMove;
                     }
                 }
-                if (dPenteOpening && [[game gameType] isEqualToString:@"D-Pente"]) {
+                if (dPenteOpening && ([[game gameType] isEqualToString:@"D-Pente"] || [[game gameType] isEqualToString:@"DK-Pente"])) {
                     if (dPenteMove1 == -1) {
                         dPenteMove1 = finalMove;
                         abstractBoard[i][j] = 2;
@@ -568,7 +568,7 @@ struct Capture {
                         }
                     }
                     [self detectCaptureOfOpponent:(([[stone stoneColor] isEqual: [UIColor blackColor]]) ? 1 : 2) atPosition: finalMove];
-                    if ([[game gameType] isEqualToString:@"Keryo-Pente"]) {
+                    if ([[game gameType] isEqualToString:@"Keryo-Pente"] || [[game gameType] isEqualToString:@"DK-Pente"]) {
                         [self detectKeryoCaptureOfOpponent:(([[stone stoneColor] isEqual: [UIColor blackColor]]) ? 1 : 2) atPosition: finalMove];
                     }
                     if ([captures count] != 0) {
@@ -687,9 +687,9 @@ struct Capture {
     NSString *moveString;
     if ([[game gameType] isEqualToString:@"Connect6"] && (connect6Move1 != -1) && (connect6Move2 != -1)) {
         moveString = [NSString stringWithFormat:@"%i,%i", connect6Move1, connect6Move2];
-    } else if ([[game gameType] isEqualToString:@"D-Pente"] && (dPenteMove1 != -1) && (dPenteMove2 != -1) && (dPenteMove3 != -1) && dPenteOpening) {
+    } else if (([[game gameType] isEqualToString:@"D-Pente"] || [[game gameType] isEqualToString:@"DK-Pente"]) && (dPenteMove1 != -1) && (dPenteMove2 != -1) && (dPenteMove3 != -1) && dPenteOpening) {
         moveString = [NSString stringWithFormat:@"%i,%i,%i,", dPenteMove1, dPenteMove2, dPenteMove3];
-    } else if ([[game gameType] isEqualToString:@"D-Pente"] && (finalMove != -1) && dPenteChoice) {
+    } else if (([[game gameType] isEqualToString:@"D-Pente"] || [[game gameType] isEqualToString:@"DK-Pente"]) && (finalMove != -1) && dPenteChoice) {
         moveString = [NSString stringWithFormat:@"1,%i", finalMove];
     } else if (finalMove != -1) {
         moveString = [NSString stringWithFormat:@"%i", finalMove];
@@ -705,8 +705,10 @@ struct Capture {
     //    NSLog(@"kittyLog %@", replyMessage);
     if ([replyMessage isEqualToString:@""]) {
         url = [NSString stringWithFormat:@"https://www.pente.org/gameServer/tb/game?command=move&mobile=&gid=%@&moves=%@&message=",[game gameID],moveString];
+//        url = [NSString stringWithFormat:@"https://development.pente.org/gameServer/tb/game?command=move&mobile=&gid=%@&moves=%@&message=",[game gameID],moveString];
     } else {
         url = [NSString stringWithFormat:@"https://www.pente.org/gameServer/tb/game?command=move&mobile=&gid=%@&moves=%@&message=%@",[game gameID],moveString,[self URLEncodedString_ch:replyMessage]];
+//        url = [NSString stringWithFormat:@"https://development.pente.org/gameServer/tb/game?command=move&mobile=&gid=%@&moves=%@&message=%@",[game gameID],moveString,[self URLEncodedString_ch:replyMessage]];
     }
     //    NSLog(@"kitty %@", url);
     [request setURL:[NSURL URLWithString:url]];
@@ -778,16 +780,27 @@ struct Capture {
     messagesHistory = [[NSMutableDictionary alloc] init];
     isLastMove = YES;
 
+
+    
     //    NSString *tmpStr = [NSString stringWithFormat:@"https://www.pente.org/gameServer/tbpgn.jsp?g=%@",[game gameID]];
 //    NSString *tmpStr = [NSString stringWithFormat:@"https://www.pente.org/gameServer/tb/game?gid=%@&command=load",[game gameID]];
     NSString *tmpStr = [NSString stringWithFormat:@"https://www.pente.org/gameServer/mobile/game.jsp?gid=%@",[game gameID]];
+//    NSString *tmpStr = [NSString stringWithFormat:@"https://development.pente.org/gameServer/mobile/game.jsp?gid=%@",[game gameID]];
+//    tmpStr = [NSString stringWithFormat:@"https://development.pente.org/gameServer/mobile/game.jsp?gid=%@",[game gameID]];
     NSURL *url = [NSURL URLWithString: tmpStr];
     NSError *error;
     NSString *htmlString = [NSString stringWithContentsOfURL:url encoding:NSUTF8StringEncoding error:&error];
-//        NSLog(@"kitty %@", htmlString);
-    
-//    NSLog(@"kitty \n%@", htmlString);
 
+    if (error) {
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error",nil) message:[NSString stringWithFormat:NSLocalizedString(@"Reason: %@",nil), error.localizedDescription] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+        //        [alert show];
+        [alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:YES];
+        return;
+    }
+
+//    NSLog(@"kitty %@", htmlString);
+//    NSLog(@"kitty %@", url);
+    
     NSArray *splitDash = [htmlString componentsSeparatedByString:@"\n"];
     NSString *dashLine;
 //    NSArray *splitLine;
@@ -964,7 +977,7 @@ struct Capture {
             activeGame = (([movesList count] % 2) == 1);
         }
         [self replayConnect6Game: (int) [movesList count]];
-    } else if (([[game gameType] isEqualToString:@"D-Pente"] || [[game gameType] isEqualToString:@"Speed D-Pente"]) && ([htmlString rangeOfString:@"dPenteState=2"].location != NSNotFound || [htmlString rangeOfString:@"dPenteState=1"].location != NSNotFound)) {
+    } else if (([[game gameType] isEqualToString:@"D-Pente"] || [[game gameType] isEqualToString:@"Speed D-Pente"] || [[game gameType] isEqualToString:@"DK-Pente"] || [[game gameType] isEqualToString:@"Speed DK-Pente"]) && ([htmlString rangeOfString:@"dPenteState=2"].location != NSNotFound || [htmlString rangeOfString:@"dPenteState=1"].location != NSNotFound)) {
         if (!iAmP1) {
             activeGame = (([movesList count] % 2) == 0);
         } else {
@@ -986,8 +999,12 @@ struct Capture {
     if ([[game gameType] isEqualToString:@"G-Pente"] || [[game gameType] isEqualToString:@"Speed G-Pente"]) {
         [self replayGPenteGame: (int) [movesList count]];
     }
-    if ([[game gameType] isEqualToString:@"D-Pente"] || [[game gameType] isEqualToString:@"Speed D-Pente"]) {
-        [self replayDPenteGame: (int) [movesList count]];
+    if ([[game gameType] isEqualToString:@"D-Pente"] || [[game gameType] isEqualToString:@"Speed D-Pente"] || [[game gameType] isEqualToString:@"DK-Pente"] || [[game gameType] isEqualToString:@"Speed DK-Pente"]) {
+        if ([[game gameType] isEqualToString:@"DK-Pente"] || [[game gameType] isEqualToString:@"Speed DK-Pente"]) {
+            [self replayDKPenteGame: (int) [movesList count]];
+        } else {
+            [self replayDPenteGame: (int) [movesList count]];
+        }
 
         dPenteChoice = NO;
         if ([movesList count] == 4) {
@@ -1317,6 +1334,9 @@ struct Capture {
     if ([[game gameType] isEqualToString:@"D-Pente"] || [[game gameType] isEqualToString:@"Speed D-Pente"]) {
         [self replayDPenteGame: untilMove];
     }
+    if ([[game gameType] isEqualToString:@"DK-Pente"] || [[game gameType] isEqualToString:@"Speed DK-Pente"]) {
+        [self replayDKPenteGame: untilMove];
+    }
     if ([[game gameType] isEqualToString:@"Poof-Pente"] || [[game gameType] isEqualToString:@"Speed Poof-Pente"]) {
         [self replayPoofPenteGame: untilMove];
     }
@@ -1550,6 +1570,40 @@ struct Capture {
         [zoomedBoard setLastMove:[self parseMove:[movesList objectAtIndex:untilMove - 1]]];
     }
 }
+
+
+-(void) replayDKPenteGame: (int) untilMove {
+    if ([movesList count] == 1) {
+        dPenteOpening = YES;
+    } else {
+        dPenteOpening = NO;
+    }
+    for (int i = 0; i < untilMove; ++i) {
+        int rowCol = [self parseMove:[movesList objectAtIndex:i]];
+        int color = (i % 2) + 1, opponentColor = (color == 2) ? 1 : 2;
+        abstractBoard[rowCol / 19][rowCol % 19] = color;
+        [self detectCaptureOfOpponent:opponentColor atPosition:rowCol];
+        [self detectKeryoCaptureOfOpponent:opponentColor atPosition:rowCol];
+    }
+    [captures removeAllObjects];
+    
+    [board setBackgroundColor:[UIColor colorWithRed:1 green:165.0/255.0 blue:0 alpha:1]];
+    [zoomedBoard setBackgroundColor:[UIColor colorWithRed:1 green:165.0/255.0 blue:0 alpha:1]];
+    
+    if (dPenteOpening) {
+        [whiteStoneCaptures setHidden:YES];
+        [whiteCapturesCountLabel setHidden:YES];
+        [blackStoneCaptures setHidden:YES];
+        [blackCapturesCountLabel setHidden:YES];
+    }
+    [board setAbstractBoard: abstractBoard];
+    [board setLastMove:[self parseMove:[movesList objectAtIndex:untilMove - 1]]];
+    if (lastMove == [movesList count]) {
+        [zoomedBoard setAbstractBoard: abstractBoard];
+        [zoomedBoard setLastMove:[self parseMove:[movesList objectAtIndex:untilMove - 1]]];
+    }
+}
+
 
 
 -(void) replayGomokuGame: (int) untilMove {
@@ -2390,24 +2444,6 @@ struct Capture {
 -(BOOL) webView:(UIWebView *)inWeb shouldStartLoadWithRequest:(NSURLRequest *)inRequest navigationType:(UIWebViewNavigationType)inType {
     if ( inType == UIWebViewNavigationTypeLinkClicked ) {
         NSString *urlString = [[inRequest URL] absoluteString];
-//        if ([urlString rangeOfString:@"mobile&g="].location != NSNotFound) {
-//            [self performSegueWithIdentifier:@"viewGameTap" sender:self];
-//            BoardViewController *boardController = [[BoardViewController alloc] init];
-//            
-//            NSString *gameStr = [urlString substringFromIndex:[urlString rangeOfString:@"="].location + 1];
-//            Game *game = [[Game alloc] init];
-//            [game setGameID: gameStr];
-////            [game setOpponentName:author];
-//            [game setRemainingTime:@"0 days"];
-//            
-//            [boardController setShowAds: showAds];
-//            [boardController setActiveGame:NO];
-//            [boardController setGame:game];
-//            [boardController replayGame];
-//            [[boardController boardTapRecognizer] setEnabled: NO];
-//            return NO;
-//            
-//        }
         PenteWebViewController *webViewController = [[PenteWebViewController alloc] initWithAddress: urlString];
 //        [webViewController setDelegate:self];
         [self.navigationController pushViewController:webViewController animated:YES];

@@ -71,7 +71,7 @@
     // self.navigationItem.rightBarButtonItem = self.editButtonItem;
     [self setTitle:NSLocalizedString(@"Send invitation",nil)];
 
-    games = [[NSArray alloc] initWithObjects:@"Pente",@"Keryo-Pente",@"Gomoku",@"D-Pente",@"G-Pente",@"Poof-Pente",@"Connect6",@"Boat-Pente", nil];
+    games = [[NSArray alloc] initWithObjects:@"Pente",@"Keryo-Pente",@"Gomoku",@"D-Pente",@"G-Pente",@"Poof-Pente",@"Connect6",@"Boat-Pente",@"DK-Pente", nil];
     colors = [[NSArray alloc] initWithObjects:NSLocalizedString(@"white",nil),NSLocalizedString(@"black",nil), nil];
     restrictions = [[NSArray alloc] initWithObjects:NSLocalizedString(@"of any rating",nil),NSLocalizedString(@"not already playing",nil),NSLocalizedString(@"of lower rating",nil),NSLocalizedString(@"of higher rating",nil),NSLocalizedString(@"of similar rating",nil),NSLocalizedString(@"in the same rating class",nil), nil];
     moveDurations = [[NSMutableArray alloc] init];
@@ -431,22 +431,33 @@
 //    NSLog(@"testkitty %@, %@, %@, %@", opponentCell.detailTextLabel.text, gameCell.detailTextLabel.text, timeCell.detailTextLabel.text , (ratedSwitch.on) ? @"YES" : @"NO");
     
     NSString *gameString;
-    if ([gameCell.detailTextLabel.text isEqualToString:@"Pente"])
+    if ([gameCell.detailTextLabel.text isEqualToString:@"Pente"]) {
         gameString = @"51";
-    if ([gameCell.detailTextLabel.text isEqualToString:@"Gomoku"])
+    }
+    if ([gameCell.detailTextLabel.text isEqualToString:@"Gomoku"]) {
         gameString = @"55";
-    if ([gameCell.detailTextLabel.text isEqualToString:@"D-Pente"])
+    }
+    if ([gameCell.detailTextLabel.text isEqualToString:@"D-Pente"]) {
         gameString = @"57";
-    if ([gameCell.detailTextLabel.text isEqualToString:@"G-Pente"])
+    }
+    if ([gameCell.detailTextLabel.text isEqualToString:@"G-Pente"]) {
         gameString = @"59";
-    if ([gameCell.detailTextLabel.text isEqualToString:@"Boat-Pente"])
+    }
+    if ([gameCell.detailTextLabel.text isEqualToString:@"Boat-Pente"]) {
         gameString = @"65";
-    if ([gameCell.detailTextLabel.text isEqualToString:@"Poof-Pente"])
+    }
+    if ([gameCell.detailTextLabel.text isEqualToString:@"Poof-Pente"]) {
         gameString = @"61";
-    if ([gameCell.detailTextLabel.text isEqualToString:@"Connect6"])
+    }
+    if ([gameCell.detailTextLabel.text isEqualToString:@"Connect6"]) {
         gameString = @"63";
-    if ([gameCell.detailTextLabel.text isEqualToString:@"Keryo-Pente"])
+    }
+    if ([gameCell.detailTextLabel.text isEqualToString:@"Keryo-Pente"]) {
         gameString = @"53";
+    }
+    if ([gameCell.detailTextLabel.text isEqualToString:@"DK-Pente"]) {
+        gameString = @"57";
+    }
     
     NSString *restrictString = @"A";
     if ([restrictionCell.detailTextLabel.text isEqualToString:NSLocalizedString(@"of any rating",nil)]) {

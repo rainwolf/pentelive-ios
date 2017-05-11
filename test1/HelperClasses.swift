@@ -94,7 +94,7 @@ class Table: NSObject {
     
     let gameNames = [1: "Pente", 2: "Speed Pente", 3: "Keryo-Pente", 4: "Speed Keryo-Pente", 5: "Gomoku", 6: "Speed Gomoku",
                      7: "D-Pente", 8: "Speed D-Pente", 9: "G-Pente", 10: "Speed G-Pente", 11: "Poof-Pente", 12: "Speed Poof-Pente",
-                     13: "Connect6", 14: "Speed Connect6", 15: "Boat-Pente", 16: "Speed Boat-Pente"]
+                     13: "Connect6", 14: "Speed Connect6", 15: "Boat-Pente", 16: "Speed Boat-Pente", 17: "DK-Pente", 18: "Speed DK-Pente"]
     
     init(table: Int) {
         self.table = table
@@ -169,11 +169,11 @@ class Table: NSObject {
                 detectPoof(move: move, color: color)
             }
             detectCapture(move: move, color: color)
-            if game == 3 || game == 4 {
+            if game == 3 || game == 4 || game == 17 || game == 18 {
                 detectKeryoCapture(move: move, color: color)
             }
         }
-        if game != 5 && game != 6 && game != 13 && game != 14 && game != 7 && game != 8 && (rated || game == 9 || game == 10) {
+        if game != 5 && game != 6 && game != 13 && game != 14 && game != 7 && game != 8 && game != 17 && game != 18 && (rated || game == 9 || game == 10) {
             if moves.count == 2 {
                 for i in 7..<12 {
                     for j in 7..<12 {
@@ -299,7 +299,7 @@ class Table: NSObject {
     }
     func currentPlayerName() -> String {
         var seat = currentPlayer()
-        if (game == 7 || game == 8) && moves.count < 4 {
+        if (game == 7 || game == 8 || game == 17 || game == 18) && moves.count < 4 {
             seat = 1
         }
 
@@ -326,8 +326,10 @@ class Table: NSObject {
             return UIColor(red:0.929, green:0.639, blue:0.992, alpha:1)
         } else if game < 15 {
             return UIColor(red:0.929, green:0.639, blue:0.992, alpha:1)
-        } else {
+        } else if game < 17 {
             return UIColor(red:0.145, green:0.729, blue:1, alpha:1)
+        } else {
+            return UIColor(red:1, green:165.0/255.0, blue:0, alpha:1)
         }
     }
     func makeAttributedString() -> NSAttributedString {

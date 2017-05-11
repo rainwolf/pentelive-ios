@@ -14,7 +14,7 @@ import UIKit
     var broadcastAlertController: UIAlertController?
     let gameNames = ["any game", "Pente", "Speed Pente", "Keryo-Pente", "Speed Keryo-Pente", "Gomoku", "Speed Gomoku",
                      "D-Pente", "Speed D-Pente", "G-Pente", "Speed G-Pente", "Poof-Pente", "Speed Poof-Pente",
-                     "Connect6", "Speed Connect6", "Boat-Pente", "Speed Boat-Pente"]
+                     "Connect6", "Speed Connect6", "Boat-Pente", "Speed Boat-Pente", "DK-Pente", "Speed DK-Pente"]
     var pentePlayer: PentePlayer?
 
 

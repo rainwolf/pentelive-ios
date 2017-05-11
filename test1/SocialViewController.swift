@@ -30,15 +30,15 @@ class SocialViewController: UIViewController, UITableViewDelegate, UITableViewDa
     var following = [LivePlayer]()
     
     let gameNames = ["Pente": 1, "Keryo-Pente": 3, "Gomoku": 5, "D-Pente": 7, "G-Pente": 9, "Poof-Pente": 11, "Connect6": 13,
-                     "Boat-Pente": 15, "Speed Pente": 2, "Speed Keryo-Pente": 4, "Speed Gomoku": 6, "Speed D-Pente": 8,
-                     "Speed G-Pente": 10, "Speed Poof-Pente": 12, "Speed Connect6": 14, "Speed Boat-Pente": 16,
+                     "Boat-Pente": 15, "DK-Pente": 17, "Speed Pente": 2, "Speed Keryo-Pente": 4, "Speed Gomoku": 6, "Speed D-Pente": 8,
+                     "Speed G-Pente": 10, "Speed Poof-Pente": 12, "Speed Connect6": 14, "Speed Boat-Pente": 16, "Speed DK-Pente": 18,
                      "Turn-based Pente": 51, "Turn-based Keryo-Pente": 53, "Turn-based Gomoku": 55, "Turn-based D-Pente": 57,
-                     "Turn-based G-Pente": 59, "Turn-based Poof-Pente": 61, "Turn-based Connect6": 63, "Turn-based Boat-Pente": 65]
+                     "Turn-based G-Pente": 59, "Turn-based Poof-Pente": 61, "Turn-based Connect6": 63, "Turn-based Boat-Pente": 65, "Turn-based DK-Pente": 67]
     let gameNamesArray = ["Turn-based Pente", "Turn-based Keryo-Pente", "Turn-based Gomoku", "Turn-based D-Pente",
-                          "Turn-based G-Pente", "Turn-based Poof-Pente", "Turn-based Connect6", "Turn-based Boat-Pente",
+                          "Turn-based G-Pente", "Turn-based Poof-Pente", "Turn-based Connect6", "Turn-based Boat-Pente", "Turn-based DK-Pente",
                           "Pente", "Keryo-Pente", "Gomoku", "D-Pente", "G-Pente", "Poof-Pente", "Connect6",
-                          "Boat-Pente", "Speed Pente", "Speed Keryo-Pente", "Speed Gomoku", "Speed D-Pente",
-                          "Speed G-Pente", "Speed Poof-Pente", "Speed Connect6", "Speed Boat-Pente"]
+                          "Boat-Pente", "DK-Pente", "Speed Pente", "Speed Keryo-Pente", "Speed Gomoku", "Speed D-Pente",
+                          "Speed G-Pente", "Speed Poof-Pente", "Speed Connect6", "Speed Boat-Pente", "Speed DK-Pente"]
     let textField = UITextField()
 
     
