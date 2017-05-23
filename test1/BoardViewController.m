@@ -506,11 +506,11 @@ struct Capture {
 
                 finalMove = 19*i + j;
 
-                if (!([[game gameType] isEqualToString:@"Connect6"] && (connect6Move1 == -1)) && !(dPenteOpening && [[game gameType] isEqualToString:@"D-Pente"] && (dPenteMove2 == -1))) {
+                if (!([[game gameType] isEqualToString:@"Connect6"] && (connect6Move1 == -1)) && !(dPenteOpening && ([[game gameType] isEqualToString:@"D-Pente"] || [[game gameType] isEqualToString:@"DK-Pente"]) && (dPenteMove2 == -1))) {
                     [submitButton setEnabled:YES];
                     if ([[game gameType] isEqualToString:@"Connect6"]) {
                         [submitButton setTitle: [NSString stringWithFormat:NSLocalizedString(@"submit: %c%d-%c%d",nil), coordinateLetters[connect6Move1 % 19], 19 - (connect6Move1 / 19), coordinateLetters[finalMove % 19], 19 - (finalMove / 19)] forState:UIControlStateNormal];
-                    } else if ([[game gameType] isEqualToString:@"D-Pente"] && dPenteOpening) {
+                    } else if (([[game gameType] isEqualToString:@"D-Pente"] || [[game gameType] isEqualToString:@"DK-Pente"]) && dPenteOpening) {
                         [submitButton setTitle: [NSString stringWithFormat:NSLocalizedString(@"submit: %c%d-%c%d-%c%d",nil), coordinateLetters[dPenteMove1 % 19], 19 - (dPenteMove1 / 19), coordinateLetters[dPenteMove2 % 19], 19 - (dPenteMove2 / 19), coordinateLetters[finalMove % 19], 19 - (finalMove / 19)] forState:UIControlStateNormal];
                     } else {
                         [submitButton setTitle: [NSString stringWithFormat:NSLocalizedString(@"submit: %c%d",nil), coordinateLetters[finalMove % 19], 19 - (finalMove / 19)] forState:UIControlStateNormal];
@@ -544,6 +544,8 @@ struct Capture {
                         [board setNeedsDisplay];
                         [zoomedBoard setNeedsDisplay];
                         [submitButton setTitle: [NSString stringWithFormat:NSLocalizedString(@"submit: %c%d",nil), coordinateLetters[finalMove % 19], 19 - (finalMove / 19)] forState:UIControlStateDisabled];
+                        [submitButton setEnabled:NO];
+                        [submitButton setAlpha:0.5];
                     } else if (dPenteMove2 == -1) {
                         dPenteMove2 = finalMove;
                         abstractBoard[i][j] = 1;
@@ -552,6 +554,8 @@ struct Capture {
                         [board setNeedsDisplay];
                         [zoomedBoard setNeedsDisplay];
                         [submitButton setTitle: [NSString stringWithFormat:NSLocalizedString(@"submit: %c%d-%c%d",nil), coordinateLetters[dPenteMove1 % 19], 19 - (dPenteMove1 / 19), coordinateLetters[finalMove % 19], 19 - (finalMove / 19)] forState:UIControlStateDisabled];
+                        [submitButton setEnabled:NO];
+                        [submitButton setAlpha:0.5];
                     } else {
                         dPenteMove3 = finalMove;
                         [self detectCaptureOfOpponent:1 atPosition:finalMove];
@@ -1179,6 +1183,7 @@ struct Capture {
                 [submitButton setEnabled:YES];
                 [submitButton setNeedsDisplay];
                 [lockButton removeFromSuperview];
+                
             }
         }
     }

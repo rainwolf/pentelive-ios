@@ -284,10 +284,10 @@
         [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
         if ([playr canBeChallenged]) {
             cell.backgroundColor = [UIColor colorWithRed: 222.0/256 green:236.0/256 blue:222.0/256 alpha:1];
-            [cell setUserInteractionEnabled: YES];
+//            [cell setUserInteractionEnabled: YES];
         } else {
             cell.backgroundColor = [UIColor whiteColor];
-            [cell setUserInteractionEnabled: NO];
+//            [cell setUserInteractionEnabled: NO];
         }
 
     }
@@ -322,18 +322,24 @@
             
         });
     } else {
-        CGRect cellRect = [self.tableView rectForRowAtIndexPath:indexPath];
-        
-        challengeView = [[KOTHChallengeView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width*2/3, 103)];
-        [challengeView setScrollEnabled:NO];
-        [challengeView setGameId:[hillSummary gameId]];
-        [challengeView setInvitee:[[[[hill steps] objectAtIndex: indexPath.section - 1] objectAtIndex:indexPath.row] name]];
-        [challengeView setDelegate: challengeView];
-        [challengeView setDataSource: challengeView];
-        actionPopoverView = [PopoverView showPopoverAtPoint: CGPointMake(self.view.bounds.size.width/2, cellRect.origin.y + cellRect.size.height/2) inView:self.view withTitle: [NSString stringWithFormat: @"challenge %@", challengeView.invitee] withContentView: challengeView delegate:self];
-        [challengeView setPopoverView: actionPopoverView];
-        [actionPopoverView layoutSubviews];
-        ((PenteNavigationViewController *) self.navigationController).didMove = YES;
+        Player *playr = [[[hill steps] objectAtIndex: indexPath.section - 1] objectAtIndex:indexPath.row];
+        if ([playr canBeChallenged]) {
+            CGRect cellRect = [self.tableView rectForRowAtIndexPath:indexPath];
+            
+            challengeView = [[KOTHChallengeView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width*2/3, 103)];
+            [challengeView setScrollEnabled:NO];
+            [challengeView setGameId:[hillSummary gameId]];
+            [challengeView setInvitee:[playr name]];
+            [challengeView setDelegate: challengeView];
+            [challengeView setDataSource: challengeView];
+            actionPopoverView = [PopoverView showPopoverAtPoint: CGPointMake(self.view.bounds.size.width/2, cellRect.origin.y + cellRect.size.height/2) inView:self.view withTitle: [NSString stringWithFormat: @"challenge %@", challengeView.invitee] withContentView: challengeView delegate:self];
+            [challengeView setPopoverView: actionPopoverView];
+            [actionPopoverView layoutSubviews];
+            ((PenteNavigationViewController *) self.navigationController).didMove = YES;
+        } else {
+            PenteWebViewController *webVC = [[PenteWebViewController alloc] initWithURL:[NSURL URLWithString: [NSString stringWithFormat:@"https://www.pente.org/gameServer/profile?viewName=%@", playr.name]]];
+            [self.navigationController pushViewController:webVC animated:YES];
+        }
     }
     
 }

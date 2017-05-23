@@ -26,11 +26,19 @@ class PenteWebViewController: SVWebViewController, UIWebViewDelegate {
     
     func webView(_ webView: UIWebView, shouldStartLoadWith request: URLRequest, navigationType: UIWebViewNavigationType) -> Bool {
         var urlStr = request.url?.absoluteString
-        if (navigationType == .linkClicked || navigationType == .other) && (urlStr?.contains("?mobile&g="))! {
-            while !(urlStr?.hasPrefix("?mobile&g="))! {
-                urlStr?.remove(at: (urlStr?.startIndex)!)
+        if (navigationType == .linkClicked || navigationType == .other) && ((urlStr?.contains("?mobile&g="))! || (urlStr?.contains("gameServer/tb/game?gid="))!) {
+            if (urlStr?.contains("?mobile&g="))! {
+                while !(urlStr?.hasPrefix("?mobile&g="))! {
+                    urlStr?.remove(at: (urlStr?.startIndex)!)
+                }
+                urlStr = urlStr?.replacingOccurrences(of: "?mobile&g=", with: "")
             }
-            urlStr = urlStr?.replacingOccurrences(of: "?mobile&g=", with: "")
+            if (urlStr?.contains("gameServer/tb/game?gid="))! {
+                while !(urlStr?.hasPrefix("gameServer/tb/game?gid="))! {
+                    urlStr?.remove(at: (urlStr?.startIndex)!)
+                }
+                urlStr = urlStr?.replacingOccurrences(of: "gameServer/tb/game?gid=", with: "")
+            }
             var gid = ""
             for c in (urlStr?.unicodeScalars)! {
 //                print("kitten \(c) \(gid)")

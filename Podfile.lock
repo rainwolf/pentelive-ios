@@ -1,5 +1,5 @@
 PODS:
-  - CocoaAsyncSocket (7.6.0)
+  - CocoaAsyncSocket (7.6.1)
   - Color-Picker-for-iOS (2.0.2)
   - Firebase/AdMob (3.17.0):
     - Firebase/Core
@@ -76,7 +76,7 @@ CHECKOUT OPTIONS:
     :git: https://github.com/mikeMTOL/UIBarButtonItem-Badge.git
 
 SPEC CHECKSUMS:
-  CocoaAsyncSocket: b9d5589f07baf9de8f34cc25abd4fcba28f13805
+  CocoaAsyncSocket: 7eadd3f59e1a6c84e2aefc93e9ff7b55156fe174
   Color-Picker-for-iOS: 4980589b3e3cfe7198f227dd50be9adb02d8bc0b
   Firebase: 4b66b5b59c43edac745b87f0c87e42cdd0279c13
   FirebaseAnalytics: e5fe8486efc01bec33f6bf82e2fa9fce4b124052

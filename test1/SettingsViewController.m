@@ -462,7 +462,7 @@
     UILabel *clearInfoText = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width*9/10, CGFLOAT_MAX)];
     [clearInfoText setLineBreakMode:NSLineBreakByWordWrapping];
     [clearInfoText setNumberOfLines:0];
-    NSString *clearInfoString = NSLocalizedString(@"(This subscription auto-renews every year.)", nil);
+    NSString *clearInfoString = NSLocalizedString(@"(This subscription auto-renews every year and can be canceled up to 24hrs before renewal. Payment will be charged on your iTunes account.)", nil);
     [clearInfoText setText:clearInfoString];
     [clearInfoText setFont:[UIFont systemFontOfSize: 14]];
     [clearInfoText sizeToFit];

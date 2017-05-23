@@ -456,7 +456,7 @@
         gameString = @"53";
     }
     if ([gameCell.detailTextLabel.text isEqualToString:@"DK-Pente"]) {
-        gameString = @"57";
+        gameString = @"67";
     }
     
     NSString *restrictString = @"A";
