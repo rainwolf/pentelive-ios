@@ -17,6 +17,7 @@ import UIKit
                      "Connect6", "Speed Connect6", "Boat-Pente", "Speed Boat-Pente", "DK-Pente", "Speed DK-Pente"]
     var pentePlayer: PentePlayer?
 
+    var wantsToSeeAvatars = UserDefaults.standard.bool(forKey: "wantToSeeAvatars")
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -24,6 +25,8 @@ import UIKit
         let tableView = UITableView(frame: self.view.frame)
         tableView.delegate = self
         tableView.dataSource = self
+        tableView.rowHeight = UITableViewAutomaticDimension
+        tableView.estimatedRowHeight = 44.0
         self.view.addSubview(tableView)
         
         self.navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(named: "broadcast"), style: .plain, target: self, action: #selector(broadcast))
@@ -57,9 +60,9 @@ import UIKit
         return servers.count
     }
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "cell") ?? UITableViewCell(style: .subtitle, reuseIdentifier: "cell")
-        cell.textLabel?.textAlignment = NSTextAlignment.center
-        cell.textLabel?.text = "\(servers[indexPath.row].name)"
+        let cell = tableView.dequeueReusableCell(withIdentifier: "cell") ?? UITableViewCell(style: .default, reuseIdentifier: "cell")
+//        cell.textLabel?.textAlignment = NSTextAlignment.center
+        cell.textLabel?.attributedText = servers[indexPath.row].makeAttributedString()
         cell.textLabel?.numberOfLines = 0
         cell.selectionStyle = .none
         return cell
@@ -73,17 +76,42 @@ import UIKit
     
     func loadServers() {
         do {
-            let activeServers = try String(contentsOf: URL(string: "https://www.pente.org/gameServer/activeServers")!, encoding: String.Encoding.utf8)
+            let activeServers = try String(contentsOf: URL(string: "https://www.pente.org/gameServer/mobile/liveServers.jsp")!, encoding: String.Encoding.utf8)
 //            let activeServers = try String(contentsOf: URL(string: "https://development.pente.org/gameServer/activeServers")!, encoding: String.Encoding.utf8)
 //            print(activeServers)
             let serverLines = activeServers.components(separatedBy: "\n")
             for line in serverLines {
-                let result = line.characters.split(separator: " ", maxSplits: 1, omittingEmptySubsequences: false)
-                if result.count > 1 {
-//                    print("1: \(String(result[1]))")
-//                    print("2: \(String(result[0]))")
-                    let room = GameRoom(name: String(result[1]), port: Int(String(result[0]))!)
-                    servers.append(room)
+                if line.contains(":") {
+                    let serverAndPlayers = line.components(separatedBy: ":")
+                    let result = serverAndPlayers[0].characters.split(separator: " ", maxSplits: 1, omittingEmptySubsequences: false)
+                    if result.count > 1 {
+                        let room = GameRoom(name: String(result[1]), port: Int(String(result[0]))!)
+                        servers.append(room)
+                        let players = serverAndPlayers[1].components(separatedBy: ";")
+                        for playerString in players {
+                            let playerComponents = playerString.components(separatedBy: ",")
+                            if playerComponents.count < 4 {
+                                continue
+                            }
+                            let player = LivePlayer(name: playerComponents[0])
+                            player.crown = Int(playerComponents[3])!
+                            player.color = UIColorFromRGB(rgbValue: Int(playerComponents[2])!)
+                            player.ratings.updateValue(Int(playerComponents[1])!, forKey: 1)
+                            player.subscriber = Int(playerComponents[2])! != 0
+                            if wantsToSeeAvatars && player.color != nil {
+                                pentePlayer?.addUser(player.name)
+                            }
+                            room.players.append(player)
+                        }
+                    }
+                    
+
+                } else {
+                    let result = line.characters.split(separator: " ", maxSplits: 1, omittingEmptySubsequences: false)
+                    if result.count > 1 {
+                        let room = GameRoom(name: String(result[1]), port: Int(String(result[0]))!)
+                        servers.append(room)
+                    }
                 }
             }
         } catch let error {
@@ -188,7 +216,14 @@ import UIKit
     }
 
     
-    
+    func UIColorFromRGB(rgbValue: Int) -> UIColor {
+        return UIColor(
+            red: CGFloat((rgbValue & 0xFF0000) >> 16) / 255.0,
+            green: CGFloat((rgbValue & 0x00FF00) >> 8) / 255.0,
+            blue: CGFloat(rgbValue & 0x0000FF) / 255.0,
+            alpha: CGFloat(1.0)
+        )
+    }
 
 
 }
@@ -196,9 +231,32 @@ import UIKit
 class GameRoom: NSObject {
     var name: String
     var port: Int
+    var players = [LivePlayer]()
     
     init(name: String, port: Int) {
         self.name = name
         self.port = port
     }
+    
+    func makeAttributedString() -> NSAttributedString {
+        let titleAttributes = [NSFontAttributeName: UIFont.preferredFont(forTextStyle: .headline)]
+//        let subtitleAttributes = [NSFontAttributeName: UIFont.preferredFont(forTextStyle: .subheadline)]
+        
+        let titleString = NSMutableAttributedString(string: "\(name)", attributes: titleAttributes)
+        if players.count > 0 {
+            titleString.append(NSAttributedString(string: "\n"))
+            let subtitleString = NSMutableAttributedString(string: "")
+            //        subtitleString.setAttributes(subtitleAttributes, range: NSRange(location: 0, length: subtitleString.string.characters.count))
+            for player in players {
+                if subtitleString.length > 0 {
+                    subtitleString.append(NSAttributedString(string: ", "))
+                }
+                subtitleString.append(player.getNameString())
+            }
+            titleString.append(subtitleString)
+        }
+        
+        return titleString
+    }
+
 }

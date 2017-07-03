@@ -297,7 +297,7 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
-    if (hillSummary.gameId < 50) {
+    if (hillSummary.gameId < 50 && indexPath.section == 0) {
         return;
     }
     [TSMessage dismissActiveNotification];
@@ -323,7 +323,7 @@
         });
     } else {
         Player *playr = [[[hill steps] objectAtIndex: indexPath.section - 1] objectAtIndex:indexPath.row];
-        if ([playr canBeChallenged]) {
+        if (hillSummary.gameId > 50 && [playr canBeChallenged]) {
             CGRect cellRect = [self.tableView rectForRowAtIndexPath:indexPath];
             
             challengeView = [[KOTHChallengeView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width*2/3, 103)];

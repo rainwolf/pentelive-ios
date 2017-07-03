@@ -23,7 +23,9 @@ class LivePlayer: NSObject {
         let text = NSMutableAttributedString(string: name)
         if subscriber {
             text.addAttribute(NSForegroundColorAttributeName, value: color, range: NSRange(location: 0, length: name.characters.count))
-            text.addAttribute(NSFontAttributeName, value: UIFont(name: "HelveticaNeue-Bold", size: 16)!, range: NSRange(location: 0, length: name.characters.count))
+            text.addAttribute(NSFontAttributeName, value: UIFont(name: "HelveticaNeue-Bold", size: 17)!, range: NSRange(location: 0, length: name.characters.count))
+        } else {
+            text.addAttribute(NSFontAttributeName, value: UIFont(name: "HelveticaNeue", size: 17)!, range: NSRange(location: 0, length: name.characters.count))
         }
         let textAttachment = NSTextAttachment()
         switch crown {
