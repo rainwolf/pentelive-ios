@@ -296,6 +296,9 @@ struct Capture {
     } else if ([game isEqualToString:@"Pente"]) {
         [board setBackgroundColor:[UIColor colorWithRed:0.984 green:0.851 blue:0.541 alpha:1]];
         [zoomedBoard setBackgroundColor:[UIColor colorWithRed:0.984 green:0.851 blue:0.541 alpha:1]];
+    } else if ([game isEqualToString:@"DK-Pente"]) {
+        [board setBackgroundColor:[UIColor colorWithRed:1 green:165.0/255.0 blue:0 alpha:1]];
+        [zoomedBoard setBackgroundColor:[UIColor colorWithRed:1 green:165.0/255.0 blue:0 alpha:1]];
     }
     [board setNeedsDisplay];
     [zoomedBoard setNeedsDisplay];
@@ -409,7 +412,7 @@ struct Capture {
                         [self detectPoof:color atPosition:finalMove];
                     }
                     [self detectCaptureOfOpponent:opponentColor atPosition:finalMove];
-                    if ([game isEqualToString:@"Keryo-Pente"]) {
+                    if ([game isEqualToString:@"Keryo-Pente"] || [game isEqualToString:@"DK-Pente"]) {
                         [self detectKeryoCaptureOfOpponent:opponentColor atPosition:finalMove];
                     }
                     if ([game isEqualToString:@"G-Pente"] && [movesList count] == 2) {
@@ -851,7 +854,7 @@ struct Capture {
                 [self detectPoof:color atPosition:rowCol];
             }
             [self detectCaptureOfOpponent:opponentColor atPosition:rowCol];
-            if ([game isEqualToString:@"Keryo-Pente"]) {
+            if ([game isEqualToString:@"Keryo-Pente"] || [game isEqualToString:@"DK-Pente"]) {
                 [self detectKeryoCaptureOfOpponent:opponentColor atPosition:rowCol];
             }
         } else {

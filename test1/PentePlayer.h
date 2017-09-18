@@ -82,6 +82,7 @@ alpha:1.0]
 @interface PentePlayer : NSObject {
     NSString *playerName;
     NSMutableArray *invitations, *sentInvitations, *activeGames, *nonActiveGames, *publicInvitations, *messages, *ratingStats, *tournaments, *hills;
+    int tbHills, tbRatings;
     BOOL showAds, subscriber;
     NSMutableDictionary<NSString *, UIImage *> *avatars;
     NSMutableArray<NSString *> *pendingAvatarChecks;
@@ -93,6 +94,7 @@ alpha:1.0]
 @property(nonatomic, retain, readwrite) NSMutableDictionary<NSString *, UIImage *> *avatars;
 @property(nonatomic, retain, readwrite) NSMutableArray<NSString *> *pendingAvatarChecks;
 @property(nonatomic, retain, readwrite) UIColor *myColor;
+@property(atomic, assign) int tbHills, tbRatings;
 
 -(void) addUser: (NSString *) username;
 

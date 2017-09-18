@@ -205,7 +205,7 @@
 @synthesize avatars;
 @synthesize pendingAvatarChecks;
 @synthesize myColor;
-
+@synthesize tbHills, tbRatings;
 
 -(id) init {
     self = [super init];

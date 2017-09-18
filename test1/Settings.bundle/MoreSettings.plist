@@ -5,6 +5,16 @@
 	<key>PreferenceSpecifiers</key>
 	<array>
 		<dict>
+			<key>Type</key>
+			<string>PSToggleSwitchSpecifier</string>
+			<key>Title</key>
+			<string>Show turn-based only?</string>
+			<key>Key</key>
+			<string>showOnlyTB</string>
+			<key>DefaultValue</key>
+			<false/>
+		</dict>
+		<dict>
 			<key>FooterText</key>
 			<string>Loading avatars will use more data and is preferred on faster connections</string>
 			<key>Type</key>

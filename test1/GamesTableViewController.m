@@ -479,7 +479,11 @@ NSString *livePlayers;
             if (kothCollapsed) {
                 return 0;
             }
-            return [[player hills] count];
+            if ([[NSUserDefaults standardUserDefaults] boolForKey:@"showOnlyTB"]) {
+                return player.tbHills;
+            } else {
+                return [[player hills] count];
+            }
             break;
         default:
             return 0;
@@ -1102,16 +1106,21 @@ NSString *livePlayers;
     else if (section == TOURNAMENTSSECTION)   {
         return [NSString stringWithFormat: NSLocalizedString(@"tournaments (%lu)",nil),(unsigned long)[[player tournaments] count]];
     } else if (section == KOTHSECTION) {
-        int hills = 0;
+        int hills = 0, totalHills;
+        if ([[NSUserDefaults standardUserDefaults] boolForKey:@"showOnlyTB"]) {
+            totalHills = player.tbHills;
+        } else {
+            totalHills = (int) [[player hills] count];
+        }
         for (KingOfTheHill *hill in [player hills]) {
             if ([hill king]) {
                 hills += 1;
             }
         }
         if (hills > 0) {
-            return [NSString stringWithFormat: NSLocalizedString(@"King of the Hill (%i/%lu)",nil),hills,(unsigned long)[[player hills] count]];
+            return [NSString stringWithFormat: NSLocalizedString(@"King of the Hill (%i/%lu)",nil),hills,(unsigned long)totalHills];
         } else {
-            return [NSString stringWithFormat: NSLocalizedString(@"King of the Hill (%lu)",nil),(unsigned long)[[player hills] count]];
+            return [NSString stringWithFormat: NSLocalizedString(@"King of the Hill (%lu)",nil),(unsigned long)totalHills];
         }
     }
     return @"uh-oh";
@@ -2139,6 +2148,8 @@ NSString *livePlayers;
         //        [alert show];
         [alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:YES];
         self.tableView.layer.borderWidth = 0.0;
+        [self.tableView setUserInteractionEnabled:YES];
+        [self.tableView endUpdates];
         return;
     }
     NSString *dashboardString = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
@@ -2245,6 +2256,7 @@ NSString *livePlayers;
         }
         if ((dashIDX+1 < [splitDash count]) && [[splitDash objectAtIndex:dashIDX] isEqualToString: @"King of the Hill"]) {
             dashIDX++;
+            int tbHills = 0;
             while ((![[splitDash objectAtIndex:dashIDX] isEqualToString: @"Rating Stats"]) && (dashIDX < [splitDash count])) {
                 dashLine = [splitDash objectAtIndex:dashIDX];
                 splitLine = [dashLine componentsSeparatedByString:@";"];
@@ -2260,6 +2272,7 @@ NSString *livePlayers;
                 int gameInt = hill.gameId;
                 if (gameInt > 50) {
                     gameInt -= 50;
+                    tbHills += 1;
                 }
                 if (gameInt < 3) {
                     gameStr = @"Pente";
@@ -2290,6 +2303,7 @@ NSString *livePlayers;
                 [sectionItems addObject:hill];
                 dashIDX++;
             }
+            [player setTbHills: tbHills];
         }
         if ([sectionItems count] != [[player hills] count]) {
             if (!kothCollapsed) {
@@ -2302,8 +2316,15 @@ NSString *livePlayers;
             [player setHills:sectionItems];
             if (!kothCollapsed) {
                 indexSet = [[NSMutableArray alloc] init];
-                for(int i = 0; i < [[player hills] count]; ++i)
+                int totalHills = 0;
+                if ([[NSUserDefaults standardUserDefaults] boolForKey:@"showOnlyTB"]) {
+                    totalHills = player.tbHills;
+                } else {
+                    totalHills = (int) [[player hills] count];
+                }
+                for(int i = 0; i < totalHills; ++i) {
                     [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: KOTHSECTION]];
+                }
                 [self.tableView insertRowsAtIndexPaths:indexSet withRowAnimation:UITableViewRowAnimationFade];
             }
         } else {
@@ -2316,6 +2337,7 @@ NSString *livePlayers;
         if ((dashIDX+1 < [splitDash count]) && [[splitDash objectAtIndex:dashIDX] isEqualToString: @"Rating Stats"]) {
             [[player ratingStats] removeAllObjects];
             dashIDX++;
+            int tbRatings = 0;
             while ((![[splitDash objectAtIndex:dashIDX] isEqualToString: @"Invitations received"]) && (dashIDX < [splitDash count])) {
                 dashLine = [splitDash objectAtIndex:dashIDX];
                 splitLine = [dashLine componentsSeparatedByString:@";"];
@@ -2331,6 +2353,7 @@ NSString *livePlayers;
                 int gameInt = ratingStat.gameId;
                 if (gameInt > 50) {
                     gameInt -= 50;
+                    tbRatings += 1;
                 }
                 if (gameInt < 3) {
                     gameStr = @"Pente";
@@ -2360,6 +2383,7 @@ NSString *livePlayers;
                 }
                 dashIDX++;
             }
+            [player setTbRatings: tbRatings];
         }
         sectionItems = [[NSMutableArray alloc] init];
     while ((dashIDX < [splitDash count]) && (![[splitDash objectAtIndex:dashIDX] isEqualToString: @"Invitations received"])) {

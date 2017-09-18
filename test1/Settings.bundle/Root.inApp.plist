@@ -80,6 +80,18 @@
 			<key>IASKTextAlignment</key>
 			<string>IASKUITextAlignmentCenter</string>
 			<key>Title</key>
+			<string>Restore Purchase</string>
+			<key>Key</key>
+			<string>RestorePurchaseButton</string>
+		</dict>
+		<dict>
+			<key>Type</key>
+			<string>IASKButtonSpecifier</string>
+			<key>IASKCellImage</key>
+			<string>subscribeIcon</string>
+			<key>IASKTextAlignment</key>
+			<string>IASKUITextAlignmentCenter</string>
+			<key>Title</key>
 			<string>Subscribe!</string>
 			<key>Key</key>
 			<string>SubscribeButton</string>

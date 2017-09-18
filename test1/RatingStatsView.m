@@ -20,6 +20,9 @@
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"showOnlyTB"]) {
+        return ((PenteNavigationViewController*)vc.navigationController).player.tbRatings;
+    }
     return [ratingStats count];
 }
 
