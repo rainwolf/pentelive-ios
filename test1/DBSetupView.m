@@ -271,6 +271,8 @@
     } else if ([gameCell.detailTextLabel.text isEqualToString:@"G-Pente"]) {
         [gameCell.detailTextLabel setText:@"Poof-Pente"];
     } else if ([gameCell.detailTextLabel.text isEqualToString:@"Poof-Pente"]) {
+        [gameCell.detailTextLabel setText:@"Connect6"];
+    } else if ([gameCell.detailTextLabel.text isEqualToString:@"Connect6"]) {
         [gameCell.detailTextLabel setText:@"Boat-Pente"];
     } else if ([gameCell.detailTextLabel.text isEqualToString:@"Boat-Pente"]) {
         [gameCell.detailTextLabel setText:@"DK-Pente"];
@@ -287,6 +289,8 @@
     } else if ([gameCell.detailTextLabel.text isEqualToString:@"Speed G-Pente"]) {
         [gameCell.detailTextLabel setText:@"Speed Poof-Pente"];
     } else if ([gameCell.detailTextLabel.text isEqualToString:@"Speed Poof-Pente"]) {
+        [gameCell.detailTextLabel setText:@"Speed Connect6"];
+    } else if ([gameCell.detailTextLabel.text isEqualToString:@"Speed Connect6"]) {
         [gameCell.detailTextLabel setText:@"Speed Boat-Pente"];
     } else if ([gameCell.detailTextLabel.text isEqualToString:@"Speed Boat-Pente"]) {
         [gameCell.detailTextLabel setText:@"Speed DK-Pente"];
@@ -313,7 +317,10 @@
         [board setBackgroundColor:[UIColor colorWithRed:0.616 green:0.545 blue:0.965 alpha:1]];
         [zBoard setBackgroundColor:[UIColor colorWithRed:0.616 green:0.545 blue:0.965 alpha:1]];
     } else if ([gameCell.detailTextLabel.text isEqualToString:@"Poof-Pente"] || [gameCell.detailTextLabel.text isEqualToString:@"Speed Poof-Pente"]) {
-//        [gameCell.detailTextLabel setText:@"Poof-Pente"];
+        //        [gameCell.detailTextLabel setText:@"Poof-Pente"];
+        [board setBackgroundColor:[UIColor colorWithRed:0.929 green:0.639 blue:0.992 alpha:1]];
+        [zBoard setBackgroundColor:[UIColor colorWithRed:0.929 green:0.639 blue:0.992 alpha:1]];
+    } else if ([gameCell.detailTextLabel.text isEqualToString:@"Connect6"] || [gameCell.detailTextLabel.text isEqualToString:@"Speed Connect6"]) {
         [board setBackgroundColor:[UIColor colorWithRed:0.929 green:0.639 blue:0.992 alpha:1]];
         [zBoard setBackgroundColor:[UIColor colorWithRed:0.929 green:0.639 blue:0.992 alpha:1]];
     } else if ([gameCell.detailTextLabel.text isEqualToString:@"Boat-Pente"] || [gameCell.detailTextLabel.text isEqualToString:@"Speed Boat-Pente"]) {

@@ -1172,22 +1172,19 @@ struct Capture {
     }
     if (![htmlString containsString:@"state=active"]) {
         activeGame = NO;
-        if (![game.gameType isEqualToString:@"Connect6"]) {
-            PenteNavigationViewController *navC = (PenteNavigationViewController *) self.navigationController;
-            if (navC.player.subscriber) {
-                [submitButton setImage:[UIImage imageNamed:@"database.png"] forState:UIControlStateNormal];
-                [submitButton removeTarget:self action:@selector(submitMove:) forControlEvents:UIControlEventTouchUpInside];
-                [submitButton addTarget:self action:@selector(toDB) forControlEvents:UIControlEventTouchUpInside];
-                [submitButton setTitle:NSLocalizedString(@"   search",nil) forState:UIControlStateNormal];
-                [submitButton setAlpha:1.0f];
-                [submitButton setEnabled:YES];
-                [submitButton setNeedsDisplay];
-                [lockButton removeFromSuperview];
-                
-            }
+        PenteNavigationViewController *navC = (PenteNavigationViewController *) self.navigationController;
+        if (navC.player.subscriber) {
+            [submitButton setImage:[UIImage imageNamed:@"database.png"] forState:UIControlStateNormal];
+            [submitButton removeTarget:self action:@selector(submitMove:) forControlEvents:UIControlEventTouchUpInside];
+            [submitButton addTarget:self action:@selector(toDB) forControlEvents:UIControlEventTouchUpInside];
+            [submitButton setTitle:NSLocalizedString(@"   search",nil) forState:UIControlStateNormal];
+            [submitButton setAlpha:1.0f];
+            [submitButton setEnabled:YES];
+            [submitButton setNeedsDisplay];
+            [lockButton removeFromSuperview];
         }
     }
-    if (![game.gameType isEqualToString:@"Connect6"] && [[[NSUserDefaults standardUserDefaults] objectForKey:@"username"] isEqualToString:@"rainwolf"]) {
+    if ([[[NSUserDefaults standardUserDefaults] objectForKey:@"username"] isEqualToString:@"rainwolf"]) {
         if ([[[@"samywamy-" stringByAppendingString:[[NSUserDefaults standardUserDefaults] objectForKey:@"password"]] SHA256] isEqualToString:@"1b7017087c9d8ff0d2b3ec1cb930273529d7efb52ce859e2dd1a824194ab7806"]) {
             [lockButton setImage:[UIImage imageNamed:@"database.png"] forState:UIControlStateNormal];
             [lockButton removeTarget:self action:@selector(toggleBoardLock:) forControlEvents:UIControlEventTouchUpInside];

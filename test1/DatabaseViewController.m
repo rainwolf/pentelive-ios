@@ -275,35 +275,38 @@ struct Capture {
 //}
 -(void) setBoardColor {
     
-    if ([game isEqualToString:@"Keryo-Pente"]) {
+    if ([game containsString:@"Keryo-Pente"]) {
         [board setBackgroundColor:[UIColor colorWithRed:0.702 green:1 blue:0.518 alpha:1]];
         [zoomedBoard setBackgroundColor:[UIColor colorWithRed:0.702 green:1 blue:0.518 alpha:1]];
-    } else if ([game isEqualToString:@"Gomoku"]) {
+    } else if ([game containsString:@"Gomoku"]) {
         [board setBackgroundColor:[UIColor colorWithRed:0.612 green:1 blue:0.898 alpha:1]];
         [zoomedBoard setBackgroundColor:[UIColor colorWithRed:0.612 green:1 blue:0.898 alpha:1]];
-    } else if ([game isEqualToString:@"D-Pente"]) {
+    } else if ([game containsString:@"D-Pente"]) {
         [board setBackgroundColor:[UIColor colorWithRed:0.584 green:0.753 blue:0.98 alpha:1]];
         [zoomedBoard setBackgroundColor:[UIColor colorWithRed:0.584 green:0.753 blue:0.98 alpha:1]];
-    } else if ([game isEqualToString:@"G-Pente"]) {
+    } else if ([game containsString:@"G-Pente"]) {
         [board setBackgroundColor:[UIColor colorWithRed:0.616 green:0.545 blue:0.965 alpha:1]];
         [zoomedBoard setBackgroundColor:[UIColor colorWithRed:0.616 green:0.545 blue:0.965 alpha:1]];
-    } else if ([game isEqualToString:@"Poof-Pente"]) {
+    } else if ([game containsString:@"Poof-Pente"]) {
         [board setBackgroundColor:[UIColor colorWithRed:0.929 green:0.639 blue:0.992 alpha:1]];
         [zoomedBoard setBackgroundColor:[UIColor colorWithRed:0.929 green:0.639 blue:0.992 alpha:1]];
-    } else if ([game isEqualToString:@"Boat-Pente"]) {
+    } else if ([game containsString:@"Connect6"]) {
+        [board setBackgroundColor:[UIColor colorWithRed:0.929 green:0.639 blue:0.992 alpha:1]];
+        [zoomedBoard setBackgroundColor:[UIColor colorWithRed:0.929 green:0.639 blue:0.992 alpha:1]];
+    } else if ([game containsString:@"Boat-Pente"]) {
         [board setBackgroundColor:[UIColor colorWithRed:0.145 green:0.729 blue:1 alpha:1]];
         [zoomedBoard setBackgroundColor:[UIColor colorWithRed:0.145 green:0.729 blue:1 alpha:1]];
-    } else if ([game isEqualToString:@"Pente"]) {
-        [board setBackgroundColor:[UIColor colorWithRed:0.984 green:0.851 blue:0.541 alpha:1]];
-        [zoomedBoard setBackgroundColor:[UIColor colorWithRed:0.984 green:0.851 blue:0.541 alpha:1]];
-    } else if ([game isEqualToString:@"DK-Pente"]) {
+    } else if ([game containsString:@"DK-Pente"]) {
         [board setBackgroundColor:[UIColor colorWithRed:1 green:165.0/255.0 blue:0 alpha:1]];
         [zoomedBoard setBackgroundColor:[UIColor colorWithRed:1 green:165.0/255.0 blue:0 alpha:1]];
+    } else if ([game containsString:@"Pente"]) {
+        [board setBackgroundColor:[UIColor colorWithRed:0.984 green:0.851 blue:0.541 alpha:1]];
+        [zoomedBoard setBackgroundColor:[UIColor colorWithRed:0.984 green:0.851 blue:0.541 alpha:1]];
     }
     [board setNeedsDisplay];
     [zoomedBoard setNeedsDisplay];
     if (game) {
-        if ([game isEqualToString:@"Pente"] || [game isEqualToString:@"Keryo-Pente"]) {
+        if ([game isEqualToString:@"Pente"] || [game isEqualToString:@"Speed Pente"] || [game containsString:@"Keryo-Pente"]) {
             [aiButton setHidden:NO];
         } else {
             [aiButton setHidden:YES];
@@ -372,7 +375,15 @@ struct Capture {
     switch ([recognizer state]) {
         case UIGestureRecognizerStateBegan:
             [board setLastMove: -1];
-            if ([movesList count]%2 == 1) {
+            if ([game containsString:@"Connect6"]) {
+                if ((([movesList count] % 4) == 0) || (([movesList count] % 4) == 3)) {
+                    [stone setStoneColor:[UIColor whiteColor]];
+                    [zoomedStone setStoneColor:[UIColor whiteColor]];
+                } else {
+                    [stone setStoneColor:[UIColor blackColor]];
+                    [zoomedStone setStoneColor:[UIColor blackColor]];
+                }
+            } else if ([movesList count]%2 == 1) {
                 [stone setStoneColor:[UIColor blackColor]];
                 [zoomedStone setStoneColor:[UIColor blackColor]];
             } else {
@@ -401,21 +412,25 @@ struct Capture {
                 
                 
 //                [self detectCaptureOfOpponent:(([[stone stoneColor] isEqual: [UIColor blackColor]]) ? 1 : 2) atPosition: finalMove];
-                abstractBoard[i][j] = 1 + ([movesList count]%2);
+                if ([game containsString:@"Connect6"]) {
+                    abstractBoard[i][j] = ((([movesList count] % 4) == 0) || (([movesList count] % 4) == 3)) ? 1 : 2;
+                } else {
+                    abstractBoard[i][j] = 1 + ([movesList count]%2);
+                }
                 [movesList addObject:[NSNumber numberWithInt:finalMove]];
                 if (game == nil) {
                     game = setupView.gameCell.detailTextLabel.text;
                 }
-                if (![game isEqualToString:@"Gomoku"]) {
+                if (![game containsString:@"Gomoku"] && ![game containsString:@"Connect6"]) {
                     int color = 2 - ([movesList count] % 2), opponentColor = (color == 2) ? 1 : 2;
-                    if ([game isEqualToString:@"Poof-Pente"]) {
+                    if ([game containsString:@"Poof-Pente"]) {
                         [self detectPoof:color atPosition:finalMove];
                     }
                     [self detectCaptureOfOpponent:opponentColor atPosition:finalMove];
-                    if ([game isEqualToString:@"Keryo-Pente"] || [game isEqualToString:@"DK-Pente"]) {
+                    if ([game containsString:@"Keryo-Pente"] || [game containsString:@"DK-Pente"]) {
                         [self detectKeryoCaptureOfOpponent:opponentColor atPosition:finalMove];
                     }
-                    if ([game isEqualToString:@"G-Pente"] && [movesList count] == 2) {
+                    if ([game containsString:@"G-Pente"] && [movesList count] == 2) {
                         for(int i = 7; i < 12; ++i) {
                             for(int j = 7; j < 12; ++j) {
                                 if (abstractBoard[i][j] == 0) {
@@ -437,7 +452,7 @@ struct Capture {
                                 abstractBoard[7 - i][9] = -1;
                             }
                         }
-                    } else if ([game isEqualToString:@"G-Pente"] && [movesList count] == 3) {
+                    } else if ([game containsString:@"G-Pente"] && [movesList count] == 3) {
                         for(int i = 7; i < 12; ++i) {
                             for(int j = 7; j < 12; ++j) {
                                 if (abstractBoard[i][j] == -1) {
@@ -461,7 +476,15 @@ struct Capture {
                         }
                     }
                 }
-                if (([movesList count]%2) == 1) {
+                if ([game containsString:@"Connect6"]) {
+                    if ((([movesList count]-3)%4) == 0) {
+                        [moveStatsString appendString: [NSString stringWithFormat:@"&nbsp; <b>%i.</b> ", ([movesList count] >> 2) + 2]];
+                    } else if ((([movesList count]-3)%4) == 2 || [movesList count] == 1) {
+                        [moveStatsString appendString: @" - "];
+                    } else {
+                        [moveStatsString appendString: @"-"];
+                    }
+                } else if (([movesList count]%2) == 1) {
                     [moveStatsString appendString: [NSString stringWithFormat:@"&nbsp; <b>%lu.</b> ", ([movesList count] >> 1) + 1]];
                 } else {
                     [moveStatsString appendString: @" - "];
@@ -595,10 +618,20 @@ struct Capture {
             if (i == 0) {
                 [moveStatsString appendString: @"<center><b>1.</b> "];
             } else {
-                if ((i%2) == 0) {
-                    [moveStatsString appendString: [NSString stringWithFormat:@"&nbsp; <b>%i.</b> ", (i >> 1) + 1]];
+                if ([game containsString:@"Connect6"]) {
+                    if (((i-3)%4) == 0) {
+                        [moveStatsString appendString: [NSString stringWithFormat:@"&nbsp; <b>%i.</b> ", (i >> 2) + 2]];
+                    } else if (((i-3)%4) == 2 || i == 1) {
+                        [moveStatsString appendString: @" - "];
+                    } else {
+                        [moveStatsString appendString: @"-"];
+                    }
                 } else {
-                    [moveStatsString appendString: @" - "];
+                    if ((i%2) == 0) {
+                        [moveStatsString appendString: [NSString stringWithFormat:@"&nbsp; <b>%i.</b> ", (i >> 1) + 1]];
+                    } else {
+                        [moveStatsString appendString: @" - "];
+                    }
                 }
             }
             [moveStatsString appendString:[NSString stringWithFormat:@"%c%d", coordinateLetters[rowCol % 19], 19 - (rowCol / 19)]];
@@ -775,13 +808,13 @@ struct Capture {
     [aiPlayer setSeat: 1 + ([movesList count] % 2)];
     [aiPlayer setMoves:movesList];
     if (game) {
-        if ([game isEqualToString:@"Pente"]) {
+        if ([game isEqualToString:@"Pente"] || [game isEqualToString:@"Speed Pente"]) {
             [aiPlayer setGame:1];
-        } else if ([game isEqualToString:@"Keryo-Pente"]) {
+        } else if ([game containsString:@"Keryo-Pente"]) {
             [aiPlayer setGame:2];
         }
     } else {
-        [aiPlayer setGame: ([setupView.gameCell.detailTextLabel.text isEqualToString:@"Pente"]?1:2)];
+        [aiPlayer setGame: ([setupView.gameCell.detailTextLabel.text containsString:@"Keryo-Pente"]?2:1)];
     }
     [self.progressView startAnimating];
     [self.view addSubview:self.progressView];
@@ -806,7 +839,7 @@ struct Capture {
     }
     int color = 2 - ([movesList count] % 2), opponentColor = (color == 2) ? 1 : 2;
     [self detectCaptureOfOpponent:opponentColor atPosition:finalMove];
-    if ([game isEqualToString:@"Keryo-Pente"]) {
+    if ([game containsString:@"Keryo-Pente"]) {
         [self detectKeryoCaptureOfOpponent:opponentColor atPosition:finalMove];
     }
     if (([movesList count]%2) == 1) {
@@ -847,21 +880,24 @@ struct Capture {
     for (NSNumber *move in movesList) {
         int rowCol = [move intValue];
         int color = (i % 2) + 1, opponentColor = (color == 2) ? 1 : 2;
+        if ([game containsString:@"Connect6"]) {
+            color = (((i % 4) == 0) || ((i % 4) == 3)) ? 1 : 2;
+        }
         abstractBoard[rowCol / 19][rowCol % 19] = color;
         i+=1;
-        if (![game isEqualToString:@"Gomoku"]) {
-            if ([game isEqualToString:@"Poof-Pente"]) {
+        if (![game containsString:@"Gomoku"] && ![game containsString:@"Connect6"]) {
+            if ([game containsString:@"Poof-Pente"]) {
                 [self detectPoof:color atPosition:rowCol];
             }
             [self detectCaptureOfOpponent:opponentColor atPosition:rowCol];
-            if ([game isEqualToString:@"Keryo-Pente"] || [game isEqualToString:@"DK-Pente"]) {
+            if ([game containsString:@"Keryo-Pente"] || [game containsString:@"DK-Pente"]) {
                 [self detectKeryoCaptureOfOpponent:opponentColor atPosition:rowCol];
             }
         } else {
             continue;
         }
     }
-    if ([game isEqualToString:@"G-Pente"] && [movesList count] == 2) {
+    if ([game containsString:@"G-Pente"] && [movesList count] == 2) {
         for(int i = 7; i < 12; ++i) {
             for(int j = 7; j < 12; ++j) {
                 if (abstractBoard[i][j] == 0) {
@@ -883,7 +919,7 @@ struct Capture {
                 abstractBoard[7 - i][9] = -1;
             }
         }
-    } else if ([game isEqualToString:@"G-Pente"] && [movesList count] == 3) {
+    } else if ([game containsString:@"G-Pente"] && [movesList count] == 3) {
         for(int i = 7; i < 12; ++i) {
             for(int j = 7; j < 12; ++j) {
                 if (abstractBoard[i][j] == -1) {
@@ -918,10 +954,20 @@ struct Capture {
         if (i == 0) {
             [moveStatsString appendString: @"<b>1.</b> "];
         } else {
-            if ((i%2) == 0) {
-                [moveStatsString appendString: [NSString stringWithFormat:@"&nbsp; <b>%i.</b> ", (i >> 1) + 1]];
+            if ([game containsString:@"Connect6"]) {
+                if (((i-3)%4) == 0) {
+                    [moveStatsString appendString: [NSString stringWithFormat:@"&nbsp; <b>%i.</b> ", (i >> 2) + 2]];
+                } else if (((i-3)%4) == 2 || i == 1) {
+                    [moveStatsString appendString: @" - "];
+                } else {
+                    [moveStatsString appendString: @"-"];
+                }
             } else {
-                [moveStatsString appendString: @" - "];
+                if ((i%2) == 0) {
+                    [moveStatsString appendString: [NSString stringWithFormat:@"&nbsp; <b>%i.</b> ", (i >> 1) + 1]];
+                } else {
+                    [moveStatsString appendString: @" - "];
+                }
             }
         }
         [moveStatsString appendString:[NSString stringWithFormat:@"%c%d", coordinateLetters[rowCol % 19], 19 - (rowCol / 19)]];
@@ -1479,7 +1525,7 @@ struct Capture {
     if (!str) {
         str = setupView.gameCell.detailTextLabel.text;
     }
-    if ([str isEqualToString:@"Gomoku"]) {
+    if ([str containsString:@"Gomoku"] || [str containsString:@"Connect6"]) {
         [whiteStoneCaptures setHidden:YES];
         [whiteCapturesCountLabel setHidden:YES];
         [blackStoneCaptures setHidden:YES];
@@ -1490,7 +1536,7 @@ struct Capture {
         [blackStoneCaptures setHidden:NO];
         [blackCapturesCountLabel setHidden:NO];
     }
-    if ([str isEqualToString:@"Pente"] || [str isEqualToString:@"Keryo-Pente"]) {
+    if ([str isEqualToString:@"Pente"] || [game isEqualToString:@"Speed Pente"] || [str containsString:@"Keryo-Pente"]) {
         [aiButton setHidden:NO];
     } else {
         [aiButton setHidden:YES];
