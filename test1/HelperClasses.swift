@@ -22,10 +22,10 @@ class LivePlayer: NSObject {
     func getNameString() -> NSAttributedString {
         let text = NSMutableAttributedString(string: name)
         if subscriber {
-            text.addAttribute(NSForegroundColorAttributeName, value: color, range: NSRange(location: 0, length: name.characters.count))
-            text.addAttribute(NSFontAttributeName, value: UIFont(name: "HelveticaNeue-Bold", size: 17)!, range: NSRange(location: 0, length: name.characters.count))
+            text.addAttribute(NSAttributedStringKey.foregroundColor, value: color, range: NSRange(location: 0, length: name.characters.count))
+            text.addAttribute(NSAttributedStringKey.font, value: UIFont(name: "HelveticaNeue-Bold", size: 17)!, range: NSRange(location: 0, length: name.characters.count))
         } else {
-            text.addAttribute(NSFontAttributeName, value: UIFont(name: "HelveticaNeue", size: 17)!, range: NSRange(location: 0, length: name.characters.count))
+            text.addAttribute(NSAttributedStringKey.font, value: UIFont(name: "HelveticaNeue", size: 17)!, range: NSRange(location: 0, length: name.characters.count))
         }
         let textAttachment = NSTextAttachment()
         switch crown {
@@ -71,8 +71,8 @@ class LivePlayer: NSObject {
         }
         text = text + "\(ratingInt)"
         let coloredText = NSMutableAttributedString(string: text)
-        coloredText.addAttribute(NSForegroundColorAttributeName, value: ratingColor, range: NSRange(location: 0, length: 1))
-        coloredText.addAttribute(NSFontAttributeName, value: UIFont(name: "HelveticaNeue-Bold", size: 12.0)!, range: NSRange(location: 0, length: 1))
+        coloredText.addAttribute(NSAttributedStringKey.foregroundColor, value: ratingColor, range: NSRange(location: 0, length: 1))
+        coloredText.addAttribute(NSAttributedStringKey.font, value: UIFont(name: "HelveticaNeue-Bold", size: 12.0)!, range: NSRange(location: 0, length: 1))
         return coloredText
     }
 
@@ -336,20 +336,20 @@ class Table: NSObject {
     }
     func makeAttributedString() -> NSAttributedString {
 //        let titleAttributes = [NSFontAttributeName: UIFont.preferredFont(forTextStyle: .headline), NSForegroundColorAttributeName: UIColor(red: 255/255, green: 193/255, blue: 7/255, alpha: 1.0)]
-        let titleAttributes = [NSFontAttributeName: UIFont.preferredFont(forTextStyle: .headline)]
-        let subtitleAttributes = [NSFontAttributeName: UIFont.preferredFont(forTextStyle: .subheadline)]
+        let titleAttributes = [NSAttributedStringKey.font: UIFont.preferredFont(forTextStyle: .headline)]
+        let subtitleAttributes = [NSAttributedStringKey.font: UIFont.preferredFont(forTextStyle: .subheadline)]
         
         let titleString = NSMutableAttributedString(string: "\(gameName())", attributes: titleAttributes)
         if seats.count > 0 {
             titleString.append(NSAttributedString(string: "\n"))
             if seats.count == 2 {
-                titleString.append(NSAttributedString(string: "\u{25CF} ", attributes: [NSForegroundColorAttributeName: UIColor.white]))
+                titleString.append(NSAttributedString(string: "\u{25CF} ", attributes: [NSAttributedStringKey.foregroundColor: UIColor.white]))
                 titleString.append((seats[1]?.getNameString())!)
                 titleString.append(NSAttributedString(string: " - \u{25CF} "))
                 titleString.append((seats[2]?.getNameString())!)
             } else {
                 if seats[1] != nil {
-                    titleString.append(NSAttributedString(string: "\u{25CF} ", attributes: [NSForegroundColorAttributeName: UIColor.white]))
+                    titleString.append(NSAttributedString(string: "\u{25CF} ", attributes: [NSAttributedStringKey.foregroundColor: UIColor.white]))
                     titleString.append((seats[1]?.getNameString())!)
                 } else if seats[2] != nil {
                     titleString.append(NSAttributedString(string: "\u{25CF} "))

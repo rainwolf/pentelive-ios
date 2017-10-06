@@ -2305,23 +2305,23 @@ NSString *livePlayers;
             }
             [player setTbHills: tbHills];
         }
-        if ([sectionItems count] != [[player hills] count]) {
+        int totalHills = ([[NSUserDefaults standardUserDefaults] boolForKey:@"showOnlyTB"]?player.tbHills:(int) [sectionItems count]);
+        long kothRows = 0;
+        if (self.tableView) {
+            kothRows = [self.tableView numberOfRowsInSection:KOTHSECTION];
+        }
+        if (totalHills != kothRows) {
             if (!kothCollapsed) {
                 indexSet = [[NSMutableArray alloc] init];
-                for(int i = 0; i < [[player hills] count]; ++i)
+                for(int i = 0; i < kothRows; ++i) {
                     [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: KOTHSECTION]];
+                }
                 [player setHills:[[NSMutableArray alloc] init]];
                 [self.tableView deleteRowsAtIndexPaths:indexSet withRowAnimation:UITableViewRowAnimationFade];
             }
             [player setHills:sectionItems];
             if (!kothCollapsed) {
                 indexSet = [[NSMutableArray alloc] init];
-                int totalHills = 0;
-                if ([[NSUserDefaults standardUserDefaults] boolForKey:@"showOnlyTB"]) {
-                    totalHills = player.tbHills;
-                } else {
-                    totalHills = (int) [[player hills] count];
-                }
                 for(int i = 0; i < totalHills; ++i) {
                     [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: KOTHSECTION]];
                 }

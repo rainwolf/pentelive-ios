@@ -478,7 +478,7 @@ struct Capture {
                 }
                 if ([game containsString:@"Connect6"]) {
                     if ((([movesList count]-3)%4) == 0) {
-                        [moveStatsString appendString: [NSString stringWithFormat:@"&nbsp; <b>%i.</b> ", ([movesList count] >> 2) + 2]];
+                        [moveStatsString appendString: [NSString stringWithFormat:@"&nbsp; <b>%lu.</b> ", ([movesList count] >> 2) + 2]];
                     } else if ((([movesList count]-3)%4) == 2 || [movesList count] == 1) {
                         [moveStatsString appendString: @" - "];
                     } else {

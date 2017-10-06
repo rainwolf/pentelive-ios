@@ -122,7 +122,7 @@ import UIKit
         self.navigationController!.popToRootViewController(animated: true)
     }
     
-    func broadcast() {
+    @objc func broadcast() {
         if (pentePlayer?.subscriber)! {
             self.broadcastAlertController = UIAlertController(title: NSLocalizedString("broadcast to followers or friends", comment: ""), message: nil, preferredStyle: .alert)
             self.broadcastAlertController?.addTextField { (textField : UITextField!) -> Void in
@@ -239,7 +239,7 @@ class GameRoom: NSObject {
     }
     
     func makeAttributedString() -> NSAttributedString {
-        let titleAttributes = [NSFontAttributeName: UIFont.preferredFont(forTextStyle: .headline)]
+        let titleAttributes = [NSAttributedStringKey.font: UIFont.preferredFont(forTextStyle: .headline)]
 //        let subtitleAttributes = [NSFontAttributeName: UIFont.preferredFont(forTextStyle: .subheadline)]
         
         let titleString = NSMutableAttributedString(string: "\(name)", attributes: titleAttributes)

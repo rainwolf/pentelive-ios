@@ -210,7 +210,7 @@ class TableSetupView: UITableView, UITableViewDelegate, UITableViewDataSource, U
         }
     }
     
-    func dismissPickers() {
+    @objc func dismissPickers() {
         gameCell?.textField.resignFirstResponder()
         initialMinutesCell?.textField.resignFirstResponder()
         incrementalSecondsCell?.textField.resignFirstResponder()

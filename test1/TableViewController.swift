@@ -132,7 +132,7 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
         
     }
     
-    func boardTouch(gestureReconizer: UILongPressGestureRecognizer) {
+    @objc func boardTouch(gestureReconizer: UILongPressGestureRecognizer) {
         if me != table.currentPlayerName() || table.state.state != .started {
             return
         }
@@ -195,7 +195,7 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
-    func backToMainRoom(sender: UIBarButtonItem) {
+    @objc func backToMainRoom(sender: UIBarButtonItem) {
         if table.state.state == GameState.State.started {
             return
         }
@@ -258,7 +258,7 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
         NotificationCenter.default.removeObserver(self)
     }
     
-    func showSettings() {
+    @objc func showSettings() {
         if me == table.owner && table.state.state == .notStarted {
             let popover = PopoverView()
             setupView.reloadData()
@@ -267,7 +267,7 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
         }
     }
     
-    func showOptions() {
+    @objc func showOptions() {
         if table.state.state == .started && table.amIseated(i: me) {
             let alertController = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
             
@@ -304,7 +304,7 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
         
     }
     
-    func showPlayersOptions() {
+    @objc func showPlayersOptions() {
         
         if table.owner == me {
             let alertController = UIAlertController(title: NSLocalizedString("Options", comment: ""), message: nil, preferredStyle: .alert)
@@ -524,7 +524,7 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
 //            seatsView.ratedTimerLabel.alpha = 0.3
 //        }
     }
-    func countDownWait() {
+    @objc func countDownWait() {
         waitSeconds = waitSeconds - 1
         if waitSeconds == 0 {
             waitTimer?.invalidate()
@@ -627,7 +627,7 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
         }
     }
 
-    func countDownTimer() {
+    @objc func countDownTimer() {
         var seat = table.currentPlayer()
         if (table.game == 7 || table.game == 8 || table.game == 17 || table.game == 18) {
             if table.moves.count < 4 {
@@ -652,7 +652,7 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
         seatsView.setTimers(timers: table.state.timers)
         
     }
-    func sitStand(sender: UITapGestureRecognizer) {
+    @objc func sitStand(sender: UITapGestureRecognizer) {
         let seat = sender.view!.tag
         var event: [String:Any]
             event = ["dsgStandTableEvent":["table":table.table,"time":0]]
@@ -663,7 +663,7 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
         socket.sendEvent(eventDictionary: event)
     }
     
-    func play() {
+    @objc func play() {
         socket.sendEvent(eventDictionary: ["dsgPlayTableEvent":["table":table.table,"time":0]])
         playButton.isHidden = true
         table.resetTimers()
@@ -688,7 +688,7 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
         self.textView.text = "\(self.textView.text!)\(text)\n"
         self.textView.scrollRangeToVisible(NSRange(location: self.textView.text.characters.count - 1, length: 1))
     }
-    func enterText() {
+    @objc func enterText() {
         textField.text = ""
         textField.becomeFirstResponder()
     }
@@ -700,7 +700,7 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
         }
         return false
     }
-    func keyboardWillShowHide(notification: NSNotification) {
+    @objc func keyboardWillShowHide(notification: NSNotification) {
         if self.inviteAlertController != nil && (self.inviteAlertController?.isBeingPresented)! {
             return
         }

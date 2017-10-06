@@ -80,7 +80,7 @@ class SocialViewController: UIViewController, UITableViewDelegate, UITableViewDa
         loadFollowersing()
     }
     
-    func refresh(sender:AnyObject) {
+    @objc func refresh(sender:AnyObject) {
         loadFollowersing()
     }
     
@@ -201,7 +201,7 @@ class SocialViewController: UIViewController, UITableViewDelegate, UITableViewDa
     
     
     
-    func addFollowing() {
+    @objc func addFollowing() {
         let alertController = UIAlertController(title: NSLocalizedString("follow player", comment: ""), message: nil, preferredStyle: .alert)
         alertController.addTextField { (textField : UITextField!) -> Void in
             textField.placeholder = NSLocalizedString("player name", comment: "")
@@ -280,7 +280,7 @@ class SocialViewController: UIViewController, UITableViewDelegate, UITableViewDa
         }
     }
     
-    func selectGame() {
+    @objc func selectGame() {
         let gamePicker = UIPickerView()
         let pickerToolbar = UIToolbar(frame: CGRect(x: 0, y: 0, width: self.view.frame.size.width, height: 44))
         pickerToolbar.barStyle = .blackTranslucent
@@ -303,7 +303,7 @@ class SocialViewController: UIViewController, UITableViewDelegate, UITableViewDa
         
         textField.becomeFirstResponder()
     }
-    func dismissPicker() {
+    @objc func dismissPicker() {
         textField.resignFirstResponder()
         loadFollowersing()
     }

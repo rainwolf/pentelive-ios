@@ -447,7 +447,7 @@
     UILabel *subscribeText = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width*9/10, CGFLOAT_MAX)];
     [subscribeText setLineBreakMode:NSLineBreakByWordWrapping];
     [subscribeText setNumberOfLines:0];
-    NSString *subscribeString = NSLocalizedString(@"\u2022 remove limits on open invitations\n\u2022 participate in all King of the Hills\n\u2022 see no more ads\n\u2022 change your name color\n\u2022 upload an avatar\n\u2022 access the database!\n\u2022 follow without limits\n\u2022 broadcast to your followers", nil);
+    NSString *subscribeString = NSLocalizedString(@"\u2022 remove limits on open invitations\n\u2022 request undo in turn-based games\n\u2022 participate in all King of the Hills\n\u2022 see no more ads\n\u2022 change your name color\n\u2022 upload an avatar\n\u2022 access the database!\n\u2022 follow without limits\n\u2022 broadcast to your followers", nil);
     [subscribeText setText:subscribeString];
     [subscribeText sizeToFit];
     

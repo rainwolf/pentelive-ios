@@ -377,7 +377,7 @@ struct Capture {
     }
 //    NSLog(@"SwipeLeft %i", lastMove);
     finalMove = -1;
-    if (!submitButton.imageView.image) {
+    if (!submitButton.imageView.image && activeGame) {
         [submitButton setEnabled:NO];
         [submitButton setTitle:NSLocalizedString(@"submit",nil) forState:UIControlStateDisabled];
         [submitButton setAlpha:0.5];
@@ -489,7 +489,7 @@ struct Capture {
             break;
         case UIGestureRecognizerStateEnded:
 //            NSLog(@"hi ended");
-            if ([zoomedBoard isHidden]) {
+            if ([zoomedBoard isHidden] && activeGame) {
                 [submitButton setEnabled:NO];
                 [submitButton setTitle:NSLocalizedString(@"submit",nil) forState:UIControlStateDisabled];
                 [submitButton setAlpha:0.5];
@@ -582,7 +582,7 @@ struct Capture {
                         [board setNeedsDisplay];
                     }
                 }
-            } else {
+            } else if (activeGame) {
                 finalMove = -1;
                 [submitButton setEnabled:NO];
                 [submitButton setTitle:NSLocalizedString(@"submit",nil) forState:UIControlStateDisabled];
@@ -809,7 +809,7 @@ struct Capture {
     NSString *dashLine;
 //    NSArray *splitLine;
     NSMutableArray *messages, *atMoves;
-    BOOL cancelRequest = NO;
+    BOOL cancelRequest = NO, undoRequest = NO;
     NSString *cancelMsg;
     //            NSLog(@"result: %@",dashboardString);
     
@@ -821,6 +821,8 @@ struct Capture {
         @try {
             if ([[dashLine substringToIndex:4] isEqualToString:@"sid="]) {
                 [game setSetID:[dashLine substringFromIndex:4]];
+            } else if ([dashLine containsString:@"undo=requested"]) {
+                undoRequest = YES;
             } else if ([[dashLine substringToIndex:9] isEqualToString:@"gameName="]) {
                 [game setGameType:[dashLine substringFromIndex:9]];
             } else if ([[dashLine substringToIndex:6] isEqualToString:@"moves="]) {
@@ -1184,16 +1186,160 @@ struct Capture {
             [lockButton removeFromSuperview];
         }
     }
-    if ([[[NSUserDefaults standardUserDefaults] objectForKey:@"username"] isEqualToString:@"rainwolf"]) {
-        if ([[[@"samywamy-" stringByAppendingString:[[NSUserDefaults standardUserDefaults] objectForKey:@"password"]] SHA256] isEqualToString:@"1b7017087c9d8ff0d2b3ec1cb930273529d7efb52ce859e2dd1a824194ab7806"]) {
-            [lockButton setImage:[UIImage imageNamed:@"database.png"] forState:UIControlStateNormal];
-            [lockButton removeTarget:self action:@selector(toggleBoardLock:) forControlEvents:UIControlEventTouchUpInside];
-            [lockButton addTarget:self action:@selector(toDB) forControlEvents:UIControlEventTouchUpInside];
-            [lockButton setAlpha:1.0f];
-            [lockButton setEnabled:YES];
-            [lockButton setNeedsDisplay];
+    if (undoRequest && activeGame) {
+        [self presentUndoOptions];
+    }
+    if (([myUsername isEqualToString:p1Name] || [myUsername isEqualToString:p2Name]) && !activeGame && [htmlString containsString:@"state=active"] && [movesList count] > 1) {
+        [submitButton removeTarget:nil action:NULL forControlEvents:UIControlEventAllEvents];
+        if (undoRequest) {
+            [submitButton setTitle: NSLocalizedString(@"undo requested",nil) forState:UIControlStateDisabled];
+            [submitButton setEnabled:NO];
+            [submitButton setAlpha:0.85];
+        } else {
+            [submitButton setTitle: NSLocalizedString(@"request undo",nil) forState:UIControlStateNormal];
+            [submitButton setEnabled:YES];
+            [submitButton setAlpha:1];
+            [submitButton addTarget:self action:@selector(requestUndo:) forControlEvents:UIControlEventTouchUpInside];
         }
     }
+//    if ([[[NSUserDefaults standardUserDefaults] objectForKey:@"username"] isEqualToString:@"rainwolf"]) {
+//        if ([[[@"samywamy-" stringByAppendingString:[[NSUserDefaults standardUserDefaults] objectForKey:@"password"]] SHA256] isEqualToString:@"1b7017087c9d8ff0d2b3ec1cb930273529d7efb52ce859e2dd1a824194ab7806"]) {
+//            [lockButton setImage:[UIImage imageNamed:@"database.png"] forState:UIControlStateNormal];
+//            [lockButton removeTarget:self action:@selector(toggleBoardLock:) forControlEvents:UIControlEventTouchUpInside];
+//            [lockButton addTarget:self action:@selector(toDB) forControlEvents:UIControlEventTouchUpInside];
+//            [lockButton setAlpha:1.0f];
+//            [lockButton setEnabled:YES];
+//            [lockButton setNeedsDisplay];
+//        }
+//    }
+}
+
+-(void) requestUndo: (UIButton*) sender {
+    PenteNavigationViewController *navControllor = (PenteNavigationViewController *) self.navigationController;
+    if ([navControllor.player subscriber]) {
+        NSError *error = nil;
+        NSURLResponse *response;
+        NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
+        
+        NSString *post = [NSString stringWithFormat:@"gid=%@&command=requestUndo&mobile=", [game gameID]];
+        NSData *postData = [post dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
+        NSString *postLength = [NSString stringWithFormat:@"%lu", (unsigned long)[postData length]];
+        
+        [request setURL:[NSURL URLWithString:@"https://www.pente.org/gameServer/tb/game"]];
+        [request setHTTPMethod:@"POST"];
+        [request setValue:postLength forHTTPHeaderField:@"Content-Length"];
+        [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
+        [request setHTTPBody: postData];
+        [request setTimeoutInterval:7.0f];
+        
+        [request setHTTPShouldUsePipelining: YES];
+        
+        [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
+        if (error) {
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error",nil) message:[NSString stringWithFormat:NSLocalizedString(@"Reason: %@",nil), error.localizedDescription] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+            //        [alert show];
+            [alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:YES];
+            return;
+        } else {
+//            [navControllor setDidMove: YES];
+            [self.navigationController popToRootViewControllerAnimated:YES];
+        }
+    } else {
+        UIAlertController *subscribersOnlyController = [UIAlertController
+                                                        alertControllerWithTitle:NSLocalizedString(@"Action not available", nil)
+                                                        message: NSLocalizedString(@"Request undo is a feature available to subscribers only.", nil)
+                                                        preferredStyle:UIAlertControllerStyleActionSheet];
+        UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"dismiss", nil) style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {
+        }];
+        UIAlertAction *subscribeAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"subscription info", nil) style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+            ((PenteNavigationViewController *) self.navigationController).showSubscribe = YES;
+            [self.navigationController popToRootViewControllerAnimated:YES];
+        }];
+        [subscribersOnlyController addAction:cancelAction];
+        [subscribersOnlyController addAction:subscribeAction];
+        
+        if (subscribersOnlyController.popoverPresentationController != nil) {
+            [subscribersOnlyController.popoverPresentationController setSourceView: submitButton];
+            [subscribersOnlyController.popoverPresentationController setSourceRect: submitButton.bounds];
+        }
+        
+        [self presentViewController:subscribersOnlyController animated:NO completion:nil];
+    }
+}
+
+-(void) presentUndoOptions {
+    UIAlertController* alert = [UIAlertController alertControllerWithTitle:NSLocalizedString(@"Undo requested", nil)
+                                                                   message:nil
+                                                            preferredStyle:UIAlertControllerStyleActionSheet];
+    UIAlertAction* acceptAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"Accept", nil) style:UIAlertActionStyleDefault
+                                                         handler:^(UIAlertAction * action) {
+                                                             PenteNavigationViewController *navControllor = (PenteNavigationViewController *) self.navigationController;
+                                                             NSError *error = nil;
+                                                             NSURLResponse *response;
+                                                             NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
+                                                             
+                                                             NSString *post = [NSString stringWithFormat:@"gid=%@&command=acceptUndo&mobile=", [game gameID]];
+                                                             NSData *postData = [post dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
+                                                             NSString *postLength = [NSString stringWithFormat:@"%lu", (unsigned long)[postData length]];
+                                                             
+                                                             [request setURL:[NSURL URLWithString:@"https://www.pente.org/gameServer/tb/game"]];
+                                                             [request setHTTPMethod:@"POST"];
+                                                             [request setValue:postLength forHTTPHeaderField:@"Content-Length"];
+                                                             [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
+                                                             [request setHTTPBody: postData];
+                                                             [request setTimeoutInterval:7.0f];
+                                                             
+                                                             [request setHTTPShouldUsePipelining: YES];
+                                                             
+                                                             [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
+                                                             if (error) {
+                                                                 UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error",nil) message:[NSString stringWithFormat:NSLocalizedString(@"Reason: %@",nil), error.localizedDescription] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+                                                                 //        [alert show];
+                                                                 [alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:YES];
+                                                                 return;
+                                                             } else {
+                                                                 [navControllor setDidMove: YES];
+                                                                 [self.navigationController popToRootViewControllerAnimated:YES];
+                                                             }
+                                                         }];
+    UIAlertAction* declineAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"Decline", nil) style:UIAlertActionStyleDestructive
+                                                         handler:^(UIAlertAction * action) {
+                                                             PenteNavigationViewController *navControllor = (PenteNavigationViewController *) self.navigationController;
+                                                             NSError *error = nil;
+                                                             NSURLResponse *response;
+                                                             NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
+                                                             
+                                                             NSString *post = [NSString stringWithFormat:@"gid=%@&command=declineUndo&mobile=", [game gameID]];
+                                                             NSData *postData = [post dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
+                                                             NSString *postLength = [NSString stringWithFormat:@"%lu", (unsigned long)[postData length]];
+                                                             
+                                                             [request setURL:[NSURL URLWithString:@"https://www.pente.org/gameServer/tb/game"]];
+                                                             [request setHTTPMethod:@"POST"];
+                                                             [request setValue:postLength forHTTPHeaderField:@"Content-Length"];
+                                                             [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
+                                                             [request setHTTPBody: postData];
+                                                             [request setTimeoutInterval:7.0f];
+                                                             
+                                                             [request setHTTPShouldUsePipelining: YES];
+                                                             
+                                                             [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
+                                                             if (error) {
+                                                                 UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error",nil) message:[NSString stringWithFormat:NSLocalizedString(@"Reason: %@",nil), error.localizedDescription] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+                                                                 //        [alert show];
+                                                                 [alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:YES];
+                                                                 return;
+                                                             } else {
+                                                                 [self replayGame];
+                                                             }
+                                                         }];
+
+    [alert addAction:acceptAction];
+    [alert addAction:declineAction];
+    if (alert.popoverPresentationController) {
+        [alert.popoverPresentationController setSourceView: playerStats];
+        [alert.popoverPresentationController setSourceRect: playerStats.bounds];
+    }
+    [self presentViewController:alert animated:YES completion:nil];
 }
 -(void) toDB {
 //    NSLog(@"%d",lastMove);

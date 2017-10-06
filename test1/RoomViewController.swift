@@ -382,7 +382,7 @@ class RoomViewController: UIViewController, UITableViewDelegate, UITableViewData
         self.textView.text = "\(self.textView.text!)\(text)\n"
         self.textView.scrollRangeToVisible(NSRange(location: self.textView.text.characters.count - 1, length: 1))
     }
-    func createTable() {
+    @objc func createTable() {
         let createEvent = ["dsgJoinTableEvent":["table":-1,"time":0]]
         socket.sendEvent(eventDictionary: createEvent)
     }
@@ -771,7 +771,7 @@ class RoomViewController: UIViewController, UITableViewDelegate, UITableViewData
             }
         }
     }
-    func enterText() {
+    @objc func enterText() {
         textField.text = ""
         textField.becomeFirstResponder()
     }
@@ -783,7 +783,7 @@ class RoomViewController: UIViewController, UITableViewDelegate, UITableViewData
         }
         return false
     }
-    func keyboardWillShowHide(notification: NSNotification) {
+    @objc func keyboardWillShowHide(notification: NSNotification) {
         if self.invitationAlertController != nil && (self.invitationAlertController?.isBeingPresented)! {
             return
         }

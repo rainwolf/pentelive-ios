@@ -29,13 +29,15 @@ class PenteWebViewController: SVWebViewController, UIWebViewDelegate {
         if (navigationType == .linkClicked || navigationType == .other) && ((urlStr?.contains("?mobile&g="))! || (urlStr?.contains("gameServer/tb/game?gid="))!) {
             if (urlStr?.contains("?mobile&g="))! {
                 while !(urlStr?.hasPrefix("?mobile&g="))! {
-                    urlStr?.remove(at: (urlStr?.startIndex)!)
+                    let startIdx = (urlStr?.startIndex)!
+                    urlStr?.remove(at: startIdx)
                 }
                 urlStr = urlStr?.replacingOccurrences(of: "?mobile&g=", with: "")
             }
             if (urlStr?.contains("gameServer/tb/game?gid="))! {
                 while !(urlStr?.hasPrefix("gameServer/tb/game?gid="))! {
-                    urlStr?.remove(at: (urlStr?.startIndex)!)
+                    let startIdx = (urlStr?.startIndex)!
+                    urlStr?.remove(at: startIdx)
                 }
                 urlStr = urlStr?.replacingOccurrences(of: "gameServer/tb/game?gid=", with: "")
             }

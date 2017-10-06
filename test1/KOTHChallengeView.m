@@ -120,7 +120,7 @@
         [restrictionCell doResign];
         
 
-        NSString *gameString = self.gameStr;
+//        NSString *gameString = self.gameStr;
 
         NSString *restrictString = @"A";
         if ([invitee isEqualToString:@""]) {
