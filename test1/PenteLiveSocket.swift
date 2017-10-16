@@ -81,6 +81,7 @@ import UIKit
     }
     
     func processEvent(eventString: String) {
+//        print(eventString)
         let event = convertJSONStringToDictionary(text: eventString)
         if (event?["dsgPingEvent"]) != nil {
             replyPing(pingString: eventString)

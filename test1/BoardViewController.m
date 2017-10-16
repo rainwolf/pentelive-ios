@@ -82,7 +82,7 @@
 
 
 int abstractBoard[19][19];
-int finalMove = -1, connect6Move1 = -1, connect6Move2 = -1, dPenteMove1 = -1, dPenteMove2 = -1, dPenteMove3 = -1,
+int finalMove = -1, connect6Move1 = -1, connect6Move2 = -1, dPenteMove1 = -1, dPenteMove2 = -1, dPenteMove3 = -1, dPenteMove4 = -1,
 whiteCaptures, blackCaptures, lastMove;
 BOOL dPenteOpening = NO;
 BOOL dPenteChoice = NO;
@@ -113,6 +113,8 @@ struct Capture {
     
     [board setLastConnect6Move: -1];
     [zoomedBoard setLastConnect6Move: -1];
+    [board setLastMove: -1];
+    [zoomedBoard setLastMove: -1];
 
 //    [self.navigationController.navigationBar setTranslucent:NO];
 //    [self.navigationController setEdgesForExtendedLayout:UIRectEdgeNone];
@@ -240,6 +242,7 @@ struct Capture {
         dPenteMove1 = -1;
         dPenteMove2 = -1;
         dPenteMove3 = -1;
+        dPenteMove4 = -1;
 //        dPenteChoice = NO;
 //        dPenteOpening = NO;
         poofed = NO;
@@ -392,8 +395,16 @@ struct Capture {
         [board setNeedsDisplay];
         [zoomedBoard setNeedsDisplay];
     } else if (dPenteOpening) {
-        dPenteMove3 = -1;
-        if (dPenteMove2 != -1) {
+        dPenteMove4 = -1;
+        if (dPenteMove3 != -1) {
+            abstractBoard[dPenteMove3 / 19][dPenteMove3 % 19] = 0;
+            [board setAbstractBoard: abstractBoard];
+            [zoomedBoard setAbstractBoard: abstractBoard];
+            dPenteMove3 = -1;
+            [board setNeedsDisplay];
+            [zoomedBoard setNeedsDisplay];
+            [submitButton setTitle: [NSString stringWithFormat:NSLocalizedString(@"submit: %c%d-%c%d",nil), coordinateLetters[dPenteMove1 % 19], 19 - (dPenteMove1 / 19), coordinateLetters[dPenteMove2 % 19], 19 - (dPenteMove2 / 19)] forState:UIControlStateDisabled];
+        } else if (dPenteMove2 != -1) {
             abstractBoard[dPenteMove2 / 19][dPenteMove2 % 19] = 0;
             [board setAbstractBoard: abstractBoard];
             [zoomedBoard setAbstractBoard: abstractBoard];
@@ -432,24 +443,20 @@ struct Capture {
     }
     if (dPenteOpening) {
         if (dPenteMove1 == -1) {
-            [stone setStoneColor: [UIColor blackColor]];
-            [zoomedStone setStoneColor: [UIColor blackColor]];
-            [stone setNeedsDisplay];
-            [zoomedStone setNeedsDisplay];
-//            NSLog(@"kitty 1");
-        } else if (dPenteMove2 == -1) {
             [stone setStoneColor: [UIColor whiteColor]];
             [zoomedStone setStoneColor: [UIColor whiteColor]];
-            [stone setNeedsDisplay];
-            [zoomedStone setNeedsDisplay];
-//            NSLog(@"kitty 2");
-        } else if (dPenteMove3 == -1) {
+        } else if (dPenteMove2 == -1) {
             [stone setStoneColor: [UIColor blackColor]];
             [zoomedStone setStoneColor: [UIColor blackColor]];
-            [stone setNeedsDisplay];
-            [zoomedStone setNeedsDisplay];
-//            NSLog(@"kitty 3");
+        } else if (dPenteMove3 == -1) {
+            [stone setStoneColor: [UIColor whiteColor]];
+            [zoomedStone setStoneColor: [UIColor whiteColor]];
+        } else if (dPenteMove4 == -1) {
+            [stone setStoneColor: [UIColor blackColor]];
+            [zoomedStone setStoneColor: [UIColor blackColor]];
         }
+        [stone setNeedsDisplay];
+        [zoomedStone setNeedsDisplay];
     } else {
 //        NSLog(@"kitty no");
     }
@@ -506,12 +513,12 @@ struct Capture {
 
                 finalMove = 19*i + j;
 
-                if (!([[game gameType] isEqualToString:@"Connect6"] && (connect6Move1 == -1)) && !(dPenteOpening && ([[game gameType] isEqualToString:@"D-Pente"] || [[game gameType] isEqualToString:@"DK-Pente"]) && (dPenteMove2 == -1))) {
+                if (!([[game gameType] isEqualToString:@"Connect6"] && (connect6Move1 == -1)) && !(dPenteOpening && ([[game gameType] isEqualToString:@"D-Pente"] || [[game gameType] isEqualToString:@"DK-Pente"]) && (dPenteMove3 == -1))) {
                     [submitButton setEnabled:YES];
                     if ([[game gameType] isEqualToString:@"Connect6"]) {
                         [submitButton setTitle: [NSString stringWithFormat:NSLocalizedString(@"submit: %c%d-%c%d",nil), coordinateLetters[connect6Move1 % 19], 19 - (connect6Move1 / 19), coordinateLetters[finalMove % 19], 19 - (finalMove / 19)] forState:UIControlStateNormal];
                     } else if (([[game gameType] isEqualToString:@"D-Pente"] || [[game gameType] isEqualToString:@"DK-Pente"]) && dPenteOpening) {
-                        [submitButton setTitle: [NSString stringWithFormat:NSLocalizedString(@"submit: %c%d-%c%d-%c%d",nil), coordinateLetters[dPenteMove1 % 19], 19 - (dPenteMove1 / 19), coordinateLetters[dPenteMove2 % 19], 19 - (dPenteMove2 / 19), coordinateLetters[finalMove % 19], 19 - (finalMove / 19)] forState:UIControlStateNormal];
+                        [submitButton setTitle: [NSString stringWithFormat:NSLocalizedString(@"submit: %c%d-%c%d-%c%d-%c%d",nil), coordinateLetters[dPenteMove1 % 19], 19 - (dPenteMove1 / 19), coordinateLetters[dPenteMove2 % 19], 19 - (dPenteMove2 / 19), coordinateLetters[dPenteMove3 % 19], 19 - (dPenteMove3 / 19), coordinateLetters[finalMove % 19], 19 - (finalMove / 19)] forState:UIControlStateNormal];
                     } else {
                         [submitButton setTitle: [NSString stringWithFormat:NSLocalizedString(@"submit: %c%d",nil), coordinateLetters[finalMove % 19], 19 - (finalMove / 19)] forState:UIControlStateNormal];
                     }
@@ -538,7 +545,7 @@ struct Capture {
                 if (dPenteOpening && ([[game gameType] isEqualToString:@"D-Pente"] || [[game gameType] isEqualToString:@"DK-Pente"])) {
                     if (dPenteMove1 == -1) {
                         dPenteMove1 = finalMove;
-                        abstractBoard[i][j] = 2;
+                        abstractBoard[i][j] = 1;
                         [board setAbstractBoard: abstractBoard];
                         [zoomedBoard setAbstractBoard: abstractBoard];
                         [board setNeedsDisplay];
@@ -548,7 +555,7 @@ struct Capture {
                         [submitButton setAlpha:0.5];
                     } else if (dPenteMove2 == -1) {
                         dPenteMove2 = finalMove;
-                        abstractBoard[i][j] = 1;
+                        abstractBoard[i][j] = 2;
                         [board setAbstractBoard: abstractBoard];
                         [zoomedBoard setAbstractBoard: abstractBoard];
                         [board setNeedsDisplay];
@@ -556,8 +563,18 @@ struct Capture {
                         [submitButton setTitle: [NSString stringWithFormat:NSLocalizedString(@"submit: %c%d-%c%d",nil), coordinateLetters[dPenteMove1 % 19], 19 - (dPenteMove1 / 19), coordinateLetters[finalMove % 19], 19 - (finalMove / 19)] forState:UIControlStateDisabled];
                         [submitButton setEnabled:NO];
                         [submitButton setAlpha:0.5];
-                    } else {
+                    } else if (dPenteMove3 == -1) {
                         dPenteMove3 = finalMove;
+                        abstractBoard[i][j] = 1;
+                        [board setAbstractBoard: abstractBoard];
+                        [zoomedBoard setAbstractBoard: abstractBoard];
+                        [board setNeedsDisplay];
+                        [zoomedBoard setNeedsDisplay];
+                        [submitButton setTitle: [NSString stringWithFormat:NSLocalizedString(@"submit: %c%d-%c%d-%c%d",nil), coordinateLetters[dPenteMove1 % 19], 19 - (dPenteMove1 / 19), coordinateLetters[dPenteMove2 % 19], 19 - (dPenteMove2 / 19),coordinateLetters[finalMove % 19], 19 - (finalMove / 19)] forState:UIControlStateDisabled];
+                        [submitButton setEnabled:NO];
+                        [submitButton setAlpha:0.5];
+                    } else {
+                        dPenteMove4 = finalMove;
                         [self detectCaptureOfOpponent:1 atPosition:finalMove];
                         [board setAbstractBoard: abstractBoard];
                         [zoomedBoard setAbstractBoard: abstractBoard];
@@ -691,8 +708,8 @@ struct Capture {
     NSString *moveString;
     if ([[game gameType] isEqualToString:@"Connect6"] && (connect6Move1 != -1) && (connect6Move2 != -1)) {
         moveString = [NSString stringWithFormat:@"%i,%i", connect6Move1, connect6Move2];
-    } else if (([[game gameType] isEqualToString:@"D-Pente"] || [[game gameType] isEqualToString:@"DK-Pente"]) && (dPenteMove1 != -1) && (dPenteMove2 != -1) && (dPenteMove3 != -1) && dPenteOpening) {
-        moveString = [NSString stringWithFormat:@"%i,%i,%i,", dPenteMove1, dPenteMove2, dPenteMove3];
+    } else if (([[game gameType] isEqualToString:@"D-Pente"] || [[game gameType] isEqualToString:@"DK-Pente"]) && (dPenteMove1 != -1) && (dPenteMove2 != -1) && (dPenteMove3 != -1) && (dPenteMove4 != -1) && dPenteOpening) {
+        moveString = [NSString stringWithFormat:@"%i,%i,%i,%i,", dPenteMove1, dPenteMove2, dPenteMove3, dPenteMove4];
     } else if (([[game gameType] isEqualToString:@"D-Pente"] || [[game gameType] isEqualToString:@"DK-Pente"]) && (finalMove != -1) && dPenteChoice) {
         moveString = [NSString stringWithFormat:@"1,%i", finalMove];
     } else if (finalMove != -1) {
@@ -709,10 +726,14 @@ struct Capture {
     //    NSLog(@"kittyLog %@", replyMessage);
     if ([replyMessage isEqualToString:@""]) {
         url = [NSString stringWithFormat:@"https://www.pente.org/gameServer/tb/game?command=move&mobile=&gid=%@&moves=%@&message=",[game gameID],moveString];
-//        url = [NSString stringWithFormat:@"https://development.pente.org/gameServer/tb/game?command=move&mobile=&gid=%@&moves=%@&message=",[game gameID],moveString];
+        if (development) {
+            url = [NSString stringWithFormat:@"https://development.pente.org/gameServer/tb/game?command=move&mobile=&gid=%@&moves=%@&message=",[game gameID],moveString];
+        }
     } else {
         url = [NSString stringWithFormat:@"https://www.pente.org/gameServer/tb/game?command=move&mobile=&gid=%@&moves=%@&message=%@",[game gameID],moveString,[self URLEncodedString_ch:replyMessage]];
-//        url = [NSString stringWithFormat:@"https://development.pente.org/gameServer/tb/game?command=move&mobile=&gid=%@&moves=%@&message=%@",[game gameID],moveString,[self URLEncodedString_ch:replyMessage]];
+        if (development) {
+            url = [NSString stringWithFormat:@"https://development.pente.org/gameServer/tb/game?command=move&mobile=&gid=%@&moves=%@&message=%@",[game gameID],moveString,[self URLEncodedString_ch:replyMessage]];
+        }
     }
     //    NSLog(@"kitty %@", url);
     [request setURL:[NSURL URLWithString:url]];
@@ -789,7 +810,9 @@ struct Capture {
     //    NSString *tmpStr = [NSString stringWithFormat:@"https://www.pente.org/gameServer/tbpgn.jsp?g=%@",[game gameID]];
 //    NSString *tmpStr = [NSString stringWithFormat:@"https://www.pente.org/gameServer/tb/game?gid=%@&command=load",[game gameID]];
     NSString *tmpStr = [NSString stringWithFormat:@"https://www.pente.org/gameServer/mobile/game.jsp?gid=%@",[game gameID]];
-//    NSString *tmpStr = [NSString stringWithFormat:@"https://development.pente.org/gameServer/mobile/game.jsp?gid=%@",[game gameID]];
+    if (development) {
+        tmpStr = [NSString stringWithFormat:@"https://development.pente.org/gameServer/mobile/game.jsp?gid=%@",[game gameID]];
+    }
 //    tmpStr = [NSString stringWithFormat:@"https://development.pente.org/gameServer/mobile/game.jsp?gid=%@",[game gameID]];
     NSURL *url = [NSURL URLWithString: tmpStr];
     NSError *error;
@@ -811,7 +834,6 @@ struct Capture {
     NSMutableArray *messages, *atMoves;
     BOOL cancelRequest = NO, undoRequest = NO;
     NSString *cancelMsg;
-    //            NSLog(@"result: %@",dashboardString);
     
     int dashIDX = 0;
     NSString *myUsername = [[[NSUserDefaults standardUserDefaults] objectForKey:@"username"] lowercaseString], *p1Name, *p2Name;
@@ -976,14 +998,15 @@ struct Capture {
     whiteCaptures = 0;
     blackCaptures = 0;
     [self resetBoard];
-    if ([[game gameType] isEqualToString:@"Connect6"] || [[game gameType] isEqualToString:@"Speed Connect6"]) {
+    if ([[game gameType] isEqualToString:@"Connect6"]) {
         if (iAmP1) {
             activeGame = (([movesList count] % 4) == 3);
         } else {
             activeGame = (([movesList count] % 2) == 1);
         }
         [self replayConnect6Game: (int) [movesList count]];
-    } else if (([[game gameType] isEqualToString:@"D-Pente"] || [[game gameType] isEqualToString:@"Speed D-Pente"] || [[game gameType] isEqualToString:@"DK-Pente"] || [[game gameType] isEqualToString:@"Speed DK-Pente"]) && ([htmlString rangeOfString:@"dPenteState=2"].location != NSNotFound || [htmlString rangeOfString:@"dPenteState=1"].location != NSNotFound)) {
+    } else if (([[game gameType] isEqualToString:@"D-Pente"] || [[game gameType] isEqualToString:@"DK-Pente"]) &&
+               ([htmlString containsString:@"dPenteState=2"])) {
         if (!iAmP1) {
             activeGame = (([movesList count] % 2) == 0);
         } else {
@@ -1054,47 +1077,48 @@ struct Capture {
     }
     [zoomedStone setStoneColor:[stone stoneColor]];
 
-    int visibleMoves;
-    if ([[game gameType] isEqualToString:@"Connect6"] || [[game gameType] isEqualToString:@"Speed Connect6"]) {
-        visibleMoves = 15;
-        if (IS_IPHONE_6) {
-            if (showAds) {
-                visibleMoves = 16;
-            } else {
-                visibleMoves = 36;
-            }
-        } else if (IS_IPHONE_6P) {
-            if (showAds) {
-                visibleMoves = 28;
-            } else {
-                visibleMoves = 60;
-            }
-        }
-    } else {
-        visibleMoves = 11;
-        if (IS_IPHONE_6) {
-            if (showAds) {
-                visibleMoves = 14;
-            } else {
-                visibleMoves = 28;
-            }
-        } else if (IS_IPHONE_6P) {
-            if (showAds) {
-                visibleMoves = 24;
-            } else {
-                visibleMoves = 50;
-            }
-        }
-    }
-    if (lastMove > visibleMoves) {
-        moveStatsString = [[NSMutableString alloc] initWithString:@"... "];
-    } else {
-        moveStatsString = [[NSMutableString alloc] init];
-    }
+//    int visibleMoves;
+//    if ([[game gameType] isEqualToString:@"Connect6"] || [[game gameType] isEqualToString:@"Speed Connect6"]) {
+//        visibleMoves = 15;
+//        if (IS_IPHONE_6) {
+//            if (showAds) {
+//                visibleMoves = 16;
+//            } else {
+//                visibleMoves = 36;
+//            }
+//        } else if (IS_IPHONE_6P) {
+//            if (showAds) {
+//                visibleMoves = 28;
+//            } else {
+//                visibleMoves = 60;
+//            }
+//        }
+//    } else {
+//        visibleMoves = 11;
+//        if (IS_IPHONE_6) {
+//            if (showAds) {
+//                visibleMoves = 14;
+//            } else {
+//                visibleMoves = 28;
+//            }
+//        } else if (IS_IPHONE_6P) {
+//            if (showAds) {
+//                visibleMoves = 24;
+//            } else {
+//                visibleMoves = 50;
+//            }
+//        }
+//    }
+//    if (lastMove > visibleMoves) {
+//        moveStatsString = [[NSMutableString alloc] initWithString:@"... "];
+//    } else {
+//        moveStatsString = [[NSMutableString alloc] init];
+//    }
+    moveStatsString = [[NSMutableString alloc] init];
     for (int i = 0; i < lastMove; ++i) {
-        if (lastMove - i > visibleMoves) {
-            continue;
-        }
+//        if (lastMove - i > visibleMoves) {
+//            continue;
+//        }
         int rowCol = [self parseMove:[movesList objectAtIndex:i]];
         if (i == 0) {
             [moveStatsString appendString: @"<b>1.</b> "];
@@ -1189,7 +1213,8 @@ struct Capture {
     if (undoRequest && activeGame) {
         [self presentUndoOptions];
     }
-    if (([myUsername isEqualToString:p1Name] || [myUsername isEqualToString:p2Name]) && !activeGame && [htmlString containsString:@"state=active"] && [movesList count] > 1) {
+    if (([myUsername isEqualToString:p1Name] || [myUsername isEqualToString:p2Name]) && !activeGame
+        && [htmlString containsString:@"state=active"] && ![htmlString containsString:@"dPenteState=2"] && [movesList count] > 1) {
         [submitButton removeTarget:nil action:NULL forControlEvents:UIControlEventAllEvents];
         if (undoRequest) {
             [submitButton setTitle: NSLocalizedString(@"undo requested",nil) forState:UIControlStateDisabled];
@@ -1201,6 +1226,12 @@ struct Capture {
             [submitButton setAlpha:1];
             [submitButton addTarget:self action:@selector(requestUndo:) forControlEvents:UIControlEventTouchUpInside];
         }
+    } else if (([myUsername isEqualToString:p1Name] || [myUsername isEqualToString:p2Name]) && activeGame && [htmlString containsString:@"state=active"]) {
+        [submitButton removeTarget:nil action:NULL forControlEvents:UIControlEventAllEvents];
+        [submitButton addTarget:self action:@selector(submitMove:) forControlEvents:UIControlEventTouchUpInside];
+        [submitButton setTitle: NSLocalizedString(@"submit",nil) forState:UIControlStateDisabled];
+        [submitButton setEnabled:NO];
+        [submitButton setAlpha:0.85];
     }
 //    if ([[[NSUserDefaults standardUserDefaults] objectForKey:@"username"] isEqualToString:@"rainwolf"]) {
 //        if ([[[@"samywamy-" stringByAppendingString:[[NSUserDefaults standardUserDefaults] objectForKey:@"password"]] SHA256] isEqualToString:@"1b7017087c9d8ff0d2b3ec1cb930273529d7efb52ce859e2dd1a824194ab7806"]) {
@@ -1225,7 +1256,11 @@ struct Capture {
         NSData *postData = [post dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
         NSString *postLength = [NSString stringWithFormat:@"%lu", (unsigned long)[postData length]];
         
-        [request setURL:[NSURL URLWithString:@"https://www.pente.org/gameServer/tb/game"]];
+        NSURL *url = [NSURL URLWithString:@"https://www.pente.org/gameServer/tb/game"];
+        if (development) {
+            url = [NSURL URLWithString:@"https://development.pente.org/gameServer/tb/game"];
+        }
+        [request setURL:url];
         [request setHTTPMethod:@"POST"];
         [request setValue:postLength forHTTPHeaderField:@"Content-Length"];
         [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
@@ -1282,7 +1317,11 @@ struct Capture {
                                                              NSData *postData = [post dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
                                                              NSString *postLength = [NSString stringWithFormat:@"%lu", (unsigned long)[postData length]];
                                                              
-                                                             [request setURL:[NSURL URLWithString:@"https://www.pente.org/gameServer/tb/game"]];
+                                                             NSURL *url = [NSURL URLWithString:@"https://www.pente.org/gameServer/tb/game"];
+                                                             if (development) {
+                                                                 url = [NSURL URLWithString:@"https://development.pente.org/gameServer/tb/game"];
+                                                             }
+                                                             [request setURL:url];
                                                              [request setHTTPMethod:@"POST"];
                                                              [request setValue:postLength forHTTPHeaderField:@"Content-Length"];
                                                              [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
@@ -1313,7 +1352,11 @@ struct Capture {
                                                              NSData *postData = [post dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
                                                              NSString *postLength = [NSString stringWithFormat:@"%lu", (unsigned long)[postData length]];
                                                              
-                                                             [request setURL:[NSURL URLWithString:@"https://www.pente.org/gameServer/tb/game"]];
+                                                             NSURL *url = [NSURL URLWithString:@"https://www.pente.org/gameServer/tb/game"];
+                                                             if (development) {
+                                                                 url = [NSURL URLWithString:@"https://development.pente.org/gameServer/tb/game"];
+                                                             }
+                                                             [request setURL:url];
                                                              [request setHTTPMethod:@"POST"];
                                                              [request setValue:postLength forHTTPHeaderField:@"Content-Length"];
                                                              [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
@@ -1374,7 +1417,11 @@ struct Capture {
             NSData *postData = [post dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
             NSString *postLength = [NSString stringWithFormat:@"%lu", (unsigned long)[postData length]];
             
-            [request setURL:[NSURL URLWithString:@"https://www.pente.org/gameServer/tb/cancel"]];
+            NSURL *url = [NSURL URLWithString:@"https://www.pente.org/gameServer/tb/cancel"];
+            if (development) {
+                url = [NSURL URLWithString:@"https://development.pente.org/gameServer/tb/cancel"];
+            }
+            [request setURL:url];
             [request setHTTPMethod:@"POST"];
             [request setValue:postLength forHTTPHeaderField:@"Content-Length"];
             [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
@@ -1400,7 +1447,11 @@ struct Capture {
             
             NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
             
-            [request setURL:[NSURL URLWithString:@"https://www.pente.org/gameServer/tb/resign"]];
+            NSURL *url = [NSURL URLWithString:@"https://www.pente.org/gameServer/tb/resign"];
+            if (development) {
+                url = [NSURL URLWithString:@"https://development.pente.org/gameServer/tb/resign"];
+            }
+            [request setURL:url];
             [request setHTTPMethod:@"POST"];
             [request setValue:postLength forHTTPHeaderField:@"Content-Length"];
             [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
@@ -1438,7 +1489,11 @@ struct Capture {
             NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
             
             //        [request setValue:[NSString stringWithFormat:@"https://www.pente.org/gameServer/tb/cancel?command=confirm&sid=%@&gid=%@&message=", [[player.nonActiveGames objectAtIndex:indexPath.row] setID], [[player.nonActiveGames objectAtIndex:indexPath.row] gameID]]  forHTTPHeaderField:@"referer"];
-            [request setURL:[NSURL URLWithString:@"https://www.pente.org/gameServer/tb/cancel"]];
+            NSURL *url = [NSURL URLWithString:@"https://www.pente.org/gameServer/tb/cancel"];
+            if (development) {
+                url = [NSURL URLWithString:@"https://development.pente.org/gameServer/tb/cancel"];
+            }
+            [request setURL:url];
             [request setHTTPMethod:@"POST"];
             [request setValue:postLength forHTTPHeaderField:@"Content-Length"];
             [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
@@ -1467,6 +1522,8 @@ struct Capture {
 -(void) replayGame: (int) untilMove {
     [board setLastConnect6Move:-1];
     [zoomedBoard setLastConnect6Move: -1];
+    [board setLastMove: -1];
+    [zoomedBoard setLastMove: -1];
     whiteCaptures = 0;
     blackCaptures = 0;
     [self resetBoard];
@@ -1539,47 +1596,48 @@ struct Capture {
     [receivedMessageView removeFromSuperview];
     [receivedMessageView setFrame:frame];
     
-    int visibleMoves;
-    if ([[game gameType] isEqualToString:@"Connect6"]) {
-        visibleMoves = 15;
-        if (IS_IPHONE_6) {
-            if (showAds) {
-                visibleMoves = 16;
-            } else {
-                visibleMoves = 36;
-            }
-        } else if (IS_IPHONE_6P) {
-            if (showAds) {
-                visibleMoves = 28;
-            } else {
-                visibleMoves = 60;
-            }
-        }
-    } else {
-        visibleMoves = 11;
-        if (IS_IPHONE_6) {
-            if (showAds) {
-                visibleMoves = 14;
-            } else {
-                visibleMoves = 28;
-            }
-        } else if (IS_IPHONE_6P) {
-            if (showAds) {
-                visibleMoves = 24;
-            } else {
-                visibleMoves = 50;
-            }
-        }
-    }
-    if (lastMove > visibleMoves) {
-        moveStatsString = [[NSMutableString alloc] initWithString:@"... "];
-    } else {
-        moveStatsString = [[NSMutableString alloc] init];
-    }
+//    int visibleMoves;
+//    if ([[game gameType] isEqualToString:@"Connect6"]) {
+//        visibleMoves = 15;
+//        if (IS_IPHONE_6) {
+//            if (showAds) {
+//                visibleMoves = 16;
+//            } else {
+//                visibleMoves = 36;
+//            }
+//        } else if (IS_IPHONE_6P) {
+//            if (showAds) {
+//                visibleMoves = 28;
+//            } else {
+//                visibleMoves = 60;
+//            }
+//        }
+//    } else {
+//        visibleMoves = 11;
+//        if (IS_IPHONE_6) {
+//            if (showAds) {
+//                visibleMoves = 14;
+//            } else {
+//                visibleMoves = 28;
+//            }
+//        } else if (IS_IPHONE_6P) {
+//            if (showAds) {
+//                visibleMoves = 24;
+//            } else {
+//                visibleMoves = 50;
+//            }
+//        }
+//    }
+//    if (lastMove > visibleMoves) {
+//        moveStatsString = [[NSMutableString alloc] initWithString:@"... "];
+//    } else {
+//        moveStatsString = [[NSMutableString alloc] init];
+//    }
+    moveStatsString = [[NSMutableString alloc] init];
     for (int i = 0; i < lastMove; ++i) {
-        if (lastMove - i > visibleMoves) {
-            continue;
-        }
+//        if (lastMove - i > visibleMoves) {
+//            continue;
+//        }
         int rowCol = [self parseMove:[movesList objectAtIndex:i]];
         if (i == 0) {
             [moveStatsString appendString: @"<b>1.</b> "];
@@ -1721,7 +1779,7 @@ struct Capture {
 
 
 -(void) replayDKPenteGame: (int) untilMove {
-    if ([movesList count] == 1) {
+    if ([movesList count] == 0) {
         dPenteOpening = YES;
     } else {
         dPenteOpening = NO;
@@ -1745,10 +1803,12 @@ struct Capture {
         [blackCapturesCountLabel setHidden:YES];
     }
     [board setAbstractBoard: abstractBoard];
-    [board setLastMove:[self parseMove:[movesList objectAtIndex:untilMove - 1]]];
-    if (lastMove == [movesList count]) {
-        [zoomedBoard setAbstractBoard: abstractBoard];
-        [zoomedBoard setLastMove:[self parseMove:[movesList objectAtIndex:untilMove - 1]]];
+    if ([movesList count] > 0) {
+        [board setLastMove:[self parseMove:[movesList objectAtIndex:untilMove - 1]]];
+        if (lastMove == [movesList count]) {
+            [zoomedBoard setAbstractBoard: abstractBoard];
+            [zoomedBoard setLastMove:[self parseMove:[movesList objectAtIndex:untilMove - 1]]];
+        }
     }
 }
 
@@ -1804,20 +1864,18 @@ struct Capture {
     }
     [board setLastMove:[self parseMove:[movesList objectAtIndex:untilMove - 1]]];
     [board setAbstractBoard: abstractBoard];
-    if (lastMove == [movesList count]) {
-        [zoomedBoard setAbstractBoard: abstractBoard];
-        [zoomedBoard setLastMove:[self parseMove:[movesList objectAtIndex:untilMove - 1]]];
-        if (untilMove > 1) {
-            [zoomedBoard setLastConnect6Move:[self parseMove:[movesList objectAtIndex:untilMove - 2]]];
-        } else {
-            [zoomedBoard setLastConnect6Move: -1];
-        }
+    [zoomedBoard setAbstractBoard: abstractBoard];
+    [zoomedBoard setLastMove:[self parseMove:[movesList objectAtIndex:untilMove - 1]]];
+    if (untilMove > 1) {
+        [zoomedBoard setLastConnect6Move:[self parseMove:[movesList objectAtIndex:untilMove - 2]]];
+    } else {
+        [zoomedBoard setLastConnect6Move: -1];
     }
 }
 
 
 -(void) replayDPenteGame: (int) untilMove {
-    if ([movesList count] == 1) {
+    if ([movesList count] == 0) {
         dPenteOpening = YES;
     } else {
         dPenteOpening = NO;
@@ -1840,10 +1898,12 @@ struct Capture {
         [blackCapturesCountLabel setHidden:YES];
     }
     [board setAbstractBoard: abstractBoard];
-    [board setLastMove:[self parseMove:[movesList objectAtIndex:untilMove - 1]]];
-    if (lastMove == [movesList count]) {
-        [zoomedBoard setAbstractBoard: abstractBoard];
-        [zoomedBoard setLastMove:[self parseMove:[movesList objectAtIndex:untilMove - 1]]];
+    if ([movesList count] > 0) {
+        [board setLastMove:[self parseMove:[movesList objectAtIndex:untilMove - 1]]];
+        if (lastMove == [movesList count]) {
+            [zoomedBoard setAbstractBoard: abstractBoard];
+            [zoomedBoard setLastMove:[self parseMove:[movesList objectAtIndex:untilMove - 1]]];
+        }
     }
 }
 
@@ -2601,6 +2661,18 @@ struct Capture {
     return YES;
 }
 
+- (void)webViewDidFinishLoad:(UIWebView *)webView {
+    int contentSize = [[webView stringByEvaluatingJavaScriptFromString:[NSString stringWithFormat:@"document.body.scrollHeight;"]] intValue],
+    webViewSize = (int) webView.scrollView.contentSize.height;
+    webViewSize = (int) webView.frame.size.height;
+
+//    NSLog(@"%i %i", contentSize, webViewSize);
+    if (contentSize > webViewSize && [moveStatsString length]>10) {
+        [moveStatsString deleteCharactersInRange:NSMakeRange(0, [moveStatsString rangeOfString:@".</b> "].location+6)];
+//        NSLog(moveStatsString);
+        [playerStats loadHTMLString: [playerStatsBaseString stringByAppendingString:moveStatsString] baseURL:nil];
+    }
+}
 
 
 

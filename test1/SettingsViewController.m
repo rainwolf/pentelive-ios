@@ -644,6 +644,21 @@
                                          buttonCallback:nil
                                              atPosition:TSMessageNotificationPositionBottom
                                    canBeDismissedByUser:YES];
+        } else if ([dashboardString containsString:@"invalid receipt"]) {
+            [[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"shouldSendReceipt"];
+            [TSMessage showNotificationInViewController:self.navigationController
+                                                  title: NSLocalizedString(@"Purchase restore failed",nil)
+                                               subtitle: NSLocalizedString(@"No valid purchase to restore",nil)
+                                                  image:nil
+                                                   type: TSMessageNotificationTypeSuccess
+                                               duration:TSMessageNotificationDurationAutomatic
+                                               callback: ^{
+                                                   [TSMessage dismissActiveNotification];
+                                               }
+                                            buttonTitle: nil
+                                         buttonCallback:nil
+                                             atPosition:TSMessageNotificationPositionBottom
+                                   canBeDismissedByUser:YES];
         } else {
             [TSMessage showNotificationInViewController:self.navigationController
                                                   title: NSLocalizedString(@"Purchase restore failed", nil)

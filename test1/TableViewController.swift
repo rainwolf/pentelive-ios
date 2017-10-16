@@ -8,6 +8,20 @@
 
 import UIKit
 
+class TableNavigationBar: UINavigationBar {
+    
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        
+//        for view in  {
+//            if view.isKind(of: UIBarButtonItem.self) {
+//                view.layoutMargins = .zero
+//            }
+//        }
+    }
+}
+
+
 class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewDelegate, GADInterstitialDelegate, UIGestureRecognizerDelegate, PopoverViewDelegate, UIPickerViewDelegate, UIPickerViewDataSource {
     
     var socket: PenteLiveSocket!
@@ -63,12 +77,27 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
         playButton.titleLabel?.font = UIFont.boldSystemFont(ofSize:25)
         playButton.setTitleColor(UIColor.blue, for: .normal)
         playButton.addTarget(self, action: #selector(play), for: .touchUpInside)
-        let settingsItem = UIBarButtonItem(image: UIImage(named: "gamesettings"), style: .plain, target: self, action: #selector(showSettings))
-        settingsItem.imageInsets = UIEdgeInsetsMake(0, -25.0, 0, 0)
-        let optionsItem = UIBarButtonItem(image: UIImage(named: "cancel"), style: .plain, target: self, action: #selector(showOptions))
-        optionsItem.imageInsets = UIEdgeInsetsMake(0, -30.0, 0, -30.0)
+        var button = UIButton(type: .custom)
+        button.setImage(UIImage(named: "gamesettings"), for: .normal)
+        button.addTarget(self, action:#selector(showSettings), for: .touchUpInside)
+        button.frame = CGRect(x: 0, y: 0, width: 32, height: 32)
+        let settingsItem = UIBarButtonItem(customView: button)
+//        if #available(iOS 9.0, *) {
+//            let widthConstraint = button.widthAnchor.constraint(equalToConstant: 32)
+//            let heightConstraint = button.heightAnchor.constraint(equalToConstant: 32)
+//            heightConstraint.isActive = true
+//            widthConstraint.isActive = true
+//        }
+        button = UIButton(type: .custom)
+        button.setImage(UIImage(named: "cancel"), for: .normal)
+        button.addTarget(self, action:#selector(showOptions), for: .touchUpInside)
+        button.frame = CGRect(x: 0, y: 0, width: 32, height: 32)
+        let optionsItem = UIBarButtonItem(customView: button)
+        button = UIButton(type: .custom)
+        button.setImage(UIImage(named: "onlineUsers"), for: .normal)
+        button.addTarget(self, action:#selector(showPlayersOptions), for: .touchUpInside)
+        button.frame = CGRect(x: 0, y: 0, width: 32, height: 32)
         let onlineUsersItem = UIBarButtonItem(image: UIImage(named: "onlineUsers"), style: .plain, target: self, action: #selector(showPlayersOptions))
-        onlineUsersItem.imageInsets = UIEdgeInsetsMake(0, 0, 0, -30.0)
         self.navigationItem.setRightBarButtonItems([settingsItem,
                                                     optionsItem,
                                                     onlineUsersItem], animated: true)
@@ -486,6 +515,8 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
             zoomedStone.color = color
             stone.setNeedsDisplay()
             zoomedStone.setNeedsDisplay()
+            board.setNeedsDisplay()
+            zoomedBoard.setNeedsDisplay()
             if table.timed {
                 timer = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(countDownTimer), userInfo: nil, repeats: true)
             }
@@ -565,8 +596,8 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
     }
     func addMove(move: Int) {
         table.addMove(move: move)
-        board.lastMove = move
-        zoomedBoard.lastMove = move
+//        board.lastMove = move
+//        zoomedBoard.lastMove = move
         board.setNeedsDisplay()
         zoomedBoard.setNeedsDisplay()
         stone.isHidden = true

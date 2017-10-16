@@ -157,6 +157,12 @@ class Table: NSObject {
             addMove(move: move)
         }
     }
+    func lastMove() -> Int {
+        if moves.count > 0 {
+            return moves.last!
+        }
+        return -1
+    }
     func gameHasCaptures() -> Bool {
         return (game != 5 && game != 6 && game != 13 && game != 14)
     }
@@ -272,6 +278,14 @@ class Table: NSObject {
                 let player2 = seats[2]
                 seats.updateValue(player1!, forKey: 2)
                 seats.updateValue(player2!, forKey: 1)
+                if timed {
+                    let minutes1 = state.timers[1]!["minutes"], seconds1 = state.timers[1]!["seconds"]
+                    let minutes2 = state.timers[2]!["minutes"], seconds2 = state.timers[2]!["seconds"]
+                    state.timers[1]!.updateValue(minutes2!, forKey: "minutes")
+                    state.timers[2]!.updateValue(minutes1!, forKey: "minutes")
+                    state.timers[1]!.updateValue(seconds2!, forKey: "seconds")
+                    state.timers[2]!.updateValue(seconds1!, forKey: "seconds")
+                }
             }
             state.dPenteState = .swapped
         } else {

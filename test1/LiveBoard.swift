@@ -9,19 +9,13 @@
 import UIKit
 
 class LiveBoard: UIView {
-    var lastMove: Int
-    var lastConnect6Move: Int
     var table: Table!
     
     init(table:Table) {
-        lastMove = -1
-        lastConnect6Move = -1
         self.table = table
         super.init(frame: CGRect(x: 0, y: 0, width: 0, height: 0))
     }
     required init?(coder aDecoder: NSCoder) {
-        lastMove = -1
-        lastConnect6Move = -1
         super.init(coder: aDecoder)!
     }
     override func draw(_ rect: CGRect) {
@@ -89,6 +83,7 @@ class LiveBoard: UIView {
                 }
             }
         }
+        let lastMove = table.lastMove()
         if (lastMove > -1) {
             context.setFillColor(UIColor.red.cgColor)
             let i = lastMove / 19, j = lastMove % 19

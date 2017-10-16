@@ -83,6 +83,9 @@
 //        gameInt += 50;
 //    }
     NSString *urlString = [NSString stringWithFormat:@"https://www.pente.org/gameServer/viewLiveGames?p=%@&g=%i", username, gameInt];
+    if (development) {
+        urlString = [NSString stringWithFormat:@"https://development.pente.org/gameServer/viewLiveGames?p=%@&g=%i", username, gameInt];
+    }
     PenteWebViewController *webViewController = [[PenteWebViewController alloc] initWithAddress: urlString];
     [vc.actionPopoverView dismiss];
     [vc.navigationController pushViewController:webViewController animated:YES];

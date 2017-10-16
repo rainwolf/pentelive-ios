@@ -211,6 +211,9 @@
     [actionPopoverView dismiss];
 }
 
+- (CGFloat) tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
+    return 44.0f;
+}
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
 //    NSLog(@"kitty %lu", [[hill steps] count]);
@@ -337,7 +340,11 @@
             [actionPopoverView layoutSubviews];
             ((PenteNavigationViewController *) self.navigationController).didMove = YES;
         } else {
-            PenteWebViewController *webVC = [[PenteWebViewController alloc] initWithURL:[NSURL URLWithString: [NSString stringWithFormat:@"https://www.pente.org/gameServer/profile?viewName=%@", playr.name]]];
+            NSURL *url = [NSURL URLWithString: [NSString stringWithFormat:@"https://www.pente.org/gameServer/profile?viewName=%@", playr.name]];
+            if (development) {
+                url = [NSURL URLWithString: [NSString stringWithFormat:@"https://development.pente.org/gameServer/profile?viewName=%@", playr.name]];
+            }
+            PenteWebViewController *webVC = [[PenteWebViewController alloc] initWithURL:url];
             [self.navigationController pushViewController:webVC animated:YES];
         }
     }
@@ -430,7 +437,9 @@
     
     // connect to the game server
     url =  @"https://www.pente.org/gameServer/koth";
-//    url =  @"https://development.pente.org/gameServer/koth";
+    if (development) {
+        url =  @"https://development.pente.org/gameServer/koth";
+    }
 
     NSString *postString = [NSString stringWithFormat:@"%@&game=%i",[hillSummary member]?@"leave=":@"join=", hillSummary.gameId];
     NSData *postData = [postString dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
@@ -476,7 +485,9 @@
     
     // connect to the game server
     url =  [NSString stringWithFormat:@"https://www.pente.org/gameServer/mobile/koth.jsp?name=%@&game=%i",username, gameId];
-//    url =  [NSString stringWithFormat:@"https://development.pente.org/gameServer/mobile/koth.jsp?name=%@&game=%@",username, gameString];
+    if (development) {
+        url =  [NSString stringWithFormat:@"https://development.pente.org/gameServer/mobile/koth.jsp?name=%@&game=%i",username, gameId];
+    }
     [request setURL:[NSURL URLWithString:url]];
     [request setHTTPMethod:@"GET"];
     [request setTimeoutInterval:7.0];
@@ -664,6 +675,9 @@
 
 -(void) loadWebsiteHill {
     NSString *urlString = [NSString stringWithFormat:@"https://www.pente.org/gameServer/stairs.jsp?game=%i", hillSummary.gameId];
+    if (development) {
+        urlString = [NSString stringWithFormat:@"https://development.pente.org/gameServer/stairs.jsp?game=%i", hillSummary.gameId];
+    }
     PenteWebViewController *webViewController = [[PenteWebViewController alloc] initWithAddress: urlString];
     [self.navigationController pushViewController:webViewController animated:YES];
 }
