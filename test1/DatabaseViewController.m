@@ -348,7 +348,8 @@ struct Capture {
 
 - (IBAction)goBackOneMoveSwipe:(UISwipeGestureRecognizer *)sender {
     [board setLastMove: -1];
-    if ([movesList count] > 1) {
+    if ([movesList count] > 1 ||
+        ([movesList count]>0 && ([game containsString:@"D-Pente"] || [game containsString:@"DK-Pente"]))) {
         [movesList removeLastObject];
         [self replayGame];
         [board setDbOptions:nil];
@@ -1500,6 +1501,7 @@ struct Capture {
     [movesList addObject: [NSNumber numberWithInt:180]];
     [board setAbstractBoard: abstractBoard];
     [zoomedBoard setAbstractBoard: abstractBoard];
+    [board setNeedsDisplay];
 }
 
 
@@ -1524,11 +1526,8 @@ struct Capture {
 }
 
 - (void)popoverViewDidDismiss:(PopoverView *)popoverView {
-    NSString *str = game;
-    if (!str) {
-        str = setupView.gameCell.detailTextLabel.text;
-    }
-    if ([str containsString:@"Gomoku"] || [str containsString:@"Connect6"]) {
+    game = setupView.gameCell.detailTextLabel.text;
+    if ([game containsString:@"Gomoku"] || [game containsString:@"Connect6"]) {
         [whiteStoneCaptures setHidden:YES];
         [whiteCapturesCountLabel setHidden:YES];
         [blackStoneCaptures setHidden:YES];
@@ -1539,7 +1538,10 @@ struct Capture {
         [blackStoneCaptures setHidden:NO];
         [blackCapturesCountLabel setHidden:NO];
     }
-    if ([str isEqualToString:@"Pente"] || [game isEqualToString:@"Speed Pente"] || [str containsString:@"Keryo-Pente"]) {
+    if (([movesList count] == 0 || ([movesList count]>0 && [[movesList firstObject] intValue] != 180)) && ![game containsString:@"D-Pente"] && ![game containsString:@"DK-Pente"]) {
+        [self resetState];
+    }
+    if ([game isEqualToString:@"Pente"] || [game isEqualToString:@"Speed Pente"] || [game containsString:@"Keryo-Pente"]) {
         [aiButton setHidden:NO];
     } else {
         [aiButton setHidden:YES];

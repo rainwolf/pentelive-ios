@@ -2173,7 +2173,8 @@ NSString *livePlayers;
     
     // connect to the game server
     url =  [NSString stringWithFormat:@"https://www.pente.org/gameServer/mobile/index.jsp?name=%@&password=%@",username,password];
-//    url =  [NSString stringWithFormat:@"https://www.pente.org/gameServer/mobile/index.jsp?name=%@&password=%@&checkname=rbhjury",username,password];
+//    url =  [NSString stringWithFormat:@"https://www.pente.org/gameServer/mobile/index.jsp?name=%@&password=%@&checkname=graviton",username,password];
+//    username = @"graviton";
     if (development) {
         url =  [NSString stringWithFormat:@"https://development.pente.org/gameServer/mobile/index.jsp?name=%@&password=%@",username,password];
     }
@@ -2250,6 +2251,7 @@ NSString *livePlayers;
             [player setSubscriber: [[splitLine objectAtIndex:3] isEqualToString:@"subscriber"]];
             livePlayers = [splitLine objectAtIndex:4];
             inviteButton.badgeValue = livePlayers;
+            [player setDbAccess: [[splitLine objectAtIndex:5] isEqualToString:@"dbAccessGranted"]];
         }
 //        showAds = ([dashboardString rangeOfString:@"No Ads"].location == NSNotFound) || ([dashboardString rangeOfString:@"No Ads"].location > 30);
         if (showAds && bannerView == nil) {
@@ -3233,7 +3235,7 @@ NSString *livePlayers;
 }
 -(void) toDatabase {
     [actionPopoverView dismiss];
-    if (player && ![player subscriber]) {
+    if (player && !player.dbAccess) {
         UIAlertController *subscribersOnlyController = [UIAlertController
                                              alertControllerWithTitle:NSLocalizedString(@"Level up your game", nil)
                                              message: NSLocalizedString(@"The database allows you to search games in the pente.org database by position. This powerful tool enables you to study and analyze games and opponents, practice opening moves, sort the results by most played or highest win percentage, and filter by player name and winner. More features will be added in the future.\n\nThe database is open to subscribers only.", nil)

@@ -224,6 +224,9 @@
                 // connect to the game server
                 request = [[NSMutableURLRequest alloc] init];
                 url = [NSString stringWithFormat:@"https://www.pente.org/gameServer/index.jsp?name2=%@&password2=%@",username,password];
+                if (development) {
+                    url = [NSString stringWithFormat:@"https://development.pente.org/gameServer/index.jsp?name2=%@&password2=%@",username,password];
+                }
                 [request setURL:[NSURL URLWithString:url]];
                 [request setHTTPMethod:@"POST"];
                 [request setTimeoutInterval:7.0];
@@ -284,7 +287,9 @@
         }
 
         NSString *url = @"https://www.pente.org/join";
-//        NSString *url = @"https://development.pente.org/join";
+        if (development) {
+            url = @"https://development.pente.org/join";
+        }
         NSString *postString = [NSString stringWithFormat:@"name=%@&registerPassword=%@&registerPasswordConfirm=%@&registerEmail=%@&agreePolicy=Y",username, password, passwordVerification, [self URLEncodedString_ch:emailAddress]];
         
         NSData *postData = [postString dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];

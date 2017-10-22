@@ -201,7 +201,7 @@
 @implementation PentePlayer
 @synthesize playerName;
 @synthesize invitations, sentInvitations, activeGames, nonActiveGames, publicInvitations, messages, ratingStats, tournaments, hills;
-@synthesize showAds, subscriber;
+@synthesize showAds, subscriber, dbAccess;
 @synthesize avatars;
 @synthesize pendingAvatarChecks;
 @synthesize myColor;
@@ -222,6 +222,7 @@
         avatars = [[NSMutableDictionary alloc] init];
         showAds = YES;
         subscriber = NO;
+        dbAccess = NO;
         
         pendingAvatarChecks = [[NSMutableArray alloc] init];
     }
