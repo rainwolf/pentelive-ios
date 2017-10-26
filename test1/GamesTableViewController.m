@@ -16,6 +16,7 @@
 #import "KOTHTableViewController.h"
 #import "WhosOnlineView.h"
 #import "SettingsViewController.h"
+#import "DatabaseViewController.h"
 
 #import "UIButton+Badge.h"
 #import "UIBarButtonItem+Badge.h"
@@ -1224,6 +1225,9 @@ NSString *livePlayers;
     if([segue.identifier isEqualToString:@"MMAItap"]){
         [(MMAIViewController *)segue.destinationViewController setShowAds:showAds];
     }
+    if ([segue.destinationViewController isKindOfClass:[DatabaseViewController class]]) {
+        [((DatabaseViewController*)segue.destinationViewController) setShowAds:!player.subscriber];
+    }
 //    if([segue.identifier isEqualToString:@"settingsTap"]){
 //        [(SettingsViewController *)segue.destinationViewController setNavC:(PenteNavigationViewController *)self.navigationController];
 //    }
@@ -2177,6 +2181,8 @@ NSString *livePlayers;
 //    username = @"graviton";
     if (development) {
         url =  [NSString stringWithFormat:@"https://development.pente.org/gameServer/mobile/index.jsp?name=%@&password=%@",username,password];
+//        url =  [NSString stringWithFormat:@"https://development.pente.org/gameServer/mobile/index.jsp?name=%@&password=%@&checkname=iostest",username,password];
+//        username = @"iostest";
     }
 
     [request setURL:[NSURL URLWithString:url]];

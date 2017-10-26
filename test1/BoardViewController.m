@@ -1199,7 +1199,7 @@ struct Capture {
     if (![htmlString containsString:@"state=active"]) {
         activeGame = NO;
         PenteNavigationViewController *navC = (PenteNavigationViewController *) self.navigationController;
-        if (navC.player.subscriber) {
+        if (navC.player.dbAccess) {
             [submitButton setImage:[UIImage imageNamed:@"database.png"] forState:UIControlStateNormal];
             [submitButton removeTarget:self action:@selector(submitMove:) forControlEvents:UIControlEventTouchUpInside];
             [submitButton addTarget:self action:@selector(toDB) forControlEvents:UIControlEventTouchUpInside];
@@ -1386,11 +1386,13 @@ struct Capture {
 }
 -(void) toDB {
 //    NSLog(@"%d",lastMove);
+    PenteNavigationViewController *navController = (PenteNavigationViewController*) self.navigationController;
     [[NSUserDefaults standardUserDefaults] setObject:[game gameType] forKey:@"DBGame"];
     UIStoryboard *sb = [UIStoryboard storyboardWithName:@"MainStoryboard" bundle:nil];
     DatabaseViewController * vc = (DatabaseViewController *)[sb instantiateViewControllerWithIdentifier:@"databaseViewController"];
     [vc setMovesList: [[movesList subarrayWithRange:NSMakeRange(0, lastMove)] mutableCopy]];
     [vc setGame:[game gameType]];
+    [vc setShowAds: !navController.player.subscriber];
     [self.navigationController pushViewController:vc animated:YES];
 }
 

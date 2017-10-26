@@ -205,7 +205,7 @@ struct Capture {
         CGRect newBannerViewFrame = CGRectMake(bannerView.frame.origin.x, newOriginY, bannerView.frame.size.width, bannerView.frame.size.height);
         //        NSLog(@"kitty %f", newOriginY);
         bannerView.frame = newBannerViewFrame;
-        bannerView.adUnitID = @"ca-app-pub-3326997956703582/6122026245";
+        bannerView.adUnitID = @"ca-app-pub-3326997956703582/1435237030";
         GADRequest *request = [GADRequest request];
         [bannerView loadRequest:request];
         [self.view addSubview:bannerView];
