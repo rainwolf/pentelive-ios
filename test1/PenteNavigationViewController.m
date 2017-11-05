@@ -69,6 +69,8 @@
 //    [bannerView loadRequest:request];
     
     self.navigationBar.tintColor = [UIColor grayColor];
+    
+    [self.navigationBar setTranslucent:NO];
 }
 
 - (void)didReceiveMemoryWarning

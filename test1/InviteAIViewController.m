@@ -76,6 +76,8 @@
     gameCell.textLabel.text = NSLocalizedString(@"Game:", nil);
     ratedCell.textLabel.text = NSLocalizedString(@"Play as white and black", nil);
     sendLabel.text = NSLocalizedString(@"Play the computer", nil);
+
+    [self.tableView setContentInset:UIEdgeInsetsMake(-20, 0, 0, 0)];
 }
 
 - (void)viewWillDisappear:(BOOL)animated {

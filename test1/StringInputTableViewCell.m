@@ -85,8 +85,12 @@
 }
 
 - (BOOL)textFieldShouldReturn:(UITextField *)textField {
-	UITableView *tableView = (UITableView *)self.superview.superview;
-    [tableView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:YES];
+    id tableView = self;
+    while (![tableView isKindOfClass:[UITableView class]] && [tableView respondsToSelector:@selector(superview)]) {
+        tableView = ((UIView*)tableView).superview;
+    }
+    CGFloat insetY = - ((UITableView*)tableView).contentInset.top;
+    [tableView scrollRectToVisible:CGRectMake(0,insetY, 1, 1) animated:YES];
     [tableView setScrollEnabled:NO];
 	return [self.textField resignFirstResponder];
 //	return YES;
@@ -106,8 +110,12 @@
 - (void)textFieldDidBeginEditing:(UITextField *)textField {
 //    self.textField.frame = CGRectMake(self.frame.size.width/2, (self.frame.size.height - [UIFont systemFontOfSize:17.0f].lineHeight) / 2 , self.frame.size.width/2 -20, [UIFont systemFontOfSize:17.0f].lineHeight);
 	self.textField.textAlignment = NSTextAlignmentLeft;
-	UITableView *tableView = (UITableView *)self.superview.superview;
-    [tableView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:YES];
+    id tableView = self;
+    while (![tableView isKindOfClass:[UITableView class]] && [tableView respondsToSelector:@selector(superview)]) {
+        tableView = ((UIView*)tableView).superview;
+    }
+    CGFloat insetY = - ((UITableView*)tableView).contentInset.top;
+    [tableView scrollRectToVisible:CGRectMake(0,insetY, 1, 1) animated:YES];
     [tableView setScrollEnabled:NO];
 }
 
@@ -117,7 +125,10 @@
 	if (delegate && [delegate respondsToSelector:@selector(tableViewCell:didEndEditingWithString:)]) {
 		[delegate tableViewCell:self didEndEditingWithString:self.stringValue];
 	}
-	UITableView *tableView = (UITableView *)self.superview.superview;
+    id tableView = self;
+    while (![tableView isKindOfClass:[UITableView class]] && [tableView respondsToSelector:@selector(superview)]) {
+        tableView = ((UIView*)tableView).superview;
+    }
 	[tableView deselectRowAtIndexPath:[tableView indexPathForCell:self] animated:YES];
 }
 

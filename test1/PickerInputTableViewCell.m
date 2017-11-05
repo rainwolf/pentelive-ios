@@ -79,8 +79,12 @@
 }
 
 - (void)done:(id)sender {
-	UITableView *tableView = (UITableView *)self.superview.superview;
-    [tableView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:YES];
+	id tableView = self;
+    while (![tableView isKindOfClass:[UITableView class]] && [tableView respondsToSelector:@selector(superview)]) {
+        tableView = ((UIView*)tableView).superview;
+    }
+    CGFloat insetY = - ((UITableView*)tableView).contentInset.top;
+    [tableView scrollRectToVisible:CGRectMake(0,insetY, 1, 1) animated:YES];
     [tableView setScrollEnabled:NO];
     resign = YES;
 	[self resignFirstResponder];
@@ -164,11 +168,12 @@
 #pragma mark UIPopoverControllerDelegate Protocol Methods
 
 - (void)popoverControllerDidDismissPopover:(UIPopoverController *)popoverController {
-    UITableView *tableView = (UITableView *)self.superview;
-    if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
-        tableView = (UITableView *)self.superview.superview;
+    id tableView = self;
+    while (![tableView isKindOfClass:[UITableView class]] && [tableView respondsToSelector:@selector(superview)]) {
+        tableView = ((UIView*)tableView).superview;
     }
 	[tableView deselectRowAtIndexPath:[tableView indexPathForCell:self] animated:YES];
+//    [tableView scrollRectToVisible:CGRectMake(0,0, 1, 1) animated:YES];
 	[self resignFirstResponder];
 }
 

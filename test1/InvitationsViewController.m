@@ -114,6 +114,7 @@
     privateCellLabel.text = NSLocalizedString(@"Private game",nil);
     sendLabel.text = NSLocalizedString(@"send invitation",nil);
     
+    [self.tableView setContentInset:UIEdgeInsetsMake(-20, 0, 400, 0)];
 }
 
 - (void)viewWillDisappear:(BOOL)animated {
@@ -296,7 +297,8 @@
             [timeCell doResign];
             [playAsCell doResign];
             [restrictionCell doResign];
-            [tableView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:YES];
+            CGFloat insetY = - ((UITableView*)tableView).contentInset.top;
+            [tableView scrollRectToVisible:CGRectMake(0,insetY, 1, 1) animated:YES];
             [tableView deselectRowAtIndexPath:indexPath animated:NO];
 //            [tableView scrollToRowAtIndexPath:indexPath atScrollPosition:UITableViewScrollPositionTop animated:YES];
             [tableView setScrollEnabled:NO];
@@ -323,7 +325,8 @@
             }
             [tableView deselectRowAtIndexPath:indexPath animated:NO];
 
-            [tableView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:YES];
+            CGFloat insetY = - ((UITableView*)tableView).contentInset.top;
+            [tableView scrollRectToVisible:CGRectMake(0,insetY, 1, 1) animated:YES];
             [tableView setScrollEnabled:YES];
         }
         if (indexPath.row == 2) {
@@ -365,7 +368,8 @@
             
             [ratedSwitch setOn: !ratedSwitch.on animated:YES];
             [self flipRatedSwitch:self];
-            [tableView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:YES];
+            CGFloat insetY = - ((UITableView*)tableView).contentInset.top;
+            [tableView scrollRectToVisible:CGRectMake(0,insetY, 1, 1) animated:YES];
             [tableView setScrollEnabled:NO];
         }
         if (indexPath.row == 4) {
@@ -378,8 +382,9 @@
             [restrictionCell.picker selectRow: 0 inComponent:0 animated:YES];
             
             [tableView setScrollEnabled:YES];
-            CGFloat scrollY = [tableView rectForRowAtIndexPath:indexPath].origin.y;
-            [tableView scrollRectToVisible:CGRectMake(0, scrollY, 1, 1) animated:YES];
+//            CGFloat scrollY = [tableView rectForRowAtIndexPath:indexPath].origin.y;
+//            [tableView scrollRectToVisible:CGRectMake(0, scrollY, 1, 1) animated:YES];
+            [tableView scrollRectToVisible:[tableView rectForRowAtIndexPath:indexPath] animated:YES];
         }
         if (indexPath.row == 5) {
             [opponentCell.textField resignFirstResponder];
@@ -404,13 +409,15 @@
 
             [privateSwitch setOn: !privateSwitch.on animated:YES];
             [self flipPrivateSwitch:self];
-            [tableView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:YES];
+            CGFloat insetY = - ((UITableView*)tableView).contentInset.top;
+            [tableView scrollRectToVisible:CGRectMake(0,insetY, 1, 1) animated:YES];
             [tableView setScrollEnabled:NO];
         }
     }
     if (indexPath.section == 1) {
         
-        [tableView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:YES];
+        CGFloat insetY = - ((UITableView*)tableView).contentInset.top;
+        [tableView scrollRectToVisible:CGRectMake(0,insetY, 1, 1) animated:YES];
         [tableView setScrollEnabled:NO];
         [opponentCell.textField resignFirstResponder];
         [gameCell doResign];
@@ -583,7 +590,8 @@
 
 
 - (IBAction)flipPrivateSwitch:(id)sender {
-    [self.tableView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:YES];
+    CGFloat insetY = - ((UITableView*)self.tableView).contentInset.top;
+    [self.tableView scrollRectToVisible:CGRectMake(0,insetY, 1, 1) animated:YES];
     [self.tableView setScrollEnabled:NO];
     [opponentCell.textField resignFirstResponder];
     [gameCell doResign];
@@ -593,7 +601,8 @@
 }
 
 - (IBAction)flipRatedSwitch:(id)sender {
-    [self.tableView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:YES];
+    CGFloat insetY = - ((UITableView*)self.tableView).contentInset.top;
+    [self.tableView scrollRectToVisible:CGRectMake(0,insetY, 1, 1) animated:YES];
     [self.tableView setScrollEnabled:NO];
     if (!ratedSwitch.on) {
         playAsCell.userInteractionEnabled = YES;
