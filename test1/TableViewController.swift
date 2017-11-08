@@ -249,30 +249,36 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
 //    }
     override func viewDidAppear(_ animated: Bool) {
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShowHide), name:NSNotification.Name.UIKeyboardWillChangeFrame, object: nil);
+        var bottomOffset: CGFloat = 0
+        if UIDevice.current.userInterfaceIdiom == .phone && Int(UIScreen.main.nativeBounds.size.height) == 2436 {
+            bottomOffset = 34.0
+        }
         var frame = seatsView.frame
         frame.origin.y = frame.origin.y + frame.size.height
-        frame.size.height = self.view.frame.size.height - board.frame.size.height - seatsView.frame.size.height
+        frame.size.height = self.view.frame.size.height - board.frame.size.height - seatsView.frame.size.height - bottomOffset
         textView.frame = frame
-        frame.origin.y = frame.origin.y + frame.size.height
+        frame.origin.y = self.view.frame.size.height
         frame.size.height = 40
         textField.frame = frame
         showAds = (self.navigationController as! PenteNavigationViewController).player.showAds
 //        showAds = true
-        if showAds && bannerView == nil {
-            bannerView = GADBannerView(adSize: kGADAdSizeBanner)
-            bannerView!.rootViewController = self
-            bannerView!.delegate = self
+        if showAds {
+            if bannerView == nil {
+                bannerView = GADBannerView(adSize: kGADAdSizeSmartBannerPortrait)
+                bannerView!.rootViewController = self
+                bannerView!.delegate = self
+                bannerView!.adUnitID = "ca-app-pub-3326997956703582/2339127047"
+                let request = GADRequest()
+                //            request.testDevices = [ kGADSimulatorID ]
+                bannerView!.load(request)
+                self.view.addSubview(bannerView!)
+            }
             frame = textView.frame
             frame.size.height = frame.size.height - bannerView!.frame.size.height
             textView.frame = frame
             frame = bannerView!.frame
             frame.origin.y = textView.frame.origin.y + textView.frame.size.height
             bannerView!.frame = frame
-            bannerView!.adUnitID = "ca-app-pub-3326997956703582/2339127047"
-            let request = GADRequest()
-//            request.testDevices = [ kGADSimulatorID ]
-            bannerView!.load(request)
-            self.view.addSubview(bannerView!)
             
 //            interstitial = GADInterstitial(adUnitID: "ca-app-pub-3326997956703582/8025733844")
 //            interstitial!.delegate = self
@@ -747,6 +753,10 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
         if setupView.incrementalSecondsCell != nil && (setupView.incrementalSecondsCell?.textField.isFirstResponder)! {
             return
         }
+        var bottomOffset: CGFloat = 0
+        if UIDevice.current.userInterfaceIdiom == .phone && Int(UIScreen.main.nativeBounds.size.height) == 2436 {
+            bottomOffset = 34.0
+        }
         let info = notification.userInfo
         var keyboardHeight: CGFloat = 0.0
         if (info?[UIKeyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue.origin.y == self.view.frame.origin.y + self.view.bounds.size.height {
@@ -759,7 +769,7 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
         if keyboardHeight == 0 {
             frame.origin.y = board.frame.origin.y + board.frame.size.height + seatsView.frame.height
         } else {
-            frame.origin.y = self.view.frame.height - keyboardHeight - frame.height - textField.frame.height
+            frame.origin.y = self.view.frame.height - keyboardHeight - frame.height - textField.frame.height + bottomOffset
         }
         textView.frame = frame
         frame = textField.frame

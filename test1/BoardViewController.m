@@ -99,6 +99,7 @@ struct Capture {
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    
 	// Do any additional setup after loading the view, typically from a nib.
     showedAd = NO;
     cancelMsg = @"";
@@ -170,7 +171,6 @@ struct Capture {
     rect.origin.y = (player1Button.frame.origin.y +3);
     dPenteChoiceLabel.frame = rect;
 
-    
     playerStats = [[UIWebView alloc] initWithFrame:CGRectMake(2, submitButton.frame.origin.y + 3, self.view.bounds.size.width - 4,  submitButton.frame.origin.y - 3)];
     [playerStats setDelegate:self];
     [playerStats setAlpha:0.90];
@@ -184,35 +184,8 @@ struct Capture {
     [playerStats setUserInteractionEnabled:YES];
     [playerStats.scrollView setScrollEnabled:NO];
     //    playerStats.contentInset = UIEdgeInsetsMake(-5.0,0.0,0,0.0);
-    CGFloat screenHeight = UIScreen.mainScreen.bounds.size.height;
-    CGFloat newOriginY = screenHeight - self.navigationController.navigationBar.frame.size.height - [UIApplication sharedApplication].statusBarFrame.size.height;
-    if (showAds) {
-        playerStats.frame = CGRectMake(2, submitButton.frame.origin.y + 3 + submitButton.frame.size.height, self.view.bounds.size.width - 4,  newOriginY - submitButton.frame.origin.y - GAD_SIZE_320x50.height -5 -  submitButton.frame.size.height);
-    } else {
-        playerStats.frame = CGRectMake(2, submitButton.frame.origin.y +  3 + submitButton.frame.size.height, self.view.bounds.size.width - 4, newOriginY - submitButton.frame.origin.y - 5 -  submitButton.frame.size.height);
-    }
     [self.view addSubview: playerStats];
 
-    if (showAds) {
-        CGPoint origin = CGPointMake(0.0, self.view.frame.size.height - self.navigationController.navigationBar.frame.size.height - kGADAdSizeBanner.size.height);
-        bannerView = [[GADBannerView alloc] initWithAdSize:kGADAdSizeBanner origin:origin];
-        bannerView.rootViewController = self;
-        [bannerView setDelegate: self];
-        //    CGFloat screenHeight = UIScreen.mainScreen.bounds.size.height;
-        newOriginY = screenHeight - self.navigationController.navigationBar.frame.size.height - [UIApplication sharedApplication].statusBarFrame.size.height - bannerView.frame.size.height;
-//        newOriginY = playerStats.frame.origin.y + playerStats.frame.size.height;
-        CGRect newBannerViewFrame = CGRectMake(bannerView.frame.origin.x, newOriginY, bannerView.frame.size.width, bannerView.frame.size.height);
-        bannerView.frame = newBannerViewFrame;
-        bannerView.frame = newBannerViewFrame;
-        bannerView.adUnitID = @"ca-app-pub-3326997956703582/5064095440";
-        bannerView.rootViewController = self;
-        GADRequest *request = [GADRequest request];
-        //            request.testDevices = [NSArray arrayWithObjects:kGADSimulatorID, nil];
-        [bannerView loadRequest:request];
-        [self.view addSubview:bannerView];
-//        [self.view bringSubviewToFront:bannerView];
-//        NSLog(@"kittty");
-    }
     [submitButton setEnabled:NO];
     [submitButton setTitle:NSLocalizedString(@"submit",nil) forState:UIControlStateDisabled];
     [submitButton setAlpha:0.5];
@@ -263,6 +236,44 @@ struct Capture {
 
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
+    CGFloat bottomOffset = 0;
+    
+    if([[UIDevice currentDevice]userInterfaceIdiom]==UIUserInterfaceIdiomPhone) {
+        if ((int)[[UIScreen mainScreen] nativeBounds].size.height == 2436) {
+            bottomOffset = 34;
+        }
+    }
+    CGFloat screenHeight = UIScreen.mainScreen.bounds.size.height;
+    CGFloat newOriginY = screenHeight - self.navigationController.navigationBar.frame.size.height - [UIApplication sharedApplication].statusBarFrame.size.height;
+    if (showAds) {
+        playerStats.frame = CGRectMake(2, submitButton.frame.origin.y + 3 + submitButton.frame.size.height, self.view.bounds.size.width - 4,  newOriginY - submitButton.frame.origin.y - GAD_SIZE_320x50.height -5 -  submitButton.frame.size.height - bottomOffset);
+    } else {
+        playerStats.frame = CGRectMake(2, submitButton.frame.origin.y +  3 + submitButton.frame.size.height, self.view.bounds.size.width - 4, newOriginY - submitButton.frame.origin.y - 5 -  submitButton.frame.size.height - bottomOffset);
+    }
+    if (showAds) {
+        CGPoint origin = CGPointMake(0.0, self.view.frame.size.height - self.navigationController.navigationBar.frame.size.height - kGADAdSizeBanner.size.height - bottomOffset);
+        bannerView = [[GADBannerView alloc] initWithAdSize:kGADAdSizeSmartBannerPortrait origin:origin];
+        bannerView.rootViewController = self;
+        [bannerView setDelegate: self];
+        newOriginY = screenHeight - self.navigationController.navigationBar.frame.size.height - [UIApplication sharedApplication].statusBarFrame.size.height - bannerView.frame.size.height - bottomOffset;
+        CGRect newBannerViewFrame = CGRectMake(bannerView.frame.origin.x, newOriginY, bannerView.frame.size.width, bannerView.frame.size.height);
+        bannerView.frame = newBannerViewFrame;
+        bannerView.adUnitID = @"ca-app-pub-3326997956703582/5064095440";
+        bannerView.rootViewController = self;
+        GADRequest *request = [GADRequest request];
+        //            request.testDevices = [NSArray arrayWithObjects:kGADSimulatorID, nil];
+        [bannerView loadRequest:request];
+        [self.view addSubview:bannerView];
+//        [self.view addConstraints:@[
+//                                    [NSLayoutConstraint constraintWithItem:bannerView
+//                                                                 attribute:NSLayoutAttributeCenterX
+//                                                                 relatedBy:NSLayoutRelationEqual
+//                                                                    toItem:self.view
+//                                                                 attribute:NSLayoutAttributeCenterX
+//                                                                multiplier:1
+//                                                                  constant:0]
+//                                    ]];
+    }
 }
 
 - (void)viewWillDisappear:(BOOL)animated {
@@ -1189,16 +1200,16 @@ struct Capture {
         [submitButton setEnabled:NO];
         [submitButton setAlpha:0.85];
     }
-    if ([[[NSUserDefaults standardUserDefaults] objectForKey:@"username"] isEqualToString:@"rainwolf"]) {
-        if ([[[@"samywamy-" stringByAppendingString:[[NSUserDefaults standardUserDefaults] objectForKey:@"password"]] SHA256] isEqualToString:@"1b7017087c9d8ff0d2b3ec1cb930273529d7efb52ce859e2dd1a824194ab7806"]) {
-            [lockButton setImage:[UIImage imageNamed:@"database.png"] forState:UIControlStateNormal];
-            [lockButton removeTarget:self action:@selector(toggleBoardLock:) forControlEvents:UIControlEventTouchUpInside];
-            [lockButton addTarget:self action:@selector(toDB) forControlEvents:UIControlEventTouchUpInside];
-            [lockButton setAlpha:1.0f];
-            [lockButton setEnabled:YES];
-            [lockButton setNeedsDisplay];
-        }
-    }
+//    if ([[[NSUserDefaults standardUserDefaults] objectForKey:@"username"] isEqualToString:@"rainwolf"]) {
+//        if ([[[@"samywamy-" stringByAppendingString:[[NSUserDefaults standardUserDefaults] objectForKey:@"password"]] SHA256] isEqualToString:@"1b7017087c9d8ff0d2b3ec1cb930273529d7efb52ce859e2dd1a824194ab7806"]) {
+//            [lockButton setImage:[UIImage imageNamed:@"database.png"] forState:UIControlStateNormal];
+//            [lockButton removeTarget:self action:@selector(toggleBoardLock:) forControlEvents:UIControlEventTouchUpInside];
+//            [lockButton addTarget:self action:@selector(toDB) forControlEvents:UIControlEventTouchUpInside];
+//            [lockButton setAlpha:1.0f];
+//            [lockButton setEnabled:YES];
+//            [lockButton setNeedsDisplay];
+//        }
+//    }
 }
 
 -(void) requestUndo: (UIButton*) sender {

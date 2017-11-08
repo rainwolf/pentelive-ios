@@ -44,7 +44,7 @@ class SocialViewController: UIViewController, UITableViewDelegate, UITableViewDa
     
     var gameString: String?
     
-    init(player: PentePlayer) {
+    @objc init(player: PentePlayer) {
         self.pentePlayer = player
         super.init(nibName: nil, bundle: nil)
         tableView.delegate = self
@@ -71,7 +71,6 @@ class SocialViewController: UIViewController, UITableViewDelegate, UITableViewDa
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        tableView.frame = self.view.frame
         // Do any additional setup after loading the view.
         gameString = UserDefaults.standard.string(forKey: "socialGame")
         if gameString == nil {
@@ -84,15 +83,26 @@ class SocialViewController: UIViewController, UITableViewDelegate, UITableViewDa
         loadFollowersing()
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        var frame = self.view.frame
+        frame.origin = CGPoint(x: 0, y: 0)
+        tableView.frame = frame
+    }
+    
     override func viewDidAppear(_ animated: Bool) {
         showAds = pentePlayer.showAds
-        
+
         if showAds && bannerView == nil {
-            bannerView = GADBannerView(adSize: kGADAdSizeBanner)
+            var bottomOffset: CGFloat = 0.0
+            if UIDevice.current.userInterfaceIdiom == .phone && Int(UIScreen.main.nativeBounds.size.height) == 2436 {
+                bottomOffset = 34.0
+            }
+            bannerView = GADBannerView(adSize: kGADAdSizeSmartBannerPortrait)
             bannerView!.rootViewController = self
             bannerView!.delegate = self
             var frame = tableView.frame
-            frame.size.height = tableView.frame.size.height - (bannerView?.frame.size.height)!
+            frame.size.height = tableView.frame.size.height - (bannerView?.frame.size.height)! - bottomOffset
             tableView.frame = frame
             frame = (bannerView?.frame)!
             frame.origin.y = tableView.frame.origin.y + tableView.frame.size.height

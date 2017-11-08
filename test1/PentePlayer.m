@@ -201,7 +201,8 @@
 @implementation PentePlayer
 @synthesize playerName;
 @synthesize invitations, sentInvitations, activeGames, nonActiveGames, publicInvitations, messages, ratingStats, tournaments, hills;
-@synthesize showAds, subscriber, dbAccess;
+//@synthesize showAds, subscriber;
+@synthesize dbAccess;
 @synthesize avatars;
 @synthesize pendingAvatarChecks;
 @synthesize myColor;
@@ -249,5 +250,23 @@
     });
 }
 
+-(BOOL) showAds {
+    if (development) {
+        return YES;
+    }
+    return showAds;
+}
+-(BOOL) subscriber {
+    if (development) {
+        return NO;
+    }
+    return subscriber;
+}
+-(void) setShowAds:(BOOL)showAdss {
+    showAds = showAdss;
+}
+-(void) setSubscriber:(BOOL)subscribers {
+    subscriber = subscribers;
+}
 
 @end

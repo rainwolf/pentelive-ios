@@ -60,13 +60,12 @@
 @synthesize selectedInvitationCell, selectedPublicInvitationCell;
 @synthesize interstitial;
 @synthesize gamesLimit;
-@synthesize showAds;
 @synthesize actionPopoverView;
 @synthesize progressView;
 
 UIBarButtonItem *inviteButton;
 NSString *livePlayers;
-
+CGFloat bottomOffset = 0;
 
 //- (void)adViewWillLeaveApplication:(GADBannerView *)bannerView {
 //    NSLog(@"... leaving penteLive for an ad");
@@ -102,36 +101,24 @@ NSString *livePlayers;
 
 - (void)viewDidLoad
 {
+    bottomOffset = 0;
     player = [[PentePlayer alloc] init];
     ((PenteNavigationViewController *) self.navigationController).player = player;
     [super viewDidLoad];
     [self setTitle:NSLocalizedString(@"home",nil)];
     
-    // Uncomment the following line to preserve selection between presentations.
-    // self.clearsSelectionOnViewWillAppear = NO;
- 
-    // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
-    // self.navigationItem.rightBarButtonItem = self.editButtonItem;
 
     selectedInvitationCell = nil;
     selectedPublicInvitationCell = nil;
     
-//    messageButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"messageBubble0.png"] style:UIBarButtonItemStylePlain target:self action:@selector(messageTap)];
-//    [messageButton setImage:[UIImage imageNamed:@"messageBubbleEnd.png"]];
-//    inviteButton = [self.navigationItem rightBarButtonItem];
     inviteButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemPlay target:self action: @selector(showInvitationActions)];
-//    inviteButton.shouldHideBadgeAtZero = YES;
     UIBarButtonItem *moreButton = [[UIBarButtonItem alloc] initWithImage: [UIImage imageNamed:@"showpopup.png"] style: UIBarButtonItemStylePlain target:self action: @selector(showActions)];
-//    statsButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem: UIBarButtonSystemItem target:self action: @selector(showStats)];
-//    friendsButton = [[UIBarButtonItem alloc] initWithImage: [UIImage imageNamed:@"friends.png"] style: UIBarButtonItemStylePlain target:self action:@selector(toFriends)];
     [self.navigationItem setRightBarButtonItem:nil];
     [self.navigationItem setRightBarButtonItems:[NSArray arrayWithObjects:moreButton, inviteButton, nil]];
 
     UIBarButtonItem *leftBarButton = [self.navigationItem leftBarButtonItem];
     [leftBarButton setImage:[UIImage imageNamed:@"settings.png"]];
     [leftBarButton setTitle: nil];
-//    [leftBarButton setTarget:self];
-//    [leftBarButton setAction:@selector(toSettings)];
     
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
     messagesCollapsed = [defaults boolForKey:@"messagesCollapsed"];
@@ -146,12 +133,8 @@ NSString *livePlayers;
     
     alreadyAskedAboutInvitations = NO;
     
-//    PenteNavigationViewController *navController = (PenteNavigationViewController *) self.navigationController;
-//    bannerView = navController.bannerView;
-
     self.interstitial = nil;
     
-    showAds = YES;
     gamesLimit = 200;
     
     long openInvitationsLimit = [[NSUserDefaults standardUserDefaults] integerForKey:@"openInvitationsLimit"];
@@ -162,6 +145,13 @@ NSString *livePlayers;
     [self.progressView setBackgroundColor:[UIColor whiteColor]];
     [self.progressView setAlpha:0.75];
     
+    if([[UIDevice currentDevice]userInterfaceIdiom]==UIUserInterfaceIdiomPhone) {
+        if ((int)[[UIScreen mainScreen] nativeBounds].size.height == 2436) {
+            bottomOffset = 34;
+        }
+    }
+
+   
 //    [self toLive];
 }
 
@@ -175,7 +165,7 @@ NSString *livePlayers;
 
 - (void)interstitialDidDismissScreen:(GADInterstitial *)interstitial {
     self.interstitial = nil;
-    if (showAds) {
+    if (player.showAds) {
         self.interstitial = [[GADInterstitial alloc] initWithAdUnitID:@"ca-app-pub-3326997956703582/8641559446"];
         [self.interstitial setDelegate:self];
         [self.interstitial loadRequest:[GADRequest request]];
@@ -185,9 +175,9 @@ NSString *livePlayers;
 
 -(void)scrollViewDidScroll:(UIScrollView *)scrollView{
     [super scrollViewDidScroll:scrollView];
-    if (showAds) {
+    if (player.showAds) {
         if (bannerView) {
-            CGFloat newOriginY = self.tableView.contentOffset.y + self.tableView.frame.size.height - bannerView.frame.size.height;
+            CGFloat newOriginY = self.tableView.contentOffset.y + self.tableView.frame.size.height - bannerView.frame.size.height - bottomOffset;
             CGRect newBannerViewFrame = CGRectMake(bannerView.frame.origin.x, newOriginY, bannerView.frame.size.width, bannerView.frame.size.height);
             bannerView.frame = newBannerViewFrame;
         }
@@ -209,7 +199,7 @@ NSString *livePlayers;
     [navController setChallengeCancelled:NO];
 //    bannerView.rootViewController = self;
 //    [bannerView setDelegate: self];
-//    if (showAds) {
+//    if (player.showAds) {
 //        CGFloat screenHeight = UIScreen.mainScreen.bounds.size.height;
 //        CGFloat newOriginY = screenHeight - navController.navigationBar.frame.size.height - [UIApplication sharedApplication].statusBarFrame.size.height - bannerView.frame.size.height;
 //        CGRect newBannerViewFrame = CGRectMake(bannerView.frame.origin.x, newOriginY, bannerView.frame.size.width, bannerView.frame.size.height);
@@ -1193,11 +1183,11 @@ NSString *livePlayers;
     }
     if([segue.identifier isEqualToString:@"gameTap"]){
         boardController = (BoardViewController *)segue.destinationViewController;
-        [boardController setShowAds: showAds];
+        [boardController setShowAds: player.showAds];
     }
     if([segue.identifier isEqualToString:@"messagesTap"]){
         messagesViewController = (MessagesViewController *)segue.destinationViewController;
-        [messagesViewController setShowAds:showAds];
+        [messagesViewController setShowAds:player.showAds];
     }
     if([segue.identifier isEqualToString:@"addInvitationsTap"]){
         invitationsViewController = (InvitationsViewController *)segue.destinationViewController;
@@ -1223,7 +1213,7 @@ NSString *livePlayers;
         }
     }
     if([segue.identifier isEqualToString:@"MMAItap"]){
-        [(MMAIViewController *)segue.destinationViewController setShowAds:showAds];
+        [(MMAIViewController *)segue.destinationViewController setShowAds:player.showAds];
     }
     if ([segue.destinationViewController isKindOfClass:[DatabaseViewController class]]) {
         [((DatabaseViewController*)segue.destinationViewController) setShowAds:!player.subscriber];
@@ -1370,7 +1360,7 @@ NSString *livePlayers;
         [CATransaction commit];
         selectedGame = [[player activeGames] objectAtIndex: indexPath.row];
         [self performSegueWithIdentifier:@"gameTap" sender:self];
-        [boardController setShowAds: showAds];
+        [boardController setShowAds: player.showAds];
         [boardController setGame:selectedGame];
         [boardController setActiveGame:YES];
         [boardController replayGame];
@@ -1457,7 +1447,7 @@ NSString *livePlayers;
         [self performSegueWithIdentifier:@"gameTap" sender:self];
         
         selectedGame = [[player nonActiveGames] objectAtIndex: indexPath.row];
-        [boardController setShowAds: showAds];
+        [boardController setShowAds: player.showAds];
         [boardController setActiveGame:NO];
         [boardController setGame:selectedGame];
         [boardController replayGame];
@@ -1578,7 +1568,7 @@ NSString *livePlayers;
     [defaults setObject:toHistory forKey:@"invitedHistory"];
 
     
-    if (showAds) {
+    if (player.showAds) {
         if ([self.interstitial isReady]) {
             [self.interstitial presentFromRootViewController:self];
         }
@@ -1779,7 +1769,7 @@ NSString *livePlayers;
     }
     [defaults setObject:toHistory forKey:@"invitedHistory"];
 
-    if (showAds) {
+    if (player.showAds) {
         if ([self.interstitial isReady]) {
             [self.interstitial presentFromRootViewController:self];
         }
@@ -2252,7 +2242,7 @@ NSString *livePlayers;
             dashLine = [splitDash objectAtIndex:dashIDX];
             splitLine = [dashLine componentsSeparatedByString:@";"];
             [player setMyColor:UIColorFromRGB([[splitLine objectAtIndex:1] intValue])];
-            showAds = ![[splitLine objectAtIndex:2] isEqualToString:@"NoAds"];
+            BOOL showAds = ![[splitLine objectAtIndex:2] isEqualToString:@"NoAds"];
             [player setShowAds: showAds];
             [player setSubscriber: [[splitLine objectAtIndex:3] isEqualToString:@"subscriber"]];
             livePlayers = [splitLine objectAtIndex:4];
@@ -2260,9 +2250,9 @@ NSString *livePlayers;
             [player setDbAccess: [[splitLine objectAtIndex:5] isEqualToString:@"dbAccessGranted"]];
         }
 //        showAds = ([dashboardString rangeOfString:@"No Ads"].location == NSNotFound) || ([dashboardString rangeOfString:@"No Ads"].location > 30);
-        if (showAds && bannerView == nil) {
+        if (player.showAds && bannerView == nil) {
             CGPoint origin = CGPointMake(0.0, self.view.frame.size.height - self.navigationController.navigationBar.frame.size.height - kGADAdSizeBanner.size.height);
-            bannerView = [[GADBannerView alloc] initWithAdSize:kGADAdSizeBanner origin:origin];
+            bannerView = [[GADBannerView alloc] initWithAdSize:kGADAdSizeSmartBannerPortrait origin:origin];
             bannerView.rootViewController = self;
             [bannerView setDelegate: self];
             CGFloat screenHeight = UIScreen.mainScreen.bounds.size.height;
@@ -2294,7 +2284,7 @@ NSString *livePlayers;
         } else {
             gamesLimit = 200;
         }
-        if (!showAds) {
+        if (!player.showAds) {
             [bannerView removeFromSuperview];
             [self.tableView setTableFooterView:nil];
         }
@@ -2813,7 +2803,7 @@ NSString *livePlayers;
             }
             if ([[notificationGame gameID] isEqualToString:[[navController receivedNotification] objectForKey:@"gameID"]]) {
                     [self performSegueWithIdentifier:@"gameTap" sender:self];
-                    [boardController setShowAds: showAds];
+                    [boardController setShowAds: player.showAds];
                     [boardController setGame:notificationGame];
                     [boardController setActiveGame:YES];
                     [boardController replayGame];
@@ -3222,7 +3212,7 @@ NSString *livePlayers;
     }
 }
 -(void) toMMAI {
-    if (showAds) {
+    if (player.showAds) {
         if ([self.interstitial isReady]) {
             [self.interstitial presentFromRootViewController:self];
         }
@@ -3231,7 +3221,7 @@ NSString *livePlayers;
     [self performSegueWithIdentifier:@"MMAItap" sender:self];
 }
 -(void) toAIInvitations {
-    if (showAds) {
+    if (player.showAds) {
         if ([self.interstitial isReady]) {
             [self.interstitial presentFromRootViewController:self];
         }
@@ -3344,7 +3334,7 @@ NSString *livePlayers;
             [gameObj setGameID: gameStr];
             [gameObj setRemainingTime:@"0 days"];
             
-            [boardController setShowAds: showAds];
+            [boardController setShowAds: player.showAds];
             [boardController setActiveGame:NO];
             [boardController setGame:gameObj];
             [boardController replayGame];

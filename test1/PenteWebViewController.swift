@@ -57,6 +57,9 @@ class PenteWebViewController: SVWebViewController, UIWebViewDelegate {
             
             let storyboard = UIStoryboard(name: "MainStoryboard", bundle: nil)
             let boardVC = storyboard.instantiateViewController(withIdentifier: "boardViewController") as! BoardViewController
+//            let boardFrame = boardVC.view.frame;
+//            boardVC.view.frame = CGRect(x: boardFrame.origin.x, y: boardFrame.origin.y, width: boardFrame.size.width, height: boardFrame.size.height - 444)
+//            boardVC.viewDidLoad()
             boardVC.activeGame = false
             boardVC.game = game
             boardVC.showAds = (self.navigationController as! PenteNavigationViewController).player.showAds

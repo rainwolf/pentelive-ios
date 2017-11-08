@@ -44,7 +44,6 @@
     BOOL alreadyAskedAboutInvitations;
     GADInterstitial *interstitial;
     int gamesLimit;
-    BOOL showAds;
     PopoverView *actionPopoverView;
     ICDMaterialActivityIndicatorView *progressView;
 }
@@ -61,7 +60,7 @@
 @property(nonatomic,retain) UIButton *cancelButton;
 @property(nonatomic,retain) GADBannerView *bannerView;
 @property(atomic) BOOL messagesCollapsed, invitationsReceivedCollapsed, activeGamesCollapsed, publicInvitationsCollapsed,
-sentInvitationsCollapsed, nonActiveGamesCollapsed, alreadyAskedAboutInvitations, showAds, tournamentsCollapsed, kothCollapsed;
+sentInvitationsCollapsed, nonActiveGamesCollapsed, alreadyAskedAboutInvitations, tournamentsCollapsed, kothCollapsed;
 @property(atomic) int gamesLimit;
 @property(nonatomic,retain) GameTableViewCell *selectedInvitationCell, *selectedPublicInvitationCell;
 @property(nonatomic, strong) GADInterstitial *interstitial;

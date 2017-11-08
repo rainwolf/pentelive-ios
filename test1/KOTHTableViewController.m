@@ -18,6 +18,8 @@
 @implementation PlayerTableViewCell
 @synthesize ratingLabel;
 
+
+
 - (id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier {
     if ((self = [super initWithStyle:style reuseIdentifier:reuseIdentifier])) {
         ratingLabel = [[UILabel alloc] init];
@@ -140,10 +142,19 @@
 @synthesize actionPopoverView;
 @synthesize challengeView;
 
+CGFloat bottomOffst = 0;
+
+
 
 -(void) viewDidLoad {
     [super viewDidLoad];
-    
+    bottomOffst = 0;
+    if([[UIDevice currentDevice]userInterfaceIdiom]==UIUserInterfaceIdiomPhone) {
+        if ((int)[[UIScreen mainScreen] nativeBounds].size.height == 2436) {
+            bottomOffst = 34;
+        }
+    }
+
     self.refreshControl = [[UIRefreshControl alloc] init];
     self.refreshControl.backgroundColor = [UIColor purpleColor];
     self.refreshControl.tintColor = [UIColor whiteColor];
@@ -169,7 +180,7 @@
     if ([player showAds]) {
 //        NSLog(@"kitty");
         CGPoint origin = CGPointMake(0.0, self.view.frame.size.height - self.navigationController.navigationBar.frame.size.height - kGADAdSizeBanner.size.height);
-        bannerView = [[GADBannerView alloc] initWithAdSize:kGADAdSizeBanner origin:origin];
+        bannerView = [[GADBannerView alloc] initWithAdSize:kGADAdSizeSmartBannerPortrait origin:origin];
         bannerView.rootViewController = self;
         [bannerView setDelegate: self];
         CGFloat screenHeight = UIScreen.mainScreen.bounds.size.height;
@@ -191,7 +202,7 @@
 //    [super scrollViewDidScroll:scrollView];
     if ([player showAds]) {
         if (bannerView) {
-            CGFloat newOriginY = self.tableView.contentOffset.y + self.tableView.frame.size.height - bannerView.frame.size.height;
+            CGFloat newOriginY = self.tableView.contentOffset.y + self.tableView.frame.size.height - bannerView.frame.size.height - bottomOffst;
             CGRect newBannerViewFrame = CGRectMake(bannerView.frame.origin.x, newOriginY, bannerView.frame.size.width, bannerView.frame.size.height);
             bannerView.frame = newBannerViewFrame;
         }

@@ -66,8 +66,15 @@ InvitationsViewController *invitationVC;
 }
 
 -(void) viewDidAppear:(BOOL)animated {
+    CGFloat bottomOffset = 0;
+    
+    if([[UIDevice currentDevice]userInterfaceIdiom]==UIUserInterfaceIdiomPhone) {
+        if ((int)[[UIScreen mainScreen] nativeBounds].size.height == 2436) {
+            bottomOffset = 34;
+        }
+    }
+
     PenteNavigationViewController *navController = (PenteNavigationViewController *) self.navigationController;
-//    [navController setDelegate:self];
     if (navController.challengeCancelled) {
         [self setMessageID:navController.unchallengedMessageID];
         [self setTitle: author];
@@ -76,10 +83,6 @@ InvitationsViewController *invitationVC;
         } else {
             [subjectField setText: [@"Re: " stringByAppendingString:subject]];
         }
-//        [self.view addSubview:subjectField];
-//        [self.view addSubview:receivedMessageView];
-//        [self.view addSubview:replyMessageView];
-//        [self.view addSubview:sendButton];
         if (showAds) {
             [self.view addSubview:bannerView];
         }
@@ -96,11 +99,11 @@ InvitationsViewController *invitationVC;
     }];
     if (showAds) {
         CGPoint origin = CGPointMake(0.0, self.view.frame.size.height - self.navigationController.navigationBar.frame.size.height - kGADAdSizeBanner.size.height);
-        bannerView = [[GADBannerView alloc] initWithAdSize:kGADAdSizeBanner origin:origin];
+        bannerView = [[GADBannerView alloc] initWithAdSize:kGADAdSizeSmartBannerPortrait origin:origin];
         bannerView.rootViewController = self;
         [bannerView setDelegate: self];
         CGFloat screenHeight = UIScreen.mainScreen.bounds.size.height;
-        CGFloat newOriginY = screenHeight - self.navigationController.navigationBar.frame.size.height - [UIApplication sharedApplication].statusBarFrame.size.height - bannerView.frame.size.height;
+        CGFloat newOriginY = screenHeight - self.navigationController.navigationBar.frame.size.height - [UIApplication sharedApplication].statusBarFrame.size.height - bannerView.frame.size.height - bottomOffset;
         CGRect newBannerViewFrame = CGRectMake(bannerView.frame.origin.x, newOriginY, bannerView.frame.size.width, bannerView.frame.size.height);
 //        NSLog(@"kitty %f", newOriginY);
         bannerView.frame = newBannerViewFrame;
@@ -113,16 +116,16 @@ InvitationsViewController *invitationVC;
     
 
     if (showAds) {
-        [sendButton setFrame:CGRectMake(4, self.view.bounds.size.height - 47 - bannerView.frame.size.height, self.view.bounds.size.width - 8, 44)];
+        [sendButton setFrame:CGRectMake(4, self.view.bounds.size.height - 47 - bannerView.frame.size.height - bottomOffset, self.view.bounds.size.width - 8, 44)];
     } else {
-        [sendButton setFrame:CGRectMake(4, self.view.bounds.size.height - 47, self.view.bounds.size.width - 8, 44)];
+        [sendButton setFrame:CGRectMake(4, self.view.bounds.size.height - 47 - bottomOffset, self.view.bounds.size.width - 8, 44)];
     }
 
     [spinner setHidden:YES];
     [sendButton addSubview:spinner];
     [spinner setHidesWhenStopped:YES];
     
-    float halfScreenSize = (self.view.frame.size.height - subjectField.frame.size.height - subjectField.frame.origin.y - sendButton.frame.size.height - 9)/2;
+    float halfScreenSize = (self.view.frame.size.height - subjectField.frame.size.height - subjectField.frame.origin.y - sendButton.frame.size.height - 9 - bottomOffset)/2;
     if (messageID) {
         [self setTitle: author];
         
@@ -173,7 +176,6 @@ InvitationsViewController *invitationVC;
             [subjectField setFrame:frame];
             frame = receivedMessageView.frame;
             if ((textFrame.size.height - receivedMessageView.contentInset.top - receivedMessageView.contentInset.bottom + receivedMessageView.contentOffset.y + fontLineHeight) < halfScreenSize) {
-//                NSLog(@"kitty %f %f %f", textFrame.size.height,(receivedMessageView.contentSize.height - receivedMessageView.contentInset.top - receivedMessageView.contentInset.bottom), halfScreenSize);
                 frame.size.height = textFrame.size.height - receivedMessageView.contentInset.top - receivedMessageView.contentInset.bottom + receivedMessageView.contentOffset.y + fontLineHeight;
             } else {
                 frame.size.height = halfScreenSize;
@@ -189,16 +191,13 @@ InvitationsViewController *invitationVC;
         
         [toField setFrame:CGRectMake(3, 3, self.view.bounds.size.width - 6, 30)];
         self.toField.textColor = [UIColor blueColor];
-//        [self.view addSubview:toField];
         
         [subjectField setFrame:CGRectMake(3, toField.frame.origin.y + toField.frame.size.height + 3, self.view.bounds.size.width - 6, 30)];
-//        [self.view addSubview:subjectField];
         
         [replyMessageView setFrame:CGRectMake(3, subjectField.frame.origin.y + subjectField.frame.size.height + 3, self.view.bounds.size.width - 6, 44)];
         CGRect frame = replyMessageView.frame;
         frame.size.height = sendButton.frame.origin.y - subjectField.frame.origin.y - subjectField.frame.size.height - 6;
         [replyMessageView setFrame:frame];
-//        [self.view addSubview:replyMessageView];
 
         if ([navController needHelp]) {
             [navController setNeedHelp:NO];

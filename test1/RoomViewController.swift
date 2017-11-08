@@ -113,12 +113,19 @@ class RoomViewController: UIViewController, UITableViewDelegate, UITableViewData
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        var bottomOffset: CGFloat = 0
+        if UIDevice.current.userInterfaceIdiom == .phone && Int(UIScreen.main.nativeBounds.size.height) == 2436 {
+            bottomOffset = 34.0
+        }
+        if showAds {
+            bottomOffset = bottomOffset + 50
+        }
         // Do any additional setup after loading the view.
         var frame = self.view.frame
-        frame.size.height = frame.size.height * 2 / 3
+        frame.size.height = (frame.size.height - bottomOffset) * 2 / 3
         tableView.frame = frame
         frame.origin.y = frame.origin.y + frame.size.height
-        frame.size.height = self.view.frame.size.height * 1 / 3
+        frame.size.height = (self.view.frame.size.height - bottomOffset) * 1 / 3
         textView.frame = frame
         frame.origin.y = frame.origin.y + frame.size.height
         frame.size.height = 40
@@ -159,18 +166,23 @@ class RoomViewController: UIViewController, UITableViewDelegate, UITableViewData
         
         self.tableViewController = nil
         if showAds && bannerView == nil {
-            bannerView = GADBannerView(adSize: kGADAdSizeBanner)
+
+            var bottomOffset: CGFloat = 0
+            if UIDevice.current.userInterfaceIdiom == .phone && Int(UIScreen.main.nativeBounds.size.height) == 2436 {
+                bottomOffset = 34.0
+            }
+
+            bannerView = GADBannerView(adSize: kGADAdSizeSmartBannerPortrait)
             bannerView!.rootViewController = self
             bannerView!.delegate = self
             var frame = textView.frame
-            frame.size.height = self.view.frame.size.height - bannerView!.frame.size.height - tableView.frame.size.height
+            frame.size.height = self.view.frame.size.height - bannerView!.frame.size.height - tableView.frame.size.height - bottomOffset
             textView.frame = frame
             frame = bannerView!.frame
             frame.origin.y = textView.frame.origin.y + textView.frame.size.height
             bannerView!.frame = frame
             bannerView!.adUnitID = "ca-app-pub-3326997956703582/5072267445"
             var request = GADRequest()
-            request.testDevices = [ kGADSimulatorID ]
             bannerView!.load(request)
             self.view.addSubview(bannerView!)
 
@@ -787,6 +799,11 @@ class RoomViewController: UIViewController, UITableViewDelegate, UITableViewData
         if self.invitationAlertController != nil && (self.invitationAlertController?.isBeingPresented)! {
             return
         }
+        var bottomOffset: CGFloat = 0
+        if UIDevice.current.userInterfaceIdiom == .phone && Int(UIScreen.main.nativeBounds.size.height) == 2436 {
+            bottomOffset = 34.0
+        }
+
         let info = notification.userInfo
         var keyboardHeight: CGFloat = 0.0
         if (info?[UIKeyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue.origin.y == self.view.frame.origin.y + self.view.bounds.size.height {
@@ -799,7 +816,7 @@ class RoomViewController: UIViewController, UITableViewDelegate, UITableViewData
         if keyboardHeight == 0 {
             frame.origin.y = tableView.frame.origin.y + tableView.frame.size.height
         } else {
-            frame.origin.y = tableView.frame.origin.y + tableView.frame.size.height - keyboardHeight - textField.frame.height
+            frame.origin.y = tableView.frame.origin.y + tableView.frame.size.height - keyboardHeight - textField.frame.height + bottomOffset
             if showAds {
                 frame.origin.y = frame.origin.y + bannerView!.frame.size.height
             }
