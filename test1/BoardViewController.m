@@ -231,11 +231,7 @@ struct Capture {
     UIBarButtonItem *messsageBarButton = self.navigationItem.rightBarButtonItem;
     [self.navigationItem setRightBarButtonItems:[NSArray arrayWithObjects: messsageBarButton, negativeSpacer, [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"cancel.png"] style:UIBarButtonItemStylePlain target:self action:@selector(cancelResignHide)], positiveSpacer, nil] animated:NO];
     dPenteChoiceLabel.text = NSLocalizedString(@"Play as",nil);
-}
 
-
-- (void)viewDidAppear:(BOOL)animated {
-    [super viewDidAppear:animated];
     CGFloat bottomOffset = 0;
     
     if([[UIDevice currentDevice]userInterfaceIdiom]==UIUserInterfaceIdiomPhone) {
@@ -264,16 +260,21 @@ struct Capture {
         //            request.testDevices = [NSArray arrayWithObjects:kGADSimulatorID, nil];
         [bannerView loadRequest:request];
         [self.view addSubview:bannerView];
-//        [self.view addConstraints:@[
-//                                    [NSLayoutConstraint constraintWithItem:bannerView
-//                                                                 attribute:NSLayoutAttributeCenterX
-//                                                                 relatedBy:NSLayoutRelationEqual
-//                                                                    toItem:self.view
-//                                                                 attribute:NSLayoutAttributeCenterX
-//                                                                multiplier:1
-//                                                                  constant:0]
-//                                    ]];
+        //        [self.view addConstraints:@[
+        //                                    [NSLayoutConstraint constraintWithItem:bannerView
+        //                                                                 attribute:NSLayoutAttributeCenterX
+        //                                                                 relatedBy:NSLayoutRelationEqual
+        //                                                                    toItem:self.view
+        //                                                                 attribute:NSLayoutAttributeCenterX
+        //                                                                multiplier:1
+        //                                                                  constant:0]
+        //                                    ]];
     }
+}
+
+
+- (void)viewDidAppear:(BOOL)animated {
+    [super viewDidAppear:animated];
 }
 
 - (void)viewWillDisappear:(BOOL)animated {
@@ -1200,52 +1201,69 @@ struct Capture {
         [submitButton setEnabled:NO];
         [submitButton setAlpha:0.85];
     }
-//    if ([[[NSUserDefaults standardUserDefaults] objectForKey:@"username"] isEqualToString:@"rainwolf"]) {
-//        if ([[[@"samywamy-" stringByAppendingString:[[NSUserDefaults standardUserDefaults] objectForKey:@"password"]] SHA256] isEqualToString:@"1b7017087c9d8ff0d2b3ec1cb930273529d7efb52ce859e2dd1a824194ab7806"]) {
-//            [lockButton setImage:[UIImage imageNamed:@"database.png"] forState:UIControlStateNormal];
-//            [lockButton removeTarget:self action:@selector(toggleBoardLock:) forControlEvents:UIControlEventTouchUpInside];
-//            [lockButton addTarget:self action:@selector(toDB) forControlEvents:UIControlEventTouchUpInside];
-//            [lockButton setAlpha:1.0f];
-//            [lockButton setEnabled:YES];
-//            [lockButton setNeedsDisplay];
-//        }
-//    }
+    if ([[[NSUserDefaults standardUserDefaults] objectForKey:@"username"] isEqualToString:@"rainwolf"]) {
+        if ([[[@"samywamy-" stringByAppendingString:[[NSUserDefaults standardUserDefaults] objectForKey:@"password"]] SHA256] isEqualToString:@"1b7017087c9d8ff0d2b3ec1cb930273529d7efb52ce859e2dd1a824194ab7806"]) {
+            [lockButton setImage:[UIImage imageNamed:@"database.png"] forState:UIControlStateNormal];
+            [lockButton removeTarget:self action:@selector(toggleBoardLock:) forControlEvents:UIControlEventTouchUpInside];
+            [lockButton addTarget:self action:@selector(toDB) forControlEvents:UIControlEventTouchUpInside];
+            [lockButton setAlpha:1.0f];
+            [lockButton setEnabled:YES];
+            [lockButton setNeedsDisplay];
+        }
+    }
 }
 
 -(void) requestUndo: (UIButton*) sender {
     PenteNavigationViewController *navControllor = (PenteNavigationViewController *) self.navigationController;
     if ([navControllor.player subscriber]) {
-        NSError *error = nil;
-        NSURLResponse *response;
-        NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
+        UIAlertController *confirmController = [UIAlertController
+                                                        alertControllerWithTitle:NSLocalizedString(@"Are you sure?", nil)
+                                                        message: nil
+                                                        preferredStyle:UIAlertControllerStyleActionSheet];
+        UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"dismiss", nil) style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {
+        }];
+        UIAlertAction *confirmAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"yes, request undo", nil) style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+            NSError *error = nil;
+            NSURLResponse *response;
+            NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
+            
+            NSString *post = [NSString stringWithFormat:@"gid=%@&command=requestUndo&mobile=", [game gameID]];
+            NSData *postData = [post dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
+            NSString *postLength = [NSString stringWithFormat:@"%lu", (unsigned long)[postData length]];
+            
+            NSURL *url = [NSURL URLWithString:@"https://www.pente.org/gameServer/tb/game"];
+            if (development) {
+                url = [NSURL URLWithString:@"https://development.pente.org/gameServer/tb/game"];
+            }
+            [request setURL:url];
+            [request setHTTPMethod:@"POST"];
+            [request setValue:postLength forHTTPHeaderField:@"Content-Length"];
+            [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
+            [request setHTTPBody: postData];
+            [request setTimeoutInterval:7.0f];
+            
+            [request setHTTPShouldUsePipelining: YES];
+            
+            [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
+            if (error) {
+                UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error",nil) message:[NSString stringWithFormat:NSLocalizedString(@"Reason: %@",nil), error.localizedDescription] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+                //        [alert show];
+                [alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:YES];
+                return;
+            } else {
+                [self.navigationController popToRootViewControllerAnimated:YES];
+            }
+        }];
+        [confirmController addAction:cancelAction];
+        [confirmController addAction:confirmAction];
         
-        NSString *post = [NSString stringWithFormat:@"gid=%@&command=requestUndo&mobile=", [game gameID]];
-        NSData *postData = [post dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
-        NSString *postLength = [NSString stringWithFormat:@"%lu", (unsigned long)[postData length]];
-        
-        NSURL *url = [NSURL URLWithString:@"https://www.pente.org/gameServer/tb/game"];
-        if (development) {
-            url = [NSURL URLWithString:@"https://development.pente.org/gameServer/tb/game"];
+        if (confirmController.popoverPresentationController != nil) {
+            [confirmController.popoverPresentationController setSourceView: submitButton];
+            [confirmController.popoverPresentationController setSourceRect: submitButton.bounds];
         }
-        [request setURL:url];
-        [request setHTTPMethod:@"POST"];
-        [request setValue:postLength forHTTPHeaderField:@"Content-Length"];
-        [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
-        [request setHTTPBody: postData];
-        [request setTimeoutInterval:7.0f];
         
-        [request setHTTPShouldUsePipelining: YES];
-        
-        [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
-        if (error) {
-            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error",nil) message:[NSString stringWithFormat:NSLocalizedString(@"Reason: %@",nil), error.localizedDescription] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
-            //        [alert show];
-            [alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:YES];
-            return;
-        } else {
-//            [navControllor setDidMove: YES];
-            [self.navigationController popToRootViewControllerAnimated:YES];
-        }
+        [self presentViewController:confirmController animated:NO completion:nil];
+
     } else {
         UIAlertController *subscribersOnlyController = [UIAlertController
                                                         alertControllerWithTitle:NSLocalizedString(@"Action not available", nil)
@@ -2448,64 +2466,98 @@ struct Capture {
                                                                 preferredStyle:UIAlertControllerStyleActionSheet];
         UIAlertAction* cancelAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"request set cancellation", nil) style:UIAlertActionStyleDefault
                                                              handler:^(UIAlertAction * action) {
-                                                                 NSError *error;
+                                                                 UIAlertController *confirmController = [UIAlertController
+                                                                                                         alertControllerWithTitle:NSLocalizedString(@"Are you sure?", nil)
+                                                                                                         message: NSLocalizedString(@"Your opponent will still have to agree to your request.", nil)
+                                                                                                         preferredStyle:UIAlertControllerStyleActionSheet];
+                                                                 UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"dismiss", nil) style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {
+                                                                 }];
+                                                                 UIAlertAction *confirmAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"yes, request to cancel set", nil) style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+                                                                     NSError *error;
+                                                                     
+                                                                     NSString *post = [NSString stringWithFormat:@"sid=%@&command=request&mobile=",[game setID]];
+                                                                     NSData *postData = [post dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
+                                                                     NSString *postLength = [NSString stringWithFormat:@"%lu", (unsigned long)[postData length]];
+                                                                     
+                                                                     NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
+                                                                     
+                                                                     NSURL *url = [NSURL URLWithString:@"https://www.pente.org/gameServer/tb/cancel"];
+                                                                     if (development) {
+                                                                         url = [NSURL URLWithString:@"https://development.pente.org/gameServer/tb/cancel"];
+                                                                     }
+                                                                     [request setURL:url];
+                                                                     [request setHTTPMethod:@"POST"];
+                                                                     [request setValue:postLength forHTTPHeaderField:@"Content-Length"];
+                                                                     [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
+                                                                     [request setHTTPBody:postData];
+                                                                     [request setTimeoutInterval:7.0];
+                                                                     NSURLResponse *response;
+                                                                     NSData *responseData = [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
+                                                                     NSString *dashboardString = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
+                                                                     if ([dashboardString containsString: @"Error: Cancel request already exists."]) {
+                                                                         UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error",nil) message:NSLocalizedString(@"A cancel request already exists.",nil) delegate:nil cancelButtonTitle:NSLocalizedString(@"OK",nil) otherButtonTitles:nil];
+                                                                         [alert show];
+                                                                     } else {
+                                                                         PenteNavigationViewController *navControllor = (PenteNavigationViewController *) self.navigationController;
+                                                                         [navControllor setDidMove: YES];
+                                                                     }
+                                                                     [self.navigationController popToRootViewControllerAnimated:YES];
+                                                                 }];
+                                                                 [confirmController addAction:cancelAction];
+                                                                 [confirmController addAction:confirmAction];
                                                                  
-                                                                 NSString *post = [NSString stringWithFormat:@"sid=%@&command=request&mobile=",[game setID]];
-                                                                 NSData *postData = [post dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
-                                                                 NSString *postLength = [NSString stringWithFormat:@"%lu", (unsigned long)[postData length]];
-                                                                 
-                                                                 NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
-                                                                 
-                                                                 NSURL *url = [NSURL URLWithString:@"https://www.pente.org/gameServer/tb/cancel"];
-                                                                 if (development) {
-                                                                     url = [NSURL URLWithString:@"https://development.pente.org/gameServer/tb/cancel"];
+                                                                 if (confirmController.popoverPresentationController != nil) {
+                                                                     [confirmController.popoverPresentationController setSourceView: submitButton];
+                                                                     [confirmController.popoverPresentationController setSourceRect: submitButton.bounds];
                                                                  }
-                                                                 [request setURL:url];
-                                                                 [request setHTTPMethod:@"POST"];
-                                                                 [request setValue:postLength forHTTPHeaderField:@"Content-Length"];
-                                                                 [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
-                                                                 [request setHTTPBody:postData];
-                                                                 [request setTimeoutInterval:7.0];
-                                                                 NSURLResponse *response;
-                                                                 NSData *responseData = [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
-                                                                 NSString *dashboardString = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
-                                                                 if ([dashboardString containsString: @"Error: Cancel request already exists."]) {
-                                                                     UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error",nil) message:NSLocalizedString(@"A cancel request already exists.",nil) delegate:nil cancelButtonTitle:NSLocalizedString(@"OK",nil) otherButtonTitles:nil];
-                                                                     [alert show];
-                                                                 } else {
-                                                                     PenteNavigationViewController *navControllor = (PenteNavigationViewController *) self.navigationController;
-                                                                     [navControllor setDidMove: YES];
-                                                                 }
-                                                                 [self.navigationController popToRootViewControllerAnimated:YES];
+                                                                 
+                                                                 [self presentViewController:confirmController animated:NO completion:nil];
                                                              }];
         UIAlertAction* resignAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"resign game", nil) style:UIAlertActionStyleDestructive
                                                               handler:^(UIAlertAction * action) {
-                                                                  NSString *post = [NSString stringWithFormat:@"gid=%@&command=resign&mobile=",[game gameID]];
-                                                                  NSData *postData = [post dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
-                                                                  NSString *postLength = [NSString stringWithFormat:@"%lu", (unsigned long)[postData length]];
+                                                                  UIAlertController *confirmController = [UIAlertController
+                                                                                                          alertControllerWithTitle:NSLocalizedString(@"Are you sure?", nil)
+                                                                                                          message: NSLocalizedString(@"Resigning means a forfeiting the game.", nil)
+                                                                                                          preferredStyle:UIAlertControllerStyleActionSheet];
+                                                                  UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"dismiss", nil) style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {
+                                                                  }];
+                                                                  UIAlertAction *confirmAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"yes, resign", nil) style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+                                                                      NSString *post = [NSString stringWithFormat:@"gid=%@&command=resign&mobile=",[game gameID]];
+                                                                      NSData *postData = [post dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
+                                                                      NSString *postLength = [NSString stringWithFormat:@"%lu", (unsigned long)[postData length]];
+                                                                      
+                                                                      NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
+                                                                      
+                                                                      NSURL *url = [NSURL URLWithString:@"https://www.pente.org/gameServer/tb/resign"];
+                                                                      if (development) {
+                                                                          url = [NSURL URLWithString:@"https://development.pente.org/gameServer/tb/resign"];
+                                                                      }
+                                                                      [request setURL:url];
+                                                                      [request setHTTPMethod:@"POST"];
+                                                                      [request setValue:postLength forHTTPHeaderField:@"Content-Length"];
+                                                                      [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
+                                                                      [request setHTTPBody:postData];
+                                                                      [request setTimeoutInterval:7.0];
+                                                                      
+                                                                      [request setHTTPShouldUsePipelining: YES];
+                                                                      
+                                                                      NSURLResponse *response;
+                                                                      NSError *error;
+                                                                      [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
+                                                                      
+                                                                      PenteNavigationViewController *navControllor = (PenteNavigationViewController *) self.navigationController;
+                                                                      [navControllor setDidMove: YES];
+                                                                      [navControllor popToRootViewControllerAnimated:YES];
+                                                                  }];
+                                                                  [confirmController addAction:cancelAction];
+                                                                  [confirmController addAction:confirmAction];
                                                                   
-                                                                  NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
-                                                                  
-                                                                  NSURL *url = [NSURL URLWithString:@"https://www.pente.org/gameServer/tb/resign"];
-                                                                  if (development) {
-                                                                      url = [NSURL URLWithString:@"https://development.pente.org/gameServer/tb/resign"];
+                                                                  if (confirmController.popoverPresentationController != nil) {
+                                                                      [confirmController.popoverPresentationController setSourceView: submitButton];
+                                                                      [confirmController.popoverPresentationController setSourceRect: submitButton.bounds];
                                                                   }
-                                                                  [request setURL:url];
-                                                                  [request setHTTPMethod:@"POST"];
-                                                                  [request setValue:postLength forHTTPHeaderField:@"Content-Length"];
-                                                                  [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
-                                                                  [request setHTTPBody:postData];
-                                                                  [request setTimeoutInterval:7.0];
                                                                   
-                                                                  [request setHTTPShouldUsePipelining: YES];
-                                                                  
-                                                                  NSURLResponse *response;
-                                                                  NSError *error;
-                                                                  [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
-                                                                  
-                                                                  PenteNavigationViewController *navControllor = (PenteNavigationViewController *) self.navigationController;
-                                                                  [navControllor setDidMove: YES];
-                                                                  [navControllor popToRootViewControllerAnimated:YES];
+                                                                  [self presentViewController:confirmController animated:NO completion:nil];
                                                               }];
         [alert addAction:cancelAction];
         [alert addAction:resignAction];
