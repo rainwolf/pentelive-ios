@@ -22,10 +22,10 @@ class LivePlayer: NSObject {
     func getNameString() -> NSAttributedString {
         let text = NSMutableAttributedString(string: name)
         if subscriber {
-            text.addAttribute(NSAttributedStringKey.foregroundColor, value: color, range: NSRange(location: 0, length: name.characters.count))
-            text.addAttribute(NSAttributedStringKey.font, value: UIFont(name: "HelveticaNeue-Bold", size: 17)!, range: NSRange(location: 0, length: name.characters.count))
+            text.addAttribute(NSAttributedStringKey.foregroundColor, value: color, range: NSRange(location: 0, length: name.count))
+            text.addAttribute(NSAttributedStringKey.font, value: UIFont(name: "HelveticaNeue-Bold", size: 17)!, range: NSRange(location: 0, length: name.count))
         } else {
-            text.addAttribute(NSAttributedStringKey.font, value: UIFont(name: "HelveticaNeue", size: 17)!, range: NSRange(location: 0, length: name.characters.count))
+            text.addAttribute(NSAttributedStringKey.font, value: UIFont(name: "HelveticaNeue", size: 17)!, range: NSRange(location: 0, length: name.count))
         }
         let textAttachment = NSTextAttachment()
         switch crown {
@@ -382,7 +382,7 @@ class Table: NSObject {
             subtitleString.append(NSAttributedString(string: "\n"))
             subtitleString.append(NSAttributedString(string: NSLocalizedString("Watching: ", comment: "")))
         }
-        subtitleString.setAttributes(subtitleAttributes, range: NSRange(location: 0, length: subtitleString.string.characters.count))
+        subtitleString.setAttributes(subtitleAttributes, range: NSRange(location: 0, length: subtitleString.string.count))
         for player in players.values {
             if !amIseated(i: player.name) {
                 subtitleString.append(player.getNameString())

@@ -723,7 +723,7 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
     }
     func addText(text: String) {
         self.textView.text = "\(self.textView.text!)\(text)\n"
-        self.textView.scrollRangeToVisible(NSRange(location: self.textView.text.characters.count - 1, length: 1))
+        self.textView.scrollRangeToVisible(NSRange(location: self.textView.text.count - 1, length: 1))
     }
     @objc func enterText() {
         textField.text = ""

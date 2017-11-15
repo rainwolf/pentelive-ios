@@ -1603,7 +1603,7 @@ CGFloat bottomOffset = 0;
     NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
     NSURL *url = [NSURL URLWithString:@"https://www.pente.org/gameServer/tb/replyInvitation"];
     if (development) {
-        url = @"https://development.pente.org/gameServer/tb/replyInvitation";
+        url = [NSURL URLWithString:@"https://development.pente.org/gameServer/tb/replyInvitation"];
     }
     [request setURL:url];
     [request setHTTPMethod:@"POST"];
@@ -2248,6 +2248,8 @@ CGFloat bottomOffset = 0;
             livePlayers = [splitLine objectAtIndex:4];
             inviteButton.badgeValue = livePlayers;
             [player setDbAccess: [[splitLine objectAtIndex:5] isEqualToString:@"dbAccessGranted"]];
+            [player setEmailMe: [[splitLine objectAtIndex:6] isEqualToString:@"emailMe"]];
+            [[NSUserDefaults standardUserDefaults] setBool:player.emailMe forKey:@"emailMe"];
         }
 //        showAds = ([dashboardString rangeOfString:@"No Ads"].location == NSNotFound) || ([dashboardString rangeOfString:@"No Ads"].location > 30);
         if (player.showAds && bannerView == nil) {

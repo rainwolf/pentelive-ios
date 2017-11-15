@@ -229,7 +229,7 @@ struct Capture {
     UIBarButtonItem *positiveSpacer = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFixedSpace target:nil action:nil];
     positiveSpacer.width = 16.0;// it was -6 in iOS 6
     UIBarButtonItem *messsageBarButton = self.navigationItem.rightBarButtonItem;
-    [self.navigationItem setRightBarButtonItems:[NSArray arrayWithObjects: messsageBarButton, negativeSpacer, [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"cancel.png"] style:UIBarButtonItemStylePlain target:self action:@selector(cancelResignHide)], positiveSpacer, nil] animated:NO];
+    [self.navigationItem setRightBarButtonItems:[NSArray arrayWithObjects: messsageBarButton, negativeSpacer, [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"cancel.png"] style:UIBarButtonItemStylePlain target:self action:@selector(cancelResignHide)], positiveSpacer, nil] animated:YES];
     dPenteChoiceLabel.text = NSLocalizedString(@"Play as",nil);
 
     CGFloat bottomOffset = 0;
@@ -1262,7 +1262,7 @@ struct Capture {
             [confirmController.popoverPresentationController setSourceRect: submitButton.bounds];
         }
         
-        [self presentViewController:confirmController animated:NO completion:nil];
+        [self presentViewController:confirmController animated:YES completion:nil];
 
     } else {
         UIAlertController *subscribersOnlyController = [UIAlertController
@@ -1283,7 +1283,7 @@ struct Capture {
             [subscribersOnlyController.popoverPresentationController setSourceRect: submitButton.bounds];
         }
         
-        [self presentViewController:subscribersOnlyController animated:NO completion:nil];
+        [self presentViewController:subscribersOnlyController animated:YES completion:nil];
     }
 }
 
@@ -1328,7 +1328,7 @@ struct Capture {
                                                          }];
     UIAlertAction* declineAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"Decline", nil) style:UIAlertActionStyleDestructive
                                                          handler:^(UIAlertAction * action) {
-                                                             PenteNavigationViewController *navControllor = (PenteNavigationViewController *) self.navigationController;
+//                                                             PenteNavigationViewController *navControllor = (PenteNavigationViewController *) self.navigationController;
                                                              NSError *error = nil;
                                                              NSURLResponse *response;
                                                              NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
@@ -2511,13 +2511,13 @@ struct Capture {
                                                                      [confirmController.popoverPresentationController setSourceRect: submitButton.bounds];
                                                                  }
                                                                  
-                                                                 [self presentViewController:confirmController animated:NO completion:nil];
+                                                                 [self presentViewController:confirmController animated:YES completion:nil];
                                                              }];
         UIAlertAction* resignAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"resign game", nil) style:UIAlertActionStyleDestructive
                                                               handler:^(UIAlertAction * action) {
                                                                   UIAlertController *confirmController = [UIAlertController
                                                                                                           alertControllerWithTitle:NSLocalizedString(@"Are you sure?", nil)
-                                                                                                          message: NSLocalizedString(@"Resigning means a forfeiting the game.", nil)
+                                                                                                          message: NSLocalizedString(@"Resigning means forfeiting the game.", nil)
                                                                                                           preferredStyle:UIAlertControllerStyleActionSheet];
                                                                   UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"dismiss", nil) style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {
                                                                   }];
@@ -2557,7 +2557,7 @@ struct Capture {
                                                                       [confirmController.popoverPresentationController setSourceRect: submitButton.bounds];
                                                                   }
                                                                   
-                                                                  [self presentViewController:confirmController animated:NO completion:nil];
+                                                                  [self presentViewController:confirmController animated:YES completion:nil];
                                                               }];
         [alert addAction:cancelAction];
         [alert addAction:resignAction];

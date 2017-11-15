@@ -201,6 +201,7 @@
     [defaults setObject: username forKey:usernameKey];
     [defaults setObject: password forKey:passwordKey];
 
+    [self checkAndUpdateSettings];
     [super viewWillDisappear:animated];
 }
 
@@ -277,6 +278,11 @@
         }
         if (![passwordVerification isEqualToString:password]) {
             UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:NSLocalizedString(@"Passwords don't match.", nil) delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+            [alert show];
+            return;
+        }
+        if (emailAddress.length == 0) {
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:NSLocalizedString(@"No email address provided.", nil) delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
             [alert show];
             return;
         }
@@ -434,7 +440,6 @@
     if ([[specifier type] isEqualToString:kIASKOpenURLSpecifier]) {
         [[UIApplication sharedApplication] openURL:[NSURL URLWithString:specifier.file]];
     }
-//        [[NSUserDefaults standardUserDefaults] setObject:newTitle forKey:specifier.key];
 }
 
 -(void) showSubscribeInfo {
@@ -818,6 +823,41 @@
 }
 
 
+
+
+-(void) checkAndUpdateSettings {
+    if (self.navC.player && self.navC.player.emailMe != [[NSUserDefaults standardUserDefaults] boolForKey:@"emailMe"]) {
+        NSString *url = @"https://www.pente.org/gameServer/changeEmailPreference";
+        if (development) {
+            url = @"https://development.pente.org/gameServer/changeEmailPreference";
+        }
+        [self.navC.player setEmailMe: [[NSUserDefaults standardUserDefaults] boolForKey:@"emailMe"]];
+        NSString *postString = [NSString stringWithFormat:@"emailMe=%@",(self.navC.player.emailMe?@"Y":@"N")];
+        
+        NSData *postData = [postString dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
+        NSString *postLength = [NSString stringWithFormat:@"%lu", (unsigned long)[postData length]];
+        
+        NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
+        [request setURL:[NSURL URLWithString:url]];
+        [request setHTTPMethod:@"POST"];
+        [request setValue:postLength forHTTPHeaderField:@"Content-Length"];
+        [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
+        [request setHTTPBody:postData];
+        [request setTimeoutInterval:7.0];
+        
+        [request setHTTPShouldUsePipelining: YES];
+        
+        NSURLResponse *response;
+        NSError *error;
+        [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
+        
+        if (error) {
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error", nil) message:[NSString stringWithFormat:@"Reason: %@", error.localizedDescription] delegate:nil cancelButtonTitle:NSLocalizedString(@"OK",nil) otherButtonTitles:nil];
+            [alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:YES];
+            return;
+        }
+    }
+}
 
 - (NSString *) URLEncodedString_ch: (NSString *) input{
     NSMutableString * output = [NSMutableString string];

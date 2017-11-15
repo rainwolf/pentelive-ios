@@ -101,7 +101,7 @@
         [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
         
         cell.textLabel.text =  NSLocalizedString(@"ask the AI",nil);
-        cell.textColor = [UIColor whiteColor];
+        cell.textLabel.textColor = [UIColor whiteColor];
         cell.backgroundColor = [UIColor blueColor];
         [cell.textLabel setTextAlignment: NSTextAlignmentCenter];
         cell.layer.cornerRadius = 10;

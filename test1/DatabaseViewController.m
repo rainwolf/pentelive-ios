@@ -486,14 +486,14 @@ struct Capture {
                 }
                 if ([game containsString:@"Connect6"]) {
                     if ((([movesList count]-3)%4) == 0) {
-                        [moveStatsString appendString: [NSString stringWithFormat:@"&nbsp; <b>%lu.</b> ", ([movesList count] >> 2) + 2]];
+                        [moveStatsString appendString: [NSString stringWithFormat:@"&nbsp; <b>%lu.</b> ", (unsigned long) ([movesList count] >> 2) + 2]];
                     } else if ((([movesList count]-3)%4) == 2 || [movesList count] == 1) {
                         [moveStatsString appendString: @" - "];
                     } else {
                         [moveStatsString appendString: @"-"];
                     }
                 } else if (([movesList count]%2) == 1) {
-                    [moveStatsString appendString: [NSString stringWithFormat:@"&nbsp; <b>%lu.</b> ", ([movesList count] >> 1) + 1]];
+                    [moveStatsString appendString: [NSString stringWithFormat:@"&nbsp; <b>%lu.</b> ", (unsigned long) ([movesList count] >> 1) + 1]];
                 } else {
                     [moveStatsString appendString: @" - "];
                 }
@@ -854,7 +854,7 @@ struct Capture {
         [self detectKeryoCaptureOfOpponent:opponentColor atPosition:finalMove];
     }
     if (([movesList count]%2) == 1) {
-        [moveStatsString appendString: [NSString stringWithFormat:@"&nbsp; <b>%lu.</b> ", ([movesList count] >> 1) + 1]];
+        [moveStatsString appendString: [NSString stringWithFormat:@"&nbsp; <b>%lu.</b> ", (unsigned long) ([movesList count] >> 1) + 1]];
     } else {
         [moveStatsString appendString: @" - "];
     }

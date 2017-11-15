@@ -202,7 +202,7 @@
 @synthesize playerName;
 @synthesize invitations, sentInvitations, activeGames, nonActiveGames, publicInvitations, messages, ratingStats, tournaments, hills;
 //@synthesize showAds, subscriber;
-@synthesize dbAccess;
+@synthesize dbAccess, emailMe;
 @synthesize avatars;
 @synthesize pendingAvatarChecks;
 @synthesize myColor;
@@ -224,6 +224,7 @@
         showAds = YES;
         subscriber = NO;
         dbAccess = NO;
+        emailMe = YES;
         
         pendingAvatarChecks = [[NSMutableArray alloc] init];
     }

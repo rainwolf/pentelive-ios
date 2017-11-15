@@ -8,6 +8,16 @@
 			<key>Type</key>
 			<string>PSToggleSwitchSpecifier</string>
 			<key>Title</key>
+			<string>Email received messages</string>
+			<key>Key</key>
+			<string>emailMe</string>
+			<key>DefaultValue</key>
+			<true/>
+		</dict>
+		<dict>
+			<key>Type</key>
+			<string>PSToggleSwitchSpecifier</string>
+			<key>Title</key>
 			<string>Show turn-based only?</string>
 			<key>Key</key>
 			<string>showOnlyTB</string>
