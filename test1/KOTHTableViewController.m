@@ -293,7 +293,7 @@ CGFloat bottomOffst = 0;
         Player *playr = [[[hill steps] objectAtIndex: indexPath.section - 1] objectAtIndex:indexPath.row];
         [cell setAccessoryType:UITableViewCellAccessoryDisclosureIndicator];
         ((PlayerTableViewCell *) cell).ratingLabel.attributedText = [playr ratingString];
-        cell.textLabel.attributedText = [playr attributedName];
+        cell.textLabel.attributedText = [player markIfOnline:[playr name] andAttributedName:[playr attributedName]];
         cell.detailTextLabel.text = [NSString stringWithFormat: NSLocalizedString(@"Last game played on %@",nil), [playr lastGame]];
         [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
         if ([playr canBeChallenged]) {

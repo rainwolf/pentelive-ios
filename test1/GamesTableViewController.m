@@ -351,6 +351,7 @@ CGFloat bottomOffset = 0;
 //    NSLog(@"kittnnn");
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
     NSString *storedTokenString = [defaults objectForKey: @"deviceToken"];
+//    NSLog(@"kittnnn %@", storedTokenString);
     if (storedTokenString) {
         NSDate *dateOfLastPing = [defaults objectForKey:@"lastPing"];
         if (dateOfLastPing) {
@@ -561,7 +562,7 @@ CGFloat bottomOffset = 0;
         }
         cell.ratingLabel.text = @"";
         cell.ratingLabel.text = [message timeStamp];
-        cell.textLabel.attributedText = [message attributedName];
+        cell.textLabel.attributedText = [player markIfOnline:[message author] andAttributedName:[message attributedName]];
         cell.detailTextLabel.text = [message subject];
         [cell setAccessoryType:UITableViewCellAccessoryDisclosureIndicator];
         [cell setUserInteractionEnabled:YES];
@@ -588,7 +589,7 @@ CGFloat bottomOffset = 0;
         [cell setAccessoryType:UITableViewCellAccessoryDisclosureIndicator];
         [cell.imageView removeFromSuperview];
         cell.ratingLabel.attributedText = [game ratingString];
-        cell.textLabel.attributedText = [game attributedName];
+        cell.textLabel.attributedText = [player markIfOnline:[game opponentName] andAttributedName:[game attributedName]];
         if (![[game ratedNot] isEqualToString:@"Not Rated"]) {
             txtStr = (NSMutableString *) [NSString stringWithFormat:@"%@ (%@) - %@", [game gameType], [game localizedRatedNot], [game localizedTimeString]];
         } else {
@@ -620,7 +621,7 @@ CGFloat bottomOffset = 0;
 
         cell.ratingLabel.attributedText = [game ratingString];
    
-        cell.textLabel.attributedText = [game attributedName];
+        cell.textLabel.attributedText = [player markIfOnline:[game opponentName] andAttributedName:[game attributedName]];
         txtStr = [[NSMutableString alloc] initWithString:[game gameType]];
         [txtStr appendString:@" ("];
         [txtStr appendString: [game localizedRatedNot]];
@@ -661,7 +662,7 @@ CGFloat bottomOffset = 0;
         }
         cell.ratingLabel.attributedText = [game ratingString];
 
-        cell.textLabel.attributedText = [game attributedName];
+        cell.textLabel.attributedText = [player markIfOnline:[game opponentName] andAttributedName:[game attributedName]];
         if (![[game ratedNot] isEqualToString:@"Not Rated"]) {
             txtStr = (NSMutableString *) [NSString stringWithFormat:@"%@ (%@) - %@", [game gameType], [game localizedRatedNot], [game localizedTimeString]];
         } else {
@@ -698,7 +699,7 @@ CGFloat bottomOffset = 0;
             cell.ratingLabel.attributedText = [game ratingString];
         }
         
-        cell.textLabel.attributedText = [game attributedName];
+        cell.textLabel.attributedText = [player markIfOnline:[game opponentName] andAttributedName:[game attributedName]];
         txtStr = [[NSMutableString alloc] initWithString:[game gameType]];
         [txtStr appendString:@" ("];
         [txtStr appendString: [game localizedRatedNot]];
@@ -730,7 +731,7 @@ CGFloat bottomOffset = 0;
             cell = [[GameTableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:tmpIdentifier];
         }
         cell.ratingLabel.attributedText = [game ratingString];
-        cell.textLabel.attributedText = [game attributedName];
+        cell.textLabel.attributedText = [player markIfOnline:[game opponentName] andAttributedName:[game attributedName]];
         txtStr = [[NSMutableString alloc] initWithString:[game gameType]];
         if (![[game ratedNot] isEqualToString:@"Not Rated"]) {
             txtStr = (NSMutableString *) [NSString stringWithFormat:@"%@ (%@) - %@", [game gameType], [game localizedRatedNot], [game localizedTimeString]];
@@ -1523,20 +1524,20 @@ CGFloat bottomOffset = 0;
 }
 
 -(void) acceptInvitation: (UIButton *) sender {
-    long count = [[player activeGames] count] + [[player nonActiveGames] count];
-    for (Game *game in [player sentInvitations]) {
-        if ([[game ratedNot] isEqualToString:@"rated"]) {
-            count += 2;
-        } else {
-            ++count;
-        }
-    }
-    if (count > gamesLimit) {
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"New account limit reached." message:@"You cannot accept more games. You can, however, play more games by posting open invitations. \n This limit will gradually increase as you finish more games." delegate:self cancelButtonTitle:@"Got it." otherButtonTitles: nil];
-        [alert setTag: 2];
-        [alert show];
-        return;
-    }
+//    long count = [[player activeGames] count] + [[player nonActiveGames] count];
+//    for (Game *game in [player sentInvitations]) {
+//        if ([[game ratedNot] isEqualToString:@"rated"]) {
+//            count += 2;
+//        } else {
+//            ++count;
+//        }
+//    }
+//    if (count > gamesLimit) {
+//        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"New account limit reached." message:@"You cannot accept more games. You can, however, play more games by posting open invitations. \n This limit will gradually increase as you finish more games." delegate:self cancelButtonTitle:@"Got it." otherButtonTitles: nil];
+//        [alert setTag: 2];
+//        [alert show];
+//        return;
+//    }
 
     self.tableView.layer.borderWidth = 1.5;
 
@@ -2773,7 +2774,21 @@ CGFloat bottomOffset = 0;
         [player setTournaments: sectionItems];
     }
         
-        
+    while ((dashIDX < [splitDash count]) && ![[splitDash objectAtIndex:dashIDX] hasPrefix: @"OnlinePlayers:"]) {
+        dashIDX++;
+    }
+    if ((dashIDX+1 < [splitDash count]) && [[splitDash objectAtIndex:dashIDX] hasPrefix: @"OnlinePlayers:"]) {
+        dashLine = [[splitDash objectAtIndex:dashIDX] stringByReplacingOccurrencesOfString:@"OnlinePlayers:" withString:@""];
+        splitLine = [dashLine componentsSeparatedByString:@";"];
+        if ([splitLine count]>0) {
+            NSMutableDictionary<NSString *, NSString *> *playersDict = [[NSMutableDictionary alloc] init];
+            for (NSString *name in splitLine) {
+                [playersDict setObject:@"" forKey:name];
+            }
+            [player setOnlinePlayers: playersDict];
+        }
+    }
+
         [self.tableView endUpdates];
         [CATransaction commit];
         [self parseMessages];
@@ -3034,10 +3049,6 @@ CGFloat bottomOffset = 0;
 
 -(void) showOnlinePlayers {
     [actionPopoverView dismiss];
-//    [[NSRunLoop mainRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.9]];
-
-//    [self.progressView startAnimating];
-//    [self.view addSubview:self.progressView];
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
         NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
         NSString *url = [NSString stringWithFormat:@"https://www.pente.org/gameServer/mobile/whosonlineandlive.jsp"];
@@ -3052,8 +3063,6 @@ CGFloat bottomOffset = 0;
         NSError *error;
         NSData *responseData = [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
         NSString *dashboardString = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
-        //    NSLog(@"kittyyyyyyString -\n%@-", dashboardString);
-//        NSString *dashboardString = [NSString stringWithContentsOfURL:[NSURL URLWithString:url] encoding:NSUTF8StringEncoding error:&error];
         
         if (error) {
             UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error",nil) message:[NSString stringWithFormat:NSLocalizedString(@"Reason: %@",nil), error.localizedDescription] delegate:nil cancelButtonTitle:NSLocalizedString(@"OK",nil) otherButtonTitles:nil];
@@ -3065,7 +3074,7 @@ CGFloat bottomOffset = 0;
         }
         [self.progressView stopAnimating];
         BOOL wantsToSeeAvatars = [[NSUserDefaults standardUserDefaults] boolForKey:@"wantToSeeAvatars"];
-//        NSMutableArray *players = [[NSMutableArray alloc] init];
+        NSMutableDictionary<NSString *, NSString *> *playersDict = [[NSMutableDictionary alloc] init];
         NSMutableArray<Room *> *rooms = [[NSMutableArray alloc] init];
         for (NSString *line in [dashboardString componentsSeparatedByString:@"\n"]) {
             NSArray *splitRoomPlayers = [line componentsSeparatedByString:@":"];
@@ -3083,6 +3092,7 @@ CGFloat bottomOffset = 0;
                         [playr setCrown: [[splitLine objectAtIndex:3] intValue]];
                         [playr setNumberOfGames: [splitLine objectAtIndex:4]];
                         [room addPlayer:playr];
+                        [playersDict setObject:@"" forKey:playr.name];
                         if (wantsToSeeAvatars && (playr.color != 0)) {
                             [player addUser: playr.name];
                         }
@@ -3091,7 +3101,8 @@ CGFloat bottomOffset = 0;
                 [rooms addObject:room];
             }
         }
-        
+        [player setOnlinePlayers: playersDict];
+
         dispatch_async(dispatch_get_main_queue(), ^{
             WhosOnlineView *playersView = [[WhosOnlineView alloc] initWithFrame:CGRectMake(0, 0, 285, floor(self.view.frame.size.height*2/(3*44))*44)];
             [playersView setPlayer: player];

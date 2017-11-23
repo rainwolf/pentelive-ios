@@ -89,6 +89,7 @@ alpha:1.0]
     NSMutableDictionary<NSString *, UIImage *> *avatars;
     NSMutableArray<NSString *> *pendingAvatarChecks;
     UIColor *myColor;
+    NSDictionary<NSString *, NSString *> *onlinePlayers;
 }
 @property(nonatomic,retain) NSString *playerName;
 @property(nonatomic,retain) NSMutableArray *invitations, *sentInvitations, *activeGames, *nonActiveGames, *publicInvitations, *messages, *ratingStats, *tournaments, *hills;
@@ -99,7 +100,9 @@ alpha:1.0]
 @property(nonatomic, retain, readwrite) NSMutableArray<NSString *> *pendingAvatarChecks;
 @property(nonatomic, retain, readwrite) UIColor *myColor;
 @property(atomic, assign) int tbHills, tbRatings;
+@property(nonatomic, retain, readwrite) NSDictionary<NSString *, NSString *> *onlinePlayers;
 
 -(void) addUser: (NSString *) username;
+-(NSAttributedString *) markIfOnline: (NSString *) name andAttributedName: (NSAttributedString *) attributedString;
 
 @end

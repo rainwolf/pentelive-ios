@@ -148,7 +148,7 @@ class SocialViewController: UIViewController, UITableViewDelegate, UITableViewDa
         }
         cell.textLabel?.font = UIFont(name: "HelveticaNeue", size: 16)
         cell.textLabel?.textAlignment = .center
-        cell.textLabel?.attributedText = player.getNameString()
+        cell.textLabel?.attributedText = pentePlayer.markIfOnline(player.name, andAttributedName: player.getNameString())
         cell.textLabel?.numberOfLines = 0
 //        cell.detailTextLabel?.attributedText = player.getRatingString(game: 1)
         cell.selectionStyle = .none

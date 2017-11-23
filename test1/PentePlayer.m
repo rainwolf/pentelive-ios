@@ -207,6 +207,7 @@
 @synthesize pendingAvatarChecks;
 @synthesize myColor;
 @synthesize tbHills, tbRatings;
+@synthesize onlinePlayers;
 
 -(id) init {
     self = [super init];
@@ -227,6 +228,8 @@
         emailMe = YES;
         
         pendingAvatarChecks = [[NSMutableArray alloc] init];
+        
+        onlinePlayers = [[NSDictionary alloc] init];
     }
     return self;
 }
@@ -250,6 +253,17 @@
         [downloadPhotoTask resume];
     });
 }
+
+-(NSAttributedString *) markIfOnline: (NSString *) name andAttributedName: (NSAttributedString *) attributedString {
+    if ([onlinePlayers objectForKey:name]) {
+        NSMutableAttributedString *tmpStr = [[NSMutableAttributedString alloc] initWithAttributedString:attributedString];
+        [tmpStr appendAttributedString:[[NSMutableAttributedString alloc] initWithString: [NSString stringWithFormat:@" \u25CF"]]];
+        [tmpStr addAttribute:NSForegroundColorAttributeName value:[UIColor greenColor] range:NSMakeRange([tmpStr length] - 1, 1)];
+        return tmpStr;
+    }
+    return attributedString;
+}
+
 
 -(BOOL) showAds {
     if (development) {
