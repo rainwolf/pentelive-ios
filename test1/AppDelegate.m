@@ -223,6 +223,16 @@
 //    NSLog(@"Received notification: %@", [userInfo objectForKey:@"gameID"]);
 //    [self addMessageFromRemoteNotification:userInfo updateUI:YES];
 
+    if ([userInfo objectForKey:@"silentNotification"]) {
+        PenteNavigationViewController *navController = (PenteNavigationViewController *) (self.window.rootViewController);
+        if ([navController.visibleViewController respondsToSelector:@selector(dashboardParse)]) {
+            [((GamesTableViewController *) (navController.visibleViewController)) dashboardParse];
+        } else {
+            [navController setDidMove:YES];
+        }
+        return;
+    }
+    
     NSString *message = [[userInfo objectForKey:@"aps"] objectForKey:@"alert"];
     if ([message containsString:@"Live Game Alert"] && [message containsString:@"wants to play live"] && [userInfo objectForKey:@"liveBroadCastPlayer"] && [userInfo objectForKey:@"liveBroadCastGame"]) {
         AudioServicesPlaySystemSound(self.broadcastSndID);

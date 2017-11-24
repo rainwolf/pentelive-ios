@@ -1003,7 +1003,7 @@
 			);
 			inputPaths = (
 				"${SRCROOT}/Pods/Target Support Files/Pods-penteLive/Pods-penteLive-resources.sh",
-				"$PODS_CONFIGURATION_BUILD_DIR/InAppSettingsKit/InAppSettingsKit.bundle",
+				$PODS_CONFIGURATION_BUILD_DIR/InAppSettingsKit/InAppSettingsKit.bundle,
 				"${PODS_ROOT}/SVWebViewController/SVWebViewController/SVWebViewController.bundle/SVWebViewControllerBack.png",
 				"${PODS_ROOT}/SVWebViewController/SVWebViewController/SVWebViewController.bundle/SVWebViewControllerBack@2x.png",
 				"${PODS_ROOT}/SVWebViewController/SVWebViewController/SVWebViewController.bundle/SVWebViewControllerNext.png",
