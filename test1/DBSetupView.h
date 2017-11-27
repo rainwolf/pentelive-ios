@@ -19,17 +19,19 @@
 
 @end
 
-@interface DBSetupView : UITableView <StringInputTableViewCellDelegate, UITableViewDelegate, UITableViewDataSource, UITextFieldDelegate> {
-    UITableViewCell *gameCell, *sortCell, *winnerCell;
+@interface DBSetupView : UITableView <StringInputTableViewCellDelegate, UITableViewDelegate, UITableViewDataSource, UITextFieldDelegate, SimplePickerInputTableViewCellDelegate, UIPickerViewDelegate> {
+    UITableViewCell *sortCell, *winnerCell;
     DateTableViewCell *beforeCell, *afterCell;
+    SimplePickerInputTableViewCell *ratingCell, *gameCell;
     DBBoardView *board, *zBoard;
     StringInputTableViewCell *player1Cell, *player2Cell;
     UIDatePicker *beforePicker, *afterPicker;
     UIToolbar *datePickerToolbar;
     UIBarButtonItem *clearButton;
 }
-@property(nonatomic, retain, readwrite) UITableViewCell *gameCell, *sortCell, *winnerCell;
+@property(nonatomic, retain, readwrite) UITableViewCell *sortCell, *winnerCell;
 @property(nonatomic, retain, readwrite) DateTableViewCell *beforeCell, *afterCell;
+@property(nonatomic, retain, readwrite) SimplePickerInputTableViewCell *ratingCell, *gameCell;
 @property(nonatomic, retain, readwrite) DBBoardView *board, *zBoard;
 @property(nonatomic, retain, readwrite) StringInputTableViewCell *player1Cell, *player2Cell;
 @property(nonatomic, retain, readwrite) UIDatePicker *beforePicker, *afterPicker;

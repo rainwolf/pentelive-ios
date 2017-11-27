@@ -8,14 +8,22 @@
 
 #import "DBSetupView.h"
 
+@interface DBSetupView(){
+    NSMutableArray<NSString*> *ratingChoices, *gameChoices;
+}
+@property(nonatomic,strong) NSMutableArray<NSString*> *ratingChoices;
+@end
+
 @implementation DBSetupView
-@synthesize gameCell, sortCell, winnerCell;
+@synthesize sortCell, winnerCell;
 @synthesize beforeCell, afterCell;
 @synthesize board, zBoard;
 @synthesize player1Cell, player2Cell;
 @synthesize beforePicker, afterPicker;
 @synthesize datePickerToolbar;
 @synthesize clearButton;
+@synthesize ratingCell, gameCell;
+@synthesize ratingChoices;
 
 -(instancetype) initWithFrame:(CGRect)frame {
     if (self = [super initWithFrame:frame]) {
@@ -36,7 +44,13 @@
         clearButton = [[UIBarButtonItem alloc] initWithTitle:NSLocalizedString(@"Clear",nil) style:UIBarButtonItemStyleDone target:self action:@selector(clearDate:)]; // method to dismiss the picker
         [datePickerToolbar setItems:[[NSArray alloc] initWithObjects: extraSpace, clearButton, doneButton, nil]];
         
-
+        ratingChoices = [[NSMutableArray alloc] init];
+        [ratingChoices addObject:@"0"];
+        for (int i = 1600; i<2800; i += 100) {
+            [ratingChoices addObject:[NSString stringWithFormat:@"%d",i]];
+        }
+        gameChoices = [[NSMutableArray alloc] initWithObjects:@"Pente", @"Keryo-Pente", @"Gomoku", @"D-Pente", @"G-Pente", @"Poof-Pente", @"Connect6", @"Boat-Pente", @"DK-Pente",
+                       @"Speed Pente", @"Speed Keryo-Pente", @"Speed Gomoku", @"Speed D-Pente", @"Speed G-Pente", @"Speed Poof-Pente", @"Speed Connect6", @"Speed Boat-Pente", @"Speed DK-Pente", nil];
     }
     return self;
 }
@@ -46,25 +60,45 @@
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    return 7;
+    return 8;
 }
+
+-(CGFloat) tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
+    return 44.0;
+}
+
+-(void) pickerView:(UIPickerView *)pickerView didSelectRow:(NSInteger)row inComponent:(NSInteger)component {
+    gameCell.detailTextLabel.text = [gameChoices objectAtIndex:row];
+    [self setBoardColor];
+    [[NSUserDefaults standardUserDefaults] setObject:gameCell.detailTextLabel.text forKey:@"DBGame"];
+}
+
+-(NSString*) pickerView:(UIPickerView *)pickerView titleForRow:(NSInteger)row forComponent:(NSInteger)component {
+    return [gameChoices objectAtIndex:row];
+    return @"";
+}
+
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
 
     if (indexPath.row == 0) {
-        UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier: @"gameCell"];
+        SimplePickerInputTableViewCell *cell = (SimplePickerInputTableViewCell *) [tableView dequeueReusableCellWithIdentifier: @"gameCell"];
         if (cell == nil) {
-            cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier: @"gameCell"];
+            cell = [[SimplePickerInputTableViewCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier: @"gameCell"];
+            cell.datarray = gameChoices;
+            NSString *str = [[NSUserDefaults standardUserDefaults] objectForKey: @"DBGame"];
+            if (str) {
+                cell.detailTextLabel.text = str;
+                unsigned long idx = [gameChoices indexOfObject:str];
+                [cell.picker selectRow:idx inComponent:0 animated:NO];
+                [cell.picker setDelegate:self];
+            } else {
+                cell.detailTextLabel.text = @"Pente";
+            }
         }
         [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
         
         cell.textLabel.text =  NSLocalizedString(@"Game:",nil);
-        NSString *str = [[NSUserDefaults standardUserDefaults] objectForKey: @"DBGame"];
-        if (str) {
-            cell.detailTextLabel.text = str;
-        } else {
-            cell.detailTextLabel.text = @"Pente";
-        }
         
         gameCell = cell;
         [self setBoardColor];
@@ -171,6 +205,26 @@
         
         return cell;
     }
+    if (indexPath.row == 7) {
+        SimplePickerInputTableViewCell *cell = (SimplePickerInputTableViewCell *) [tableView dequeueReusableCellWithIdentifier: @"ratingCell"];
+        if (cell == nil) {
+            cell = [[SimplePickerInputTableViewCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier: @"ratingCell"];
+            cell.datarray = ratingChoices;
+            NSString *str = [[NSUserDefaults standardUserDefaults] objectForKey: @"DBRating"];
+            if (str) {
+                cell.detailTextLabel.text = str;
+                unsigned long idx = [ratingChoices indexOfObject:str];
+                [cell.picker selectRow:idx inComponent:0 animated:NO];
+            }
+        }
+        [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
+        
+        cell.textLabel.text =  NSLocalizedString(@"Rating above:",nil);
+        
+        ratingCell = cell;
+        
+        return cell;
+    }
     return nil;
 }
 
@@ -180,8 +234,6 @@
         [afterCell.textField resignFirstResponder];
         [player1Cell resignFirstResponder];
         [player2Cell resignFirstResponder];
-        [self changeBoardColor];
-        [[NSUserDefaults standardUserDefaults] setObject:gameCell.detailTextLabel.text forKey:@"DBGame"];
     }
     if (indexPath.row == 1) {
         [beforeCell.textField resignFirstResponder];
@@ -257,50 +309,52 @@
     clearButton.tag = textField.tag;
 }
 
--(void) changeBoardColor {
-    [board setDbOptions:nil];
-    [zBoard setDbOptions:nil];
-    if ([gameCell.detailTextLabel.text isEqualToString:@"Pente"]) {
-        [gameCell.detailTextLabel setText:@"Keryo-Pente"];
-    } else if ([gameCell.detailTextLabel.text isEqualToString:@"Keryo-Pente"]) {
-        [gameCell.detailTextLabel setText:@"Gomoku"];
-    } else if ([gameCell.detailTextLabel.text isEqualToString:@"Gomoku"]) {
-        [gameCell.detailTextLabel setText:@"D-Pente"];
-    } else if ([gameCell.detailTextLabel.text isEqualToString:@"D-Pente"]) {
-        [gameCell.detailTextLabel setText:@"G-Pente"];
-    } else if ([gameCell.detailTextLabel.text isEqualToString:@"G-Pente"]) {
-        [gameCell.detailTextLabel setText:@"Poof-Pente"];
-    } else if ([gameCell.detailTextLabel.text isEqualToString:@"Poof-Pente"]) {
-        [gameCell.detailTextLabel setText:@"Connect6"];
-    } else if ([gameCell.detailTextLabel.text isEqualToString:@"Connect6"]) {
-        [gameCell.detailTextLabel setText:@"Boat-Pente"];
-    } else if ([gameCell.detailTextLabel.text isEqualToString:@"Boat-Pente"]) {
-        [gameCell.detailTextLabel setText:@"DK-Pente"];
-    } else if ([gameCell.detailTextLabel.text isEqualToString:@"DK-Pente"]) {
-        [gameCell.detailTextLabel setText:@"Speed Pente"];
-    } else if ([gameCell.detailTextLabel.text isEqualToString:@"Speed Pente"]) {
-        [gameCell.detailTextLabel setText:@"Speed Keryo-Pente"];
-    } else if ([gameCell.detailTextLabel.text isEqualToString:@"Speed Keryo-Pente"]) {
-        [gameCell.detailTextLabel setText:@"Speed Gomoku"];
-    } else if ([gameCell.detailTextLabel.text isEqualToString:@"Speed Gomoku"]) {
-        [gameCell.detailTextLabel setText:@"Speed D-Pente"];
-    } else if ([gameCell.detailTextLabel.text isEqualToString:@"Speed D-Pente"]) {
-        [gameCell.detailTextLabel setText:@"Speed G-Pente"];
-    } else if ([gameCell.detailTextLabel.text isEqualToString:@"Speed G-Pente"]) {
-        [gameCell.detailTextLabel setText:@"Speed Poof-Pente"];
-    } else if ([gameCell.detailTextLabel.text isEqualToString:@"Speed Poof-Pente"]) {
-        [gameCell.detailTextLabel setText:@"Speed Connect6"];
-    } else if ([gameCell.detailTextLabel.text isEqualToString:@"Speed Connect6"]) {
-        [gameCell.detailTextLabel setText:@"Speed Boat-Pente"];
-    } else if ([gameCell.detailTextLabel.text isEqualToString:@"Speed Boat-Pente"]) {
-        [gameCell.detailTextLabel setText:@"Speed DK-Pente"];
-    } else if ([gameCell.detailTextLabel.text isEqualToString:@"Speed DK-Pente"]) {
-        [gameCell.detailTextLabel setText:@"Pente"];
-    }
-    [self setBoardColor];
-}
+//-(void) changeBoardColor {
+//    [board setDbOptions:nil];
+//    [zBoard setDbOptions:nil];
+//    if ([gameCell.detailTextLabel.text isEqualToString:@"Pente"]) {
+//        [gameCell.detailTextLabel setText:@"Keryo-Pente"];
+//    } else if ([gameCell.detailTextLabel.text isEqualToString:@"Keryo-Pente"]) {
+//        [gameCell.detailTextLabel setText:@"Gomoku"];
+//    } else if ([gameCell.detailTextLabel.text isEqualToString:@"Gomoku"]) {
+//        [gameCell.detailTextLabel setText:@"D-Pente"];
+//    } else if ([gameCell.detailTextLabel.text isEqualToString:@"D-Pente"]) {
+//        [gameCell.detailTextLabel setText:@"G-Pente"];
+//    } else if ([gameCell.detailTextLabel.text isEqualToString:@"G-Pente"]) {
+//        [gameCell.detailTextLabel setText:@"Poof-Pente"];
+//    } else if ([gameCell.detailTextLabel.text isEqualToString:@"Poof-Pente"]) {
+//        [gameCell.detailTextLabel setText:@"Connect6"];
+//    } else if ([gameCell.detailTextLabel.text isEqualToString:@"Connect6"]) {
+//        [gameCell.detailTextLabel setText:@"Boat-Pente"];
+//    } else if ([gameCell.detailTextLabel.text isEqualToString:@"Boat-Pente"]) {
+//        [gameCell.detailTextLabel setText:@"DK-Pente"];
+//    } else if ([gameCell.detailTextLabel.text isEqualToString:@"DK-Pente"]) {
+//        [gameCell.detailTextLabel setText:@"Speed Pente"];
+//    } else if ([gameCell.detailTextLabel.text isEqualToString:@"Speed Pente"]) {
+//        [gameCell.detailTextLabel setText:@"Speed Keryo-Pente"];
+//    } else if ([gameCell.detailTextLabel.text isEqualToString:@"Speed Keryo-Pente"]) {
+//        [gameCell.detailTextLabel setText:@"Speed Gomoku"];
+//    } else if ([gameCell.detailTextLabel.text isEqualToString:@"Speed Gomoku"]) {
+//        [gameCell.detailTextLabel setText:@"Speed D-Pente"];
+//    } else if ([gameCell.detailTextLabel.text isEqualToString:@"Speed D-Pente"]) {
+//        [gameCell.detailTextLabel setText:@"Speed G-Pente"];
+//    } else if ([gameCell.detailTextLabel.text isEqualToString:@"Speed G-Pente"]) {
+//        [gameCell.detailTextLabel setText:@"Speed Poof-Pente"];
+//    } else if ([gameCell.detailTextLabel.text isEqualToString:@"Speed Poof-Pente"]) {
+//        [gameCell.detailTextLabel setText:@"Speed Connect6"];
+//    } else if ([gameCell.detailTextLabel.text isEqualToString:@"Speed Connect6"]) {
+//        [gameCell.detailTextLabel setText:@"Speed Boat-Pente"];
+//    } else if ([gameCell.detailTextLabel.text isEqualToString:@"Speed Boat-Pente"]) {
+//        [gameCell.detailTextLabel setText:@"Speed DK-Pente"];
+//    } else if ([gameCell.detailTextLabel.text isEqualToString:@"Speed DK-Pente"]) {
+//        [gameCell.detailTextLabel setText:@"Pente"];
+//    }
+//    [self setBoardColor];
+//}
 
 -(void) setBoardColor {
+    [board setDbOptions:nil];
+    [zBoard setDbOptions:nil];
     if ([gameCell.detailTextLabel.text isEqualToString:@"Keryo-Pente"] || [gameCell.detailTextLabel.text isEqualToString:@"Speed Keryo-Pente"]) {
         [board setBackgroundColor:[UIColor colorWithRed:0.702 green:1 blue:0.518 alpha:1]];
         [zBoard setBackgroundColor:[UIColor colorWithRed:0.702 green:1 blue:0.518 alpha:1]];
@@ -368,7 +422,6 @@
     
     [self.textField setFrame:CGRectMake(tfX, 4, tfW, 36)];
 }
-
 
 @end
 

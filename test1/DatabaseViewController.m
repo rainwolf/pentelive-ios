@@ -219,7 +219,7 @@ struct Capture {
         [self.view addSubview:bannerView];
     }
 
-    setupView = [[DBSetupView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width*4/5, 308)];
+    setupView = [[DBSetupView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width*4/5, 44*8)];
     setupView.layer.cornerRadius = 5.0f;
     setupView.layer.borderWidth = 1.0f;
     [setupView setScrollEnabled:NO];
@@ -594,9 +594,15 @@ struct Capture {
         } else {
             gameStr = setupView.gameCell.detailTextLabel.text;
         }
+        NSString *ratingStr = setupView.ratingCell.detailTextLabel.text;
+        if (ratingStr == nil) {
+            ratingStr = @"0";
+        } else {
+            [[NSUserDefaults standardUserDefaults] setObject:ratingStr forKey:@"DBRating"];
+        }
         NSString *getStr = [NSString stringWithFormat:@"moves=%@&response_format=org.pente.gameDatabase.SimpleHtmlGameStorerSearchResponseFormat&response_params=%@&results_order=%i&filter_data=%@",[self URLEncodedString_ch:movesStr],
                             [self URLEncodedString_ch:@"zippedPartNumParam=1"],[setupView.sortCell.detailTextLabel.text isEqualToString:@"popularity"]?1:2,
-                            [self URLEncodedString_ch:[NSString stringWithFormat:@"start_game_num=0&end_game_num=100&player_1_name=%@&player_2_name=%@&game=%@&site=All%%20Sites&event=All%%20Events&round=All%%20Rounds&section=All%%20Sections&winner=%@%@%@", p1Str, p2Str, gameStr, winnerStr, afterStr, beforeStr]]];
+                            [self URLEncodedString_ch:[NSString stringWithFormat:@"start_game_num=0&end_game_num=100&player_1_name=%@&player_2_name=%@&game=%@&site=All%%20Sites&event=All%%20Events&round=All%%20Rounds&section=All%%20Sections&winner=%@%@%@&rating_above=%@", p1Str, p2Str, gameStr, winnerStr, afterStr, beforeStr, ratingStr]]];
         
 //        NSLog(@"\ngetkittyyyyyyString -\n%@-", [self URLEncodedString_ch:getStr]);
 //        NSLog(@"\n\ngetkittyyyyyyString -\n%@-", getStr);
@@ -607,7 +613,7 @@ struct Capture {
         }
         [request setURL:[NSURL URLWithString:url]];
         [request setHTTPMethod:@"GET"];
-        [request setTimeoutInterval:7.0];
+        [request setTimeoutInterval:10.0];
         NSURLResponse *response;
         NSError *error;
         NSData *responseData = [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
@@ -618,8 +624,8 @@ struct Capture {
             UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error",nil) message:[NSString stringWithFormat:NSLocalizedString(@"Reason: %@",nil), error.localizedDescription] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
             //        [alert show];
             [alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:YES];
-            [self.progressView stopAnimating];
-            [self.progressView removeFromSuperview];
+            [self.progressView performSelectorOnMainThread:@selector(stopAnimating) withObject:nil waitUntilDone:NO];
+            [self.progressView performSelectorOnMainThread:@selector(removeFromSuperview) withObject:nil waitUntilDone:NO];
             return;
         }
         
@@ -706,39 +712,30 @@ struct Capture {
             NSString *p1Str = [setupView.player1Cell.textField.text lowercaseString], *p2Str = [setupView.player2Cell.textField.text lowercaseString];
             if ((p1Str || p2Str) && !([p1Str isEqualToString:@""] && [p2Str isEqualToString:@""])) {
                 NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-                    NSMutableArray *invitedHistory =  [[defaults objectForKey:@"invitedHistory"] mutableCopy];
-                    if (invitedHistory) {
-                        int i = 0;
-                        for ( i = 0; i < [invitedHistory count]; ++i) {
-                            if (p1Str && ![p1Str isEqualToString:@""] && [[invitedHistory objectAtIndex:i] localizedCaseInsensitiveCompare:p1Str] == NSOrderedDescending) {
-                                if (![invitedHistory containsObject:p1Str]) {
-                                    [invitedHistory insertObject:p1Str atIndex:i];
-                                }
-                            }
-                            if (p2Str && ![p2Str isEqualToString:@""] && [[invitedHistory objectAtIndex:i] localizedCaseInsensitiveCompare:p2Str] == NSOrderedDescending) {
-                                if (![invitedHistory containsObject:p2Str]) {
-                                    [invitedHistory insertObject:p2Str atIndex:i];
-                                }
-                            }
-                        }
-                    } else {
-                        if (p1Str && ![p1Str isEqualToString:@""]) {
-                            invitedHistory = [NSMutableArray arrayWithObject:p1Str];
-                        }
-                        if (p2Str && ![p2Str isEqualToString:@""]) {
-                            if (invitedHistory) {
-                                if ([[invitedHistory objectAtIndex:0] localizedCaseInsensitiveCompare:p2Str] == NSOrderedDescending) {
-                                    if (![invitedHistory containsObject:p2Str]) {
-                                        [invitedHistory insertObject:p2Str atIndex:0];
-                                    } else {
-                                        [invitedHistory addObject:p2Str];
-                                    }
-                                }
-                            } else {
-                                invitedHistory = [NSMutableArray arrayWithObject:p2Str];
-                            }
+                NSMutableArray *invitedHistory =  [[defaults objectForKey:@"invitedHistory"] mutableCopy];
+                if (!invitedHistory) {
+                    invitedHistory = [[NSMutableArray alloc] init];
+                }
+                if (p1Str) {
+                    NSArray<NSString *> *names = [[p1Str stringByReplacingOccurrencesOfString:@" " withString:@""] componentsSeparatedByString:@","];
+                    for (NSString *name in names) {
+                        NSString *lowerStr = [name lowercaseString];
+                        if (![invitedHistory containsObject:lowerStr]) {
+                            [invitedHistory addObject: lowerStr];
                         }
                     }
+                }
+                if (p2Str) {
+                    NSArray<NSString *> *names = [[p2Str stringByReplacingOccurrencesOfString:@" " withString:@""] componentsSeparatedByString:@","];
+                    for (NSString *name in names) {
+                        NSString *lowerStr = [name lowercaseString];
+                        if (![invitedHistory containsObject:lowerStr]) {
+                            [invitedHistory addObject: lowerStr];
+                        }
+                    }
+                }
+
+                [invitedHistory sortUsingSelector:@selector(caseInsensitiveCompare:)];
                 [defaults setObject:invitedHistory forKey:@"invitedHistory"];
                 [setupView.player1Cell setInvitedHistory:invitedHistory];
                 [setupView.player2Cell setInvitedHistory:invitedHistory];

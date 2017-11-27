@@ -234,10 +234,12 @@
     }
     
     NSString *message = [[userInfo objectForKey:@"aps"] objectForKey:@"alert"];
-    if ([message containsString:@"Live Game Alert"] && [message containsString:@"wants to play live"] && [userInfo objectForKey:@"liveBroadCastPlayer"] && [userInfo objectForKey:@"liveBroadCastGame"]) {
-        AudioServicesPlaySystemSound(self.broadcastSndID);
-    } else {
-        AudioServicesPlaySystemSound(self.sndID);
+    if (![[NSUserDefaults standardUserDefaults] boolForKey:@"inAppSoundsOff"]) {
+        if ([message containsString:@"Live Game Alert"] && [message containsString:@"wants to play live"] && [userInfo objectForKey:@"liveBroadCastPlayer"] && [userInfo objectForKey:@"liveBroadCastGame"]) {
+            AudioServicesPlaySystemSound(self.broadcastSndID);
+        } else {
+            AudioServicesPlaySystemSound(self.sndID);
+        }
     }
 
     if ([((PenteNavigationViewController *)self.window.rootViewController).visibleViewController respondsToSelector:@selector(dashboardParse)]) {

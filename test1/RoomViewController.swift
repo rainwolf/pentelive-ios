@@ -58,6 +58,7 @@ class RoomViewController: UIViewController, UITableViewDelegate, UITableViewData
     var newMoveSndID:SystemSoundID!
     var pentePlayer: PentePlayer!
     var wantsToSeeAvatars = UserDefaults.standard.bool(forKey: "wantToSeeAvatars")
+    let playSounds = !UserDefaults.standard.bool(forKey: "inAppSoundsOff")
     
     
     private let lockView = UIImageView(image: UIImage(named: "lock"))
@@ -328,7 +329,9 @@ class RoomViewController: UIViewController, UITableViewDelegate, UITableViewData
             pentePlayer.addUser(playerName)
         }
         DispatchQueue.main.async {
-            AudioServicesPlaySystemSound(self.newplayerSndID)
+            if self.playSounds {
+                AudioServicesPlaySystemSound(self.newplayerSndID)
+            }
             self.playersAndTables.addPlayer(player: player)
             self.tableView.reloadData()
             self.addText(text: NSLocalizedString("* \(playerName) has joined the main room", comment: ""))
@@ -418,7 +421,9 @@ class RoomViewController: UIViewController, UITableViewDelegate, UITableViewData
                     let event = ["dsgInviteResponseTableEvent":["toPlayer":invitingPlayer,"responseText":"I can 't accept your invitation because I'm currently playing. This is an automated response","accept":false,"ignore":false,"table":tableId,"time":0]]
                     self.socket.sendEvent(eventDictionary: event)
                 } else {
-                    AudioServicesPlaySystemSound(self.invitationSndID)
+                    if self.playSounds {
+                        AudioServicesPlaySystemSound(self.invitationSndID)
+                    }
                     self.invitationAlertController = UIAlertController(title: NSLocalizedString("\(invitingPlayer) has invited you to his table", comment: ""), message: "message: \(inviteText)", preferredStyle: .alert)
                     self.invitationAlertController?.addTextField { (textField : UITextField!) -> Void in
                         textField.placeholder = NSLocalizedString("reply message", comment: "")
@@ -718,7 +723,9 @@ class RoomViewController: UIViewController, UITableViewDelegate, UITableViewData
             if tableId == self.tableViewController?.table.table {
                 self.tableViewController?.stateChanged()
                 if move != 0 {
-                    AudioServicesPlaySystemSound(self.newMoveSndID)
+                    if self.playSounds {
+                        AudioServicesPlaySystemSound(self.newMoveSndID)
+                    }
                     self.tableViewController?.addMove(move: move)
                 } else {
                     for mve in moves {
