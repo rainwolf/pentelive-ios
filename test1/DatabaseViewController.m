@@ -219,10 +219,10 @@ struct Capture {
         [self.view addSubview:bannerView];
     }
 
-    setupView = [[DBSetupView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width*4/5, 44*8)];
+    setupView = [[DBSetupView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width*7/8, 44*7 + 22)];
     setupView.layer.cornerRadius = 5.0f;
     setupView.layer.borderWidth = 1.0f;
-    [setupView setScrollEnabled:NO];
+    [setupView setScrollEnabled:YES];
     [setupView setDelegate: setupView];
     [setupView setDataSource: setupView];
     [setupView setBoard: board];
@@ -563,9 +563,9 @@ struct Capture {
         }
         NSString *winnerStr = @"0";
         if (setupView.winnerCell.detailTextLabel.text) {
-            if ([setupView.winnerCell.detailTextLabel.text isEqualToString:@"player 1"]) {
+            if ([setupView.winnerCell.detailTextLabel.text isEqualToString:NSLocalizedString(@"player 1", nil)]) {
                 winnerStr = @"1";
-            } else if ([setupView.winnerCell.detailTextLabel.text isEqualToString:@"player 2"]) {
+            } else if ([setupView.winnerCell.detailTextLabel.text isEqualToString:NSLocalizedString(@"player 2", nil)]) {
                 winnerStr = @"2";
             }
         }
@@ -594,15 +594,45 @@ struct Capture {
         } else {
             gameStr = setupView.gameCell.detailTextLabel.text;
         }
-        NSString *ratingStr = setupView.ratingCell.detailTextLabel.text;
-        if (ratingStr == nil) {
-            ratingStr = @"0";
+        NSString *p1RatingStr = setupView.p1RatingCell.detailTextLabel.text;
+        if (p1RatingStr == nil) {
+            p1RatingStr = [[NSUserDefaults standardUserDefaults] objectForKey:@"DBP1Rating"];
+        }
+        if (p1RatingStr == nil) {
+            p1RatingStr = @"0";
         } else {
-            [[NSUserDefaults standardUserDefaults] setObject:ratingStr forKey:@"DBRating"];
+            [[NSUserDefaults standardUserDefaults] setObject:p1RatingStr forKey:@"DBP1Rating"];
+        }
+        NSString *p2RatingStr = setupView.p2RatingCell.detailTextLabel.text;
+        if (p2RatingStr == nil) {
+            p2RatingStr = [[NSUserDefaults standardUserDefaults] objectForKey:@"DBP2Rating"];
+        }
+        if (p2RatingStr == nil) {
+            p2RatingStr = @"0";
+        } else {
+            [[NSUserDefaults standardUserDefaults] setObject:p2RatingStr forKey:@"DBP2Rating"];
+        }
+        NSString *bothOrEitherStr = setupView.eitherOrBothp1p2Cell.detailTextLabel.text;
+        if (!bothOrEitherStr) {
+            bothOrEitherStr = [[NSUserDefaults standardUserDefaults] objectForKey:@"DBBothOrEither"];
+        }
+        if (!bothOrEitherStr || [bothOrEitherStr isEqualToString:NSLocalizedString(@"both", nil)]) {
+            bothOrEitherStr = @"";
+        } else {
+            bothOrEitherStr = @"&p1_or_p2=true";
+        }
+        NSString *excludeTimeoutStr = setupView.excludeTimeoutCell.detailTextLabel.text;
+        if (!excludeTimeoutStr) {
+            excludeTimeoutStr = [[NSUserDefaults standardUserDefaults] objectForKey:@"DBExcludeTimeouts"];
+        }
+        if (!excludeTimeoutStr || [excludeTimeoutStr isEqualToString:NSLocalizedString(@"no", nil)]) {
+            excludeTimeoutStr = @"";
+        } else {
+            excludeTimeoutStr = @"&exclude_timeout=true";
         }
         NSString *getStr = [NSString stringWithFormat:@"moves=%@&response_format=org.pente.gameDatabase.SimpleHtmlGameStorerSearchResponseFormat&response_params=%@&results_order=%i&filter_data=%@",[self URLEncodedString_ch:movesStr],
                             [self URLEncodedString_ch:@"zippedPartNumParam=1"],[setupView.sortCell.detailTextLabel.text isEqualToString:@"popularity"]?1:2,
-                            [self URLEncodedString_ch:[NSString stringWithFormat:@"start_game_num=0&end_game_num=100&player_1_name=%@&player_2_name=%@&game=%@&site=All%%20Sites&event=All%%20Events&round=All%%20Rounds&section=All%%20Sections&winner=%@%@%@&rating_above=%@", p1Str, p2Str, gameStr, winnerStr, afterStr, beforeStr, ratingStr]]];
+                            [self URLEncodedString_ch:[NSString stringWithFormat:@"start_game_num=0&end_game_num=100&player_1_name=%@&player_2_name=%@&game=%@&site=All%%20Sites&event=All%%20Events&round=All%%20Rounds&section=All%%20Sections&winner=%@%@%@&p1_rating_above=%@&p2_rating_above=%@%@%@", p1Str, p2Str, gameStr, winnerStr, afterStr, beforeStr, p1RatingStr, p2RatingStr, bothOrEitherStr, excludeTimeoutStr]]];
         
 //        NSLog(@"\ngetkittyyyyyyString -\n%@-", [self URLEncodedString_ch:getStr]);
 //        NSLog(@"\n\ngetkittyyyyyyString -\n%@-", getStr);
@@ -1512,6 +1542,9 @@ struct Capture {
 -(void) showSetup {
     game = nil;
     messagePopover = [PopoverView showPopoverAtPoint: CGPointMake(self.view.bounds.size.width - 20, 0) inView:self.view withTitle: NSLocalizedString(@"search parameters",nil) withContentView: setupView delegate:self];
+    for (int i = 0; i< [setupView numberOfRowsInSection:0]; ++i) {
+        UITableViewCell *cell = [setupView cellForRowAtIndexPath: [NSIndexPath indexPathForRow:i inSection:0]];
+    }
     [messagePopover layoutSubviews];
 }
 

@@ -91,7 +91,7 @@
     }
     CGFloat insetY = - ((UITableView*)tableView).contentInset.top;
     [tableView scrollRectToVisible:CGRectMake(0,insetY, 1, 1) animated:YES];
-    [tableView setScrollEnabled:NO];
+//    [tableView setScrollEnabled:NO];
 	return [self.textField resignFirstResponder];
 //	return YES;
 }
@@ -116,7 +116,7 @@
     }
     CGFloat insetY = - ((UITableView*)tableView).contentInset.top;
     [tableView scrollRectToVisible:CGRectMake(0,insetY, 1, 1) animated:YES];
-    [tableView setScrollEnabled:NO];
+//    [tableView setScrollEnabled:NO];
 }
 
 - (void)textFieldDidEndEditing:(UITextField *)textField {

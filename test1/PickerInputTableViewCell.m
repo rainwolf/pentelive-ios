@@ -85,7 +85,7 @@
     }
     CGFloat insetY = - ((UITableView*)tableView).contentInset.top;
     [tableView scrollRectToVisible:CGRectMake(0,insetY, 1, 1) animated:YES];
-    [tableView setScrollEnabled:NO];
+//    [tableView setScrollEnabled:NO];
     resign = YES;
 	[self resignFirstResponder];
 }

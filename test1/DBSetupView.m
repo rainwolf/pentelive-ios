@@ -15,14 +15,14 @@
 @end
 
 @implementation DBSetupView
-@synthesize sortCell, winnerCell;
+@synthesize sortCell, winnerCell, eitherOrBothp1p2Cell, excludeTimeoutCell;
 @synthesize beforeCell, afterCell;
 @synthesize board, zBoard;
 @synthesize player1Cell, player2Cell;
 @synthesize beforePicker, afterPicker;
 @synthesize datePickerToolbar;
 @synthesize clearButton;
-@synthesize ratingCell, gameCell;
+@synthesize p1RatingCell, p2RatingCell, gameCell;
 @synthesize ratingChoices;
 
 -(instancetype) initWithFrame:(CGRect)frame {
@@ -60,7 +60,7 @@
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    return 8;
+    return 11;
 }
 
 -(CGFloat) tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -80,8 +80,8 @@
 
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-
-    if (indexPath.row == 0) {
+    int i = -1;
+    if (indexPath.row == ++i) {
         SimplePickerInputTableViewCell *cell = (SimplePickerInputTableViewCell *) [tableView dequeueReusableCellWithIdentifier: @"gameCell"];
         if (cell == nil) {
             cell = [[SimplePickerInputTableViewCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier: @"gameCell"];
@@ -105,7 +105,7 @@
         
         return cell;
     }
-    if (indexPath.row == 1) {
+    if (indexPath.row == ++i) {
         UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier: @"sortCell"];
         if (cell == nil) {
             cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier: @"sortCell"];
@@ -124,7 +124,7 @@
         
         return cell;
     }
-    if (indexPath.row == 2) {
+    if (indexPath.row == ++i) {
         StringInputTableViewCell *cell = [tableView dequeueReusableCellWithIdentifier: @"player1Cell"];
         if (cell == nil) {
             cell = [[StringInputTableViewCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier: @"player1Cell"];
@@ -137,7 +137,7 @@
         
         return cell;
     }
-    if (indexPath.row == 3) {
+    if (indexPath.row == ++i) {
         StringInputTableViewCell *cell = [tableView dequeueReusableCellWithIdentifier: @"player2Cell"];
         if (cell == nil) {
             cell = [[StringInputTableViewCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier: @"player2Cell"];
@@ -150,7 +150,7 @@
         
         return cell;
     }
-    if (indexPath.row == 4) {
+    if (indexPath.row == ++i) {
         UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier: @"winnerCell"];
         if (cell == nil) {
             cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier: @"winnerCell"];
@@ -164,7 +164,7 @@
         
         return cell;
     }
-    if (indexPath.row == 5) {
+    if (indexPath.row == ++i) {
         DateTableViewCell *cell = (DateTableViewCell *) [tableView dequeueReusableCellWithIdentifier: @"afterCell"];
         if (cell == nil) {
             cell = [[DateTableViewCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier: @"afterCell"];
@@ -188,7 +188,7 @@
         
         return cell;
     }
-    if (indexPath.row == 6) {
+    if (indexPath.row == ++i) {
         DateTableViewCell *cell = (DateTableViewCell *) [tableView dequeueReusableCellWithIdentifier: @"beforeCell"];
         if (cell == nil) {
             cell = [[DateTableViewCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier: @"beforeCell"];
@@ -205,23 +205,81 @@
         
         return cell;
     }
-    if (indexPath.row == 7) {
-        SimplePickerInputTableViewCell *cell = (SimplePickerInputTableViewCell *) [tableView dequeueReusableCellWithIdentifier: @"ratingCell"];
+    if (indexPath.row == ++i) {
+        SimplePickerInputTableViewCell *cell = (SimplePickerInputTableViewCell *) [tableView dequeueReusableCellWithIdentifier: @"p1RatingCell"];
         if (cell == nil) {
-            cell = [[SimplePickerInputTableViewCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier: @"ratingCell"];
+            cell = [[SimplePickerInputTableViewCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier: @"p1RatingCell"];
             cell.datarray = ratingChoices;
-            NSString *str = [[NSUserDefaults standardUserDefaults] objectForKey: @"DBRating"];
-            if (str) {
-                cell.detailTextLabel.text = str;
-                unsigned long idx = [ratingChoices indexOfObject:str];
-                [cell.picker selectRow:idx inComponent:0 animated:NO];
-            }
+        }
+        NSString *str = [[NSUserDefaults standardUserDefaults] objectForKey: @"DBP1Rating"];
+        if (str) {
+            cell.detailTextLabel.text = str;
+            unsigned long idx = [ratingChoices indexOfObject:str];
+            [cell.picker selectRow:idx inComponent:0 animated:NO];
         }
         [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
         
-        cell.textLabel.text =  NSLocalizedString(@"Rating above:",nil);
+        cell.textLabel.text =  NSLocalizedString(@"P1 rating above:",nil);
         
-        ratingCell = cell;
+        p1RatingCell = cell;
+        
+        return cell;
+    }
+    if (indexPath.row == ++i) {
+        SimplePickerInputTableViewCell *cell = (SimplePickerInputTableViewCell *) [tableView dequeueReusableCellWithIdentifier: @"p2RatingCell"];
+        if (cell == nil) {
+            cell = [[SimplePickerInputTableViewCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier: @"p2RatingCell"];
+            cell.datarray = ratingChoices;
+        }
+        NSString *str = [[NSUserDefaults standardUserDefaults] objectForKey: @"DBP2Rating"];
+        if (str) {
+            cell.detailTextLabel.text = str;
+            unsigned long idx = [ratingChoices indexOfObject:str];
+            [cell.picker selectRow:idx inComponent:0 animated:NO];
+        }
+        [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
+        
+        cell.textLabel.text =  NSLocalizedString(@"P2 rating above:",nil);
+        
+        p2RatingCell = cell;
+        
+        return cell;
+    }
+    if (indexPath.row == ++i) {
+        UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier: @"bothOrEitherCell"];
+        if (cell == nil) {
+            cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier: @"bothOrEitherCell"];
+        }
+        [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
+        
+        cell.textLabel.text =  NSLocalizedString(@"Match players",nil);
+        NSString *str = [[NSUserDefaults standardUserDefaults] objectForKey: @"DBBothOrEither"];
+        if (str) {
+            cell.detailTextLabel.text = str;
+        } else {
+            cell.detailTextLabel.text = NSLocalizedString(@"both",nil);
+        }
+        
+        eitherOrBothp1p2Cell = cell;
+        
+        return cell;
+    }
+    if (indexPath.row == ++i) {
+        UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier: @"excludeTimeoutCell"];
+        if (cell == nil) {
+            cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier: @"excludeTimeoutCell"];
+        }
+        [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
+        
+        cell.textLabel.text =  NSLocalizedString(@"Exclude timeouts",nil);
+        NSString *str = [[NSUserDefaults standardUserDefaults] objectForKey: @"DBExcludeTimeouts"];
+        if (str) {
+            cell.detailTextLabel.text = str;
+        } else {
+            cell.detailTextLabel.text = NSLocalizedString(@"no",nil);
+        }
+        
+        excludeTimeoutCell = cell;
         
         return cell;
     }
@@ -236,10 +294,6 @@
         [player2Cell resignFirstResponder];
     }
     if (indexPath.row == 1) {
-        [beforeCell.textField resignFirstResponder];
-        [afterCell.textField resignFirstResponder];
-        [player1Cell resignFirstResponder];
-        [player2Cell resignFirstResponder];
         if ([sortCell.detailTextLabel.text isEqualToString:NSLocalizedString(@"popularity",nil)]) {
             [sortCell.detailTextLabel setText:NSLocalizedString(@"win percentage",nil)];
         } else {
@@ -248,10 +302,6 @@
         [[NSUserDefaults standardUserDefaults] setObject:sortCell.detailTextLabel.text forKey:@"DBSort"];
     }
     if (indexPath.row == 4) {
-        [beforeCell.textField resignFirstResponder];
-        [afterCell.textField resignFirstResponder];
-        [player1Cell resignFirstResponder];
-        [player2Cell resignFirstResponder];
         if ([winnerCell.detailTextLabel.text isEqualToString:NSLocalizedString(@"either",nil)]) {
             [winnerCell.detailTextLabel setText:NSLocalizedString(@"player 1",nil)];
         } else if ([winnerCell.detailTextLabel.text isEqualToString:NSLocalizedString(@"player 1",nil)]) {
@@ -259,6 +309,22 @@
         } else {
             [winnerCell.detailTextLabel setText:NSLocalizedString(@"either",nil)];
         }
+    }
+    if (indexPath.row == 9) {
+        if ([eitherOrBothp1p2Cell.detailTextLabel.text isEqualToString:NSLocalizedString(@"either",nil)]) {
+            [eitherOrBothp1p2Cell.detailTextLabel setText:NSLocalizedString(@"both",nil)];
+        } else {
+            [eitherOrBothp1p2Cell.detailTextLabel setText:NSLocalizedString(@"either",nil)];
+        }
+        [[NSUserDefaults standardUserDefaults] setObject:eitherOrBothp1p2Cell.detailTextLabel.text forKey:@"DBBothOrEither"];
+    }
+    if (indexPath.row == 10) {
+        if ([excludeTimeoutCell.detailTextLabel.text isEqualToString:NSLocalizedString(@"yes",nil)]) {
+            [excludeTimeoutCell.detailTextLabel setText:NSLocalizedString(@"no",nil)];
+        } else {
+            [excludeTimeoutCell.detailTextLabel setText:NSLocalizedString(@"yes",nil)];
+        }
+        [[NSUserDefaults standardUserDefaults] setObject:excludeTimeoutCell.detailTextLabel.text forKey:@"DBExcludeTimeouts"];
     }
     if (indexPath.row == 5 || indexPath.row == 6) {
 //        [player1Cell resignFirstResponder];
@@ -273,6 +339,7 @@
 //        NSLog(@"kitty %ld", (long)clearButton.tag);
 
     }
+    [tableView deselectRowAtIndexPath:indexPath animated:NO];
 
 }
 
@@ -292,6 +359,8 @@
 -(void) dismissPicker: (id) sender {
     [beforeCell.textField resignFirstResponder];
     [afterCell.textField resignFirstResponder];
+    [p1RatingCell.picker resignFirstResponder];
+    [p2RatingCell.picker resignFirstResponder];
 }
 -(void) clearDate: (UIBarButtonItem *) sender {
 //    NSLog(@"kitty %ld", (long)sender.tag);
