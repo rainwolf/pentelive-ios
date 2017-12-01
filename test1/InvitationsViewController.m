@@ -73,7 +73,7 @@
 
     games = [[NSArray alloc] initWithObjects:@"Pente",@"Keryo-Pente",@"Gomoku",@"D-Pente",@"G-Pente",@"Poof-Pente",@"Connect6",@"Boat-Pente",@"DK-Pente", nil];
     colors = [[NSArray alloc] initWithObjects:NSLocalizedString(@"white",nil),NSLocalizedString(@"black",nil), nil];
-    restrictions = [[NSArray alloc] initWithObjects:NSLocalizedString(@"of any rating",nil),NSLocalizedString(@"not already playing",nil),NSLocalizedString(@"of lower rating",nil),NSLocalizedString(@"of higher rating",nil),NSLocalizedString(@"of similar rating",nil),NSLocalizedString(@"in the same rating class",nil), nil];
+    restrictions = [[NSArray alloc] initWithObjects:NSLocalizedString(@"beginners",nil),NSLocalizedString(@"of any rating",nil),NSLocalizedString(@"not already playing",nil),NSLocalizedString(@"of lower rating",nil),NSLocalizedString(@"of higher rating",nil),NSLocalizedString(@"of similar rating",nil),NSLocalizedString(@"in the same rating class",nil), nil];
     moveDurations = [[NSMutableArray alloc] init];
     for ( int i = 1; i < 31; ++i) {
         [moveDurations addObject:[NSString stringWithFormat:@"%i",i]];
@@ -174,7 +174,11 @@
         [timeCell.detailTextLabel setText:[defaults objectForKey:@"lastInvitedTimeLimit"]];
     }
     if ([defaults objectForKey:@"lastInvitationRestriction"]) {
-        [restrictionCell.detailTextLabel setText:[defaults objectForKey:@"lastInvitationRestriction"]];
+        NSString *str = [defaults objectForKey:@"lastInvitationRestriction"];
+        [restrictionCell.detailTextLabel setText:str];
+        [restrictionCell.picker selectRow: [restrictions indexOfObject:str] inComponent:0 animated:NO];
+    } else {
+        [restrictionCell.detailTextLabel setText:NSLocalizedString(@"beginners",nil)];
     }
     [ratedSwitch setOn:![defaults boolForKey:@"lastInvitationRated"] animated:YES];
     if (!ratedSwitch.on) {
@@ -485,7 +489,10 @@
     if ([restrictionCell.detailTextLabel.text isEqualToString:NSLocalizedString(@"in the same rating class",nil)]) {
         restrictString = @"C";
     }
-    
+    if ([restrictionCell.detailTextLabel.text isEqualToString:NSLocalizedString(@"beginners",nil)]) {
+        restrictString = @"B";
+    }
+
     if (opponentCell.textField.text.length == 0) {
         long openInvitationsLimit = [[NSUserDefaults standardUserDefaults] integerForKey:@"openInvitationsLimit"];
         openInvitationsLimit += 2;
@@ -556,7 +563,8 @@
         [defaults setBool:privateSwitch.on forKey:@"lastInvitationPrivate"];
 
 //        [navController popToRootViewControllerAnimated:YES];
-        [navController popViewControllerAnimated:YES];
+        [navController performSelectorOnMainThread:@selector(popViewControllerAnimated:) withObject: nil waitUntilDone:NO];
+//        [navController popViewControllerAnimated:YES];
     }
 }
 

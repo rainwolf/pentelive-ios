@@ -673,8 +673,10 @@ CGFloat bottomOffset = 0;
         [cell setAccessoryType:UITableViewCellAccessoryDisclosureIndicator];
         [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
         cell.imageView.image = imgV;
-        if ([[game ratedNot] rangeOfString:@"KotH"].location != NSNotFound) {
+        if ([[game ratedNot] containsString:@"KotH"]) {
             cell.backgroundColor = [UIColor colorWithRed: 222.0/256 green:236.0/256 blue:222.0/256 alpha:1];
+        } else if ([[game ratedNot] containsString:@", beginner"]) {
+            cell.backgroundColor = [UIColor colorWithRed: 242.0/256 green:249.0/256 blue:222.0/256 alpha:1];
         } else {
             cell.backgroundColor = [UIColor whiteColor];
         }
@@ -1070,8 +1072,7 @@ CGFloat bottomOffset = 0;
     return sectionHeaderView;
 }
 
-- (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section
-{
+- (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
     if(section == MESSAGESSECTION)    {
         return [NSString stringWithFormat: NSLocalizedString(@"messages (%lu)", nil),(unsigned long)[[player messages] count]];
     }
@@ -1711,6 +1712,12 @@ CGFloat bottomOffset = 0;
 
 
 -(void) acceptPublicInvitation: (UIButton *) sender {
+    Game *game = [player.publicInvitations objectAtIndex:selectedPublicInvitationIndexPath.row];
+    if ([game.ratedNot containsString:@", beginner"]) {
+        [self nagBeginnerAccept];
+        return;
+    }
+    
 //    if (true || !player.subscriber) {
     if (!player.subscriber) {
         long openInvitationsLimit = [[NSUserDefaults standardUserDefaults] integerForKey:@"openInvitationsLimit"];
@@ -1749,7 +1756,7 @@ CGFloat bottomOffset = 0;
     if (development) {
         url = @"https://development.pente.org/gameServer/tb/replyInvitation";
     }
-    NSString *postString = [NSString stringWithFormat:@"sid=%@&inviteeMessage=&command=Accept&mobile=",[[player.publicInvitations objectAtIndex:selectedPublicInvitationIndexPath.row] gameID]];
+    NSString *postString = [NSString stringWithFormat:@"sid=%@&inviteeMessage=&command=Accept&mobile=",[game gameID]];
     NSDictionary *urlAndPostString = [NSDictionary dictionaryWithObjects:[NSArray arrayWithObjects:url,postString,nil] forKeys: [NSArray arrayWithObjects:@"url",@"postString",nil]];
     [NSThread detachNewThreadSelector:@selector(postToPenteOrgUrl:) toTarget:self withObject:urlAndPostString];
 
@@ -3361,6 +3368,106 @@ CGFloat bottomOffset = 0;
 
 - (void)viewDidUnload {
     [super viewDidUnload];
+}
+
+-(void) nagBeginnerAccept {
+    if (![[NSUserDefaults standardUserDefaults] boolForKey:@"remindBeginnerAccept"]) {
+        UIAlertController *remindBeginnerController = [UIAlertController
+                                                        alertControllerWithTitle:NSLocalizedString(@"Warning", nil)
+                                                       message: NSLocalizedString(@"If you accept a beginner invitation, the server will post an identical invitation in your name. This warning can be disabled in the settings.\nDo you want to continue?", nil)
+                                                        preferredStyle:UIAlertControllerStyleActionSheet];
+        UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"dismiss", nil) style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {
+            [UIView animateWithDuration:0.3 animations:^{
+                [self removeButtonsFromPublicInvitationsCell];
+                [self.tableView beginUpdates];
+                selectedPublicInvitationIndexPath = nil;
+                [self.tableView endUpdates];
+                selectedPublicInvitationCell = nil;
+            } completion:^(BOOL finished){
+                [self performSelector:@selector(scrollViewDidScroll:) withObject: self.tableView afterDelay:0.01];
+            }];
+        }];
+        UIAlertAction *acceptAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"yes, accept invitation", nil) style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+            [self acceptPublicBeginnerInvitation];
+        }];
+        [remindBeginnerController addAction:cancelAction];
+        [remindBeginnerController addAction:acceptAction];
+        
+        if (remindBeginnerController.popoverPresentationController != nil) {
+            remindBeginnerController.popoverPresentationController.barButtonItem = self.navigationItem.rightBarButtonItems[1];
+        }
+        
+        [self presentViewController:remindBeginnerController animated:YES completion:nil];
+        return;
+
+    } else {
+        [self acceptPublicBeginnerInvitation];
+    }
+    
+}
+
+-(void) acceptPublicBeginnerInvitation {
+    self.tableView.layer.borderWidth = 1.5;
+    [self performSelector:@selector(scrollViewDidScroll:) withObject: self.tableView];
+    
+    NSString *url = @"https://www.pente.org/gameServer/tb/replyInvitation";
+    if (development) {
+        url = @"https://development.pente.org/gameServer/tb/replyInvitation";
+    }
+    NSString *postString = [NSString stringWithFormat:@"sid=%@&inviteeMessage=&command=Accept&mobile=",[[player.publicInvitations objectAtIndex:selectedPublicInvitationIndexPath.row] gameID]];
+    NSDictionary *urlAndPostString = [NSDictionary dictionaryWithObjects:[NSArray arrayWithObjects:url,postString,nil] forKeys: [NSArray arrayWithObjects:@"url",@"postString",nil]];
+    [NSThread detachNewThreadSelector:@selector(postToPenteOrgUrl:) toTarget:self withObject:urlAndPostString];
+    
+    NSString *newFriend = [[player.publicInvitations objectAtIndex:selectedPublicInvitationIndexPath.row] opponentName];
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    NSMutableArray<NSString *> *toHistory = [[defaults objectForKey:@"invitedHistory"] mutableCopy];
+    if (toHistory) {
+        int i = 0;
+        for ( i = 0; i < [toHistory count]; ++i) {
+            if ([[toHistory objectAtIndex:i] localizedCaseInsensitiveCompare: newFriend] == NSOrderedDescending)
+                break;
+        }
+        if (![toHistory containsObject:newFriend]) {
+            [toHistory insertObject:newFriend atIndex:i];
+        }
+    } else {
+        toHistory = [NSMutableArray arrayWithObject:newFriend];
+    }
+    [defaults setObject:toHistory forKey:@"invitedHistory"];
+    
+    if (player.showAds) {
+        if ([self.interstitial isReady]) {
+            [self.interstitial presentFromRootViewController:self];
+        }
+        [CATransaction begin];
+        [self.tableView beginUpdates];
+        [CATransaction setCompletionBlock: ^{
+            [self performSelector:@selector(scrollViewDidScroll:) withObject: self.tableView afterDelay:0.01];
+        }];
+        [self removeButtonsFromPublicInvitationsCell];
+        selectedPublicInvitationIndexPath = nil;
+        selectedPublicInvitationCell = nil;
+        [self.tableView endUpdates];
+        [CATransaction commit];
+        [self dashboardParse];
+    } else {
+        
+        NSIndexPath *tmpPath = selectedPublicInvitationIndexPath;
+        [UIView animateWithDuration:0.3 animations:^{
+            [self removeButtonsFromPublicInvitationsCell];
+            [self.tableView beginUpdates];
+            selectedPublicInvitationIndexPath = nil;
+            [self.tableView endUpdates];
+            selectedPublicInvitationCell = nil;
+        } completion:^(BOOL finished){
+            [self performSelector:@selector(scrollViewDidScroll:) withObject: self.tableView afterDelay:0.01];
+        }];
+        
+        [player.publicInvitations removeObjectAtIndex:tmpPath.row];
+        [UIView animateWithDuration:0.3 animations:^{[self.tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject: tmpPath] withRowAnimation:UITableViewRowAnimationFade];} completion:^(BOOL finished){
+            [self dashboardParse];
+        }];
+    }
 }
 
 

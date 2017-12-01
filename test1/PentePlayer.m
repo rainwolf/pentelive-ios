@@ -70,6 +70,10 @@
             localizedRatedNot = NSLocalizedString(@"KotH", nil);
         } else if ([ratedNot isEqualToString:@"Tournament"]) {
             localizedRatedNot = NSLocalizedString(@"Tournament", nil);
+        } else if ([ratedNot isEqualToString:@"Rated, beginner"]) {
+            localizedRatedNot = NSLocalizedString(@"Rated, beginner", nil);
+        } else if ([ratedNot isEqualToString:@"Not Rated, beginner"]) {
+            localizedRatedNot = NSLocalizedString(@"Not Rated, beginner", nil);
         }
     }
     return localizedRatedNot;

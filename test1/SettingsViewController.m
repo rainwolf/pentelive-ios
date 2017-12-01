@@ -457,7 +457,7 @@
     UILabel *subscribeText = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width*9/10, CGFLOAT_MAX)];
     [subscribeText setLineBreakMode:NSLineBreakByWordWrapping];
     [subscribeText setNumberOfLines:0];
-    NSString *subscribeString = NSLocalizedString(@"\u2022 remove limits on open invitations\n\u2022 request undo in turn-based games\n\u2022 participate in all King of the Hills\n\u2022 see no more ads\n\u2022 change your name color\n\u2022 upload an avatar\n\u2022 access the database!\n\u2022 follow without limits\n\u2022 broadcast to your followers", nil);
+    NSString *subscribeString = NSLocalizedString(@"\u2022 remove play limits\n\u2022 request undo in turn-based games\n\u2022 see no more ads\n\u2022 change your name color or avatar\n\u2022 access the database!", nil);
     [subscribeText setText:subscribeString];
     [subscribeText sizeToFit];
     
@@ -475,10 +475,25 @@
     UILabel *clearInfoText = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width*9/10, CGFLOAT_MAX)];
     [clearInfoText setLineBreakMode:NSLineBreakByWordWrapping];
     [clearInfoText setNumberOfLines:0];
-    NSString *clearInfoString = NSLocalizedString(@"(This subscription auto-renews every year and can be canceled up to 24hrs before renewal. Payment will be charged on your iTunes account.)", nil);
+    NSString *clearInfoString = NSLocalizedString(@"(This subscription auto-renews every year and can be canceled up to 24hrs before renewal. Payment will be charged on your iTunes account. Renewal will occur 24hrs before the end of the subscription period at the same cost. Subscriptions can be canceled in the settings with \"Manage Subscription\".)", nil);
     [clearInfoText setText:clearInfoString];
-    [clearInfoText setFont:[UIFont systemFontOfSize: 14]];
+    [clearInfoText setFont:[UIFont systemFontOfSize: 12]];
     [clearInfoText sizeToFit];
+    
+    UILabel *privacyPolicyAndTOSText = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width*9/10, CGFLOAT_MAX)];
+    [privacyPolicyAndTOSText setLineBreakMode:NSLineBreakByTruncatingTail];
+    [privacyPolicyAndTOSText setNumberOfLines:1];
+    NSString *privacyPolicyAndTOSString = NSLocalizedString(@"View our Privacy Policy and TOS", nil);
+    NSMutableAttributedString *attStr = [[NSMutableAttributedString alloc] initWithString:privacyPolicyAndTOSString];
+    [attStr addAttribute:NSForegroundColorAttributeName value:[UIColor blueColor] range:NSMakeRange(0, privacyPolicyAndTOSString.length)];
+    [attStr addAttribute:NSUnderlineStyleAttributeName value: @(NSUnderlineStyleSingle) range:NSMakeRange(0, privacyPolicyAndTOSString.length)];
+    [privacyPolicyAndTOSText setAttributedText:attStr];
+    [privacyPolicyAndTOSText setFont:[UIFont systemFontOfSize: 16]];
+    [privacyPolicyAndTOSText sizeToFit];
+    UITapGestureRecognizer *tapGestureRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(openPrivacyPolicyAndTOS)];
+    tapGestureRecognizer.numberOfTapsRequired = 1;
+    [privacyPolicyAndTOSText addGestureRecognizer:tapGestureRecognizer];
+    privacyPolicyAndTOSText.userInteractionEnabled = YES;
     
     UIButton *subscribeButton = [UIButton buttonWithType:UIButtonTypeCustom];
     subscribeButton.backgroundColor = [UIColor clearColor];
@@ -495,10 +510,16 @@
     [self.progressView setAlpha:0.75];
     [self.progressView startAnimating];
     [self.view addSubview:self.progressView];
-    popoverView = [PopoverView showPopoverAtPoint: CGPointMake(self.view.bounds.size.width/2, [self.tableView contentOffset].y) inView:self.view withTitle: NSLocalizedString(@"Subscribe today and",nil) withViewArray: @[subscribeText, priceText, clearInfoText, subscribeButton] delegate:self];
+    popoverView = [PopoverView showPopoverAtPoint: CGPointMake(self.view.bounds.size.width/2, [self.tableView contentOffset].y) inView:self.view withTitle: NSLocalizedString(@"Subscribe today and",nil) withViewArray: @[subscribeText, priceText, clearInfoText, privacyPolicyAndTOSText, subscribeButton] delegate:self];
     [popoverView setDelegate:self];
 }
 
+-(void) openPrivacyPolicyAndTOS {
+    PenteWebViewController *webViewController = [[PenteWebViewController alloc] initWithAddress: @"https://www.pente.org/help/helpWindow.jsp?file=privacyPolicy"];
+    [self.navigationController pushViewController:webViewController animated:YES];
+    [navC setShowSubscribe:YES];
+    [popoverView dismiss];
+}
 -(void) subscribe: (UIButton *) sender {
     subscribing = YES;
     [[RMStore defaultStore] addPayment:self.navC.subscription.productIdentifier success:^(SKPaymentTransaction *transaction) {

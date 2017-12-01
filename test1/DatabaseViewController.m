@@ -720,7 +720,7 @@ struct Capture {
                     NSArray<NSString *> *names = [[p1Str stringByReplacingOccurrencesOfString:@" " withString:@""] componentsSeparatedByString:@","];
                     for (NSString *name in names) {
                         NSString *lowerStr = [name lowercaseString];
-                        if (![invitedHistory containsObject:lowerStr]) {
+                        if (![invitedHistory containsObject:lowerStr] && ![name containsString:@"*"]) {
                             [invitedHistory addObject: lowerStr];
                         }
                     }
@@ -729,7 +729,7 @@ struct Capture {
                     NSArray<NSString *> *names = [[p2Str stringByReplacingOccurrencesOfString:@" " withString:@""] componentsSeparatedByString:@","];
                     for (NSString *name in names) {
                         NSString *lowerStr = [name lowercaseString];
-                        if (![invitedHistory containsObject:lowerStr]) {
+                        if (![invitedHistory containsObject:lowerStr] && ![name containsString:@"*"]) {
                             [invitedHistory addObject: lowerStr];
                         }
                     }
