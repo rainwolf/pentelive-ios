@@ -1201,16 +1201,16 @@ struct Capture {
         [submitButton setEnabled:NO];
         [submitButton setAlpha:0.85];
     }
-//    if ([[[NSUserDefaults standardUserDefaults] objectForKey:@"username"] isEqualToString:@"rainwolf"]) {
-//        if ([[[@"samywamy-" stringByAppendingString:[[NSUserDefaults standardUserDefaults] objectForKey:@"password"]] SHA256] isEqualToString:@"1b7017087c9d8ff0d2b3ec1cb930273529d7efb52ce859e2dd1a824194ab7806"]) {
-//            [lockButton setImage:[UIImage imageNamed:@"database.png"] forState:UIControlStateNormal];
-//            [lockButton removeTarget:self action:@selector(toggleBoardLock:) forControlEvents:UIControlEventTouchUpInside];
-//            [lockButton addTarget:self action:@selector(toDB) forControlEvents:UIControlEventTouchUpInside];
-//            [lockButton setAlpha:1.0f];
-//            [lockButton setEnabled:YES];
-//            [lockButton setNeedsDisplay];
-//        }
-//    }
+    if ([[[NSUserDefaults standardUserDefaults] objectForKey:@"username"] isEqualToString:@"rainwolf"]) {
+        if ([[[@"samywamy-" stringByAppendingString:[[NSUserDefaults standardUserDefaults] objectForKey:@"password"]] SHA256] isEqualToString:@"1b7017087c9d8ff0d2b3ec1cb930273529d7efb52ce859e2dd1a824194ab7806"]) {
+            [lockButton setImage:[UIImage imageNamed:@"database.png"] forState:UIControlStateNormal];
+            [lockButton removeTarget:self action:@selector(toggleBoardLock:) forControlEvents:UIControlEventTouchUpInside];
+            [lockButton addTarget:self action:@selector(toDB) forControlEvents:UIControlEventTouchUpInside];
+            [lockButton setAlpha:1.0f];
+            [lockButton setEnabled:YES];
+            [lockButton setNeedsDisplay];
+        }
+    }
 }
 
 -(void) requestUndo: (UIButton*) sender {

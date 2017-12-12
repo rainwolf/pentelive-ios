@@ -15,7 +15,7 @@
 @end
 
 @implementation DBSetupView
-@synthesize sortCell, winnerCell, eitherOrBothp1p2Cell, excludeTimeoutCell;
+@synthesize sortCell, winnerCell, eitherOrBothp1p2Cell, excludeTimeoutCell, liveOrTBCell;
 @synthesize beforeCell, afterCell;
 @synthesize board, zBoard;
 @synthesize player1Cell, player2Cell;
@@ -60,7 +60,7 @@
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    return 11;
+    return 12;
 }
 
 -(CGFloat) tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -283,6 +283,25 @@
         
         return cell;
     }
+    if (indexPath.row == ++i) {
+        UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier: @"liveOrTBCell"];
+        if (cell == nil) {
+            cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier: @"liveOrTBCell"];
+        }
+        [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
+        
+        cell.textLabel.text =  NSLocalizedString(@"Type",nil);
+        NSString *str = [[NSUserDefaults standardUserDefaults] objectForKey: @"DBLiveOrTBCell"];
+        if (str) {
+            cell.detailTextLabel.text = str;
+        } else {
+            cell.detailTextLabel.text = NSLocalizedString(@"all",nil);
+        }
+        
+        liveOrTBCell = cell;
+        
+        return cell;
+    }
     return nil;
 }
 
@@ -338,6 +357,15 @@
 //        }
 //        NSLog(@"kitty %ld", (long)clearButton.tag);
 
+    }
+    if (indexPath.row == 11) {
+        if ([liveOrTBCell.detailTextLabel.text isEqualToString:NSLocalizedString(@"all",nil)]) {
+            [liveOrTBCell.detailTextLabel setText:NSLocalizedString(@"turn-based only",nil)];
+        } else if ([liveOrTBCell.detailTextLabel.text isEqualToString:NSLocalizedString(@"turn-based only",nil)]) {
+            [liveOrTBCell.detailTextLabel setText:NSLocalizedString(@"live only",nil)];
+        } else {
+            [liveOrTBCell.detailTextLabel setText:NSLocalizedString(@"all",nil)];
+        }
     }
     [tableView deselectRowAtIndexPath:indexPath animated:NO];
 

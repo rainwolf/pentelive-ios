@@ -2780,7 +2780,7 @@ CGFloat bottomOffset = 0;
     } else {
         [player setTournaments: sectionItems];
     }
-        
+
     while ((dashIDX < [splitDash count]) && ![[splitDash objectAtIndex:dashIDX] hasPrefix: @"OnlinePlayers:"]) {
         dashIDX++;
     }
@@ -3390,9 +3390,14 @@ CGFloat bottomOffset = 0;
         UIAlertAction *acceptAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"yes, accept invitation", nil) style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
             [self acceptPublicBeginnerInvitation];
         }];
+        UIAlertAction *acceptAndStopRemindingAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"yes and stop warnings", nil) style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+            [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"remindBeginnerAccept"];
+            [self acceptPublicBeginnerInvitation];
+        }];
         [remindBeginnerController addAction:cancelAction];
         [remindBeginnerController addAction:acceptAction];
-        
+        [remindBeginnerController addAction:acceptAndStopRemindingAction];
+
         if (remindBeginnerController.popoverPresentationController != nil) {
             remindBeginnerController.popoverPresentationController.barButtonItem = self.navigationItem.rightBarButtonItems[1];
         }
