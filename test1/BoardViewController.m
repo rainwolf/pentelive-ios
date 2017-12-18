@@ -2442,20 +2442,22 @@ struct Capture {
     [messagePopover setDelegate:self];
     
     [replyMessageView setFrame:CGRectMake(0, 0, self.view.bounds.size.width - 40, 44)];
+    CGPoint showPoint = [self.view convertPoint:messageButton.center fromView:messageButton];
+    showPoint.y = showPoint.y + messageButton.bounds.size.height/2;
     if (isLastMove) {
         if (activeGame) {
             if (![receivedMessage isEqualToString:@""]) {
-                [messagePopover showAtPoint:CGPointMake(messageButton.center.x+messageButton.bounds.size.width/2, 0) inView:self.view  withViewArray:[NSArray arrayWithObjects:receivedMessageView, replyMessageView,nil]];
+                [messagePopover showAtPoint: showPoint inView:self.view  withViewArray:[NSArray arrayWithObjects:receivedMessageView, replyMessageView,nil]];
             } else {
                 [replyMessageView setFrame:CGRectMake(0, 0, self.view.bounds.size.width - 40, 88)];
-                [messagePopover showAtPoint:CGPointMake(messageButton.center.x+messageButton.bounds.size.width/2, 0) inView:self.view withContentView:replyMessageView];
+                [messagePopover showAtPoint:showPoint inView:self.view withContentView:replyMessageView];
             }
             [self.replyMessageView becomeFirstResponder];
         } else if (![receivedMessage isEqualToString:@""]) {
-            [messagePopover showAtPoint:CGPointMake(messageButton.center.x+messageButton.bounds.size.width/2, 0) inView:self.view withContentView:receivedMessageView];
+            [messagePopover showAtPoint:showPoint inView:self.view withContentView:receivedMessageView];
         }
     } else if (![receivedMessage isEqualToString:@""]) {
-            [messagePopover showAtPoint:CGPointMake(messageButton.center.x+messageButton.bounds.size.width/2, 0) inView:self.view withContentView:receivedMessageView];
+            [messagePopover showAtPoint:showPoint inView:self.view withContentView:receivedMessageView];
     }
 }
 

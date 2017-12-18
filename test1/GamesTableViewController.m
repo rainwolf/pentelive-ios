@@ -2193,612 +2193,614 @@ CGFloat bottomOffset = 0;
         UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error",nil) message:[NSString stringWithFormat:NSLocalizedString(@"Reason: %@",nil), error.localizedDescription] delegate:nil cancelButtonTitle:NSLocalizedString(@"OK",nil) otherButtonTitles:nil];
         //        [alert show];
         [alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:YES];
+        [self performSelector:@selector(pullDownToReloadActionFinished) withObject:nil];
         self.tableView.layer.borderWidth = 0.0;
         [self.tableView setUserInteractionEnabled:YES];
-        [self.tableView endUpdates];
         return;
     }
     NSString *dashboardString = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
 
     dispatch_async(dispatch_get_main_queue(), ^{
         [CATransaction begin];
-        [self.tableView beginUpdates];
         [CATransaction setCompletionBlock: ^{
             self.tableView.layer.borderWidth = 0.0;
             [self performSelector:@selector(scrollViewDidScroll:) withObject: self.tableView afterDelay:0.01];
-//            [self performSelector:@selector(scrollViewDidScroll:) withObject: self.tableView afterDelay:0.05];
+            //            [self performSelector:@selector(scrollViewDidScroll:) withObject: self.tableView afterDelay:0.05];
             [self performSelector:@selector(pullDownToReloadActionFinished) withObject:nil];
+            [self parseMessages];
         }];
+        [self.tableView beginUpdates];
         
         
-    [self.tableView setUserInteractionEnabled:NO];
-    
-    if ([dashboardString rangeOfString:@"Invitations received"].location == NSNotFound) {
-        self.tableView.layer.borderWidth = 0.0;
-        [self.tableView setUserInteractionEnabled:YES];
-        return;
-    } else {
-        [defaults setBool:YES forKey:@"registrationSuccess"];
-    }
-
-    
-    NSArray *splitDash = [dashboardString componentsSeparatedByString:@"\n"];
-    NSString *dashLine;
-    NSArray *splitLine;
-//            NSLog(@"result: %@",dashboardString);
-    
-        NSMutableArray *sectionItems;
-        NSMutableArray *indexSet;
-    int dashIDX = 0;
-//    while ((dashIDX < [splitDash count]) && (![[splitDash objectAtIndex:dashIDX] isEqualToString: @"EndOfSettingsParameters"])) {
-//        if ([[splitDash objectAtIndex:dashIDX] rangeOfString:@"tbGamesLimit"].location != NSNotFound) {
-//            dashLine = [splitDash objectAtIndex:dashIDX];
-//            splitLine = [dashLine componentsSeparatedByString:@";"];
-//            gamesLimit = [[splitLine objectAtIndex:1] intValue];
-//            if (gamesLimit == 0) {
-//                gamesLimit = 200;
-//            }
-////            NSLog(@"kitty");
-//        }
-//        dashIDX++;
-//    }
-
-        while ((dashIDX < [splitDash count]) && ([[splitDash objectAtIndex:dashIDX] rangeOfString: [username lowercaseString]].location != 0)) {
-            dashIDX++;
-        }
-        if ((dashIDX < [splitDash count]) && ([[splitDash objectAtIndex:dashIDX] rangeOfString: [username lowercaseString]].location == 0)) {
-            dashLine = [splitDash objectAtIndex:dashIDX];
-            splitLine = [dashLine componentsSeparatedByString:@";"];
-            [player setMyColor:UIColorFromRGB([[splitLine objectAtIndex:1] intValue])];
-            BOOL showAds = ![[splitLine objectAtIndex:2] isEqualToString:@"NoAds"];
-            [player setShowAds: showAds];
-            [player setSubscriber: [[splitLine objectAtIndex:3] isEqualToString:@"subscriber"]];
-            livePlayers = [splitLine objectAtIndex:4];
-            inviteButton.badgeValue = livePlayers;
-            [player setDbAccess: [[splitLine objectAtIndex:5] isEqualToString:@"dbAccessGranted"]];
-            [player setEmailMe: [[splitLine objectAtIndex:6] isEqualToString:@"emailMe"]];
-            [[NSUserDefaults standardUserDefaults] setBool:player.emailMe forKey:@"emailMe"];
-        }
-//        showAds = ([dashboardString rangeOfString:@"No Ads"].location == NSNotFound) || ([dashboardString rangeOfString:@"No Ads"].location > 30);
-        if (player.showAds && bannerView == nil) {
-            CGPoint origin = CGPointMake(0.0, self.view.frame.size.height - self.navigationController.navigationBar.frame.size.height - kGADAdSizeBanner.size.height);
-            bannerView = [[GADBannerView alloc] initWithAdSize:kGADAdSizeSmartBannerPortrait origin:origin];
-            bannerView.rootViewController = self;
-            [bannerView setDelegate: self];
-            CGFloat screenHeight = UIScreen.mainScreen.bounds.size.height;
-            CGFloat newOriginY = screenHeight - self.navigationController.navigationBar.frame.size.height - [UIApplication sharedApplication].statusBarFrame.size.height - bannerView.frame.size.height;
-            CGRect newBannerViewFrame = CGRectMake(bannerView.frame.origin.x, newOriginY, bannerView.frame.size.width, bannerView.frame.size.height);
-            bannerView.frame = newBannerViewFrame;
-            [self.tableView setTableFooterView:bannerView];
-            [self.tableView bringSubviewToFront:bannerView];
-            [self scrollViewDidScroll: self.tableView];
-            //    bannerView.adUnitID = @"567b72e8189a488c";
-            bannerView.adUnitID = @"ca-app-pub-3326997956703582/8641559446";
-            GADRequest *request = [GADRequest request];
-            //            request.testDevices = [NSArray arrayWithObjects:@"simulator", nil];
-            //            request.testDevices = [NSArray arrayWithObjects:kGADSimulatorID, nil];
-            [bannerView loadRequest:request];
-            
-            self.interstitial = [[GADInterstitial alloc] initWithAdUnitID:@"ca-app-pub-3326997956703582/8641559446"];
-            [self.interstitial setDelegate:self];
-            //    [self.interstitial setAdUnitID:@"567b72e8189a488c"];
-            [self.interstitial loadRequest:[GADRequest request]];
-        }
-//        [player setShowAds: showAds];
-//        [player setSubscriber: ([dashboardString rangeOfString:@"tb GamesLimit"].location == NSNotFound) || ([dashboardString rangeOfString:@"tb GamesLimit"].location > 30)];
-        if ([player subscriber]) {
-            [[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"shouldSendReceipt"];
-        }
-        if (([dashboardString rangeOfString:@"Unlimited Games"].location != NSNotFound) && ([dashboardString rangeOfString:@"Unlimited Games"].location < 30)) {
-            gamesLimit = INT_MAX;
+        [self.tableView setUserInteractionEnabled:NO];
+        
+        if ([dashboardString rangeOfString:@"Invitations received"].location == NSNotFound) {
+            self.tableView.layer.borderWidth = 0.0;
+            [self performSelector:@selector(scrollViewDidScroll:) withObject: self.tableView afterDelay:0.01];
+            [self performSelector:@selector(pullDownToReloadActionFinished) withObject:nil];
+            [self.tableView setUserInteractionEnabled:YES];
+            return;
         } else {
-            gamesLimit = 200;
+            [defaults setBool:YES forKey:@"registrationSuccess"];
         }
-        if (!player.showAds) {
-            [bannerView removeFromSuperview];
-            [self.tableView setTableFooterView:nil];
-        }
-
-        sectionItems = [[NSMutableArray alloc] init];
-        while ((dashIDX < [splitDash count]) && (![[splitDash objectAtIndex:dashIDX] isEqualToString: @"King of the Hill"])) {
-            dashIDX++;
-        }
-        if ((dashIDX+1 < [splitDash count]) && [[splitDash objectAtIndex:dashIDX] isEqualToString: @"King of the Hill"]) {
-            dashIDX++;
-            int tbHills = 0;
-            while ((![[splitDash objectAtIndex:dashIDX] isEqualToString: @"Rating Stats"]) && (dashIDX < [splitDash count])) {
-                dashLine = [splitDash objectAtIndex:dashIDX];
-                splitLine = [dashLine componentsSeparatedByString:@";"];
-                KingOfTheHill *hill = [[KingOfTheHill alloc] init];
-                [hill setGame: [splitLine objectAtIndex: 0]];
-                [hill setNumPlayers: [splitLine objectAtIndex: 1]];
-                [hill setMember: [[splitLine objectAtIndex: 2] isEqualToString:@"1"]];
-                [hill setKing: [[splitLine objectAtIndex: 3] isEqualToString:@"1"]];
-                [hill setCurrentKing: [splitLine objectAtIndex: 4]];
-                [hill setCanSendOpen:[[splitLine objectAtIndex: 5] isEqualToString:@"1"]];
-                [hill setGameId:[[splitLine objectAtIndex:6] intValue]];
-                NSString *gameStr = @"Pente";
-                int gameInt = hill.gameId;
-                if (gameInt > 50) {
-                    gameInt -= 50;
-                    tbHills += 1;
-                }
-                if (gameInt < 3) {
-                    gameStr = @"Pente";
-                } else if (gameInt < 5) {
-                    gameStr = @"Keryo-Pente";
-                } else if (gameInt < 7) {
-                    gameStr = @"Gomoku";
-                } else if (gameInt < 9) {
-                    gameStr = @"D-Pente";
-                } else if (gameInt < 11) {
-                    gameStr = @"G-Pente";
-                } else if (gameInt < 13) {
-                    gameStr = @"Poof-Pente";
-                } else if (gameInt < 15) {
-                    gameStr = @"Connect6";
-                } else if (gameInt < 17) {
-                    gameStr = @"Boat-Pente";
-                } else {
-                    gameStr = @"DK-Pente";
-                }
-                if (hill.gameId > 50) {
-                    [hill setGame: [@"tb-" stringByAppendingString:gameStr]];
-                } else if (hill.gameId % 2 == 0) {
-                    [hill setGame: [@"Speed " stringByAppendingString:gameStr]];
-                } else {
-                    [hill setGame:gameStr];
-                }
-                [sectionItems addObject:hill];
-                dashIDX++;
-            }
-            [player setTbHills: tbHills];
-        }
-        int totalHills = ([[NSUserDefaults standardUserDefaults] boolForKey:@"showOnlyTB"]?player.tbHills:(int) [sectionItems count]);
-        long kothRows = 0;
-        if (self.tableView) {
-            kothRows = [self.tableView numberOfRowsInSection:KOTHSECTION];
-        }
-        if (totalHills != kothRows) {
-            if (!kothCollapsed) {
-                indexSet = [[NSMutableArray alloc] init];
-                for(int i = 0; i < kothRows; ++i) {
-                    [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: KOTHSECTION]];
-                }
-                [player setHills:[[NSMutableArray alloc] init]];
-                [self.tableView deleteRowsAtIndexPaths:indexSet withRowAnimation:UITableViewRowAnimationFade];
-            }
-            [player setHills:sectionItems];
-            if (!kothCollapsed) {
-                indexSet = [[NSMutableArray alloc] init];
-                for(int i = 0; i < totalHills; ++i) {
-                    [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: KOTHSECTION]];
-                }
-                [self.tableView insertRowsAtIndexPaths:indexSet withRowAnimation:UITableViewRowAnimationFade];
-            }
-        } else {
-            [player setHills:sectionItems];
-        }
-
-        while ((dashIDX < [splitDash count]) && (![[splitDash objectAtIndex:dashIDX] isEqualToString: @"Rating Stats"])) {
-            dashIDX++;
-        }
-        if ((dashIDX+1 < [splitDash count]) && [[splitDash objectAtIndex:dashIDX] isEqualToString: @"Rating Stats"]) {
-            [[player ratingStats] removeAllObjects];
-            dashIDX++;
-            int tbRatings = 0;
-            while ((![[splitDash objectAtIndex:dashIDX] isEqualToString: @"Invitations received"]) && (dashIDX < [splitDash count])) {
-                dashLine = [splitDash objectAtIndex:dashIDX];
-                splitLine = [dashLine componentsSeparatedByString:@";"];
-                RatingStat *ratingStat = [[RatingStat alloc] init];
-                [ratingStat setGame: [splitLine objectAtIndex: 0]];
-                [ratingStat setRating: [splitLine objectAtIndex: 1]];
-                [ratingStat setTotalGames: [splitLine objectAtIndex: 2]];
-                [ratingStat setLastPlayed: [splitLine objectAtIndex: 4]];
-                [ratingStat setCrown: [[splitLine objectAtIndex: 3] intValue]];
-                [ratingStat setGameId: [[splitLine objectAtIndex: 5] intValue]];
-                [[player ratingStats] addObject:ratingStat];
-                NSString *gameStr = @"Pente";
-                int gameInt = ratingStat.gameId;
-                if (gameInt > 50) {
-                    gameInt -= 50;
-                    tbRatings += 1;
-                }
-                if (gameInt < 3) {
-                    gameStr = @"Pente";
-                } else if (gameInt < 5) {
-                    gameStr = @"Keryo-Pente";
-                } else if (gameInt < 7) {
-                    gameStr = @"Gomoku";
-                } else if (gameInt < 9) {
-                    gameStr = @"D-Pente";
-                } else if (gameInt < 11) {
-                    gameStr = @"G-Pente";
-                } else if (gameInt < 13) {
-                    gameStr = @"Poof-Pente";
-                } else if (gameInt < 15) {
-                    gameStr = @"Connect6";
-                } else if (gameInt < 17) {
-                    gameStr = @"Boat-Pente";
-                } else {
-                    gameStr = @"DK-Pente";
-                }
-                if (ratingStat.gameId > 50) {
-                    [ratingStat setGame: [@"tb-" stringByAppendingString:gameStr]];
-                } else if (ratingStat.gameId % 2 == 0) {
-                    [ratingStat setGame: [@"Speed " stringByAppendingString:gameStr]];
-                } else {
-                    [ratingStat setGame:gameStr];
-                }
-                dashIDX++;
-            }
-            [player setTbRatings: tbRatings];
-        }
-        sectionItems = [[NSMutableArray alloc] init];
-    while ((dashIDX < [splitDash count]) && (![[splitDash objectAtIndex:dashIDX] isEqualToString: @"Invitations received"])) {
-        dashIDX++;
-    }
-    if ((dashIDX+1 < [splitDash count]) && [[splitDash objectAtIndex:dashIDX] isEqualToString: @"Invitations received"]) {
-        dashIDX++;
-        while ((![[splitDash objectAtIndex:dashIDX] isEqualToString: @"Invitations sent"]) && (dashIDX < [splitDash count])) {
-            dashLine = [splitDash objectAtIndex:dashIDX];
-            splitLine = [dashLine componentsSeparatedByString:@";"];
-            Game *game = [[Game alloc] init];
-            [game setGameID: [splitLine objectAtIndex:0]];
-            [game setGameType:[splitLine objectAtIndex:1]];
-            [game setOpponentName:[splitLine objectAtIndex:2]];
-            [game setOpponentRating:[splitLine objectAtIndex:3]];
-            [game setMyColor:[splitLine objectAtIndex:4]];
-            [game setRemainingTime: [splitLine objectAtIndex:5]];
-            [game setRatedNot:[splitLine objectAtIndex:6]];
-            [game setNameColor: UIColorFromRGB([[splitLine objectAtIndex:7] intValue])];
-            [game setCrown:[[splitLine objectAtIndex:8] intValue]];
-            if (wantsToSeeAvatars && ![game.nameColor isEqual: blackColor]) {
-                [player addUser:[game opponentName]];
-            }
-            [sectionItems addObject:game];
-            dashIDX++;
-        }
-    }
-        if ([sectionItems count] != [[player invitations] count]) {
-            if (!invitationsReceivedCollapsed) {
-                indexSet = [[NSMutableArray alloc] init];
-                for(int i = 0; i < [[player invitations] count]; ++i)
-                    [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: INVITATIONSSECTION]];
-                [player setInvitations:[[NSMutableArray alloc] init]];
-                [self.tableView deleteRowsAtIndexPaths:indexSet withRowAnimation:UITableViewRowAnimationFade];
-            }
-            [player setInvitations:sectionItems];
-            if (!invitationsReceivedCollapsed) {
-                indexSet = [[NSMutableArray alloc] init];
-                for(int i = 0; i < [[player invitations] count]; ++i)
-                    [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: INVITATIONSSECTION]];
-                [self.tableView insertRowsAtIndexPaths:indexSet withRowAnimation:UITableViewRowAnimationFade];
-            }
-        } else {
-            [player setInvitations:sectionItems];
-        }
-        //        [self.tableView reloadData];
-
-    
-    sectionItems = [[NSMutableArray alloc] init];
-    if ((dashIDX+1 < [splitDash count]) && [[splitDash objectAtIndex:dashIDX] isEqualToString: @"Invitations sent"]) {
-        dashIDX++;
-        while ((![[splitDash objectAtIndex:dashIDX] isEqualToString: @"Active Games - My Turn"]) && (dashIDX < [splitDash count])) {
-            dashLine = [splitDash objectAtIndex:dashIDX];
-            splitLine = [dashLine componentsSeparatedByString:@";"];
-            Game *game = [[Game alloc] init];
-            [game setGameID: [splitLine objectAtIndex:0]];
-            [game setGameType:[splitLine objectAtIndex:1]];
-            [game setOpponentName:[splitLine objectAtIndex:2]];
-            [game setOpponentRating:[splitLine objectAtIndex:3]];
-            [game setMyColor:[splitLine objectAtIndex:4]];
-            [game setRemainingTime: [splitLine objectAtIndex:5]];
-            [game setRatedNot:[splitLine objectAtIndex:6]];
-            [game setNameColor: UIColorFromRGB([[splitLine objectAtIndex:7] intValue])];
-            [game setCrown:[[splitLine objectAtIndex:8] intValue]];
-            if (wantsToSeeAvatars && ![game.nameColor isEqual: blackColor]) {
-                [player addUser:[game opponentName]];
-            }
-            [sectionItems addObject:game];
-            dashIDX++;
-        }
-    }
-        if ([sectionItems count] != [[player sentInvitations] count]) {
-            if (!sentInvitationsCollapsed) {
-                indexSet = [[NSMutableArray alloc] init];
-                for(int i = 0; i < [[player sentInvitations] count]; ++i)
-                    [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: SENTINVITATIONSSECTION]];
-                [player setSentInvitations:[[NSMutableArray alloc] init]];
-                [self.tableView deleteRowsAtIndexPaths:indexSet withRowAnimation:UITableViewRowAnimationFade];
-            }
-            [player setSentInvitations:sectionItems];
-            if (!sentInvitationsCollapsed) {
-                indexSet = [[NSMutableArray alloc] init];
-                for(int i = 0; i < [[player sentInvitations] count]; ++i)
-                    [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: SENTINVITATIONSSECTION]];
-                [self.tableView insertRowsAtIndexPaths:indexSet withRowAnimation:UITableViewRowAnimationFade];
-            }
-        } else {
-            [player setSentInvitations:sectionItems];
-        }
-        //        [self.tableView reloadData];
-
-        //    [self.tableView reloadData];
-    //    [self performSelector:@selector(scrollViewDidScroll:) withObject: self.tableView afterDelay:.63f];
-    //    [self performSelectorOnMainThread:@selector(scrollViewDidScroll:) withObject: self.tableView waitUntilDone:YES];
-    
-    //    [self.tableView beginUpdates];
-    //    [self.tableView endUpdates];
-    
-    
-    //    [CATransaction commit];
-    
-    sectionItems = [[NSMutableArray alloc] init];
-    if ((dashIDX+1 < [splitDash count]) && [[splitDash objectAtIndex:dashIDX] isEqualToString: @"Active Games - My Turn"]) {
-        dashIDX++;
-        while ((![[splitDash objectAtIndex:dashIDX] isEqualToString: @"Active Games - Opponents Turn"]) && (dashIDX < [splitDash count])) {
-            dashLine = [splitDash objectAtIndex:dashIDX];
-            splitLine = [dashLine componentsSeparatedByString:@";"];
-//                        NSLog(@"kitty %@", splitLine);
-            Game *game = [[Game alloc] init];
-            [game setGameID: [splitLine objectAtIndex:0]];
-            [game setGameType:[splitLine objectAtIndex:1]];
-            [game setOpponentName:[splitLine objectAtIndex:2]];
-            [game setOpponentRating:[splitLine objectAtIndex:3]];
-            [game setMyColor:[[splitLine objectAtIndex:4] substringToIndex:5]];
-            [game setRemainingTime: [splitLine objectAtIndex:6]];
-            [game setRatedNot:[splitLine objectAtIndex:7]];
-            [game setNameColor: UIColorFromRGB([[splitLine objectAtIndex:8] intValue])];
-            [game setCrown:[[splitLine objectAtIndex:9] intValue]];
-            if (wantsToSeeAvatars && ![game.nameColor isEqual: blackColor]) {
-                [player addUser:[game opponentName]];
-            }
-            [sectionItems addObject:game];
-            dashIDX++;
-        }
-    }
-        if ([sectionItems count] != [[player activeGames] count]) {
-            if (!activeGamesCollapsed) {
-                indexSet = [[NSMutableArray alloc] init];
-                for(int i = 0; i < [[player activeGames] count]; ++i)
-                    [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: ACTIVEGAMESSECTION]];
-                [player setActiveGames:[[NSMutableArray alloc] init]];
-                [self.tableView deleteRowsAtIndexPaths:indexSet withRowAnimation:UITableViewRowAnimationFade];
-            }
-            [player setActiveGames:sectionItems];
-            if (!activeGamesCollapsed) {
-                indexSet = [[NSMutableArray alloc] init];
-                for(int i = 0; i < [[player activeGames] count]; ++i)
-                    [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: ACTIVEGAMESSECTION]];
-                [self.tableView insertRowsAtIndexPaths:indexSet withRowAnimation:UITableViewRowAnimationFade];
-            }
-        } else {
-            [player setActiveGames:sectionItems];
-        }
-        //        [self.tableView reloadData];
-    //    [self.tableView reloadData];
-    //    [self performSelector:@selector(scrollViewDidScroll:) withObject: self.tableView afterDelay:.63f];
-    //    [self performSelectorOnMainThread:@selector(scrollViewDidScroll:) withObject: self.tableView waitUntilDone:YES];
-    sectionItems = [[NSMutableArray alloc] init];
-    if ((dashIDX+1 < [splitDash count]) && [[splitDash objectAtIndex:dashIDX] isEqualToString: @"Active Games - Opponents Turn"]) {
-        dashIDX++;
-        while ((![[splitDash objectAtIndex:dashIDX] isEqualToString: @"Open Invitation Games"]) && (dashIDX < [splitDash count])) {
-            dashLine = [splitDash objectAtIndex:dashIDX];
-            splitLine = [dashLine componentsSeparatedByString:@";"];
-            //                        NSLog(@"kitty %@", splitLine);
-            Game *game = [[Game alloc] init];
-            [game setGameID: [splitLine objectAtIndex:0]];
-            [game setGameType:[splitLine objectAtIndex:1]];
-            [game setOpponentName:[splitLine objectAtIndex:2]];
-            [game setOpponentRating:[splitLine objectAtIndex:3]];
-            [game setMyColor:[[splitLine objectAtIndex:4] substringToIndex:5]];
-            [game setRemainingTime: [splitLine objectAtIndex:6]];
-            [game setRatedNot:[splitLine objectAtIndex:7]];
-            [game setNameColor: UIColorFromRGB([[splitLine objectAtIndex:8] intValue])];
-            [game setCrown:[[splitLine objectAtIndex:9] intValue]];
-            if (wantsToSeeAvatars && ![game.nameColor isEqual: blackColor]) {
-                [player addUser:[game opponentName]];
-            }
-            [sectionItems addObject:game];
-            dashIDX++;
-        }
-    }
-        if ([sectionItems count] != [[player nonActiveGames] count]) {
-            if (!nonActiveGamesCollapsed) {
-                indexSet = [[NSMutableArray alloc] init];
-                for(int i = 0; i < [[player nonActiveGames] count]; ++i)
-                    [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: NONACTIVEGAMESSECTION]];
-                [player setNonActiveGames:[[NSMutableArray alloc] init]];
-                //    [self performSelectorOnMainThread:@selector(scrollViewDidScroll:) withObject: self.tableView waitUntilDone:YES];
-                //                dispatch_async(dispatch_get_main_queue(), ^{
-                [self.tableView deleteRowsAtIndexPaths:indexSet withRowAnimation:UITableViewRowAnimationFade];
-            }
-            [player setNonActiveGames:sectionItems];
-            if (!nonActiveGamesCollapsed) {
-                indexSet = [[NSMutableArray alloc] init];
-                for(int i = 0; i < [[player nonActiveGames] count]; ++i)
-                    [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: NONACTIVEGAMESSECTION]];
-                [self.tableView insertRowsAtIndexPaths:indexSet withRowAnimation:UITableViewRowAnimationFade];
-            }
-        } else {
-            [player setNonActiveGames:sectionItems];
-        }
-        //        [self.tableView reloadData];
-        [self.pullToReloadHeaderView setStatusString:@"Loading Open Invitations..." animated:YES];
-        [self.pullToReloadHeaderView layoutSubviews];
 
         
-    //    [self.tableView beginUpdates];
-    //    [self.tableView endUpdates];
-    
-    //    [CATransaction commit];
-    
-    //    [self.tableView reloadData];
-    //    [self performSelector:@selector(scrollViewDidScroll:) withObject: self.tableView afterDelay:.33f];
-    //    [self performSelectorOnMainThread:@selector(scrollViewDidScroll:) withObject: self.tableView waitUntilDone:YES];
-    
-    // load the public games
-    
-    
-    sectionItems = [[NSMutableArray alloc] init];
-    if ((dashIDX+1 < [splitDash count]) && [[splitDash objectAtIndex:dashIDX] isEqualToString: @"Open Invitation Games"]) {
-        dashIDX++;
-        while ((![[splitDash objectAtIndex:dashIDX] isEqualToString: @"Messages"]) && (dashIDX < [splitDash count])) {
-            dashLine = [splitDash objectAtIndex:dashIDX];
-            splitLine = [dashLine componentsSeparatedByString:@";"];
-            Game *game = [[Game alloc] init];
-            [game setGameID: [splitLine objectAtIndex:0]];
-            [game setGameType:[splitLine objectAtIndex:1]];
-            [game setOpponentName:[splitLine objectAtIndex:2]];
-            [game setOpponentRating:[splitLine objectAtIndex:3]];
-            [game setMyColor:[splitLine objectAtIndex:4]];
-            [game setRemainingTime: [splitLine objectAtIndex:5]];
-            [game setRatedNot:[splitLine objectAtIndex:6]];
-            [game setNameColor: UIColorFromRGB([[splitLine objectAtIndex:7] intValue])];
-            [game setCrown:[[splitLine objectAtIndex:8] intValue]];
-            if (wantsToSeeAvatars && ![game.nameColor isEqual: blackColor]) {
-                [player addUser:[game opponentName]];
-            }
-            [sectionItems addObject:game];
-            dashIDX++;
-        }
-    }
-        if ([sectionItems count] != [[player publicInvitations] count]) {
-            if (!publicInvitationsCollapsed) {
-                indexSet = [[NSMutableArray alloc] init];
-                for(int i = 0; i < [[player publicInvitations] count]; ++i)
-                    [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: PUBLICINVITATIONSSECTION]];
-                [player setPublicInvitations:[[NSMutableArray alloc] init]];
-                [self.tableView deleteRowsAtIndexPaths:indexSet withRowAnimation:UITableViewRowAnimationFade];
-            }
-            [player setPublicInvitations:sectionItems];
-            if (!publicInvitationsCollapsed) {
-                indexSet = [[NSMutableArray alloc] init];
-                for(int i = 0; i < [[player publicInvitations] count]; ++i)
-                    [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: PUBLICINVITATIONSSECTION]];
-                [self.tableView insertRowsAtIndexPaths:indexSet withRowAnimation:UITableViewRowAnimationFade];
-            }
-        } else {
-            [player setPublicInvitations:sectionItems];
-        }
-        //        [self.tableView reloadData];
+        NSArray *splitDash = [dashboardString componentsSeparatedByString:@"\n"];
+        NSString *dashLine;
+        NSArray *splitLine;
+    //            NSLog(@"result: %@",dashboardString);
         
-        [self performSelector:@selector(scrollViewDidScroll:) withObject: self.tableView afterDelay:.33f];
-        [self.pullToReloadHeaderView setStatusString:@"Loading Messages..." animated:YES];
-        [self.pullToReloadHeaderView layoutSubviews];
-
-
-    //    [CATransaction begin];
-    //    [CATransaction setCompletionBlock:^{
-    //        //    [self.tableView performSelectorOnMainThread:@selector(reloadData) withObject:nil waitUntilDone:NO];
-    //        [self.tableView reloadData];
-    //        //        [self performSelectorOnMainThread:@selector(scrollViewDidScroll:) withObject: self.tableView waitUntilDone:YES];
-    //        [self performSelector:@selector(scrollViewDidScroll:) withObject: self.tableView afterDelay:.65f];
-    //    }];
-    
-    
-    sectionItems = [[NSMutableArray alloc] init];
-    int unreadMsgs = 0, readMsgs = 0;
-    if ((dashIDX+1 < [splitDash count]) && [[splitDash objectAtIndex:dashIDX] isEqualToString: @"Messages"]) {
-        dashIDX++;
-        while ((![[splitDash objectAtIndex:dashIDX] isEqualToString: @""]) && (dashIDX < [splitDash count]) && ![[splitDash objectAtIndex:dashIDX] isEqualToString: @"Tournaments"]) {
-            dashLine = [splitDash objectAtIndex:dashIDX];
-            splitLine = [dashLine componentsSeparatedByString:@";"];
-            Message *message = [[Message alloc] init];
-            [message setMessageID: [splitLine objectAtIndex:0]];
-            [message setUnread: [splitLine objectAtIndex:1]];
-            [[message unread] isEqualToString:@"read"] ? readMsgs++ : unreadMsgs++;
-            [message setSubject: [splitLine objectAtIndex:2]];
-            [message setAuthor: [splitLine objectAtIndex:3]];
-            [message setTimeStamp: [splitLine objectAtIndex:4]];
-            [message setNameColor: UIColorFromRGB([[splitLine objectAtIndex:5] intValue])];
-            [message setCrown:[[splitLine objectAtIndex:6] intValue]];
-            if (wantsToSeeAvatars && ![message.nameColor isEqual: blackColor]) {
-                [player addUser:[message author]];
-            }
-            [sectionItems addObject:message];
-            dashIDX++;
-        }
-    }
-        if ([sectionItems count] != [[player messages] count]) {
+            NSMutableArray *sectionItems;
             NSMutableArray *indexSet;
-            if (!messagesCollapsed) {
-                indexSet = [[NSMutableArray alloc] init];
-                for(int i = 0; i < [[player messages] count]; ++i)
-                    [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: MESSAGESSECTION]];
-                [player setMessages:[[NSMutableArray alloc] init]];
-                [self.tableView deleteRowsAtIndexPaths:indexSet withRowAnimation:UITableViewRowAnimationFade];
-            }
-            [player setMessages:sectionItems];
-            if (!messagesCollapsed) {
-                indexSet = [[NSMutableArray alloc] init];
-                for(int i = 0; i < [[player messages] count]; ++i)
-                    [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: MESSAGESSECTION]];
-                [self.tableView insertRowsAtIndexPaths:indexSet withRowAnimation:UITableViewRowAnimationFade];
-            }
-        } else {
-            [player setMessages:sectionItems];
-        }
+        int dashIDX = 0;
+    //    while ((dashIDX < [splitDash count]) && (![[splitDash objectAtIndex:dashIDX] isEqualToString: @"EndOfSettingsParameters"])) {
+    //        if ([[splitDash objectAtIndex:dashIDX] rangeOfString:@"tbGamesLimit"].location != NSNotFound) {
+    //            dashLine = [splitDash objectAtIndex:dashIDX];
+    //            splitLine = [dashLine componentsSeparatedByString:@";"];
+    //            gamesLimit = [[splitLine objectAtIndex:1] intValue];
+    //            if (gamesLimit == 0) {
+    //                gamesLimit = 200;
+    //            }
+    ////            NSLog(@"kitty");
+    //        }
+    //        dashIDX++;
+    //    }
 
-    while ((dashIDX < [splitDash count]) && ![[splitDash objectAtIndex:dashIDX] isEqualToString: @"Tournaments"]) {
-        dashIDX++;
-    }
-    sectionItems = [[NSMutableArray alloc] init];
-    if ((dashIDX+1 < [splitDash count]) && [[splitDash objectAtIndex:dashIDX] isEqualToString: @"Tournaments"]) {
-        dashIDX++;
-        while ((dashIDX < [splitDash count]) && (![[splitDash objectAtIndex:dashIDX] isEqualToString: @""])) {
-            dashLine = [splitDash objectAtIndex:dashIDX];
-            splitLine = [dashLine componentsSeparatedByString:@";"];
-            Tournament *tournament = [[Tournament alloc] init];
-            [tournament setName: [splitLine objectAtIndex:0]];
-            [tournament setTournamentID: [splitLine objectAtIndex:1]];
-            [tournament setRound: [splitLine objectAtIndex:2]];
-            [tournament setGame: [splitLine objectAtIndex:3]];
-            [tournament setTournamentState: [splitLine objectAtIndex:4]];
-            [tournament setDate:[splitLine objectAtIndex:5]];
-            [sectionItems addObject: tournament];
-            dashIDX++;
-        }
-    }
-    if ([sectionItems count] != [[player tournaments] count]) {
-        NSMutableArray *indexSet;
-        if (!tournamentsCollapsed) {
-            indexSet = [[NSMutableArray alloc] init];
-            for(int i = 0; i < [[player tournaments] count]; ++i)
-                [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: TOURNAMENTSSECTION]];
-            [player setTournaments:[[NSMutableArray alloc] init]];
-            [self.tableView deleteRowsAtIndexPaths:indexSet withRowAnimation:UITableViewRowAnimationFade];
-        }
-        [player setTournaments:sectionItems];
-        if (!tournamentsCollapsed) {
-            indexSet = [[NSMutableArray alloc] init];
-            for(int i = 0; i < [[player tournaments] count]; ++i)
-                [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: TOURNAMENTSSECTION]];
-            [self.tableView insertRowsAtIndexPaths:indexSet withRowAnimation:UITableViewRowAnimationFade];
-        }
-    } else {
-        [player setTournaments: sectionItems];
-    }
-
-    while ((dashIDX < [splitDash count]) && ![[splitDash objectAtIndex:dashIDX] hasPrefix: @"OnlinePlayers:"]) {
-        dashIDX++;
-    }
-    if ((dashIDX+1 < [splitDash count]) && [[splitDash objectAtIndex:dashIDX] hasPrefix: @"OnlinePlayers:"]) {
-        dashLine = [[splitDash objectAtIndex:dashIDX] stringByReplacingOccurrencesOfString:@"OnlinePlayers:" withString:@""];
-        splitLine = [dashLine componentsSeparatedByString:@";"];
-        if ([splitLine count]>0) {
-            NSMutableDictionary<NSString *, NSString *> *playersDict = [[NSMutableDictionary alloc] init];
-            for (NSString *name in splitLine) {
-                [playersDict setObject:@"" forKey:name];
+            while ((dashIDX < [splitDash count]) && ([[splitDash objectAtIndex:dashIDX] rangeOfString: [username lowercaseString]].location != 0)) {
+                dashIDX++;
             }
-            [player setOnlinePlayers: playersDict];
-        }
-    }
+            if ((dashIDX < [splitDash count]) && ([[splitDash objectAtIndex:dashIDX] rangeOfString: [username lowercaseString]].location == 0)) {
+                dashLine = [splitDash objectAtIndex:dashIDX];
+                splitLine = [dashLine componentsSeparatedByString:@";"];
+                [player setMyColor:UIColorFromRGB([[splitLine objectAtIndex:1] intValue])];
+                BOOL showAds = ![[splitLine objectAtIndex:2] isEqualToString:@"NoAds"];
+                [player setShowAds: showAds];
+                [player setSubscriber: [[splitLine objectAtIndex:3] isEqualToString:@"subscriber"]];
+                livePlayers = [splitLine objectAtIndex:4];
+                inviteButton.badgeValue = livePlayers;
+                [player setDbAccess: [[splitLine objectAtIndex:5] isEqualToString:@"dbAccessGranted"]];
+                [player setEmailMe: [[splitLine objectAtIndex:6] isEqualToString:@"emailMe"]];
+                [[NSUserDefaults standardUserDefaults] setBool:player.emailMe forKey:@"emailMe"];
+            }
+    //        showAds = ([dashboardString rangeOfString:@"No Ads"].location == NSNotFound) || ([dashboardString rangeOfString:@"No Ads"].location > 30);
+            if (player.showAds && bannerView == nil) {
+                CGPoint origin = CGPointMake(0.0, self.view.frame.size.height - self.navigationController.navigationBar.frame.size.height - kGADAdSizeBanner.size.height);
+                bannerView = [[GADBannerView alloc] initWithAdSize:kGADAdSizeSmartBannerPortrait origin:origin];
+                bannerView.rootViewController = self;
+                [bannerView setDelegate: self];
+                CGFloat screenHeight = UIScreen.mainScreen.bounds.size.height;
+                CGFloat newOriginY = screenHeight - self.navigationController.navigationBar.frame.size.height - [UIApplication sharedApplication].statusBarFrame.size.height - bannerView.frame.size.height;
+                CGRect newBannerViewFrame = CGRectMake(bannerView.frame.origin.x, newOriginY, bannerView.frame.size.width, bannerView.frame.size.height);
+                bannerView.frame = newBannerViewFrame;
+                [self.tableView setTableFooterView:bannerView];
+                [self.tableView bringSubviewToFront:bannerView];
+                [self scrollViewDidScroll: self.tableView];
+                //    bannerView.adUnitID = @"567b72e8189a488c";
+                bannerView.adUnitID = @"ca-app-pub-3326997956703582/8641559446";
+                GADRequest *request = [GADRequest request];
+                //            request.testDevices = [NSArray arrayWithObjects:@"simulator", nil];
+                //            request.testDevices = [NSArray arrayWithObjects:kGADSimulatorID, nil];
+                [bannerView loadRequest:request];
+                
+                self.interstitial = [[GADInterstitial alloc] initWithAdUnitID:@"ca-app-pub-3326997956703582/8641559446"];
+                [self.interstitial setDelegate:self];
+                //    [self.interstitial setAdUnitID:@"567b72e8189a488c"];
+                [self.interstitial loadRequest:[GADRequest request]];
+            }
+    //        [player setShowAds: showAds];
+    //        [player setSubscriber: ([dashboardString rangeOfString:@"tb GamesLimit"].location == NSNotFound) || ([dashboardString rangeOfString:@"tb GamesLimit"].location > 30)];
+            if ([player subscriber]) {
+                [[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"shouldSendReceipt"];
+            }
+            if (([dashboardString rangeOfString:@"Unlimited Games"].location != NSNotFound) && ([dashboardString rangeOfString:@"Unlimited Games"].location < 30)) {
+                gamesLimit = INT_MAX;
+            } else {
+                gamesLimit = 200;
+            }
+            if (!player.showAds) {
+                [bannerView removeFromSuperview];
+                [self.tableView setTableFooterView:nil];
+            }
 
-        [self.tableView endUpdates];
-        [CATransaction commit];
-        [self parseMessages];
+            sectionItems = [[NSMutableArray alloc] init];
+            while ((dashIDX < [splitDash count]) && (![[splitDash objectAtIndex:dashIDX] isEqualToString: @"King of the Hill"])) {
+                dashIDX++;
+            }
+            if ((dashIDX+1 < [splitDash count]) && [[splitDash objectAtIndex:dashIDX] isEqualToString: @"King of the Hill"]) {
+                dashIDX++;
+                int tbHills = 0;
+                while ((![[splitDash objectAtIndex:dashIDX] isEqualToString: @"Rating Stats"]) && (dashIDX < [splitDash count])) {
+                    dashLine = [splitDash objectAtIndex:dashIDX];
+                    splitLine = [dashLine componentsSeparatedByString:@";"];
+                    KingOfTheHill *hill = [[KingOfTheHill alloc] init];
+                    [hill setGame: [splitLine objectAtIndex: 0]];
+                    [hill setNumPlayers: [splitLine objectAtIndex: 1]];
+                    [hill setMember: [[splitLine objectAtIndex: 2] isEqualToString:@"1"]];
+                    [hill setKing: [[splitLine objectAtIndex: 3] isEqualToString:@"1"]];
+                    [hill setCurrentKing: [splitLine objectAtIndex: 4]];
+                    [hill setCanSendOpen:[[splitLine objectAtIndex: 5] isEqualToString:@"1"]];
+                    [hill setGameId:[[splitLine objectAtIndex:6] intValue]];
+                    NSString *gameStr = @"Pente";
+                    int gameInt = hill.gameId;
+                    if (gameInt > 50) {
+                        gameInt -= 50;
+                        tbHills += 1;
+                    }
+                    if (gameInt < 3) {
+                        gameStr = @"Pente";
+                    } else if (gameInt < 5) {
+                        gameStr = @"Keryo-Pente";
+                    } else if (gameInt < 7) {
+                        gameStr = @"Gomoku";
+                    } else if (gameInt < 9) {
+                        gameStr = @"D-Pente";
+                    } else if (gameInt < 11) {
+                        gameStr = @"G-Pente";
+                    } else if (gameInt < 13) {
+                        gameStr = @"Poof-Pente";
+                    } else if (gameInt < 15) {
+                        gameStr = @"Connect6";
+                    } else if (gameInt < 17) {
+                        gameStr = @"Boat-Pente";
+                    } else {
+                        gameStr = @"DK-Pente";
+                    }
+                    if (hill.gameId > 50) {
+                        [hill setGame: [@"tb-" stringByAppendingString:gameStr]];
+                    } else if (hill.gameId % 2 == 0) {
+                        [hill setGame: [@"Speed " stringByAppendingString:gameStr]];
+                    } else {
+                        [hill setGame:gameStr];
+                    }
+                    [sectionItems addObject:hill];
+                    dashIDX++;
+                }
+                [player setTbHills: tbHills];
+            }
+            int totalHills = ([[NSUserDefaults standardUserDefaults] boolForKey:@"showOnlyTB"]?player.tbHills:(int) [sectionItems count]);
+            long kothRows = 0;
+            if (self.tableView) {
+                kothRows = [self.tableView numberOfRowsInSection:KOTHSECTION];
+            }
+            if (totalHills != kothRows) {
+                if (!kothCollapsed) {
+                    indexSet = [[NSMutableArray alloc] init];
+                    for(int i = 0; i < kothRows; ++i) {
+                        [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: KOTHSECTION]];
+                    }
+                    [player setHills:[[NSMutableArray alloc] init]];
+                    [self.tableView deleteRowsAtIndexPaths:indexSet withRowAnimation:UITableViewRowAnimationFade];
+                }
+                [player setHills:sectionItems];
+                if (!kothCollapsed) {
+                    indexSet = [[NSMutableArray alloc] init];
+                    for(int i = 0; i < totalHills; ++i) {
+                        [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: KOTHSECTION]];
+                    }
+                    [self.tableView insertRowsAtIndexPaths:indexSet withRowAnimation:UITableViewRowAnimationFade];
+                }
+            } else {
+                [player setHills:sectionItems];
+            }
+
+            while ((dashIDX < [splitDash count]) && (![[splitDash objectAtIndex:dashIDX] isEqualToString: @"Rating Stats"])) {
+                dashIDX++;
+            }
+            if ((dashIDX+1 < [splitDash count]) && [[splitDash objectAtIndex:dashIDX] isEqualToString: @"Rating Stats"]) {
+                [[player ratingStats] removeAllObjects];
+                dashIDX++;
+                int tbRatings = 0;
+                while ((![[splitDash objectAtIndex:dashIDX] isEqualToString: @"Invitations received"]) && (dashIDX < [splitDash count])) {
+                    dashLine = [splitDash objectAtIndex:dashIDX];
+                    splitLine = [dashLine componentsSeparatedByString:@";"];
+                    RatingStat *ratingStat = [[RatingStat alloc] init];
+                    [ratingStat setGame: [splitLine objectAtIndex: 0]];
+                    [ratingStat setRating: [splitLine objectAtIndex: 1]];
+                    [ratingStat setTotalGames: [splitLine objectAtIndex: 2]];
+                    [ratingStat setLastPlayed: [splitLine objectAtIndex: 4]];
+                    [ratingStat setCrown: [[splitLine objectAtIndex: 3] intValue]];
+                    [ratingStat setGameId: [[splitLine objectAtIndex: 5] intValue]];
+                    [[player ratingStats] addObject:ratingStat];
+                    NSString *gameStr = @"Pente";
+                    int gameInt = ratingStat.gameId;
+                    if (gameInt > 50) {
+                        gameInt -= 50;
+                        tbRatings += 1;
+                    }
+                    if (gameInt < 3) {
+                        gameStr = @"Pente";
+                    } else if (gameInt < 5) {
+                        gameStr = @"Keryo-Pente";
+                    } else if (gameInt < 7) {
+                        gameStr = @"Gomoku";
+                    } else if (gameInt < 9) {
+                        gameStr = @"D-Pente";
+                    } else if (gameInt < 11) {
+                        gameStr = @"G-Pente";
+                    } else if (gameInt < 13) {
+                        gameStr = @"Poof-Pente";
+                    } else if (gameInt < 15) {
+                        gameStr = @"Connect6";
+                    } else if (gameInt < 17) {
+                        gameStr = @"Boat-Pente";
+                    } else {
+                        gameStr = @"DK-Pente";
+                    }
+                    if (ratingStat.gameId > 50) {
+                        [ratingStat setGame: [@"tb-" stringByAppendingString:gameStr]];
+                    } else if (ratingStat.gameId % 2 == 0) {
+                        [ratingStat setGame: [@"Speed " stringByAppendingString:gameStr]];
+                    } else {
+                        [ratingStat setGame:gameStr];
+                    }
+                    dashIDX++;
+                }
+                [player setTbRatings: tbRatings];
+            }
+            sectionItems = [[NSMutableArray alloc] init];
+            while ((dashIDX < [splitDash count]) && (![[splitDash objectAtIndex:dashIDX] isEqualToString: @"Invitations received"])) {
+                dashIDX++;
+            }
+            if ((dashIDX+1 < [splitDash count]) && [[splitDash objectAtIndex:dashIDX] isEqualToString: @"Invitations received"]) {
+                dashIDX++;
+                while ((![[splitDash objectAtIndex:dashIDX] isEqualToString: @"Invitations sent"]) && (dashIDX < [splitDash count])) {
+                    dashLine = [splitDash objectAtIndex:dashIDX];
+                    splitLine = [dashLine componentsSeparatedByString:@";"];
+                    Game *game = [[Game alloc] init];
+                    [game setGameID: [splitLine objectAtIndex:0]];
+                    [game setGameType:[splitLine objectAtIndex:1]];
+                    [game setOpponentName:[splitLine objectAtIndex:2]];
+                    [game setOpponentRating:[splitLine objectAtIndex:3]];
+                    [game setMyColor:[splitLine objectAtIndex:4]];
+                    [game setRemainingTime: [splitLine objectAtIndex:5]];
+                    [game setRatedNot:[splitLine objectAtIndex:6]];
+                    [game setNameColor: UIColorFromRGB([[splitLine objectAtIndex:7] intValue])];
+                    [game setCrown:[[splitLine objectAtIndex:8] intValue]];
+                    if (wantsToSeeAvatars && ![game.nameColor isEqual: blackColor]) {
+                        [player addUser:[game opponentName]];
+                    }
+                    [sectionItems addObject:game];
+                    dashIDX++;
+                }
+            }
+            if ([sectionItems count] != [[player invitations] count]) {
+                if (!invitationsReceivedCollapsed) {
+                    indexSet = [[NSMutableArray alloc] init];
+                    for(int i = 0; i < [[player invitations] count]; ++i)
+                        [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: INVITATIONSSECTION]];
+                    [player setInvitations:[[NSMutableArray alloc] init]];
+                    [self.tableView deleteRowsAtIndexPaths:indexSet withRowAnimation:UITableViewRowAnimationFade];
+                }
+                [player setInvitations:sectionItems];
+                if (!invitationsReceivedCollapsed) {
+                    indexSet = [[NSMutableArray alloc] init];
+                    for(int i = 0; i < [[player invitations] count]; ++i)
+                        [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: INVITATIONSSECTION]];
+                    [self.tableView insertRowsAtIndexPaths:indexSet withRowAnimation:UITableViewRowAnimationFade];
+                }
+            } else {
+                [player setInvitations:sectionItems];
+            }
+            //        [self.tableView reloadData];
+
+        
+            sectionItems = [[NSMutableArray alloc] init];
+            if ((dashIDX+1 < [splitDash count]) && [[splitDash objectAtIndex:dashIDX] isEqualToString: @"Invitations sent"]) {
+                dashIDX++;
+                while ((![[splitDash objectAtIndex:dashIDX] isEqualToString: @"Active Games - My Turn"]) && (dashIDX < [splitDash count])) {
+                    dashLine = [splitDash objectAtIndex:dashIDX];
+                    splitLine = [dashLine componentsSeparatedByString:@";"];
+                    Game *game = [[Game alloc] init];
+                    [game setGameID: [splitLine objectAtIndex:0]];
+                    [game setGameType:[splitLine objectAtIndex:1]];
+                    [game setOpponentName:[splitLine objectAtIndex:2]];
+                    [game setOpponentRating:[splitLine objectAtIndex:3]];
+                    [game setMyColor:[splitLine objectAtIndex:4]];
+                    [game setRemainingTime: [splitLine objectAtIndex:5]];
+                    [game setRatedNot:[splitLine objectAtIndex:6]];
+                    [game setNameColor: UIColorFromRGB([[splitLine objectAtIndex:7] intValue])];
+                    [game setCrown:[[splitLine objectAtIndex:8] intValue]];
+                    if (wantsToSeeAvatars && ![game.nameColor isEqual: blackColor]) {
+                        [player addUser:[game opponentName]];
+                    }
+                    [sectionItems addObject:game];
+                    dashIDX++;
+                }
+            }
+            if ([sectionItems count] != [[player sentInvitations] count]) {
+                if (!sentInvitationsCollapsed) {
+                    indexSet = [[NSMutableArray alloc] init];
+                    for(int i = 0; i < [[player sentInvitations] count]; ++i)
+                        [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: SENTINVITATIONSSECTION]];
+                    [player setSentInvitations:[[NSMutableArray alloc] init]];
+                    [self.tableView deleteRowsAtIndexPaths:indexSet withRowAnimation:UITableViewRowAnimationFade];
+                }
+                [player setSentInvitations:sectionItems];
+                if (!sentInvitationsCollapsed) {
+                    indexSet = [[NSMutableArray alloc] init];
+                    for(int i = 0; i < [[player sentInvitations] count]; ++i)
+                        [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: SENTINVITATIONSSECTION]];
+                    [self.tableView insertRowsAtIndexPaths:indexSet withRowAnimation:UITableViewRowAnimationFade];
+                }
+            } else {
+                [player setSentInvitations:sectionItems];
+            }
+            //        [self.tableView reloadData];
+
+            //    [self.tableView reloadData];
+        //    [self performSelector:@selector(scrollViewDidScroll:) withObject: self.tableView afterDelay:.63f];
+        //    [self performSelectorOnMainThread:@selector(scrollViewDidScroll:) withObject: self.tableView waitUntilDone:YES];
+        
+        //    [self.tableView beginUpdates];
+        //    [self.tableView endUpdates];
+        
+        
+        //    [CATransaction commit];
+        
+            sectionItems = [[NSMutableArray alloc] init];
+            if ((dashIDX+1 < [splitDash count]) && [[splitDash objectAtIndex:dashIDX] isEqualToString: @"Active Games - My Turn"]) {
+                dashIDX++;
+                while ((![[splitDash objectAtIndex:dashIDX] isEqualToString: @"Active Games - Opponents Turn"]) && (dashIDX < [splitDash count])) {
+                    dashLine = [splitDash objectAtIndex:dashIDX];
+                    splitLine = [dashLine componentsSeparatedByString:@";"];
+        //                        NSLog(@"kitty %@", splitLine);
+                    Game *game = [[Game alloc] init];
+                    [game setGameID: [splitLine objectAtIndex:0]];
+                    [game setGameType:[splitLine objectAtIndex:1]];
+                    [game setOpponentName:[splitLine objectAtIndex:2]];
+                    [game setOpponentRating:[splitLine objectAtIndex:3]];
+                    [game setMyColor:[[splitLine objectAtIndex:4] substringToIndex:5]];
+                    [game setRemainingTime: [splitLine objectAtIndex:6]];
+                    [game setRatedNot:[splitLine objectAtIndex:7]];
+                    [game setNameColor: UIColorFromRGB([[splitLine objectAtIndex:8] intValue])];
+                    [game setCrown:[[splitLine objectAtIndex:9] intValue]];
+                    if (wantsToSeeAvatars && ![game.nameColor isEqual: blackColor]) {
+                        [player addUser:[game opponentName]];
+                    }
+                    [sectionItems addObject:game];
+                    dashIDX++;
+                }
+            }
+            if ([sectionItems count] != [[player activeGames] count]) {
+                if (!activeGamesCollapsed) {
+                    indexSet = [[NSMutableArray alloc] init];
+                    for(int i = 0; i < [[player activeGames] count]; ++i)
+                        [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: ACTIVEGAMESSECTION]];
+                    [player setActiveGames:[[NSMutableArray alloc] init]];
+                    [self.tableView deleteRowsAtIndexPaths:indexSet withRowAnimation:UITableViewRowAnimationFade];
+                }
+                [player setActiveGames:sectionItems];
+                if (!activeGamesCollapsed) {
+                    indexSet = [[NSMutableArray alloc] init];
+                    for(int i = 0; i < [[player activeGames] count]; ++i)
+                        [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: ACTIVEGAMESSECTION]];
+                    [self.tableView insertRowsAtIndexPaths:indexSet withRowAnimation:UITableViewRowAnimationFade];
+                }
+            } else {
+                [player setActiveGames:sectionItems];
+            }
+            //        [self.tableView reloadData];
+        //    [self.tableView reloadData];
+        //    [self performSelector:@selector(scrollViewDidScroll:) withObject: self.tableView afterDelay:.63f];
+        //    [self performSelectorOnMainThread:@selector(scrollViewDidScroll:) withObject: self.tableView waitUntilDone:YES];
+            sectionItems = [[NSMutableArray alloc] init];
+            if ((dashIDX+1 < [splitDash count]) && [[splitDash objectAtIndex:dashIDX] isEqualToString: @"Active Games - Opponents Turn"]) {
+                dashIDX++;
+                while ((![[splitDash objectAtIndex:dashIDX] isEqualToString: @"Open Invitation Games"]) && (dashIDX < [splitDash count])) {
+                    dashLine = [splitDash objectAtIndex:dashIDX];
+                    splitLine = [dashLine componentsSeparatedByString:@";"];
+                    //                        NSLog(@"kitty %@", splitLine);
+                    Game *game = [[Game alloc] init];
+                    [game setGameID: [splitLine objectAtIndex:0]];
+                    [game setGameType:[splitLine objectAtIndex:1]];
+                    [game setOpponentName:[splitLine objectAtIndex:2]];
+                    [game setOpponentRating:[splitLine objectAtIndex:3]];
+                    [game setMyColor:[[splitLine objectAtIndex:4] substringToIndex:5]];
+                    [game setRemainingTime: [splitLine objectAtIndex:6]];
+                    [game setRatedNot:[splitLine objectAtIndex:7]];
+                    [game setNameColor: UIColorFromRGB([[splitLine objectAtIndex:8] intValue])];
+                    [game setCrown:[[splitLine objectAtIndex:9] intValue]];
+                    if (wantsToSeeAvatars && ![game.nameColor isEqual: blackColor]) {
+                        [player addUser:[game opponentName]];
+                    }
+                    [sectionItems addObject:game];
+                    dashIDX++;
+                }
+            }
+            if ([sectionItems count] != [[player nonActiveGames] count]) {
+                if (!nonActiveGamesCollapsed) {
+                    indexSet = [[NSMutableArray alloc] init];
+                    for(int i = 0; i < [[player nonActiveGames] count]; ++i)
+                        [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: NONACTIVEGAMESSECTION]];
+                    [player setNonActiveGames:[[NSMutableArray alloc] init]];
+                    //    [self performSelectorOnMainThread:@selector(scrollViewDidScroll:) withObject: self.tableView waitUntilDone:YES];
+                    //                dispatch_async(dispatch_get_main_queue(), ^{
+                    [self.tableView deleteRowsAtIndexPaths:indexSet withRowAnimation:UITableViewRowAnimationFade];
+                }
+                [player setNonActiveGames:sectionItems];
+                if (!nonActiveGamesCollapsed) {
+                    indexSet = [[NSMutableArray alloc] init];
+                    for(int i = 0; i < [[player nonActiveGames] count]; ++i)
+                        [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: NONACTIVEGAMESSECTION]];
+                    [self.tableView insertRowsAtIndexPaths:indexSet withRowAnimation:UITableViewRowAnimationFade];
+                }
+            } else {
+                [player setNonActiveGames:sectionItems];
+            }
+            //        [self.tableView reloadData];
+            [self.pullToReloadHeaderView setStatusString:@"Loading Open Invitations..." animated:YES];
+            [self.pullToReloadHeaderView layoutSubviews];
+
+        
+        //    [self.tableView beginUpdates];
+        //    [self.tableView endUpdates];
+        
+        //    [CATransaction commit];
+        
+        //    [self.tableView reloadData];
+        //    [self performSelector:@selector(scrollViewDidScroll:) withObject: self.tableView afterDelay:.33f];
+        //    [self performSelectorOnMainThread:@selector(scrollViewDidScroll:) withObject: self.tableView waitUntilDone:YES];
+        
+        // load the public games
+        
+        
+            sectionItems = [[NSMutableArray alloc] init];
+            if ((dashIDX+1 < [splitDash count]) && [[splitDash objectAtIndex:dashIDX] isEqualToString: @"Open Invitation Games"]) {
+                dashIDX++;
+                while ((![[splitDash objectAtIndex:dashIDX] isEqualToString: @"Messages"]) && (dashIDX < [splitDash count])) {
+                    dashLine = [splitDash objectAtIndex:dashIDX];
+                    splitLine = [dashLine componentsSeparatedByString:@";"];
+                    Game *game = [[Game alloc] init];
+                    [game setGameID: [splitLine objectAtIndex:0]];
+                    [game setGameType:[splitLine objectAtIndex:1]];
+                    [game setOpponentName:[splitLine objectAtIndex:2]];
+                    [game setOpponentRating:[splitLine objectAtIndex:3]];
+                    [game setMyColor:[splitLine objectAtIndex:4]];
+                    [game setRemainingTime: [splitLine objectAtIndex:5]];
+                    [game setRatedNot:[splitLine objectAtIndex:6]];
+                    [game setNameColor: UIColorFromRGB([[splitLine objectAtIndex:7] intValue])];
+                    [game setCrown:[[splitLine objectAtIndex:8] intValue]];
+                    if (wantsToSeeAvatars && ![game.nameColor isEqual: blackColor]) {
+                        [player addUser:[game opponentName]];
+                    }
+                    [sectionItems addObject:game];
+                    dashIDX++;
+                }
+            }
+            if ([sectionItems count] != [[player publicInvitations] count]) {
+                if (!publicInvitationsCollapsed) {
+                    indexSet = [[NSMutableArray alloc] init];
+                    for(int i = 0; i < [[player publicInvitations] count]; ++i)
+                        [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: PUBLICINVITATIONSSECTION]];
+                    [player setPublicInvitations:[[NSMutableArray alloc] init]];
+                    [self.tableView deleteRowsAtIndexPaths:indexSet withRowAnimation:UITableViewRowAnimationFade];
+                }
+                [player setPublicInvitations:sectionItems];
+                if (!publicInvitationsCollapsed) {
+                    indexSet = [[NSMutableArray alloc] init];
+                    for(int i = 0; i < [[player publicInvitations] count]; ++i)
+                        [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: PUBLICINVITATIONSSECTION]];
+                    [self.tableView insertRowsAtIndexPaths:indexSet withRowAnimation:UITableViewRowAnimationFade];
+                }
+            } else {
+                [player setPublicInvitations:sectionItems];
+            }
+            //        [self.tableView reloadData];
+        
+            [self performSelector:@selector(scrollViewDidScroll:) withObject: self.tableView afterDelay:.33f];
+            [self.pullToReloadHeaderView setStatusString:@"Loading Messages..." animated:YES];
+            [self.pullToReloadHeaderView layoutSubviews];
+
+
+        //    [CATransaction begin];
+        //    [CATransaction setCompletionBlock:^{
+        //        //    [self.tableView performSelectorOnMainThread:@selector(reloadData) withObject:nil waitUntilDone:NO];
+        //        [self.tableView reloadData];
+        //        //        [self performSelectorOnMainThread:@selector(scrollViewDidScroll:) withObject: self.tableView waitUntilDone:YES];
+        //        [self performSelector:@selector(scrollViewDidScroll:) withObject: self.tableView afterDelay:.65f];
+        //    }];
+        
+        
+            sectionItems = [[NSMutableArray alloc] init];
+            int unreadMsgs = 0, readMsgs = 0;
+            if ((dashIDX+1 < [splitDash count]) && [[splitDash objectAtIndex:dashIDX] isEqualToString: @"Messages"]) {
+                dashIDX++;
+                while ((![[splitDash objectAtIndex:dashIDX] isEqualToString: @""]) && (dashIDX < [splitDash count]) && ![[splitDash objectAtIndex:dashIDX] isEqualToString: @"Tournaments"]) {
+                    dashLine = [splitDash objectAtIndex:dashIDX];
+                    splitLine = [dashLine componentsSeparatedByString:@";"];
+                    Message *message = [[Message alloc] init];
+                    [message setMessageID: [splitLine objectAtIndex:0]];
+                    [message setUnread: [splitLine objectAtIndex:1]];
+                    [[message unread] isEqualToString:@"read"] ? readMsgs++ : unreadMsgs++;
+                    [message setSubject: [splitLine objectAtIndex:2]];
+                    [message setAuthor: [splitLine objectAtIndex:3]];
+                    [message setTimeStamp: [splitLine objectAtIndex:4]];
+                    [message setNameColor: UIColorFromRGB([[splitLine objectAtIndex:5] intValue])];
+                    [message setCrown:[[splitLine objectAtIndex:6] intValue]];
+                    if (wantsToSeeAvatars && ![message.nameColor isEqual: blackColor]) {
+                        [player addUser:[message author]];
+                    }
+                    [sectionItems addObject:message];
+                    dashIDX++;
+                }
+            }
+            if ([sectionItems count] != [[player messages] count]) {
+                NSMutableArray *indexSet;
+                if (!messagesCollapsed) {
+                    indexSet = [[NSMutableArray alloc] init];
+                    for(int i = 0; i < [[player messages] count]; ++i)
+                        [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: MESSAGESSECTION]];
+                    [player setMessages:[[NSMutableArray alloc] init]];
+                    [self.tableView deleteRowsAtIndexPaths:indexSet withRowAnimation:UITableViewRowAnimationFade];
+                }
+                [player setMessages:sectionItems];
+                if (!messagesCollapsed) {
+                    indexSet = [[NSMutableArray alloc] init];
+                    for(int i = 0; i < [[player messages] count]; ++i)
+                        [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: MESSAGESSECTION]];
+                    [self.tableView insertRowsAtIndexPaths:indexSet withRowAnimation:UITableViewRowAnimationFade];
+                }
+            } else {
+                [player setMessages:sectionItems];
+            }
+
+            while ((dashIDX < [splitDash count]) && ![[splitDash objectAtIndex:dashIDX] isEqualToString: @"Tournaments"]) {
+                dashIDX++;
+            }
+            sectionItems = [[NSMutableArray alloc] init];
+            if ((dashIDX+1 < [splitDash count]) && [[splitDash objectAtIndex:dashIDX] isEqualToString: @"Tournaments"]) {
+                dashIDX++;
+                while ((dashIDX < [splitDash count]) && (![[splitDash objectAtIndex:dashIDX] isEqualToString: @""])) {
+                    dashLine = [splitDash objectAtIndex:dashIDX];
+                    splitLine = [dashLine componentsSeparatedByString:@";"];
+                    Tournament *tournament = [[Tournament alloc] init];
+                    [tournament setName: [splitLine objectAtIndex:0]];
+                    [tournament setTournamentID: [splitLine objectAtIndex:1]];
+                    [tournament setRound: [splitLine objectAtIndex:2]];
+                    [tournament setGame: [splitLine objectAtIndex:3]];
+                    [tournament setTournamentState: [splitLine objectAtIndex:4]];
+                    [tournament setDate:[splitLine objectAtIndex:5]];
+                    [sectionItems addObject: tournament];
+                    dashIDX++;
+                }
+            }
+            if ([sectionItems count] != [[player tournaments] count]) {
+                NSMutableArray *indexSet;
+                if (!tournamentsCollapsed) {
+                    indexSet = [[NSMutableArray alloc] init];
+                    for(int i = 0; i < [[player tournaments] count]; ++i)
+                        [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: TOURNAMENTSSECTION]];
+                    [player setTournaments:[[NSMutableArray alloc] init]];
+                    [self.tableView deleteRowsAtIndexPaths:indexSet withRowAnimation:UITableViewRowAnimationFade];
+                }
+                [player setTournaments:sectionItems];
+                if (!tournamentsCollapsed) {
+                    indexSet = [[NSMutableArray alloc] init];
+                    for(int i = 0; i < [[player tournaments] count]; ++i)
+                        [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: TOURNAMENTSSECTION]];
+                    [self.tableView insertRowsAtIndexPaths:indexSet withRowAnimation:UITableViewRowAnimationFade];
+                }
+            } else {
+                [player setTournaments: sectionItems];
+            }
+
+            while ((dashIDX < [splitDash count]) && ![[splitDash objectAtIndex:dashIDX] hasPrefix: @"OnlinePlayers:"]) {
+                dashIDX++;
+            }
+            if ((dashIDX+1 < [splitDash count]) && [[splitDash objectAtIndex:dashIDX] hasPrefix: @"OnlinePlayers:"]) {
+                dashLine = [[splitDash objectAtIndex:dashIDX] stringByReplacingOccurrencesOfString:@"OnlinePlayers:" withString:@""];
+                splitLine = [dashLine componentsSeparatedByString:@";"];
+                if ([splitLine count]>0) {
+                    NSMutableDictionary<NSString *, NSString *> *playersDict = [[NSMutableDictionary alloc] init];
+                    for (NSString *name in splitLine) {
+                        [playersDict setObject:@"" forKey:name];
+                    }
+                    [player setOnlinePlayers: playersDict];
+                }
+            }
+
+            [self.tableView endUpdates];
+            [CATransaction commit];
 
     });
 }
