@@ -645,9 +645,10 @@ struct Capture {
                 liveOrTBStr = @"&only_turn_based=yes";
             }
         }
+//        NSLog(@"testkitty %@", nil);
         NSString *getStr = [NSString stringWithFormat:@"moves=%@&response_format=org.pente.gameDatabase.SimpleHtmlGameStorerSearchResponseFormat&response_params=%@&results_order=%i&filter_data=%@",[self URLEncodedString_ch:movesStr],
                             [self URLEncodedString_ch:@"zippedPartNumParam=1"],[setupView.sortCell.detailTextLabel.text isEqualToString:@"popularity"]?1:2,
-                            [self URLEncodedString_ch:[NSString stringWithFormat:@"start_game_num=0&end_game_num=100&player_1_name=%@&player_2_name=%@&game=%@&site=All%%20Sites&event=All%%20Events&round=All%%20Rounds&section=All%%20Sections&winner=%@%@%@&p1_rating_above=%@&p2_rating_above=%@%@%@%@", p1Str, p2Str, gameStr, winnerStr, afterStr, beforeStr, p1RatingStr, p2RatingStr, bothOrEitherStr, excludeTimeoutStr, liveOrTBStr]]];
+                            [self URLEncodedString_ch:[NSString stringWithFormat:@"start_game_num=0&end_game_num=100&player_1_name=%@&player_2_name=%@&game=%@&site=All%%20Sites&event=All%%20Events&round=All%%20Rounds&section=All%%20Sections&winner=%@%@%@&p1_rating_above=%@&p2_rating_above=%@%@%@%@&iPhone=yes", p1Str, p2Str, gameStr, winnerStr, afterStr, beforeStr, p1RatingStr, p2RatingStr, bothOrEitherStr, excludeTimeoutStr, liveOrTBStr]]];
         
 //        NSLog(@"\ngetkittyyyyyyString -\n%@-", [self URLEncodedString_ch:getStr]);
 //        NSLog(@"\n\ngetkittyyyyyyString -\n%@-", getStr);
@@ -658,7 +659,7 @@ struct Capture {
         }
         [request setURL:[NSURL URLWithString:url]];
         [request setHTTPMethod:@"GET"];
-        [request setTimeoutInterval:10.0];
+        [request setTimeoutInterval:15.0];
         NSURLResponse *response;
         NSError *error;
         NSData *responseData = [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];

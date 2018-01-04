@@ -63,8 +63,8 @@
 @synthesize actionPopoverView;
 @synthesize progressView;
 
-UIBarButtonItem *inviteButton;
-NSString *livePlayers;
+UIBarButtonItem *inviteButton, *moreButton;
+NSString *livePlayers, *onlineFollowing;
 CGFloat bottomOffset = 0;
 
 //- (void)adViewWillLeaveApplication:(GADBannerView *)bannerView {
@@ -112,7 +112,7 @@ CGFloat bottomOffset = 0;
     selectedPublicInvitationCell = nil;
     
     inviteButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemPlay target:self action: @selector(showInvitationActions)];
-    UIBarButtonItem *moreButton = [[UIBarButtonItem alloc] initWithImage: [UIImage imageNamed:@"showpopup.png"] style: UIBarButtonItemStylePlain target:self action: @selector(showActions)];
+    moreButton = [[UIBarButtonItem alloc] initWithImage: [UIImage imageNamed:@"showpopup.png"] style: UIBarButtonItemStylePlain target:self action: @selector(showActions)];
     [self.navigationItem setRightBarButtonItem:nil];
     [self.navigationItem setRightBarButtonItems:[NSArray arrayWithObjects:moreButton, inviteButton, nil]];
 
@@ -2261,6 +2261,9 @@ CGFloat bottomOffset = 0;
                 [player setDbAccess: [[splitLine objectAtIndex:5] isEqualToString:@"dbAccessGranted"]];
                 [player setEmailMe: [[splitLine objectAtIndex:6] isEqualToString:@"emailMe"]];
                 [[NSUserDefaults standardUserDefaults] setBool:player.emailMe forKey:@"emailMe"];
+                onlineFollowing = [splitLine objectAtIndex:7];
+                moreButton.badgeValue = onlineFollowing;
+                [moreButton setBadgeBGColor:[UIColor colorWithRed:(8.0/255) green:(52.0/255) blue:(29.0/255) alpha:1.0]];
             }
     //        showAds = ([dashboardString rangeOfString:@"No Ads"].location == NSNotFound) || ([dashboardString rangeOfString:@"No Ads"].location > 30);
             if (player.showAds && bannerView == nil) {
@@ -2784,20 +2787,34 @@ CGFloat bottomOffset = 0;
                 [player setTournaments: sectionItems];
             }
 
-            while ((dashIDX < [splitDash count]) && ![[splitDash objectAtIndex:dashIDX] hasPrefix: @"OnlinePlayers:"]) {
-                dashIDX++;
-            }
-            if ((dashIDX+1 < [splitDash count]) && [[splitDash objectAtIndex:dashIDX] hasPrefix: @"OnlinePlayers:"]) {
-                dashLine = [[splitDash objectAtIndex:dashIDX] stringByReplacingOccurrencesOfString:@"OnlinePlayers:" withString:@""];
-                splitLine = [dashLine componentsSeparatedByString:@";"];
-                if ([splitLine count]>0) {
-                    NSMutableDictionary<NSString *, NSString *> *playersDict = [[NSMutableDictionary alloc] init];
-                    for (NSString *name in splitLine) {
-                        [playersDict setObject:@"" forKey:name];
-                    }
-                    [player setOnlinePlayers: playersDict];
+        while ((dashIDX < [splitDash count]) && ![[splitDash objectAtIndex:dashIDX] hasPrefix: @"OnlinePlayers:"]) {
+            dashIDX++;
+        }
+        if ((dashIDX+1 < [splitDash count]) && [[splitDash objectAtIndex:dashIDX] hasPrefix: @"OnlinePlayers:"]) {
+            dashLine = [[splitDash objectAtIndex:dashIDX] stringByReplacingOccurrencesOfString:@"OnlinePlayers:" withString:@""];
+            splitLine = [dashLine componentsSeparatedByString:@";"];
+            if ([splitLine count]>0) {
+                NSMutableDictionary<NSString *, NSString *> *playersDict = [[NSMutableDictionary alloc] init];
+                for (NSString *name in splitLine) {
+                    [playersDict setObject:@"" forKey:name];
                 }
+                [player setOnlinePlayers: playersDict];
             }
+        }
+        while ((dashIDX < [splitDash count]) && ![[splitDash objectAtIndex:dashIDX] hasPrefix: @"OnlinePlayers:"]) {
+            dashIDX++;
+        }
+        if ((dashIDX+1 < [splitDash count]) && [[splitDash objectAtIndex:dashIDX] hasPrefix: @"OnlinePlayers:"]) {
+            dashLine = [[splitDash objectAtIndex:dashIDX] stringByReplacingOccurrencesOfString:@"OnlinePlayers:" withString:@""];
+            splitLine = [dashLine componentsSeparatedByString:@";"];
+            if ([splitLine count]>0) {
+                NSMutableDictionary<NSString *, NSString *> *playersDict = [[NSMutableDictionary alloc] init];
+                for (NSString *name in splitLine) {
+                    [playersDict setObject:@"" forKey:name];
+                }
+                [player setOnlinePlayers: playersDict];
+            }
+        }
 
             [self.tableView endUpdates];
             [CATransaction commit];
@@ -2997,7 +3014,8 @@ CGFloat bottomOffset = 0;
     [button setTitle:NSLocalizedString(@" online players",nil) forState:UIControlStateNormal];
     [button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
     [button addTarget:self action:@selector(showOnlinePlayers) forControlEvents:UIControlEventTouchUpInside];
-    //    [button setFrame:frame];
+    button.badgeValue = onlineFollowing;
+    [button setBadgeBGColor:[UIColor colorWithRed:(8.0/255) green:(52.0/255) blue:(29.0/255) alpha:1.0]];
     [button sizeToFit];
     if (button.frame.size.width > frame.size.width) {
         frame = button.frame;

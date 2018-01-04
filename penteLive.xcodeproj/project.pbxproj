@@ -1262,9 +1262,9 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "be.submanifold.${PRODUCT_NAME:rfc1034identifier}";
 				PRODUCT_NAME = penteLive;
-				PROVISIONING_PROFILE = "29dfd606-7be8-4a05-a2a2-352466692045";
+				PROVISIONING_PROFILE = "68031c35-b3dd-4290-996a-2b47a197e3ac";
 				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
-				PROVISIONING_PROFILE_SPECIFIER = "iOS Distribution Ad Hoc";
+				PROVISIONING_PROFILE_SPECIFIER = "be.submanifold.penteLive Ad Hoc";
 				SWIFT_OBJC_BRIDGING_HEADER = "test1/penteLive-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_SWIFT3_OBJC_INFERENCE = On;
@@ -1301,9 +1301,9 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "be.submanifold.${PRODUCT_NAME:rfc1034identifier}";
 				PRODUCT_NAME = penteLive;
-				PROVISIONING_PROFILE = "6ea8bf66-aa8d-4414-ad2e-2988df9647e5";
+				PROVISIONING_PROFILE = "53f6c537-8b89-418b-9f10-9dd83831ad0d";
 				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
-				PROVISIONING_PROFILE_SPECIFIER = "BeSubmanifoldPenteLive iOS Distribution";
+				PROVISIONING_PROFILE_SPECIFIER = "beSubmanifoldPenteLive iOS Distribution";
 				SWIFT_OBJC_BRIDGING_HEADER = "test1/penteLive-Bridging-Header.h";
 				SWIFT_SWIFT3_OBJC_INFERENCE = On;
 				SWIFT_VERSION = 4.0;
