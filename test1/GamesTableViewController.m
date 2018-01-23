@@ -285,6 +285,11 @@ CGFloat bottomOffset = 0;
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
     username = [defaults objectForKey:usernameKey];
     password = [defaults objectForKey:passwordKey];
+    if (development) {
+        username = @"iostest";
+//        username = @"harveyjoe";
+        password = @"tsetsoi";
+    }
     if (!((username == nil) || (password == nil) || [username isEqualToString:@""] || [password isEqualToString:@""])) {
         NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
         NSString *url = @"https://www.pente.org/gameServer/logout";
@@ -363,6 +368,9 @@ CGFloat bottomOffset = 0;
         
         NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
         NSString *url = [NSString stringWithFormat:@"https://www.pente.org/gameServer/notification?device=iOS&token=%@",storedTokenString];
+        if (development) {
+            url = [NSString stringWithFormat:@"https://development.pente.org/gameServer/notification?device=iOS&token=%@",storedTokenString];
+        }
         [request setURL:[NSURL URLWithString:url]];
         [request setHTTPMethod:@"GET"];
         [request setTimeoutInterval:7.0];
@@ -1191,29 +1199,25 @@ CGFloat bottomOffset = 0;
         messagesViewController = (MessagesViewController *)segue.destinationViewController;
         [messagesViewController setShowAds:player.showAds];
     }
-    if([segue.identifier isEqualToString:@"addInvitationsTap"]){
-        invitationsViewController = (InvitationsViewController *)segue.destinationViewController;
-        long count = [[player activeGames] count] + [[player nonActiveGames] count];
-        for (Game *game in [player sentInvitations]) {
-//            NSLog(@"kitty %@", [game opponentName]);
-            if ([[game opponentName] isEqualToString:@"Anyone"]) {
-//                NSLog(@"kitty anyone");
-                continue;
-            }
-            if ([[game ratedNot] isEqualToString:@"rated"]) {
-                count += 2;
-            } else {
-                ++count;
-            }
-        }
-        if (count > gamesLimit) {
-//            NSLog(@"kitty1 yes");
-            [invitationsViewController setOpenInvitationOnly: YES];
-        } else {
-//            NSLog(@"kitty1 no");
-            [invitationsViewController setOpenInvitationOnly: NO];
-        }
-    }
+//    if([segue.identifier isEqualToString:@"addInvitationsTap"]){
+//        invitationsViewController = (InvitationsViewController *)segue.destinationViewController;
+//        long count = [[player activeGames] count] + [[player nonActiveGames] count];
+//        for (Game *game in [player sentInvitations]) {
+//            if ([[game opponentName] isEqualToString:@"Anyone"]) {
+//                continue;
+//            }
+//            if ([[game ratedNot] isEqualToString:@"rated"]) {
+//                count += 2;
+//            } else {
+//                ++count;
+//            }
+//        }
+//        if (count > gamesLimit) {
+//            [invitationsViewController setOpenInvitationOnly: YES];
+//        } else {
+//            [invitationsViewController setOpenInvitationOnly: NO];
+//        }
+//    }
     if([segue.identifier isEqualToString:@"MMAItap"]){
         [(MMAIViewController *)segue.destinationViewController setShowAds:player.showAds];
     }
@@ -1937,9 +1941,9 @@ CGFloat bottomOffset = 0;
         self.tableView.layer.borderWidth = 1.5;
         [self performSelector:@selector(scrollViewDidScroll:) withObject: self.tableView];
 
-        NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-        username = [defaults objectForKey:usernameKey];
-        password = [defaults objectForKey:passwordKey];
+//        NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+//        username = [defaults objectForKey:usernameKey];
+//        password = [defaults objectForKey:passwordKey];
 
         NSString *post = [NSString stringWithFormat:@"command=delete&mid=%@&name2=%@&password2=%@&mobile=", [[[player messages] objectAtIndex:indexPath.row] messageID],username,password];
         NSData *postData = [post dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
@@ -2157,8 +2161,8 @@ CGFloat bottomOffset = 0;
     [self.pullToReloadHeaderView layoutSubviews];
     
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-    username = [defaults objectForKey:usernameKey];
-    password = [defaults objectForKey:passwordKey];
+//    username = [defaults objectForKey:usernameKey];
+//    password = [defaults objectForKey:passwordKey];
     BOOL wantsToSeeAvatars = [defaults boolForKey:@"wantToSeeAvatars"];
     if (!wantsToSeeAvatars) {
         [player.avatars removeAllObjects];
@@ -2295,11 +2299,11 @@ CGFloat bottomOffset = 0;
             if ([player subscriber]) {
                 [[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"shouldSendReceipt"];
             }
-            if (([dashboardString rangeOfString:@"Unlimited Games"].location != NSNotFound) && ([dashboardString rangeOfString:@"Unlimited Games"].location < 30)) {
-                gamesLimit = INT_MAX;
-            } else {
-                gamesLimit = 200;
-            }
+//            if (([dashboardString rangeOfString:@"Unlimited Games"].location != NSNotFound) && ([dashboardString rangeOfString:@"Unlimited Games"].location < 30)) {
+//                gamesLimit = INT_MAX;
+//            } else {
+//                gamesLimit = 200;
+//            }
             if (!player.showAds) {
                 [bannerView removeFromSuperview];
                 [self.tableView setTableFooterView:nil];
@@ -3014,6 +3018,7 @@ CGFloat bottomOffset = 0;
     [button setTitle:NSLocalizedString(@" online players",nil) forState:UIControlStateNormal];
     [button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
     [button addTarget:self action:@selector(showOnlinePlayers) forControlEvents:UIControlEventTouchUpInside];
+    button.shouldHideBadgeAtZero = YES;
     button.badgeValue = onlineFollowing;
     [button setBadgeBGColor:[UIColor colorWithRed:(8.0/255) green:(52.0/255) blue:(29.0/255) alpha:1.0]];
     [button sizeToFit];

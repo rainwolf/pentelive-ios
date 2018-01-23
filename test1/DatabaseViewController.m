@@ -426,8 +426,11 @@ struct Capture {
                     abstractBoard[i][j] = 1 + ([movesList count]%2);
                 }
                 [movesList addObject:[NSNumber numberWithInt:finalMove]];
-                if (game == nil) {
+                if (!game) {
                     game = setupView.gameCell.detailTextLabel.text;
+                }
+                if (!game) {
+                    game = @"Pente";
                 }
                 if (![game containsString:@"Gomoku"] && ![game containsString:@"Connect6"]) {
                     int color = 2 - ([movesList count] % 2), opponentColor = (color == 2) ? 1 : 2;
@@ -593,6 +596,9 @@ struct Capture {
             gameStr = game;
         } else {
             gameStr = setupView.gameCell.detailTextLabel.text;
+        }
+        if (!game) {
+            game = @"Pente";
         }
         NSString *p1RatingStr = setupView.p1RatingCell.detailTextLabel.text;
         if (p1RatingStr == nil) {

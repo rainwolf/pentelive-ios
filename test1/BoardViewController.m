@@ -846,6 +846,9 @@ struct Capture {
     
     int dashIDX = 0;
     NSString *myUsername = [[[NSUserDefaults standardUserDefaults] objectForKey:@"username"] lowercaseString], *p1Name, *p2Name;
+    if (development) {
+        myUsername = @"iostest";
+    }
     
     while (dashIDX < [splitDash count]) {
         dashLine = [splitDash objectAtIndex:dashIDX];

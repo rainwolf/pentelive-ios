@@ -144,20 +144,20 @@
     self.opponentCell.textField.text = navController.challengedUser;
     [self.opponentCell setNeedsLayout];
     
-    if (self.openInvitationOnly) {
-        NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-        if (![defaults boolForKey:@"stopGamesLimitHassle"]) {
-            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"New account limit reached." message:@"You cannot accept more games. You can, however, play more games by posting open invitations. \n This limit will gradually increase as you finish more games." delegate:self cancelButtonTitle:@"Got it." otherButtonTitles:@"Do not remind me again.", nil];
-            [alert setTag: 0];
-            [alert show];
-        }
-
-        [self.opponentCell setUserInteractionEnabled:NO];
-//        NSLog(@"kitty no");
-    } else {
-//        NSLog(@"kitty yes");
-        [self.opponentCell setUserInteractionEnabled:YES];
-    }
+//    if (self.openInvitationOnly) {
+//        NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+//        if (![defaults boolForKey:@"stopGamesLimitHassle"]) {
+//            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"New account limit reached." message:@"You cannot accept more games. You can, however, play more games by posting open invitations. \n This limit will gradually increase as you finish more games." delegate:self cancelButtonTitle:@"Got it." otherButtonTitles:@"Do not remind me again.", nil];
+//            [alert setTag: 0];
+//            [alert show];
+//        }
+//
+//        [self.opponentCell setUserInteractionEnabled:NO];
+////        NSLog(@"kitty no");
+//    } else {
+////        NSLog(@"kitty yes");
+//        [self.opponentCell setUserInteractionEnabled:YES];
+//    }
     
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
     gameCell.datarray = games;
@@ -178,7 +178,7 @@
         [restrictionCell.detailTextLabel setText:str];
         [restrictionCell.picker selectRow: [restrictions indexOfObject:str] inComponent:0 animated:NO];
     } else {
-        [restrictionCell.detailTextLabel setText:NSLocalizedString(@"beginners",nil)];
+        [restrictionCell.detailTextLabel setText:NSLocalizedString(@"of any rating",nil)];
     }
     [ratedSwitch setOn:![defaults boolForKey:@"lastInvitationRated"] animated:YES];
     if (!ratedSwitch.on) {
