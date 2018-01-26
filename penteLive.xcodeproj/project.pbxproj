@@ -49,6 +49,7 @@
 		635ADAD9167882EC001041E3 /* GamesTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 635ADAD8167882EC001041E3 /* GamesTableViewController.m */; };
 		635B13CB189A540000B07A9B /* CoreTelephony.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 635B13CA189A540000B07A9B /* CoreTelephony.framework */; };
 		635E3B6A17008AF5007E470E /* unread.png in Resources */ = {isa = PBXBuildFile; fileRef = 635E3B6917008AF5007E470E /* unread.png */; };
+		636163A72019E5AA00D5E176 /* PenteGame.m in Sources */ = {isa = PBXBuildFile; fileRef = 636163A62019E5AA00D5E176 /* PenteGame.m */; };
 		63674A5A18897A1C00C21C48 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 63674A5918897A1C00C21C48 /* StoreKit.framework */; };
 		636A99E21E40DE2500D08C5D /* SocialViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636A99E11E40DE2500D08C5D /* SocialViewController.swift */; };
 		636A99E51E4136C800D08C5D /* footprint.png in Resources */ = {isa = PBXBuildFile; fileRef = 636A99E31E4136C800D08C5D /* footprint.png */; };
@@ -244,6 +245,8 @@
 		635ADAD8167882EC001041E3 /* GamesTableViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GamesTableViewController.m; sourceTree = "<group>"; };
 		635B13CA189A540000B07A9B /* CoreTelephony.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreTelephony.framework; path = System/Library/Frameworks/CoreTelephony.framework; sourceTree = SDKROOT; };
 		635E3B6917008AF5007E470E /* unread.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = unread.png; sourceTree = "<group>"; };
+		636163A62019E5AA00D5E176 /* PenteGame.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PenteGame.m; sourceTree = "<group>"; };
+		636163A82019E5C100D5E176 /* PenteGame.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PenteGame.h; sourceTree = "<group>"; };
 		6362A55716677BEC00204445 /* BoardView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BoardView.h; sourceTree = "<group>"; };
 		6362A55816677BEC00204445 /* BoardView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BoardView.m; sourceTree = "<group>"; };
 		63674A57188979E500C21C48 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
@@ -576,6 +579,8 @@
 				6396A37B1D38DE81004BC68D /* ChangeColorViewController.m */,
 				636A99E11E40DE2500D08C5D /* SocialViewController.swift */,
 				637885CE1E5CCA360064DCE3 /* PenteWebViewController.swift */,
+				636163A62019E5AA00D5E176 /* PenteGame.m */,
+				636163A82019E5C100D5E176 /* PenteGame.h */,
 			);
 			name = penteLive;
 			path = test1;
@@ -1062,6 +1067,7 @@
 				637885CF1E5CCA360064DCE3 /* PenteWebViewController.swift in Sources */,
 				63288F4D1DF198BF006F73EF /* HelperClasses.swift in Sources */,
 				633648111CF350C600F432E2 /* RatingStatsView.m in Sources */,
+				636163A72019E5AA00D5E176 /* PenteGame.m in Sources */,
 				639A4BAE1DF038A7000894F5 /* RoomViewController.swift in Sources */,
 				633C9D2915BD5B98009AD00A /* main.m in Sources */,
 				633C9D2D15BD5B98009AD00A /* AppDelegate.m in Sources */,

@@ -15,6 +15,7 @@ typedef int AbstractBoard[19];
     int lastMove;
     NSDictionary<NSNumber *, UIColor *> *dbOptions;
 }
+
 @property int lastMove;
 @property(retain, nonatomic) NSDictionary<NSNumber *, UIColor *> *dbOptions;
 -(instancetype) init;

@@ -14,12 +14,13 @@
 @implementation BoardView
 @synthesize lastMove;
 @synthesize lastConnect6Move;
+@synthesize whiteTerritory, whiteDeadStones, blackTerritory, blackDeadStones;
+@synthesize whiteStoneView, blackStoneView;
+@synthesize whiteSquare, blackSquare;
+@synthesize go;
 
 -(void) setAbstractBoard: (AbstractBoard*) board {
     abstractBoard = board;
-//    for(int i = 0; i < 19; ++i)
-//        for(int j = 0; j < 19; ++j)
-//            abstractBoard[i][j] = board[i][j];
 }
 
 -(instancetype) init {
@@ -29,8 +30,36 @@
     }
     return self;
 }
-- (id)initWithFrame:(CGRect)frame
-{
+- (id)initWithCoder:(NSCoder *)aCoder{
+    if(self = [super initWithCoder:aCoder]){
+        CGFloat h = self.frame.size.height;
+        blackStoneView = [[StoneView alloc] initWithFrame:CGRectMake(0, 0, h, h)];
+        [blackStoneView setStoneColor:BLACK];
+        [blackStoneView setFill:YES];
+        [blackStoneView setAlpha:0.7];
+        blackStoneView.clipsToBounds = YES;
+        [blackStoneView setOpaque:NO];
+        whiteStoneView = [[StoneView alloc] initWithFrame:CGRectMake(0, 0, h, h)];
+        [whiteStoneView setStoneColor:WHITE];
+        [whiteStoneView setFill:YES];
+        [whiteStoneView setAlpha:0.7];
+        whiteStoneView.clipsToBounds = YES;
+        [whiteStoneView setOpaque:NO];
+        whiteSquare = [[UIView alloc] init];
+        [whiteSquare setAlpha:0.8];
+        whiteSquare.clipsToBounds = YES;
+        [whiteSquare setOpaque:NO];
+        [whiteSquare setBackgroundColor:[UIColor whiteColor]];
+        blackSquare = [[UIView alloc] init];
+        [blackSquare setAlpha:0.8];
+        blackSquare.clipsToBounds = YES;
+        [blackSquare setOpaque:NO];
+        [blackSquare setBackgroundColor:[UIColor blackColor]];
+    }
+    return self;
+}
+- (id)initWithFrame:(CGRect)frame {
+    NSLog(@"init kitten");
     self = [super initWithFrame:frame];
     if (self) {
         // Initialization code
@@ -58,25 +87,57 @@
         CGContextAddLineToPoint(context, margin + i*margin*2, self.bounds.size.width - margin);
         CGContextStrokePath(context);
     }
+    CGRect circle;
+    if (go) {
         // draw the 5 little special circles
-    CGRect circle = CGRectMake(margin + 12*margin - margin/2, margin + 12*margin - margin/2, margin, margin);
-    CGContextAddEllipseInRect(context, circle);
-    CGContextStrokePath(context);
-    circle.origin.x = self.bounds.size.width - margin - 12*margin - margin/2;
-    CGContextAddEllipseInRect(context, circle);
-    CGContextStrokePath(context);
-    circle.origin.x = self.bounds.size.width - margin - 12*margin - margin/2;
-    circle.origin.y = self.bounds.size.width - margin - 12*margin - margin/2;
-    CGContextAddEllipseInRect(context, circle);
-    CGContextStrokePath(context);
-    circle.origin.x = margin + 12*margin - margin/2;
-    circle.origin.y = self.bounds.size.width - margin - 12*margin - margin/2;
-    CGContextAddEllipseInRect(context, circle);
-    CGContextStrokePath(context);
-    circle.origin.x = self.bounds.size.width/2 - margin/2;
-    circle.origin.y = self.bounds.size.width/2 - margin/2;
-    CGContextAddEllipseInRect(context, circle);
-    CGContextStrokePath(context);
+        circle = CGRectMake(margin + 6*margin - margin/4, margin + 6*margin - margin/4, margin/2, margin/2);
+        CGContextAddEllipseInRect(context, circle);
+        CGContextFillPath(context);
+        circle = CGRectMake(margin + 6*margin - margin/4, margin + 18*margin - margin/4, margin/2, margin/2);
+        CGContextAddEllipseInRect(context, circle);
+        CGContextFillPath(context);
+        circle = CGRectMake(margin + 6*margin - margin/4, margin + 30*margin - margin/4, margin/2, margin/2);
+        CGContextAddEllipseInRect(context, circle);
+        CGContextFillPath(context);
+        circle = CGRectMake(margin + 18*margin - margin/4, margin + 6*margin - margin/4, margin/2, margin/2);
+        CGContextAddEllipseInRect(context, circle);
+        CGContextFillPath(context);
+        circle = CGRectMake(margin + 18*margin - margin/4, margin + 18*margin - margin/4, margin/2, margin/2);
+        CGContextAddEllipseInRect(context, circle);
+        CGContextFillPath(context);
+        circle = CGRectMake(margin + 18*margin - margin/4, margin + 30*margin - margin/4, margin/2, margin/2);
+        CGContextAddEllipseInRect(context, circle);
+        CGContextFillPath(context);
+        circle = CGRectMake(margin + 30*margin - margin/4, margin + 6*margin - margin/4, margin/2, margin/2);
+        CGContextAddEllipseInRect(context, circle);
+        CGContextFillPath(context);
+        circle = CGRectMake(margin + 30*margin - margin/4, margin + 18*margin - margin/4, margin/2, margin/2);
+        CGContextAddEllipseInRect(context, circle);
+        CGContextFillPath(context);
+        circle = CGRectMake(margin + 30*margin - margin/4, margin + 30*margin - margin/4, margin/2, margin/2);
+        CGContextAddEllipseInRect(context, circle);
+        CGContextFillPath(context);
+    } else {
+        // draw the 5 little special circles
+        CGRect circle = CGRectMake(margin + 12*margin - margin/2, margin + 12*margin - margin/2, margin, margin);
+        CGContextAddEllipseInRect(context, circle);
+        CGContextStrokePath(context);
+        circle.origin.x = self.bounds.size.width - margin - 12*margin - margin/2;
+        CGContextAddEllipseInRect(context, circle);
+        CGContextStrokePath(context);
+        circle.origin.x = self.bounds.size.width - margin - 12*margin - margin/2;
+        circle.origin.y = self.bounds.size.width - margin - 12*margin - margin/2;
+        CGContextAddEllipseInRect(context, circle);
+        CGContextStrokePath(context);
+        circle.origin.x = margin + 12*margin - margin/2;
+        circle.origin.y = self.bounds.size.width - margin - 12*margin - margin/2;
+        CGContextAddEllipseInRect(context, circle);
+        CGContextStrokePath(context);
+        circle.origin.x = self.bounds.size.width/2 - margin/2;
+        circle.origin.y = self.bounds.size.width/2 - margin/2;
+        CGContextAddEllipseInRect(context, circle);
+        CGContextStrokePath(context);
+    }
         // draw the game
     
     for(int i = 0; i < 19; ++i) {
@@ -84,52 +145,73 @@
             if (abstractBoard[i][j] > 0) {
                 circle = CGRectMake(j*2*margin,i*2*margin,2*margin,2*margin);
                 CGPoint centre = CGPointMake(circle.origin.x + margin - margin/6, circle.origin.y + margin - margin/6);
-                
+
                 CGContextSaveGState(context);
                 size_t num_locations = 2;
                 CGFloat locations[2] = { 0.0, 1.0 };
                 CGFloat start = 150.0/255.0;
                 CGFloat end = 0.0f;
-                if (abstractBoard[i][j] == 2) {
-//                    CGContextSetFillColorWithColor(context, [UIColor blackColor].CGColor);
-                } else {
+                if (abstractBoard[i][j] == 1) {
                     start = 1.0;
                     end = 210.0/255.0;
-//                    CGContextSetFillColorWithColor(context, [UIColor whiteColor].CGColor);
-//                    circle = CGRectMake(j*2*margin,i*2*margin, 2*margin,2*margin);
-//                    CGContextAddEllipseInRect(context, circle);
-//                    CGContextFillPath(context);
                 }
                 CGFloat components[8] = { start,start,start, 1.0,  // Start color
                     end,end,end, 1.0 }; // End color
-                
+
                 CGColorSpaceRef myColorspace = CGColorSpaceCreateDeviceRGB();
                 CGGradientRef myGradient = CGGradientCreateWithColorComponents (myColorspace, components, locations, num_locations);
-                
+
                 CGContextAddEllipseInRect(context, circle);
                 CGContextSetShadow(context, CGSizeMake(margin/6, margin/6), 0);
                 CGContextFillPath(context);
                 CGContextAddEllipseInRect(context, circle);
                 CGContextClip(context);
                 CGContextDrawRadialGradient(context, myGradient, centre, 0.0f, centre, 5*margin/4, 0);
-//                CGContextSetFillColorWithColor(context, [UIColor blackColor].CGColor);
                 CGContextRestoreGState(context);
-                
-//                CGContextAddEllipseInRect(context, circle);
-//                CGContextFillPath(context);
-//                if (abstractBoard[i][j] == 2) {
-//                    CGContextSetFillColorWithColor(context, [UIColor blackColor].CGColor);
-//                } else {
-//                    CGContextSetFillColorWithColor(context, [UIColor whiteColor].CGColor);
-//                    circle = CGRectMake(j*2*margin,i*2*margin, 2*margin,2*margin);
-//                    CGContextAddEllipseInRect(context, circle);
-//                    CGContextFillPath(context);
-//                }
             }
         }
     }
-//    NSLog(@"kittys %i",lastConnect6Move);
-//    NSLog(@"kittys %i",lastMove);
+    
+    
+    for (NSNumber *stone in whiteDeadStones) {
+        int stoneInt = stone.intValue, i = stoneInt/19, j = stoneInt%19;
+        circle = CGRectMake(j*2*margin,i*2*margin,2*margin,2*margin);
+        CGContextSaveGState(context);
+        CGContextTranslateCTM(context, circle.origin.x, circle.origin.y);
+        [whiteStoneView setFrame:circle];
+        whiteStoneView.layer.cornerRadius = margin;
+        [whiteStoneView.layer renderInContext:UIGraphicsGetCurrentContext()];
+        CGContextRestoreGState(context);
+    }
+    for (NSNumber *stone in blackDeadStones) {
+        int stoneInt = stone.intValue, i = stoneInt/19, j = stoneInt%19;
+        circle = CGRectMake(j*2*margin,i*2*margin,2*margin,2*margin);
+        CGContextSaveGState(context);
+        CGContextTranslateCTM(context, circle.origin.x, circle.origin.y);
+        [blackStoneView setFrame:circle];
+        blackStoneView.layer.cornerRadius = margin;
+        [blackStoneView.layer renderInContext:UIGraphicsGetCurrentContext()];
+        CGContextRestoreGState(context);
+    }
+    for (NSNumber *stone in whiteTerritory) {
+        int stoneInt = stone.intValue, i = stoneInt/19, j = stoneInt%19;
+        circle = CGRectMake(j*2*margin + margin*2/3,i*2*margin + margin*2/3,margin*2/3,margin*2/3);
+        CGContextSaveGState(context);
+        CGContextTranslateCTM(context, circle.origin.x, circle.origin.y);
+        [whiteSquare setFrame:circle];
+        [whiteSquare.layer renderInContext:UIGraphicsGetCurrentContext()];
+        CGContextRestoreGState(context);
+    }
+    for (NSNumber *stone in blackTerritory) {
+        int stoneInt = stone.intValue, i = stoneInt/19, j = stoneInt%19;
+        circle = CGRectMake(j*2*margin + margin*2/3,i*2*margin + margin*2/3,margin*2/3,margin*2/3);
+        CGContextSaveGState(context);
+        CGContextTranslateCTM(context, circle.origin.x, circle.origin.y);
+        [blackSquare setFrame:circle];
+        [blackSquare.layer renderInContext:UIGraphicsGetCurrentContext()];
+        CGContextRestoreGState(context);
+    }
+
     CGContextSaveGState(context);
     if (lastConnect6Move > -1) {
         CGContextSetFillColorWithColor(context, [UIColor colorWithRed:1 green:0 blue:0 alpha:0.8].CGColor);
@@ -174,6 +256,7 @@
 
 @implementation StoneView
 @synthesize stoneColor;
+@synthesize fill;
 
 - (id)initWithFrame:(CGRect)frame
 {
@@ -191,7 +274,7 @@
 {
     CGContextRef context = UIGraphicsGetCurrentContext();
     CGContextSetStrokeColorWithColor(context, [UIColor blackColor].CGColor);
-    CGFloat circleSide = self.bounds.size.width/1.2;
+    CGFloat circleSide = fill?self.bounds.size.width:self.bounds.size.width/1.2;
     CGFloat indent = (self.bounds.size.width - circleSide)/2;
     CGRect circle = CGRectMake(indent, indent,circleSide,circleSide);
     CGFloat margin = circle.size.width/2;
@@ -200,19 +283,22 @@
     CGFloat locations[2] = { 0.0, 1.0 };
     CGFloat start = 150.0/255.0;
     CGFloat end = 0.0f;
-    if ([stoneColor isEqual:[UIColor blackColor]]) {
-        //                    CGContextSetFillColorWithColor(context, [UIColor blackColor].CGColor);
-    } else {
+    if (stoneColor == WHITE) {
         start = 1.0;
         end = 210.0/255.0;
-        //                    CGContextSetFillColorWithColor(context, [UIColor whiteColor].CGColor);
-        //                    circle = CGRectMake(j*2*margin,i*2*margin, 2*margin,2*margin);
-        //                    CGContextAddEllipseInRect(context, circle);
-        //                    CGContextFillPath(context);
     }
     CGFloat components[8] = { start,start,start, 1.0,  // Start color
         end,end,end, 1.0 }; // End color
-    
+    if (stoneColor == RED) {
+        start = 1.0;
+        end = 210.0/255.0;
+        components[0] = start;
+        components[1] = end;
+        components[2] = end;
+        components[4] = start;
+        components[5] = 0;
+        components[6] = 0;
+    }
     CGColorSpaceRef myColorspace = CGColorSpaceCreateDeviceRGB();
     CGGradientRef myGradient = CGGradientCreateWithColorComponents (myColorspace, components, locations, num_locations);
     
