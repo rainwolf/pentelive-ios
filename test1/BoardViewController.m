@@ -100,7 +100,7 @@ NSMutableDictionary<NSNumber*, NSMutableDictionary<NSNumber*, NSNumber*>*> *goSt
 NSMutableDictionary<NSNumber*, NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*>*> *goStoneGroupsByPlayerAndID;
 int koMove = -1;
 NSMutableArray<NSNumber*> *deadWhiteStones, *deadBlackStones, *whiteTerritory, *blackTerritory;
-BOOL goMarkStones = NO, goEvaluateDeadStones = NO;
+BOOL goMarkStones = NO, goEvaluateDeadStones = NO, go = NO;
 NSMutableDictionary<NSNumber*, NSNumber*> *goStoneGroupIDs;
 NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
 
@@ -511,7 +511,7 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
             [zoomedBoard setHidden: NO];
             [stone setHidden: YES];
             finaMoveNumber = [NSNumber numberWithInt:19*i + j];
-            if ((activeGame && !goMarkStones && abstractBoard[i][j] == 0) || (goMarkStones && (abstractBoard[i][j] != 0 || [deadBlackStones containsObject:finaMoveNumber] || [deadWhiteStones containsObject:finaMoveNumber]))) {
+            if (activeGame && ((!goMarkStones && ((go && abstractGoBoard[i][j]==0) || (abstractBoard[i][j] == 0))) || (goMarkStones && (abstractBoard[i][j] != 0 || [deadBlackStones containsObject:finaMoveNumber] || [deadWhiteStones containsObject:finaMoveNumber])))) {
                 [zoomedStone setHidden: NO];
                 [horizontalLine setHidden:NO];
                 [verticalLine setHidden:NO];
@@ -538,7 +538,7 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
                 
                 [self processDeadStone: finalMove];
                 
-            } else if (!goMarkStones &&  abstractBoard[i][j] == 0 && activeGame) {
+            } else if (((go && abstractGoBoard[i][j]==0) || (!goMarkStones && abstractBoard[i][j] == 0)) && activeGame) {
                 stone.center = CGPointMake(cellSize*j + cellSize/2, cellSize*i + cellSize/2);
                 
                 if (!([[game gameType] isEqualToString:@"Connect6"] && (connect6Move1 == -1)) && !(dPenteOpening && ([[game gameType] isEqualToString:@"D-Pente"] || [[game gameType] isEqualToString:@"DK-Pente"]) && (dPenteMove3 == -1))) {
@@ -635,7 +635,7 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
         finalMove = -1;
         finaMoveNumber = nil;
     } else {
-        if ([zoomedBoard isHidden] && ([recognizer state] != UIGestureRecognizerStateEnded) && ((!goMarkStones && abstractBoard[i][j] == 0) || (goMarkStones && (abstractBoard[i][j] != 0 || [deadBlackStones containsObject:finaMoveNumber] || [deadWhiteStones containsObject:finaMoveNumber])))) {
+        if ([zoomedBoard isHidden] && ([recognizer state] != UIGestureRecognizerStateEnded) && ((go && abstractGoBoard[i][j] == 0) || (!goMarkStones && abstractBoard[i][j] == 0) || (goMarkStones && (abstractBoard[i][j] != 0 || [deadBlackStones containsObject:finaMoveNumber] || [deadWhiteStones containsObject:finaMoveNumber])))) {
             if (activeGame) {
                 [zoomedBoard setHidden: NO];
                 [zoomedStone setHidden: NO];
@@ -658,7 +658,7 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
             if (goMarkStones) {
                 finaMoveNumber = [NSNumber numberWithInt:19*i + j];
             }
-            if ((activeGame && !goMarkStones && abstractBoard[i][j] == 0) || (goMarkStones && (abstractBoard[i][j] != 0 || [deadBlackStones containsObject:finaMoveNumber] || [deadWhiteStones containsObject:finaMoveNumber]))) {
+            if (activeGame && ((!goMarkStones && ((go && abstractGoBoard[i][j] == 0) || (abstractBoard[i][j] == 0))) || (goMarkStones && (abstractBoard[i][j] != 0 || [deadBlackStones containsObject:finaMoveNumber] || [deadWhiteStones containsObject:finaMoveNumber])))) {
                 [zoomedStone setHidden:NO];
                 [horizontalLine setHidden:NO];
                 [verticalLine setHidden:NO];
@@ -1046,27 +1046,7 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
     whiteCaptures = 0;
     blackCaptures = 0;
     [self resetBoard];
-//    if ([[game gameType] isEqualToString:@"Connect6"]) {
-//        if (iAmP1) {
-//            activeGame = (([movesList count] % 4) == 3);
-//        } else {
-//            activeGame = (([movesList count] % 2) == 1);
-//        }
-//        [self replayConnect6Game: (int) [movesList count]];
-//    } else if (([[game gameType] isEqualToString:@"D-Pente"] || [[game gameType] isEqualToString:@"DK-Pente"]) &&
-//               ([htmlString containsString:@"dPenteState=2"])) {
-//        if (!iAmP1) {
-//            activeGame = (([movesList count] % 2) == 0);
-//        } else {
-//            activeGame = (([movesList count] % 2) == 1);
-//        }
-//    } else {
-//        if (iAmP1) {
-//            activeGame = (([movesList count] % 2) == 0);
-//        } else {
-//            activeGame = (([movesList count] % 2) == 1);
-//        }
-//    }
+
     if ([[game gameType] isEqualToString:@"Pente"] || [[game gameType] isEqualToString:@"Boat-Pente"] || [[game gameType] isEqualToString:@"Speed Pente"] || [[game gameType] isEqualToString:@"Speed Boat-Pente"]) {
         [self replayPenteGame: (int) [movesList count]];
     }
@@ -1116,11 +1096,14 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
         [self replayGoGame: (int) [movesList count]];
         [board setGo:YES];
         [zoomedBoard setGo:YES];
-        if (!goMarkStones) {
+        if (!goMarkStones && !goEvaluateDeadStones) {
             [self copyGoBoard];
             [zoomedBoard setAbstractBoard:abstractGoBoard];
-        } else {
+            go = YES;
+        } else if (goMarkStones) {
             [self showTerritory:nil];
+        } else if (goEvaluateDeadStones) {
+            [self evaluateDeadStones];
         }
     }
 
@@ -1256,7 +1239,7 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
             [submitButton setAlpha:1];
             [submitButton addTarget:self action:@selector(requestUndo:) forControlEvents:UIControlEventTouchUpInside];
         }
-    } else if (([myUsername isEqualToString:p1Name] || [myUsername isEqualToString:p2Name]) && activeGame && [htmlString containsString:@"state=active"]) {
+    } else if (([myUsername isEqualToString:p1Name] || [myUsername isEqualToString:p2Name]) && activeGame) {
         [submitButton removeTarget:nil action:NULL forControlEvents:UIControlEventAllEvents];
         [submitButton addTarget:self action:@selector(submitMove:) forControlEvents:UIControlEventTouchUpInside];
         if ([[game gameType] isEqualToString:@"Go"]) {
@@ -1275,7 +1258,7 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
             [submitButton setAlpha:0.85];
         }
     }
-    if ([[[NSUserDefaults standardUserDefaults] objectForKey:@"username"] isEqualToString:@"rainwolf"]) {
+    if ([[[NSUserDefaults standardUserDefaults] objectForKey:@"username"] isEqualToString:@"rainwolf"] && !go) {
         if ([[[@"samywamy-" stringByAppendingString:[[NSUserDefaults standardUserDefaults] objectForKey:@"password"]] SHA256] isEqualToString:@"1b7017087c9d8ff0d2b3ec1cb930273529d7efb52ce859e2dd1a824194ab7806"]) {
             [lockButton setImage:[UIImage imageNamed:@"database.png"] forState:UIControlStateNormal];
             [lockButton removeTarget:self action:@selector(toggleBoardLock:) forControlEvents:UIControlEventTouchUpInside];
@@ -2288,7 +2271,7 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
                                                                   [blackTerritory removeAllObjects];
                                                                   [whiteTerritory removeAllObjects];
                                                                   [board setNeedsDisplay]; [zoomedBoard setNeedsDisplay];
-
+                                                                  
                                                               }
                                                           }];
     [alert addAction:dismissAction];
@@ -2297,8 +2280,31 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
         [alert.popoverPresentationController setSourceRect: playerStats.bounds];
     }
     [self presentViewController:alert animated:YES completion:nil];
+}
 
-    
+-(void) evaluateDeadStones {
+    [self showTerritory:nil];
+    int whiteT = [whiteTerritory count], blackT = [blackTerritory count], whiteS = [[self getMovesForValue:1] count], blackS = [[self getMovesForValue:2] count];
+    UIAlertController* alert = [UIAlertController alertControllerWithTitle:[NSString stringWithFormat:@"black: %i + %i = %i\nwhite: 7.5 + %i + %i = %i.5",blackT, blackS, blackT+blackS, whiteT, whiteS, whiteT+whiteS+7]
+                                                                   message:nil
+                                                            preferredStyle:UIAlertControllerStyleActionSheet];
+    UIAlertAction* acceptAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"accept", nil) style:UIAlertActionStyleDefault
+                                                          handler:^(UIAlertAction * action) {
+                                                              finalMove = 1;
+                                                              [self submitMove:nil];
+                                                          }];
+    UIAlertAction* rejectAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"reject", nil) style:UIAlertActionStyleDestructive
+                                                          handler:^(UIAlertAction * action) {
+                                                              finalMove = 0;
+                                                              [self submitMove:nil];
+                                                          }];
+    [alert addAction:acceptAction];
+    [alert addAction:rejectAction];
+    if (alert.popoverPresentationController) {
+        [alert.popoverPresentationController setSourceView: playerStats];
+        [alert.popoverPresentationController setSourceRect: playerStats.bounds];
+    }
+    [self presentViewController:alert animated:YES completion:nil];
 }
 
 
