@@ -2349,8 +2349,10 @@ CGFloat bottomOffset = 0;
                         gameStr = @"Connect6";
                     } else if (gameInt < 17) {
                         gameStr = @"Boat-Pente";
-                    } else {
+                    } else if (gameInt < 19) {
                         gameStr = @"DK-Pente";
+                    } else {
+                        gameStr = @"Go";
                     }
                     if (hill.gameId > 50) {
                         [hill setGame: [@"tb-" stringByAppendingString:gameStr]];
@@ -2430,8 +2432,10 @@ CGFloat bottomOffset = 0;
                         gameStr = @"Connect6";
                     } else if (gameInt < 17) {
                         gameStr = @"Boat-Pente";
-                    } else {
+                    } else if (gameInt < 19) {
                         gameStr = @"DK-Pente";
+                    } else {
+                        gameStr = @"Go";
                     }
                     if (ratingStat.gameId > 50) {
                         [ratingStat setGame: [@"tb-" stringByAppendingString:gameStr]];
