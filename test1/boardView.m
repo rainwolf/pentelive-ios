@@ -89,7 +89,6 @@
     }
     CGRect circle;
     if (go) {
-        // draw the 5 little special circles
         circle = CGRectMake(margin + 6*margin - margin/4, margin + 6*margin - margin/4, margin/2, margin/2);
         CGContextAddEllipseInRect(context, circle);
         CGContextFillPath(context);

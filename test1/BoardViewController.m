@@ -1106,7 +1106,9 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
             [self evaluateDeadStones];
         }
     }
-
+    if ([[game gameType] isEqualToString:@"Connect6"] || [[game gameType] isEqualToString:@"Speed Connect6"]) {
+        [self replayConnect6Game: (int) [movesList count]];
+    }
     [self updateCaptures];
     
     if ([[game gameType] isEqualToString:@"Gomoku"] || [[game gameType] isEqualToString:@"Speed Gomoku"]) {
@@ -2204,27 +2206,24 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
     return result;
 }
 
--(void) showTerritory: (id) sender {
-    for (NSMutableArray<NSNumber*>* group in [[goStoneGroupsByPlayerAndID objectForKey:[NSNumber numberWithInt:1]] allValues]) {
-        for (NSNumber* stone in group) {
-            int emptyNeighbor = [self getEmpyNeighbor:stone.intValue];
+
+-(void) floodForPlayer: (int) player {
+    for (int move = 0; move<361; ++move) {
+        if ([self getBoardValue:move] == 3-player) {
+            int emptyNeighbor = [self getEmpyNeighbor:move];
             while (emptyNeighbor > -1) {
-                [self floodFillWorkerWithMove:emptyNeighbor andValue:3];
-                emptyNeighbor = [self getEmpyNeighbor:stone.intValue];
+                [self floodFillWorkerWithMove:emptyNeighbor andValue: player + 2];
+                emptyNeighbor = [self getEmpyNeighbor:move];
             }
         }
     }
+}
+
+-(void) showTerritory: (id) sender {
+    [self floodForPlayer:1];
     blackTerritory = [self getMovesForValue:3];
     [self resetGoBoardBeforeFlood];
-    for (NSMutableArray<NSNumber*>* group in [[goStoneGroupsByPlayerAndID objectForKey:[NSNumber numberWithInt:2]] allValues]) {
-        for (NSNumber* stone in group) {
-            int emptyNeighbor = [self getEmpyNeighbor:stone.intValue];
-            while (emptyNeighbor > -1) {
-                [self floodFillWorkerWithMove:emptyNeighbor andValue:4];
-                emptyNeighbor = [self getEmpyNeighbor:stone.intValue];
-            }
-        }
-    }
+    [self floodForPlayer:2];
     whiteTerritory = [self getMovesForValue:4];
     [self resetGoBoardBeforeFlood];
     
