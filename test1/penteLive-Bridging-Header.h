@@ -3,10 +3,10 @@
 //
 
 #import "PenteNavigationViewController.h"
-#import "GCDAsyncSocket.h"
+@import CocoaAsyncSocket;
 #import <GoogleMobileAds/GoogleMobileAds.h>
-#import "TSMessage.h"
-#import "TSMessageView.h"
-#import "PopoverView.h"
-#import "SVWebViewController.h"
+@import TSMessages;
+//#import "TSMessageView.h"
+@import PopoverView;
+@import SVWebViewController;
 #import "BoardViewController.h"

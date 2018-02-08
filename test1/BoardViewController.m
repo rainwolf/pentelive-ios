@@ -30,6 +30,7 @@
 #import "DatabaseViewController.h"
 #import <NSHash/NSString+NSHash.h>
 #import "penteLive-Swift.h"
+@import TSMessages;
 
 
 #define usernameKey @"username"
@@ -400,6 +401,8 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
     if (dPenteChoice || goMarkStones) {
         return;
     }
+    [board setBlackTerritory:nil];
+    [board setWhiteTerritory:nil];
 //    NSLog(@"SwipeLeft %i", lastMove);
     finalMove = -1;
     if (!submitButton.imageView.image && activeGame) {
@@ -980,6 +983,15 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
             [receivedMessageView setFont:[UIFont fontWithName:@"HelveticaNeue-Bold" size:15.35f]];
             receivedMessage = [NSString stringWithFormat:@" %@: %@",[game opponentName], [messagesHistory objectForKey:[NSString stringWithFormat:@"%lu", (unsigned long)[movesList count]]]];
         }
+        if ([game.gameType isEqualToString:@"Go"]) {
+            if (([[game myColor] isEqualToString:@"black"] && (([movesList count] % 2) == 1)) || ([[game myColor] isEqualToString:@"white"] && (([movesList count] % 2) == 0))) {
+                [receivedMessageView setFont:[UIFont fontWithName:@"HelveticaNeue" size:15.35f]];
+                receivedMessage = [NSString stringWithFormat:@" me: %@", [messagesHistory objectForKey:[NSString stringWithFormat:@"%lu", (unsigned long)[movesList count]]]];
+            } else {
+                [receivedMessageView setFont:[UIFont fontWithName:@"HelveticaNeue-Bold" size:15.35f]];
+                receivedMessage = [NSString stringWithFormat:@" %@: %@",[game opponentName], [messagesHistory objectForKey:[NSString stringWithFormat:@"%lu", (unsigned long)[movesList count]]]];
+            }
+        }
     } else {
         receivedMessage = @"";
         [replyMessageView setFrame:CGRectMake(0, 0, self.view.bounds.size.width - 40, 88)];
@@ -1090,6 +1102,7 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
     if ([[game gameType] isEqualToString:@"Poof-Pente"] || [[game gameType] isEqualToString:@"Speed Poof-Pente"]) {
         [self replayPoofPenteGame: (int) [movesList count]];
     }
+    go = NO; goMarkStones = NO; goEvaluateDeadStones = NO;
     if ([[game gameType] isEqualToString:@"Go"] || [[game gameType] isEqualToString:@"Speed Go"]) {
         goMarkStones = [htmlString containsString:@"Go=MARK_DEAD_STONES"];
         goEvaluateDeadStones = [htmlString containsString:@"Go=EVALUATE_DEAD_STONES"];
@@ -1102,7 +1115,7 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
             go = YES;
         } else if (goMarkStones) {
             [self showTerritory:nil];
-        } else if (goEvaluateDeadStones) {
+        } else if (goEvaluateDeadStones && activeGame) {
             [self evaluateDeadStones];
         }
     }
@@ -1260,16 +1273,16 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
             [submitButton setAlpha:0.85];
         }
     }
-//    if ([[[NSUserDefaults standardUserDefaults] objectForKey:@"username"] isEqualToString:@"rainwolf"] && !go) {
-//        if ([[[@"samywamy-" stringByAppendingString:[[NSUserDefaults standardUserDefaults] objectForKey:@"password"]] SHA256] isEqualToString:@"1b7017087c9d8ff0d2b3ec1cb930273529d7efb52ce859e2dd1a824194ab7806"]) {
-//            [lockButton setImage:[UIImage imageNamed:@"database.png"] forState:UIControlStateNormal];
-//            [lockButton removeTarget:self action:@selector(toggleBoardLock:) forControlEvents:UIControlEventTouchUpInside];
-//            [lockButton addTarget:self action:@selector(toDB) forControlEvents:UIControlEventTouchUpInside];
-//            [lockButton setAlpha:1.0f];
-//            [lockButton setEnabled:YES];
-//            [lockButton setNeedsDisplay];
-//        }
-//    }
+    if ([[[NSUserDefaults standardUserDefaults] objectForKey:@"username"] isEqualToString:@"rainwolf"] && !go) {
+        if ([[[@"samywamy-" stringByAppendingString:[[NSUserDefaults standardUserDefaults] objectForKey:@"password"]] SHA256] isEqualToString:@"1b7017087c9d8ff0d2b3ec1cb930273529d7efb52ce859e2dd1a824194ab7806"]) {
+            [lockButton setImage:[UIImage imageNamed:@"database.png"] forState:UIControlStateNormal];
+            [lockButton removeTarget:self action:@selector(toggleBoardLock:) forControlEvents:UIControlEventTouchUpInside];
+            [lockButton addTarget:self action:@selector(toDB) forControlEvents:UIControlEventTouchUpInside];
+            [lockButton setAlpha:1.0f];
+            [lockButton setEnabled:YES];
+            [lockButton setNeedsDisplay];
+        }
+    }
 }
 
 -(void) requestUndo: (UIButton*) sender {
@@ -1431,7 +1444,9 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
 -(void) toDB {
 //    NSLog(@"%d",lastMove);
     PenteNavigationViewController *navController = (PenteNavigationViewController*) self.navigationController;
-    [[NSUserDefaults standardUserDefaults] setObject:[game gameType] forKey:@"DBGame"];
+    if (![game.gameType isEqualToString:@"Go"]) {
+        [[NSUserDefaults standardUserDefaults] setObject:[game gameType] forKey:@"DBGame"];
+    }
     UIStoryboard *sb = [UIStoryboard storyboardWithName:@"MainStoryboard" bundle:nil];
     DatabaseViewController * vc = (DatabaseViewController *)[sb instantiateViewControllerWithIdentifier:@"databaseViewController"];
     [vc setMovesList: [[movesList subarrayWithRange:NSMakeRange(0, lastMove)] mutableCopy]];
@@ -1502,6 +1517,15 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
         } else if ([[game gameType] isEqualToString:@"Connect6"]) {
             [receivedMessageView setFont:[UIFont fontWithName:@"HelveticaNeue-Bold" size:15.35f]];
             receivedMessage = [NSString stringWithFormat:@" %@: %@",[game opponentName], [messagesHistory objectForKey:[NSString stringWithFormat:@"%i", untilMove]]];
+        }
+        if ([game.gameType isEqualToString:@"Go"]) {
+                [receivedMessageView setFont:[UIFont fontWithName:@"HelveticaNeue" size:15.35f]];
+            if (([[game myColor] isEqualToString:@"black"] && ((untilMove % 2) == 1)) || ([[game myColor] isEqualToString:@"white"] && ((untilMove % 2) == 0))) {
+                receivedMessage = [NSString stringWithFormat:@" me: %@", [messagesHistory objectForKey:[NSString stringWithFormat:@"%lu", (unsigned long)untilMove]]];
+            } else {
+                [receivedMessageView setFont:[UIFont fontWithName:@"HelveticaNeue-Bold" size:15.35f]];
+                receivedMessage = [NSString stringWithFormat:@" %@: %@",[game opponentName], [messagesHistory objectForKey:[NSString stringWithFormat:@"%lu", (unsigned long)untilMove]]];
+            }
         }
         [receivedMessageView setText:receivedMessage];
     } else {
@@ -2962,6 +2986,7 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
     } else if (![receivedMessage isEqualToString:@""]) {
             [messagePopover showAtPoint:showPoint inView:self.view withContentView:receivedMessageView];
     }
+    [receivedMessageView sizeToFit];
 }
 
 - (void) cancelResignHide {

@@ -83,7 +83,8 @@ import UIKit
             for line in serverLines {
                 if line.contains(":") {
                     let serverAndPlayers = line.components(separatedBy: ":")
-                    let result = serverAndPlayers[0].characters.split(separator: " ", maxSplits: 1, omittingEmptySubsequences: false)
+//                    let result = serverAndPlayers[0].characters.split(separator: " ", maxSplits: 1, omittingEmptySubsequences: false)
+                    let result = serverAndPlayers[0].split(separator: " ", maxSplits: 1, omittingEmptySubsequences: false)
                     if result.count > 1 {
                         let room = GameRoom(name: String(result[1]), port: Int(String(result[0]))!)
                         servers.append(room)
@@ -107,7 +108,8 @@ import UIKit
                     
 
                 } else {
-                    let result = line.characters.split(separator: " ", maxSplits: 1, omittingEmptySubsequences: false)
+//                    let result = line.characters.split(separator: " ", maxSplits: 1, omittingEmptySubsequences: false)
+                    let result = line.split(separator: " ", maxSplits: 1, omittingEmptySubsequences: false)
                     if result.count > 1 {
                         let room = GameRoom(name: String(result[1]), port: Int(String(result[0]))!)
                         servers.append(room)

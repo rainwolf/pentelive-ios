@@ -10,6 +10,7 @@ import UIKit
 
 class LiveBoard: UIView {
     var table: Table!
+    var go = false
     
     init(table:Table) {
         self.table = table
@@ -32,25 +33,56 @@ class LiveBoard: UIView {
             context.addLine(to: CGPoint(x: margin + CGFloat(i)*margin*2, y: self.bounds.size.width - margin))
             context.strokePath()
         }
-        // draw the 5 little special circles
-        var circle = CGRect(x: margin + 12*margin - margin/2, y: margin + 12*margin - margin/2, width: margin, height: margin)
-        context.addEllipse(in: circle)
-        context.strokePath()
-        circle.origin.x = self.bounds.size.width - margin - 12*margin - margin/2
-        context.addEllipse(in: circle)
-        context.strokePath()
-        circle.origin.x = self.bounds.size.width - margin - 12*margin - margin/2
-        circle.origin.y = self.bounds.size.width - margin - 12*margin - margin/2
-        context.addEllipse(in: circle)
-        context.strokePath()
-        circle.origin.x = margin + 12*margin - margin/2
-        circle.origin.y = self.bounds.size.width - margin - 12*margin - margin/2
-        context.addEllipse(in: circle);
-        context.strokePath();
-        circle.origin.x = self.bounds.size.width/2 - margin/2;
-        circle.origin.y = self.bounds.size.width/2 - margin/2;
-        context.addEllipse(in: circle);
-        context.strokePath();
+        var circle: CGRect
+        if !go {
+            // draw the 5 little special circles
+            circle = CGRect(x: margin + 12*margin - margin/2, y: margin + 12*margin - margin/2, width: margin, height: margin)
+            context.addEllipse(in: circle)
+            context.strokePath()
+            circle.origin.x = self.bounds.size.width - margin - 12*margin - margin/2
+            context.addEllipse(in: circle)
+            context.strokePath()
+            circle.origin.x = self.bounds.size.width - margin - 12*margin - margin/2
+            circle.origin.y = self.bounds.size.width - margin - 12*margin - margin/2
+            context.addEllipse(in: circle)
+            context.strokePath()
+            circle.origin.x = margin + 12*margin - margin/2
+            circle.origin.y = self.bounds.size.width - margin - 12*margin - margin/2
+            context.addEllipse(in: circle);
+            context.strokePath();
+            circle.origin.x = self.bounds.size.width/2 - margin/2;
+            circle.origin.y = self.bounds.size.width/2 - margin/2;
+            context.addEllipse(in: circle);
+            context.strokePath();
+        } else {
+            circle = CGRect(x: margin + 6*margin - margin/4, y: margin + 6*margin - margin/4, width: margin/2, height: margin/2);
+            context.addEllipse(in: circle)
+            context.fillPath()
+            circle = CGRect(x: margin + 6*margin - margin/4, y: margin + 18*margin - margin/4, width: margin/2, height: margin/2);
+            context.addEllipse(in: circle)
+            context.fillPath()
+            circle = CGRect(x: margin + 6*margin - margin/4, y: margin + 30*margin - margin/4, width: margin/2, height: margin/2);
+            context.addEllipse(in: circle)
+            context.fillPath()
+            circle = CGRect(x: margin + 18*margin - margin/4, y: margin + 6*margin - margin/4, width: margin/2, height: margin/2);
+            context.addEllipse(in: circle)
+            context.fillPath()
+            circle = CGRect(x: margin + 18*margin - margin/4, y: margin + 18*margin - margin/4, width: margin/2, height: margin/2);
+            context.addEllipse(in: circle)
+            context.fillPath()
+            circle = CGRect(x: margin + 18*margin - margin/4, y: margin + 30*margin - margin/4, width: margin/2, height: margin/2);
+            context.addEllipse(in: circle)
+            context.fillPath()
+            circle = CGRect(x: margin + 30*margin - margin/4, y: margin + 6*margin - margin/4, width: margin/2, height: margin/2);
+            context.addEllipse(in: circle)
+            context.fillPath()
+            circle = CGRect(x: margin + 30*margin - margin/4, y: margin + 18*margin - margin/4, width: margin/2, height: margin/2);
+            context.addEllipse(in: circle)
+            context.fillPath()
+            circle = CGRect(x: margin + 30*margin - margin/4, y: margin + 30*margin - margin/4, width: margin/2, height: margin/2);
+            context.addEllipse(in: circle)
+            context.fillPath()
+        }
         for i in 0..<19 {
             for j in 0..<19 {
                 if table.abstractBoard[i][j] > 0 {

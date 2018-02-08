@@ -4,9 +4,10 @@ post_install do |installer|
 end
 
 source 'https://github.com/CocoaPods/Specs.git'
+use_frameworks!
 
 target "penteLive" do
-platform :ios, '7.0'
+platform :ios, '9.0'
 #	use_frameworks!
 	pod 'Firebase/Core'
 	pod 'Firebase/AdMob'

@@ -17,7 +17,7 @@
 #import "WhosOnlineView.h"
 #import "SettingsViewController.h"
 #import "DatabaseViewController.h"
-
+@import TSMessages;
 #import "UIButton+Badge.h"
 #import "UIBarButtonItem+Badge.h"
 
@@ -2985,8 +2985,32 @@ CGFloat bottomOffset = 0;
     [[UIApplication sharedApplication] setApplicationIconBadgeNumber:badgeNr];
     self.tableView.layer.borderWidth = 0.0;
     [self.tableView setUserInteractionEnabled:YES];
+    
+    if (navController.loggedIn) {
+        [self requestReview];
+    }
+}
 
-
+-(void) requestReview {
+    if (@available(iOS 10.3, *)) {
+        NSDate *installationDate = [[NSUserDefaults standardUserDefaults] objectForKey:@"installationDate"];
+        if (installationDate) {
+            double daysPassed = 0;
+            daysPassed = [installationDate timeIntervalSinceNow] / -86400.0;
+            if (daysPassed < 20) {
+                return;
+            }
+            NSDate *lastRated = [[NSUserDefaults standardUserDefaults] objectForKey:@"lastRatedApp"];
+            daysPassed = 0;
+            if (lastRated) {
+                daysPassed = [lastRated timeIntervalSinceNow] / -86400.0;
+            }
+            if (!lastRated || daysPassed > 100) {
+                [SKStoreReviewController requestReview];
+                [[NSUserDefaults standardUserDefaults] setObject:[NSDate date] forKey:@"lastRatedApp"];
+            }
+        }
+    }
 }
 
 

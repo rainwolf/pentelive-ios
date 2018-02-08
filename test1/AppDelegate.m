@@ -11,31 +11,37 @@
 #import "GamesTableViewController.h"
 #import "BoardViewController.h"
 @import Firebase;
-#import "RMStore.h"
+@import RMStore;
+#import "PenteNavigationViewController.h"
+@import TSMessages;
+#import "penteLive-Swift.h"
+
 
 
 @implementation AppDelegate
-
 @synthesize window = _window;
 @synthesize notification;
 @synthesize sndID, broadcastSndID;
 
-- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
-{
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     // Override point for customization after application launch.
-//    NSLog(@"kitty");
 
-//    [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryAmbient error:nil];
+    if (![[NSUserDefaults standardUserDefaults] objectForKey:@"installationDate"]) {
+        [[NSUserDefaults standardUserDefaults] setObject:[NSDate date] forKey:@"installationDate"];
+    }
+
+    //    [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryAmbient error:nil];
     [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryAmbient withOptions:AVAudioSessionCategoryOptionMixWithOthers error: nil];
     [[AVAudioSession sharedInstance] setActive:YES error: nil];
     
     if ([application respondsToSelector:@selector(registerUserNotificationSettings:)]) {
         [application registerUserNotificationSettings:[UIUserNotificationSettings settingsForTypes:(UIUserNotificationTypeSound | UIUserNotificationTypeAlert | UIUserNotificationTypeBadge) categories:nil]];
         [application registerForRemoteNotifications];
-    } else {
-        [[UIApplication sharedApplication] registerForRemoteNotificationTypes:
-         (UIRemoteNotificationTypeBadge | UIRemoteNotificationTypeSound | UIRemoteNotificationTypeAlert)];
     }
+//    else {
+//        [[UIApplication sharedApplication] registerForRemoteNotificationTypes:
+//         (UIRemoteNotificationTypeBadge | UIRemoteNotificationTypeSound | UIRemoteNotificationTypeAlert)];
+//    }
     
     notification = [launchOptions objectForKey:UIApplicationLaunchOptionsRemoteNotificationKey];
 //    NSLog(@"kitty1");

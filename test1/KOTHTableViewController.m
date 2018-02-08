@@ -9,6 +9,7 @@
 #import "KOTHTableViewController.h"
 #import "PenteNavigationViewController.h"
 #import "penteLive-Swift.h"
+@import TSMessages;
 
 @interface PlayerTableViewCell : UITableViewCell {
     UILabel *ratingLabel;

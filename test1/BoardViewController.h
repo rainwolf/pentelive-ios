@@ -10,7 +10,7 @@
 #import "BoardView.h"
 #import "PenteNavigationViewController.h"
 #import <GoogleMobileAds/GoogleMobileAds.h>
-#import "PopoverView.h"
+@import PopoverView;
 
 //#define IS_IPHONE_5 ( fabs( ( double )[ [ UIScreen mainScreen ] bounds ].size.height - ( double )568 ) < DBL_EPSILON )
 

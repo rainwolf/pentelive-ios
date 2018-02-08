@@ -12,6 +12,7 @@
 #import "ChangeColorViewController.h"
 #import "RMStore.h"
 #import "penteLive-Swift.h"
+@import TSMessages;
 
 
 #define usernameKey @"username"

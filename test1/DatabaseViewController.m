@@ -247,8 +247,8 @@ struct Capture {
         [stone setBounds:CGRectMake(0, 0, 1.2*self.board.bounds.size.width/19,1.2*self.board.bounds.size.width/19)];
         [zoomedStone setBounds:CGRectMake(0, 0, 1.2*1.5*2*self.board.bounds.size.width/19,1.2*1.5*2*self.board.bounds.size.width/19)];
         finalMove = -1;
-        [whiteStoneCaptures setStoneColor:[UIColor whiteColor]];
-        [blackStoneCaptures setStoneColor:[UIColor blackColor]];
+        [whiteStoneCaptures setStoneColor:WHITE];
+        [blackStoneCaptures setStoneColor:BLACK];
         [horizontalLine setHidden:YES];
         [verticalLine setHidden:YES];
     } else {
@@ -267,6 +267,8 @@ struct Capture {
         [self replayGame];
         [self searchDB:nil];
     }
+//    [whiteStoneCaptures setStoneColor: WHITE];
+//    [whiteStoneCaptures setNeedsDisplay];
     [super viewDidAppear:animated];
 }
 

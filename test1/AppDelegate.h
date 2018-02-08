@@ -7,10 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "PenteNavigationViewController.h"
-#import "TSMessage.h"
-#import "TSMessageView.h"
-#import "AudioToolbox/AudioServices.h"
+@import AudioToolbox;
 
 
 @interface AppDelegate : UIResponder <UIApplicationDelegate>
