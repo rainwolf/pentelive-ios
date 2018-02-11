@@ -189,8 +189,8 @@
         [stone setBounds:CGRectMake(0, 0, 1.2*self.board.bounds.size.width/19,1.2*self.board.bounds.size.width/19)];
         [zoomedStone setBounds:CGRectMake(0, 0, 1.2*1.5*2*self.board.bounds.size.width/19,1.2*1.5*2*self.board.bounds.size.width/19)];
         finalMove = -1;
-        [whiteStoneCaptures setStoneColor:[UIColor whiteColor]];
-        [blackStoneCaptures setStoneColor:[UIColor blackColor]];
+        [whiteStoneCaptures setStoneColor:WHITE];
+        [blackStoneCaptures setStoneColor:BLACK];
         [horizontalLine setHidden:YES];
         [verticalLine setHidden:YES];
     } else {
@@ -293,13 +293,13 @@
     [aiPlayer addMove:180];
     [aiPlayer setGame: ([setupView.gameCell.detailTextLabel.text isEqualToString:@"Pente"]?1:2)];
     if (aiPlayer.seat == 1) {
-        [stone setStoneColor: [UIColor blackColor]];
-        [zoomedStone setStoneColor: [UIColor blackColor]];
+        [stone setStoneColor: BLACK];
+        [zoomedStone setStoneColor: BLACK];
         activeGame = YES;
         [self replayGame:[[aiPlayer moves] count]];
     } else {
-        [stone setStoneColor: [UIColor whiteColor]];
-        [zoomedStone setStoneColor: [UIColor whiteColor]];
+        [stone setStoneColor: WHITE];
+        [zoomedStone setStoneColor: WHITE];
         [self getNewAImove];
     }
     [stone setNeedsDisplay];

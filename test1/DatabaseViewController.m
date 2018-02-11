@@ -387,18 +387,18 @@ struct Capture {
             [board setLastMove: -1];
             if ([game containsString:@"Connect6"]) {
                 if ((([movesList count] % 4) == 0) || (([movesList count] % 4) == 3)) {
-                    [stone setStoneColor:[UIColor whiteColor]];
-                    [zoomedStone setStoneColor:[UIColor whiteColor]];
+                    [stone setStoneColor:WHITE];
+                    [zoomedStone setStoneColor:WHITE];
                 } else {
-                    [stone setStoneColor:[UIColor blackColor]];
-                    [zoomedStone setStoneColor:[UIColor blackColor]];
+                    [stone setStoneColor:BLACK];
+                    [zoomedStone setStoneColor:BLACK];
                 }
             } else if ([movesList count]%2 == 1) {
-                [stone setStoneColor:[UIColor blackColor]];
-                [zoomedStone setStoneColor:[UIColor blackColor]];
+                [stone setStoneColor:BLACK];
+                [zoomedStone setStoneColor:BLACK];
             } else {
-                [stone setStoneColor:[UIColor whiteColor]];
-                [zoomedStone setStoneColor:[UIColor whiteColor]];
+                [stone setStoneColor:WHITE];
+                [zoomedStone setStoneColor:WHITE];
             }
             [stone setNeedsDisplay];
             [zoomedStone setNeedsDisplay];

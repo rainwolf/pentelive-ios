@@ -59,6 +59,9 @@
     receivedNotification = appDelegate.notification;
     
     [[UIApplication sharedApplication] setStatusBarHidden: NO withAnimation: YES];
+    
+    
+    
 //    CGPoint origin = CGPointMake(0.0, self.view.frame.size.height - self.navigationController.navigationBar.frame.size.height - kGADAdSizeBanner.size.height);
 //    bannerView = [[GADBannerView alloc] initWithAdSize:kGADAdSizeBanner origin:origin];
 ////    bannerView.adUnitID = @"567b72e8189a488c";

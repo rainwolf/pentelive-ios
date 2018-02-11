@@ -131,8 +131,11 @@ class RoomViewController: UIViewController, UITableViewDelegate, UITableViewData
         frame.origin.y = frame.origin.y + frame.size.height
         frame.size.height = 40
         textField.frame = frame
-//        socket = PenteLiveSocket(server: "development.pente.org", port: room.port)
-        socket = PenteLiveSocket(server: "pente.org", port: room.port)
+        if development {
+            socket = PenteLiveSocket(server: "development.pente.org", port: room.port)
+        } else {
+            socket = PenteLiveSocket(server: "pente.org", port: room.port)
+        }
         socket.room = self
     }
     
@@ -729,7 +732,7 @@ class RoomViewController: UIViewController, UITableViewDelegate, UITableViewData
                     self.tableViewController?.addMove(move: move)
                 } else {
                     for mve in moves {
-                        self.tableViewController?.addMove(move: mve)
+                        self.tableViewController?.addMoves(moves: moves)
                     }
                 }
             }

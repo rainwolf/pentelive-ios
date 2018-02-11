@@ -1876,7 +1876,7 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
         } else {
             hasPass = NO;
         }
-        int color = 3 - currentPlayer, opponentColor = 3 - color;
+        int color = 3 - currentPlayer;// , opponentColor = 3 - color;
         NSMutableDictionary<NSNumber*,NSMutableArray<NSNumber*>*> *groupsByID = [goStoneGroupsByPlayerAndID objectForKey:[NSNumber numberWithInt: currentPlayer]];
         NSMutableDictionary<NSNumber*,NSNumber*> *stoneGroupIDs = [goStoneGroupIDsByPlayer objectForKey:[NSNumber numberWithInt: currentPlayer]];
         [self setValue:color forPosition:move];
@@ -2986,7 +2986,7 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
     } else if (![receivedMessage isEqualToString:@""]) {
             [messagePopover showAtPoint:showPoint inView:self.view withContentView:receivedMessageView];
     }
-    [receivedMessageView sizeToFit];
+//    [receivedMessageView sizeToFit];
 }
 
 - (void) cancelResignHide {

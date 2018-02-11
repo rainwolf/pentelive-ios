@@ -171,9 +171,9 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
         
         if gestureReconizer.state == .began {
             offSet = currentPoint
-            stone.color = table.currentPlayer()
+            stone.color = StoneColor(rawValue: table.currentPlayer())!
             stone.setNeedsDisplay()
-            zoomedStone.color = table.currentPlayer()
+            zoomedStone.color = StoneColor(rawValue: table.currentPlayer())!
             zoomedStone.setNeedsDisplay()
         }
         zoomedBoard.center = CGPoint(x: offSet.x - zoomFactor*(offSet.x - board.center.x)-(currentPoint.x-offSet.x), y: offSet.y - zoomFactor*(offSet.y - board.center.y)-(currentPoint.y-offSet.y))
@@ -466,8 +466,8 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
 
     func stateChanged () {
         setupView.reloadData()
-        board.backgroundColor = table.gameColor()
-        zoomedBoard.backgroundColor = table.gameColor()
+        board.backgroundColor = table.gameColor(); zoomedBoard.backgroundColor = table.gameColor()
+        board.go = table.isGo(); zoomedBoard.go = table.isGo()
         if let player = table.seats[1] {
             seatsView.sit(player: player.getNameString(), seat: 1)
         } else {
@@ -510,15 +510,21 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
     func gameStateChanged() {
         if table.state.state == .started {
             var color = 2
-            if let player = table.seats[1]  {
-//                print(player.name)
-//                print(me)
-                if player.name == me {
-                    color = 1
+            if !table.isGo() {
+                if let player = table.seats[1]  {
+                    if player.name == me {
+                        color = 1
+                    }
+                }
+            } else {
+                if let player = table.seats[2]  {
+                    if player.name == me {
+                        color = 1
+                    }
                 }
             }
-            stone.color = color
-            zoomedStone.color = color
+            stone.color = StoneColor(rawValue: color)!
+            zoomedStone.color = StoneColor(rawValue: color)!
             stone.setNeedsDisplay()
             zoomedStone.setNeedsDisplay()
             board.setNeedsDisplay()
@@ -602,8 +608,21 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
     }
     func addMove(move: Int) {
         table.addMove(move: move)
-//        board.lastMove = move
-//        zoomedBoard.lastMove = move
+        //        board.lastMove = move
+        //        zoomedBoard.lastMove = move
+        board.setNeedsDisplay()
+        zoomedBoard.setNeedsDisplay()
+        stone.isHidden = true
+        if table.gameHasCaptures() {
+            self.navigationItem.title = "\u{25CF} x \(table.blackCaptures) - \u{25CB} x \(table.whiteCaptures)"
+        } else {
+            self.navigationItem.title = ""
+        }
+    }
+    func addMoves(moves: [Int]) {
+        table.addMoves(moves: moves)
+        //        board.lastMove = move
+        //        zoomedBoard.lastMove = move
         board.setNeedsDisplay()
         zoomedBoard.setNeedsDisplay()
         stone.isHidden = true
