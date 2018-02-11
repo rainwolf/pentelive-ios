@@ -93,14 +93,25 @@ class Table: NSObject {
     var abstractBoard = Array(repeating: Array(repeating: 0, count: 19), count: 19)
     var whiteCaptures = 0
     var blackCaptures = 0
+    var goStoneGroupIDsByPlayer = [Int:[Int:Int]]()
+    var goStoneGroupsByPlayerAndID = [Int:[Int:[Int]]]()
+    var goDeadStonesByPlayer = [Int:[Int]]()
+    var goTerritoryByPlayer = [Int:[Int]]()
+    
+    var koMove = -1
+    
     
     let gameNames = [1: "Pente", 2: "Speed Pente", 3: "Keryo-Pente", 4: "Speed Keryo-Pente", 5: "Gomoku", 6: "Speed Gomoku",
                      7: "D-Pente", 8: "Speed D-Pente", 9: "G-Pente", 10: "Speed G-Pente", 11: "Poof-Pente", 12: "Speed Poof-Pente",
-                     13: "Connect6", 14: "Speed Connect6", 15: "Boat-Pente", 16: "Speed Boat-Pente", 17: "DK-Pente", 18: "Speed DK-Pente"]
+                     13: "Connect6", 14: "Speed Connect6", 15: "Boat-Pente", 16: "Speed Boat-Pente", 17: "DK-Pente", 18: "Speed DK-Pente", 19: "Go", 20: "Speed Go"]
     
     init(table: Int) {
         self.table = table
         super.init()
+    }
+    
+    func isDPente() -> Bool {
+        return game == 7 || game == 8 || game == 17 || game == 18
     }
     
     func addPlayer(player: LivePlayer) {
@@ -151,11 +162,31 @@ class Table: NSObject {
     func addMoves(moves: [Int]) {
         self.moves.removeAll()
         abstractBoard = Array(repeating: Array(repeating: 0, count: 19), count: 19)
+        goStoneGroupIDsByPlayer.removeAll(); goStoneGroupIDsByPlayer[1] = [Int:Int](); goStoneGroupIDsByPlayer[2] = [Int:Int]()
+        goStoneGroupsByPlayerAndID.removeAll(); goStoneGroupsByPlayerAndID[1] = [Int:[Int]](); goStoneGroupsByPlayerAndID[2] = [Int:[Int]]()
+        goDeadStonesByPlayer.removeAll(); goDeadStonesByPlayer[1] = [Int](); goDeadStonesByPlayer[2] = [Int]()
+        goTerritoryByPlayer.removeAll(); goTerritoryByPlayer[1] = [Int](); goTerritoryByPlayer[2] = [Int]()
+        state.dPenteState = .noChoice
+        state.goState = .play
         blackCaptures = 0
         whiteCaptures = 0
         for move in moves {
             addMove(move: move)
         }
+    }
+    func showMarkStones(player: String) -> Bool {
+//        return false
+//        print(isGo())
+//        print(state.goState)
+//        print(doublePassMove())
+//        print(moves.count)
+//        print(currentPlayerName())
+//        print(player)
+        return isGo() && (state.goState == .markStones) && (doublePassMove() == moves.count - 1) && (currentPlayerName() == player)
+    }
+    func showEvaluateStones(player: String) -> Bool {
+//        return false
+        return isGo() && (state.goState == .evaluateStones) && (currentPlayerName() == player)
     }
     func lastMove() -> Int {
         if moves.count > 0 {
@@ -167,6 +198,10 @@ class Table: NSObject {
         return (game != 5 && game != 6 && game != 13 && game != 14)
     }
     func addMove(move: Int) {
+        if isGo() {
+            addGoMove(move: move)
+            return
+        }
         let color = currentPlayer()
         moves.append(move)
         let i = move / 19
@@ -232,8 +267,46 @@ class Table: NSObject {
                 }
             }
         }
-        
-        
+    }
+    
+    var hasPass = false, doublePass = false
+    let gridSize = 19, passMove = 19*19
+    
+    func addGoMove(move: Int) {
+        let player = currentPlayer(), color = 3 - player
+//        print("Go move ",player)
+        if move == passMove {
+            if state.goState == .markStones {
+                state.goState = .evaluateStones
+            } else if hasPass {
+                doublePass = true
+                state.goState = .markStones
+            } else {
+                hasPass = true
+            }
+        } else {
+            hasPass = false
+        }
+        moves.append(move)
+        if state.goState == .markStones {
+            if move != passMove {
+                let p = 3 - getBoardValue(move: move)
+                goDeadStonesByPlayer[p]?.append(move)
+                setBoardValue(move: move, value: 0)
+            }
+        } else {
+//            print("Go ",player, " ", color)
+            if move < passMove {
+                var groupsByID = goStoneGroupsByPlayerAndID[player]!, stoneGroupIDs = goStoneGroupIDsByPlayer[player]!
+                setBoardValue(move: move, value: color)
+                settleGroups(groupsByID: &groupsByID, stoneGroupIDs: &stoneGroupIDs, move: move)
+                goStoneGroupsByPlayerAndID[player] = groupsByID; goStoneGroupIDsByPlayer[player] = stoneGroupIDs
+                
+                groupsByID = goStoneGroupsByPlayerAndID[color]!; stoneGroupIDs = goStoneGroupIDsByPlayer[color]!
+                makeCaptures(move: move, groupsByID: &groupsByID, stoneGroupIDs: &stoneGroupIDs)
+                goStoneGroupsByPlayerAndID[color] = groupsByID; goStoneGroupIDsByPlayer[color] = stoneGroupIDs
+            }
+        }
     }
     func setOwner(owner: String) {
         self.owner = owner
@@ -244,7 +317,12 @@ class Table: NSObject {
         blackCaptures = 0
         whiteCaptures = 0
         abstractBoard = Array(repeating: Array(repeating: 0, count: 19), count: 19)
+        goStoneGroupIDsByPlayer.removeAll(); goStoneGroupIDsByPlayer[1] = [Int:Int](); goStoneGroupIDsByPlayer[2] = [Int:Int]()
+        goStoneGroupsByPlayerAndID.removeAll(); goStoneGroupsByPlayerAndID[1] = [Int:[Int]](); goStoneGroupsByPlayerAndID[2] = [Int:[Int]]()
+        goDeadStonesByPlayer.removeAll(); goDeadStonesByPlayer[1] = [Int](); goDeadStonesByPlayer[2] = [Int]()
+        goTerritoryByPlayer.removeAll(); goTerritoryByPlayer[1] = [Int](); goTerritoryByPlayer[2] = [Int]()
         state.dPenteState = .noChoice
+        state.goState = .play
     }
     func resetTimers() {
         let minutes = timer["initialMinutes"]!
@@ -298,13 +376,28 @@ class Table: NSObject {
         whiteCaptures = 0
         abstractBoard = Array(repeating: Array(repeating: 0, count: 19), count: 19)
         moves.removeAll()
+        goStoneGroupIDsByPlayer.removeAll(); goStoneGroupIDsByPlayer[1] = [Int:Int](); goStoneGroupIDsByPlayer[2] = [Int:Int]()
+        goStoneGroupsByPlayerAndID.removeAll(); goStoneGroupsByPlayerAndID[1] = [Int:[Int]](); goStoneGroupsByPlayerAndID[2] = [Int:[Int]]()
+        goDeadStonesByPlayer.removeAll(); goDeadStonesByPlayer[1] = [Int](); goDeadStonesByPlayer[2] = [Int]()
+        goTerritoryByPlayer.removeAll(); goTerritoryByPlayer[1] = [Int](); goTerritoryByPlayer[2] = [Int]()
+        koMove = -1
+        state.dPenteState = .noChoice
+        state.goState = .play
         for move in newMoves {
             addMove(move: move)
         }
-        
     }
     func currentPlayer() -> Int {
-        if game != 13 && game != 14 {
+        if isGo() {
+            let d = doublePassMove()
+            if state.goState == .evaluateStones {
+                return 1 + d%2
+            } else if state.goState == .markStones {
+                return 2 - d%2
+            } else {
+                return 1 + (moves.count % 2)
+            }
+        } else  if game != 13 && game != 14 {
             return 1 + (moves.count % 2)
         } else {
             if moves.count == 0 {
@@ -312,6 +405,23 @@ class Table: NSObject {
             }
             return 2 - (((moves.count - 1) / 2) % 2)
         }
+    }
+    
+    func doublePassMove() -> Int {
+        var pass = false, i = 0
+        for move in moves {
+            if move == passMove {
+                if pass {
+                    return i
+                } else {
+                    pass = true
+                }
+            } else {
+                pass = false
+            }
+            i += 1
+        }
+        return -1
     }
     func currentPlayerName() -> String {
         var seat = currentPlayer()
@@ -344,10 +454,320 @@ class Table: NSObject {
             return UIColor(red:0.929, green:0.639, blue:0.992, alpha:1)
         } else if game < 17 {
             return UIColor(red:0.145, green:0.729, blue:1, alpha:1)
-        } else {
+        } else if game < 19 {
             return UIColor(red:1, green:165.0/255.0, blue:0, alpha:1)
+        } else {
+            return UIColor(red:250.0/255, green:200.0/255.0, blue:50.0/255.0, alpha:1)
         }
     }
+    func isGo() -> Bool {
+        return game == 19 || game == 20
+    }
+    
+    
+    func makeCaptures(move: Int, groupsByID: inout [Int:[Int]], stoneGroupIDs: inout [Int:Int]) {
+        var captures = 0
+        let gridSize = 19
+        if (move%gridSize != 0) {
+            let neighborStone = move - 1
+            if let neighborStoneID = stoneGroupIDs[neighborStone] {
+                captures = getCaptures(move: move, groupsByID: &groupsByID, stoneGroupIDs: &stoneGroupIDs, captures: captures, neighborStone: neighborStone, neighborStoneID: neighborStoneID)
+            }
+        }
+        if (move%gridSize != gridSize - 1) {
+            let neighborStone = move + 1
+            if let neighborStoneID = stoneGroupIDs[neighborStone] {
+                captures = getCaptures(move: move, groupsByID: &groupsByID, stoneGroupIDs: &stoneGroupIDs, captures: captures, neighborStone: neighborStone, neighborStoneID: neighborStoneID)
+            }
+        }
+        if (move/gridSize != 0) {
+            let neighborStone = move - gridSize
+            if let neighborStoneID = stoneGroupIDs[neighborStone] {
+                captures = getCaptures(move: move, groupsByID: &groupsByID, stoneGroupIDs: &stoneGroupIDs, captures: captures, neighborStone: neighborStone, neighborStoneID: neighborStoneID)
+            }
+        }
+        if (move/gridSize != gridSize - 1) {
+            let neighborStone = move + gridSize
+            if let neighborStoneID = stoneGroupIDs[neighborStone] {
+                captures = getCaptures(move: move, groupsByID: &groupsByID, stoneGroupIDs: &stoneGroupIDs, captures: captures, neighborStone: neighborStone, neighborStoneID: neighborStoneID)
+            }
+        }
+    }
+    func getCaptures(move: Int, groupsByID: inout [Int:[Int]], stoneGroupIDs: inout [Int:Int], captures: Int, neighborStone: Int, neighborStoneID: Int) -> Int {
+        var newCaptures = captures
+        if let neighborStoneGroup = groupsByID[neighborStoneID] {
+            if !groupHasLiberties(group: neighborStoneGroup) {
+                if koMove < 0 && neighborStoneGroup.count == 1 && checkKo(move: move) {
+                    koMove = neighborStone
+                } else {
+                    koMove = -1
+                }
+                newCaptures += neighborStoneGroup.count
+                captureGroup(groupID: neighborStoneID, groupsByID: &groupsByID, stoneGroupIDs: &stoneGroupIDs)
+            }
+        }
+        return newCaptures
+    }
+
+    func checkKo(move: Int) -> Bool {
+        let position = getBoardValue(move: move)
+        let gridSize = 19
+        if (move%gridSize != 0) {
+            let neighborStone = move - 1
+            let neighborPosition = getBoardValue(move: neighborStone)
+            if (position != 3 - neighborPosition) {
+                return false
+            }
+        }
+        if (move%gridSize != gridSize - 1) {
+            let neighborStone = move + 1
+            let neighborPosition = getBoardValue(move: neighborStone)
+            if (position != 3 - neighborPosition) {
+                return false
+            }
+        }
+        if (move/gridSize != 0) {
+            let neighborStone = move - gridSize
+            let neighborPosition = getBoardValue(move: neighborStone)
+            if (position != 3 - neighborPosition) {
+                return false
+            }
+        }
+        if (move/gridSize != gridSize - 1) {
+            let neighborStone = move + gridSize
+            let neighborPosition = getBoardValue(move: neighborStone)
+            if (position != 3 - neighborPosition) {
+                return false
+            }
+        }
+        return true
+    }
+    func captureGroup(groupID: Int, groupsByID: inout [Int:[Int]], stoneGroupIDs: inout [Int:Int]) {
+        let group = groupsByID[groupID]!
+        let color = getBoardValue(move: group[0])
+        for stone in group {
+            setBoardValue(move: stone, value: 0)
+            stoneGroupIDs.removeValue(forKey: stone)
+        }
+        groupsByID.removeValue(forKey: groupID)
+        if color == 2 {
+            blackCaptures += group.count
+        } else if color == 1 {
+            whiteCaptures += group.count
+        }
+    }
+    func groupHasLiberties(group: [Int]) -> Bool {
+        for stone in group {
+            if stoneHasLiberties(move: stone) {
+                return true
+            }
+        }
+        return false
+    }
+    func stoneHasLiberties(move: Int) -> Bool {
+        let gridSize = 19
+        if (move%gridSize != 0) {
+            let neighborStone = move - 1
+            let pos = getBoardValue(move: neighborStone)
+            if pos != 1 && pos != 2 {
+                return true
+            }
+        }
+        if (move%gridSize != gridSize - 1) {
+            let neighborStone = move + 1
+            let pos = getBoardValue(move: neighborStone)
+            if pos != 1 && pos != 2 {
+                return true
+            }
+        }
+        if (move/gridSize != 0) {
+            let neighborStone = move - gridSize
+            let pos = getBoardValue(move: neighborStone)
+            if pos != 1 && pos != 2 {
+                return true
+            }
+        }
+        if (move/gridSize != gridSize - 1) {
+            let neighborStone = move + gridSize
+            let pos = getBoardValue(move: neighborStone)
+            if pos != 1 && pos != 2 {
+                return true
+            }
+        }
+        return false
+    }
+    func getBoardValue(move: Int) -> Int {
+        let i = move / 19
+        let j = move % 19
+        return abstractBoard[i][j]
+    }
+    func setBoardValue(move: Int, value: Int) {
+        let i = move / 19
+        let j = move % 19
+        abstractBoard[i][j] = value
+    }
+    func settleGroups(groupsByID: inout [Int:[Int]], stoneGroupIDs: inout [Int:Int], move: Int) {
+        let newGroup = [move]
+        groupsByID[move] = newGroup
+        stoneGroupIDs[move] = move
+        let gridSize = 19
+        if (move%gridSize != 0) {
+            let neighborStone = move - 1
+            if let neighborStoneID = stoneGroupIDs[neighborStone] {
+                mergeGroups(group1: move, group2: neighborStoneID, groupsByID: &groupsByID, stoneGroupIDs: &stoneGroupIDs)
+            }
+        }
+        if (move%gridSize != gridSize - 1) {
+            let neighborStone = move + 1
+            if let neighborStoneID = stoneGroupIDs[neighborStone] {
+                mergeGroups(group1: stoneGroupIDs[move]!, group2: neighborStoneID, groupsByID: &groupsByID, stoneGroupIDs: &stoneGroupIDs)
+            }
+        }
+        if (move/gridSize != 0) {
+            let neighborStone = move - gridSize
+            if let neighborStoneID = stoneGroupIDs[neighborStone] {
+                mergeGroups(group1: stoneGroupIDs[move]!, group2: neighborStoneID, groupsByID: &groupsByID, stoneGroupIDs: &stoneGroupIDs)
+            }
+        }
+        if (move/gridSize != gridSize - 1) {
+            let neighborStone = move + gridSize
+            if let neighborStoneID = stoneGroupIDs[neighborStone] {
+                mergeGroups(group1: stoneGroupIDs[move]!, group2: neighborStoneID, groupsByID: &groupsByID, stoneGroupIDs: &stoneGroupIDs)
+            }
+        }
+    }
+    func mergeGroups(group1: Int, group2: Int, groupsByID: inout [Int:[Int]], stoneGroupIDs: inout [Int:Int]) {
+        var oldGroup, newGroup: [Int]
+        var oldGroupID, newGroupID: Int
+        if (group1 < group2) {
+            oldGroup = groupsByID[group1]!
+            newGroup = groupsByID[group2]!
+            oldGroupID = group1
+            newGroupID = group2
+        } else {
+            newGroup = groupsByID[group1]!
+            oldGroup = groupsByID[group2]!
+            oldGroupID = group2
+            newGroupID = group1
+        }
+        groupsByID.removeValue(forKey: oldGroupID)
+        newGroup.append(contentsOf: oldGroup)
+        groupsByID[newGroupID] = newGroup
+        for stone in oldGroup {
+            stoneGroupIDs[stone] = newGroupID
+        }
+    }
+    
+    func getGoScoreString() -> String {
+        getTerritories()
+        let p1Stones = getMoves(value: 2).count, p2Stones = getMoves(value: 1).count, p1Territory = goTerritoryByPlayer[1]!.count, p2Territory = goTerritoryByPlayer[2]!.count
+        return "black score is \(p1Territory) + \(p1Stones) = \(p1Stones+p1Territory)\nwhite score is \(p2Territory) + \(p2Stones) + 7.5 = \(p2Stones+p2Territory+7).5"
+    }
+    
+    func resetGoBeforeFlood() {
+        for i in 0..<19 {
+            for j in 0..<19 {
+                let pos = abstractBoard[i][j]
+                if pos != 1 && pos != 2 {
+                    abstractBoard[i][j] = 0
+                }
+            }
+        }
+    }
+    
+    func getEmptyNeighbor(move: Int) -> Int {
+        let gridSize = 19
+        if (move%gridSize != 0) {
+            let neighborStone = move - 1
+            if getBoardValue(move: neighborStone) == 0 {
+                return neighborStone
+            }
+        }
+        if (move%gridSize != gridSize - 1) {
+            let neighborStone = move + 1
+            if getBoardValue(move: neighborStone) == 0 {
+                return neighborStone
+            }
+        }
+        if (move/gridSize != 0) {
+            let neighborStone = move - gridSize
+            if getBoardValue(move: neighborStone) == 0 {
+                return neighborStone
+            }
+        }
+        if (move/gridSize != gridSize - 1) {
+            let neighborStone = move + gridSize
+            if getBoardValue(move: neighborStone) == 0 {
+                return neighborStone
+            }
+        }
+        return -1
+    }
+    
+    func getMoves(value: Int) -> [Int] {
+        var result = [Int]()
+        for i in 0..<19 {
+            for j in 0..<19 {
+                let pos = abstractBoard[i][j]
+                if pos == value {
+                    result.append(i*19+j)
+                }
+            }
+        }
+        return result
+    }
+    func floodFillWorker(move: Int, value: Int) {
+        setBoardValue(move: move, value: value)
+        var neighbor = getEmptyNeighbor(move: move)
+        while neighbor > -1 {
+            floodFillWorker(move: neighbor, value: value)
+            neighbor = getEmptyNeighbor(move: move)
+        }
+    }
+    func floodFill(player: Int) {
+        for i in 0..<19 {
+            for j in 0..<19 {
+                let pos = abstractBoard[i][j]
+                if pos == 3-player {
+                    let move = i*19+j
+                    var neighbor = getEmptyNeighbor(move: move)
+                    while neighbor > -1 {
+                        floodFillWorker(move: neighbor, value: player + 2)
+                        neighbor = getEmptyNeighbor(move: move)
+                    }
+                }
+            }
+        }
+    }
+    
+    func getTerritories() {
+        floodFill(player: 1)
+        var p1Territory = getMoves(value: 3)
+        resetGoBeforeFlood()
+        floodFill(player: 2)
+        var p2Territory = getMoves(value: 4)
+        resetGoBeforeFlood()
+        var i1 = p1Territory.count - 1, i2 = p2Territory.count - 1
+        while i1 > -1 && i2 > -1 {
+            let p1 = p1Territory[i1], p2 = p2Territory[i2]
+            if p1 == p2 {
+                p1Territory.remove(at: i1); p2Territory.remove(at: i2)
+                i1 -= 1; i2 -= 1
+            } else if p1 < p2 {
+                i2 -= 1
+            } else {
+                i1 -= 1
+            }
+        }
+        goTerritoryByPlayer[1] = p1Territory; goTerritoryByPlayer[2] = p2Territory
+    }
+    
+    func rejectDeadStones() {
+        let i = doublePassMove() - 1
+        let newMoves = Array(moves[0..<i])
+        addMoves(moves: newMoves)
+    }
+    
     func makeAttributedString() -> NSAttributedString {
 //        let titleAttributes = [NSFontAttributeName: UIFont.preferredFont(forTextStyle: .headline), NSForegroundColorAttributeName: UIColor(red: 255/255, green: 193/255, blue: 7/255, alpha: 1.0)]
         let titleAttributes = [NSAttributedStringKey.font: UIFont.preferredFont(forTextStyle: .headline)]
@@ -356,17 +776,21 @@ class Table: NSObject {
         let titleString = NSMutableAttributedString(string: "\(gameName())", attributes: titleAttributes)
         if seats.count > 0 {
             titleString.append(NSAttributedString(string: "\n"))
+            var p1Color = UIColor.white, p2Color = UIColor.black
+            if isGo() {
+                p2Color = UIColor.white; p1Color = UIColor.black
+            }
             if seats.count == 2 {
-                titleString.append(NSAttributedString(string: "\u{25CF} ", attributes: [NSAttributedStringKey.foregroundColor: UIColor.white]))
+                titleString.append(NSAttributedString(string: "\u{25CF} ", attributes: [NSAttributedStringKey.foregroundColor: p1Color]))
                 titleString.append((seats[1]?.getNameString())!)
-                titleString.append(NSAttributedString(string: " - \u{25CF} "))
+                titleString.append(NSAttributedString(string: " - \u{25CF} ", attributes: [NSAttributedStringKey.foregroundColor: p2Color]))
                 titleString.append((seats[2]?.getNameString())!)
             } else {
                 if seats[1] != nil {
-                    titleString.append(NSAttributedString(string: "\u{25CF} ", attributes: [NSAttributedStringKey.foregroundColor: UIColor.white]))
+                    titleString.append(NSAttributedString(string: "\u{25CF} ", attributes: [NSAttributedStringKey.foregroundColor: p1Color]))
                     titleString.append((seats[1]?.getNameString())!)
                 } else if seats[2] != nil {
-                    titleString.append(NSAttributedString(string: "\u{25CF} "))
+                    titleString.append(NSAttributedString(string: "\u{25CF} ", attributes: [NSAttributedStringKey.foregroundColor: p2Color]))
                     titleString.append((seats[2]?.getNameString())!)
                 }
             }
@@ -763,8 +1187,14 @@ class GameState: NSObject {
         case swapped
         case notSwapped
     }
+    enum GoState: Int {
+        case play = 0
+        case markStones
+        case evaluateStones
+    }
     var state = State.notStarted
     var dPenteState = DPenteState.noChoice
+    var goState = GoState.play
     var timers = [1: ["minutes":0, "seconds":0], 2: ["minutes":0, "seconds":0]]
     
 }

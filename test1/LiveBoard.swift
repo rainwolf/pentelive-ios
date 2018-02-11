@@ -6,18 +6,46 @@
 //  Copyright © 2016 Triade. All rights reserved.
 //
 
+
 import UIKit
+
+enum StoneColor: Int {
+    case white = 1, black, red
+}
 
 class LiveBoard: UIView {
     var table: Table!
     var go = false
-    
+    var whiteStone: LiveStone!
+    var blackStone: LiveStone!
+    var goTerritory: [Int:[Int]]?
+    var goDeadStones: [Int:[Int]]?
+    let whiteSquare = UIView(), blackSquare = UIView()
+
     init(table:Table) {
         self.table = table
         super.init(frame: CGRect(x: 0, y: 0, width: 0, height: 0))
+        let h:CGFloat = self.frame.size.height
+
+        whiteStone = LiveStone.init(size: h)
+        whiteStone.color = StoneColor.white
+        whiteStone.alpha = 0.7; whiteStone.isOpaque = false; whiteStone.fill = true; whiteStone.clipsToBounds = true
+        blackStone = LiveStone.init(size: h)
+        blackStone.color = StoneColor.black
+        blackStone.alpha = 0.7; blackStone.isOpaque = false; blackStone.fill = true; blackStone.clipsToBounds = true
+
+        whiteSquare.alpha = 0.8; blackSquare.alpha = 0.8
+        whiteSquare.clipsToBounds = true; blackSquare.clipsToBounds = true
+        whiteSquare.isOpaque = false; blackSquare.isOpaque = false;
+        whiteSquare.backgroundColor = UIColor.white; blackSquare.backgroundColor = UIColor.black
+        
     }
     required init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)!
+    }
+    func clearGoStructures() {
+        goTerritory = nil
+        goDeadStones = nil
     }
     override func draw(_ rect: CGRect) {
         let context = UIGraphicsGetCurrentContext()!
@@ -94,8 +122,7 @@ class LiveBoard: UIView {
                     let locations:[CGFloat] = [ 0.0, 1.0 ]
                     var start:CGFloat = 150.0/255.0
                     var end:CGFloat = 0.0
-                    if table.abstractBoard[i][j] == 2 {
-                    } else {
+                    if table.abstractBoard[i][j] == StoneColor.white.rawValue {
                         start = 1.0;
                         end = 210.0/255.0;
                     }
@@ -115,6 +142,50 @@ class LiveBoard: UIView {
                 }
             }
         }
+        
+        if goDeadStones != nil {
+            for stone in goDeadStones![2]! {
+                let i = stone/19, j = stone%19;
+                circle = CGRect(x: CGFloat(j)*2*margin, y: CGFloat(i)*2*margin, width: 2*margin, height: 2*margin)
+                context.saveGState()
+                context.translateBy(x: circle.origin.x, y: circle.origin.y)
+                whiteStone.frame = circle
+                whiteStone.layer.cornerRadius = margin
+                whiteStone.layer.render(in: context)
+                context.restoreGState()
+            }
+            for stone in goDeadStones![1]! {
+                let i = stone/19, j = stone%19;
+                circle = CGRect(x: CGFloat(j)*2*margin, y: CGFloat(i)*2*margin, width: 2*margin, height: 2*margin)
+                context.saveGState()
+                context.translateBy(x: circle.origin.x, y: circle.origin.y)
+                blackStone.frame = circle
+                blackStone.layer.cornerRadius = margin
+                blackStone.layer.render(in: context)
+                context.restoreGState()
+            }
+        }
+        if goTerritory != nil {
+            for stone in goTerritory![2]! {
+                let i = stone/19, j = stone%19;
+                circle = CGRect(x: CGFloat(j)*2*margin + margin*2/3, y: CGFloat(i)*2*margin + margin*2/3, width: 2*margin/3, height: 2*margin/3)
+                context.saveGState()
+                context.translateBy(x: circle.origin.x, y: circle.origin.y)
+                whiteSquare.frame = circle
+                whiteSquare.layer.render(in: context)
+                context.restoreGState()
+            }
+            for stone in goTerritory![1]! {
+                let i = stone/19, j = stone%19;
+                circle = CGRect(x: CGFloat(j)*2*margin + margin*2/3, y: CGFloat(i)*2*margin + margin*2/3, width: 2*margin/3, height: 2*margin/3)
+                context.saveGState()
+                context.translateBy(x: circle.origin.x, y: circle.origin.y)
+                blackSquare.frame = circle
+                blackSquare.layer.render(in: context)
+                context.restoreGState()
+            }
+        }
+
         let lastMove = table.lastMove()
         if (lastMove > -1) {
             context.setFillColor(UIColor.red.cgColor)
@@ -137,7 +208,8 @@ class LiveBoard: UIView {
 
 
 class LiveStone: UIView {
-    var color = 2
+    var color = StoneColor.black
+    var fill = false
     
     init(size: CGFloat) {
         super.init(frame: CGRect(x: 0, y: 0, width: 1.3*size, height: 1.3*size))
@@ -150,7 +222,12 @@ class LiveStone: UIView {
     override func draw(_ rect: CGRect) {
         let context = UIGraphicsGetCurrentContext()!
         context.setStrokeColor(UIColor.black.cgColor)
-        let circleSide: CGFloat = self.bounds.size.width/1.2
+        var circleSide: CGFloat
+        if fill {
+            circleSide = self.bounds.size.width
+        }  else {
+            circleSide = self.bounds.size.width/1.2
+        }
         let indent: CGFloat = (self.bounds.size.width - circleSide)/2
         let circle = CGRect(x: indent, y: indent, width: circleSide, height: circleSide)
         let margin: CGFloat = circle.size.width/2
@@ -160,13 +237,17 @@ class LiveStone: UIView {
         let locations:[CGFloat] = [ 0.0, 1.0 ]
         var start:CGFloat = 150.0/255.0
         var end:CGFloat = 0.0
-        if color == 2 {
-        } else {
+        if color == StoneColor.white {
             start = 1.0;
             end = 210.0/255.0;
         }
-        let components:[CGFloat] = [ start,start,start, 1.0,  // Start color
+        var components:[CGFloat] = [ start,start,start, 1.0,  // Start color
             end,end,end, 1.0 ] // End color
+        if (color == StoneColor.red) {
+            start = 1.0; end = 210.0/255.0; components[0] = start; components[1] = end; components[2] = end;
+            components[4] = start; components[5] = 0; components[6] = 0;
+        }
+
         let myColorspace = CGColorSpaceCreateDeviceRGB()
         let myGradient = CGGradient (colorSpace: myColorspace, colorComponents: components, locations: locations, count: num_locations);
 

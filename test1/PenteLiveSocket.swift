@@ -141,6 +141,8 @@ import UIKit
             room.inviteTableEvent(event: content as! [String:Any])
         } else if let content = event?["dsgInviteResponseTableEvent"] {
             room.inviteResponseTableEvent(event: content as! [String:Any])
+        } else if let content = event?["dsgRejectGoStateEvent"] {
+            room.rejectGoDeadStonesTableEvent(event: content as! [String:Any])
         }
     }
     

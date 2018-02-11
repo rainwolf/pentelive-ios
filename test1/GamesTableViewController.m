@@ -231,6 +231,7 @@ CGFloat bottomOffset = 0;
     
 //    [self performSelector:@selector(scrollViewDidScroll:) withObject: self.tableView afterDelay:.05f];
     [super viewDidAppear:animated];
+//    [self toLive];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -286,9 +287,9 @@ CGFloat bottomOffset = 0;
     username = [defaults objectForKey:usernameKey];
     password = [defaults objectForKey:passwordKey];
     if (development) {
-        username = @"iostest";
+//        username = @"iostest";
 //        username = @"harveyjoe";
-        password = @"tsetsoi";
+//        password = @"tsetsoi";
     }
     if (!((username == nil) || (password == nil) || [username isEqualToString:@""] || [password isEqualToString:@""])) {
         NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
@@ -3282,6 +3283,9 @@ CGFloat bottomOffset = 0;
         PenteNavigationViewController *navController = (PenteNavigationViewController *) self.navigationController;
         [navController setChallengedUser: playerName];
         [self performSegueWithIdentifier:@"addInvitationsTap" sender: self];
+    } else {
+        PenteWebViewController *webVC = [[PenteWebViewController alloc] initWithURL:[NSURL URLWithString: [NSString stringWithFormat:@"https://www.pente.org/gameServer/profile?viewName=%@", username]]];
+        [self.navigationController pushViewController:webVC animated:YES];
     }
 }
 -(void) toMMAI {

@@ -628,6 +628,19 @@ class RoomViewController: UIViewController, UITableViewDelegate, UITableViewData
             }
         }
     }
+    func rejectGoDeadStonesTableEvent(event: [String: Any]) {
+        DispatchQueue.main.async {
+            let tableId = event["table"] as! Int
+            if self.playersAndTables.table(tableId: tableId) == nil {
+                return
+            }
+            if tableId == self.tableViewController?.table.table {
+                let playerName = event["player"] as! String
+                self.tableViewController?.rejectDeadStones()
+                self.tableViewController?.addText(text: "* \(playerName) rejected the marked dead stones, play continues *")
+            }
+        }
+    }
     func undoRequestTableEvent(event: [String: Any]) {
         DispatchQueue.main.async {
             let tableId = event["table"] as! Int
@@ -731,9 +744,7 @@ class RoomViewController: UIViewController, UITableViewDelegate, UITableViewData
                     }
                     self.tableViewController?.addMove(move: move)
                 } else {
-                    for mve in moves {
-                        self.tableViewController?.addMoves(moves: moves)
-                    }
+                    self.tableViewController?.addMoves(moves: moves)
                 }
             }
         }

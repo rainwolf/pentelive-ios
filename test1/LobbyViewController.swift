@@ -8,6 +8,8 @@
 
 import UIKit
 
+let development = false
+
 @objc class LobbyViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, UIPickerViewDelegate, UIPickerViewDataSource {
     
     var servers: [GameRoom] = []
@@ -76,8 +78,10 @@ import UIKit
     
     func loadServers() {
         do {
-            let activeServers = try String(contentsOf: URL(string: "https://www.pente.org/gameServer/mobile/liveServers.jsp")!, encoding: String.Encoding.utf8)
-//            let activeServers = try String(contentsOf: URL(string: "https://development.pente.org/gameServer/activeServers")!, encoding: String.Encoding.utf8)
+            var activeServers = try String(contentsOf: URL(string: "https://www.pente.org/gameServer/mobile/liveServers.jsp")!, encoding: String.Encoding.utf8)
+            if development {
+                activeServers = try String(contentsOf: URL(string: "https://development.pente.org/gameServer/activeServers")!, encoding: String.Encoding.utf8)
+            }
 //            print(activeServers)
             let serverLines = activeServers.components(separatedBy: "\n")
             for line in serverLines {

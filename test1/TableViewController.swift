@@ -39,7 +39,7 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
     var waitSeconds: Int = 7*60
     var cellSize: CGFloat = 0
     var zoomFactor: CGFloat = 3
-    var stone: LiveStone!
+//    var stone: LiveStone!
     var zoomedStone: LiveStone!
     let horizontalLine = LiveHorizontalLine()
     let verticalLine = LiveVerticalLine()
@@ -150,9 +150,9 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
         self.view.addSubview(verticalLine)
         verticalLine.isHidden = true
         verticalLine.backgroundColor = UIColor.clear
-        stone = LiveStone(size: cellSize)
-        self.view.addSubview(stone)
-        stone.isHidden = true
+//        stone = LiveStone(size: cellSize)
+//        self.view.addSubview(stone)
+//        stone.isHidden = true
         zoomedStone = LiveStone(size: zoomedCellSize)
         zoomedStone.isHidden = true
         self.view.addSubview(zoomedStone)
@@ -171,9 +171,18 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
         
         if gestureReconizer.state == .began {
             offSet = currentPoint
-            stone.color = StoneColor(rawValue: table.currentPlayer())!
-            stone.setNeedsDisplay()
-            zoomedStone.color = StoneColor(rawValue: table.currentPlayer())!
+            if table.isGo() {
+//                stone.color = StoneColor(rawValue: 3-table.currentPlayer())!
+                if table.state.goState == .markStones {
+                    zoomedStone.color = StoneColor.red
+                } else {
+                    zoomedStone.color = StoneColor(rawValue: 3-table.currentPlayer())!
+                }
+            } else {
+//                stone.color = StoneColor(rawValue: table.currentPlayer())!
+                zoomedStone.color = StoneColor(rawValue: table.currentPlayer())!
+            }
+//            stone.setNeedsDisplay()
             zoomedStone.setNeedsDisplay()
         }
         zoomedBoard.center = CGPoint(x: offSet.x - zoomFactor*(offSet.x - board.center.x)-(currentPoint.x-offSet.x), y: offSet.y - zoomFactor*(offSet.y - board.center.y)-(currentPoint.y-offSet.y))
@@ -205,13 +214,17 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
         let hideBoard = ((currentPoint.x <= 0) || (currentPoint.x >= self.board.bounds.size.width) || (currentPoint.y <= 0) || (currentPoint.y >= self.board.bounds.size.height)) || gestureReconizer.state == .ended
         var hideStone = false
         if 0 <= i && i<19 && 0 <= j && j<19 {
-            hideStone = table.abstractBoard[i][j] != 0
+            if table.isGo() && table.state.goState == .markStones {
+                hideStone = table.abstractBoard[i][j] == 0
+            } else {
+                hideStone = table.abstractBoard[i][j] != 0
+            }
             if hideBoard && !hideStone {
-                stone.isHidden = false
-                stone.center = CGPoint(x: CGFloat(j)*cellSize + cellSize/2, y: CGFloat(i)*cellSize+cellSize/2)
+//                stone.isHidden = false
+//                stone.center = CGPoint(x: CGFloat(j)*cellSize + cellSize/2, y: CGFloat(i)*cellSize+cellSize/2)
                 sendMove(move: i*19 + j)
             } else {
-                stone.isHidden = true
+//                stone.isHidden = true
             }
         }
         horizontalLine.isHidden = hideBoard || hideStone
@@ -301,12 +314,33 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
             popover.show(at: CGPoint(x: self.view.bounds.size.width - 20, y: board.frame.origin.y), in: self.view, withContentView: setupView)
         }
     }
-    
+
+    func showScore() {
+        let alertController = UIAlertController(title: nil, message: table.getGoScoreString(), preferredStyle: .actionSheet)
+        board.goDeadStones = table.goDeadStonesByPlayer; zoomedBoard.goDeadStones = table.goDeadStonesByPlayer;
+        board.goTerritory = table.goTerritoryByPlayer; zoomedBoard.goTerritory = table.goTerritoryByPlayer;
+        self.board.setNeedsDisplay(); self.zoomedBoard.setNeedsDisplay()
+
+        let cancelAction = UIAlertAction(title: NSLocalizedString("dismiss", comment: ""), style: .cancel) { (action) in
+            if self.table.state.goState == .play {
+                self.board.clearGoStructures(); self.zoomedBoard.clearGoStructures()
+                self.board.setNeedsDisplay(); self.zoomedBoard.setNeedsDisplay()
+            }
+        }
+        alertController.addAction(cancelAction)
+        self.present(alertController, animated: true)
+    }
     @objc func showOptions() {
         if table.state.state == .started && table.amIseated(i: me) {
             let alertController = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
             
-            if table.currentPlayerName() != me {
+            if table.isGo() {
+                let scoreAction = UIAlertAction(title: NSLocalizedString("score Go game", comment: ""), style: .default) { (action) in
+                    self.showScore()
+                }
+                alertController.addAction(scoreAction)
+            }
+            if table.currentPlayerName() != me || (table.state.goState == .markStones && table.currentPlayerName() == me) {
                 let undoAction = UIAlertAction(title: NSLocalizedString("request undo", comment: ""), style: .default) { (action) in
                     let event = ["dsgUndoRequestTableEvent":["player":self.me,"table":self.table.table,"time":0]]
                     self.socket.sendEvent(eventDictionary: event)
@@ -479,14 +513,19 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
             seatsView.stand(seat: 2)
         }
         seatsView.setRatedTimer(rated: table.rated, initialMinutes: table.timer["initialMinutes"]!, incrementalSeconds: table.timer["incrementalSeconds"]!)
-        playButton.isHidden = (table.seats.count < 2 || !table.amIseated(i: me)) || (table.state.state != GameState.State.notStarted && table.state.state != GameState.State.halfSet)
+        if table.isGo() && table.state.state == .started && table.currentPlayerName() == me {
+            playButton.isHidden = false; playButton.setTitle(NSLocalizedString("PASS", comment: ""), for: .normal)
+        } else {
+            playButton.setTitle(NSLocalizedString("PLAY", comment: ""), for: .normal)
+            playButton.isHidden = (table.seats.count < 2 || !table.amIseated(i: me)) || (table.state.state != GameState.State.notStarted && table.state.state != GameState.State.halfSet)
+        }
         if playButton.isHidden {
             seatsView.ratedTimerLabel.alpha = 1
         } else {
             seatsView.ratedTimerLabel.alpha = 0.3
         }
         seatsView.setTimers(timers: table.state.timers)
-        if table.game == 7 || table.game == 8 || table.game == 17 || table.game == 18 {
+        if table.isDPente() {
             if table.seats[2] != nil && me == table.seats[2]?.name && table.moves.count == 4 && table.state.dPenteState == .noChoice {
                 let alertController = UIAlertController(title: NSLocalizedString("Continue play as", comment: ""), message: nil, preferredStyle: .actionSheet)
                 
@@ -523,9 +562,9 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
                     }
                 }
             }
-            stone.color = StoneColor(rawValue: color)!
+//            stone.color = StoneColor(rawValue: color)!
             zoomedStone.color = StoneColor(rawValue: color)!
-            stone.setNeedsDisplay()
+//            stone.setNeedsDisplay()
             zoomedStone.setNeedsDisplay()
             board.setNeedsDisplay()
             zoomedBoard.setNeedsDisplay()
@@ -608,28 +647,85 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
     }
     func addMove(move: Int) {
         table.addMove(move: move)
-        //        board.lastMove = move
-        //        zoomedBoard.lastMove = move
+        if table.state.goState != .markStones {
+            board.clearGoStructures(); zoomedBoard.clearGoStructures()
+        }
         board.setNeedsDisplay()
         zoomedBoard.setNeedsDisplay()
-        stone.isHidden = true
+//        stone.isHidden = true
         if table.gameHasCaptures() {
             self.navigationItem.title = "\u{25CF} x \(table.blackCaptures) - \u{25CB} x \(table.whiteCaptures)"
         } else {
             self.navigationItem.title = ""
         }
+        if table.isGo() && table.state.state == .started && table.currentPlayerName() == me {
+            playButton.isHidden = false; playButton.setTitle(NSLocalizedString("PASS", comment: ""), for: .normal)
+        } else {
+            playButton.isHidden = true
+        }
+        showGoDialog()
     }
     func addMoves(moves: [Int]) {
         table.addMoves(moves: moves)
+        if table.state.goState != .markStones {
+            board.clearGoStructures(); zoomedBoard.clearGoStructures()
+        }
         //        board.lastMove = move
         //        zoomedBoard.lastMove = move
         board.setNeedsDisplay()
         zoomedBoard.setNeedsDisplay()
-        stone.isHidden = true
+//        stone.isHidden = true
         if table.gameHasCaptures() {
             self.navigationItem.title = "\u{25CF} x \(table.blackCaptures) - \u{25CB} x \(table.whiteCaptures)"
         } else {
             self.navigationItem.title = ""
+        }
+        if table.isGo() && table.state.state == .started && table.currentPlayerName() == me {
+            playButton.isHidden = false; playButton.setTitle(NSLocalizedString("PASS", comment: ""), for: .normal)
+        }
+        showGoDialog()
+    }
+    
+    func rejectDeadStones() {
+        table.rejectDeadStones()
+        board.clearGoStructures(); zoomedBoard.clearGoStructures()
+        board.setNeedsDisplay()
+        zoomedBoard.setNeedsDisplay()
+        self.navigationItem.title = "\u{25CF} x \(table.blackCaptures) - \u{25CB} x \(table.whiteCaptures)"
+        if table.isGo() && table.state.state == .started && table.currentPlayerName() == me {
+            playButton.isHidden = false; playButton.setTitle(NSLocalizedString("PASS", comment: ""), for: .normal)
+        }
+    }
+    func showGoDialog() {
+//        return
+//        print("showGoDialog")
+        if table.state.goState == .markStones || table.state.goState == .evaluateStones {
+            table.getTerritories()
+            board.goDeadStones = table.goDeadStonesByPlayer
+            board.goTerritory = table.goTerritoryByPlayer
+        }
+        if table.showMarkStones(player: me) {
+//            print("showGoDialog mark")
+            let alertController = UIAlertController(title: NSLocalizedString("Double pass", comment: ""), message: NSLocalizedString("Your opponent made a pass as well, mark dead stones and end with a pass", comment: ""), preferredStyle: .actionSheet)
+            
+            let dismissAction = UIAlertAction(title: NSLocalizedString("dismiss", comment: ""), style: .cancel) { (action) in
+            }
+            alertController.addAction(dismissAction)
+            self.present(alertController, animated: true)
+        } else if table.showEvaluateStones(player: me) {
+//            print("showGoDialog evaluate")
+            let alertController = UIAlertController(title: NSLocalizedString("Accept score?", comment: ""), message: table.getGoScoreString(), preferredStyle: .actionSheet)
+            
+            let acceptAction = UIAlertAction(title: NSLocalizedString("accept", comment: ""), style: .default) { (action) in
+                self.sendMove(move: 361)
+            }
+            let rejectAction = UIAlertAction(title: NSLocalizedString("continue play", comment: ""), style: .destructive) { (action) in
+                let event = ["dsgRejectGoStateEvent":["player":self.me,"table":self.table.table,"time":0]]
+                self.socket.sendEvent(eventDictionary: event)
+            }
+            alertController.addAction(acceptAction)
+            alertController.addAction(rejectAction)
+            self.present(alertController, animated: true)
         }
     }
     func requestUndo(player: String) {
@@ -655,9 +751,15 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
     func requestUndoReply(player: String, accepted: Bool) {
         if accepted {
             table.undoLastMove()
+            showGoDialog()
             board.setNeedsDisplay()
             zoomedBoard.setNeedsDisplay()
             addText(text: NSLocalizedString("* undo accepted *", comment: ""))
+            if table.gameHasCaptures() {
+                self.navigationItem.title = "\u{25CF} x \(table.blackCaptures) - \u{25CB} x \(table.whiteCaptures)"
+            } else {
+                self.navigationItem.title = ""
+            }
         } else {
             addText(text: NSLocalizedString("* undo denied *", comment: ""))
         }
@@ -720,9 +822,13 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
     }
     
     @objc func play() {
-        socket.sendEvent(eventDictionary: ["dsgPlayTableEvent":["table":table.table,"time":0]])
-        playButton.isHidden = true
-        table.resetTimers()
+        if table.isGo() && table.state.state == .started && table.currentPlayerName() == me {
+            self.sendMove(move: 361)
+        } else {
+            socket.sendEvent(eventDictionary: ["dsgPlayTableEvent":["table":table.table,"time":0]])
+            playButton.isHidden = true
+            table.resetTimers()
+        }
     }
     func tableExitEvent(event: [String:Any]) {
         let playerName = event["player"] as! String
