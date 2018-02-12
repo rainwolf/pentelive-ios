@@ -10,7 +10,7 @@
 #import "HRColorPickerView.h"
 #import "HRColorMapView.h"
 #import "HRBrightnessSlider.h"
-#import "UIColor+hex.h"
+@import UIColor_Hex;
 #import "PenteNavigationViewController.h"
 
 @implementation ChangeColorViewController {

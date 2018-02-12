@@ -271,13 +271,13 @@
 
 -(BOOL) showAds {
     if (development) {
-        return YES;
+//        return YES;
     }
     return showAds;
 }
 -(BOOL) subscriber {
     if (development) {
-        return NO;
+//        return NO;
     }
     return subscriber;
 }

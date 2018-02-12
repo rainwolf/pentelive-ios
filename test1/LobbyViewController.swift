@@ -78,9 +78,9 @@ let development = false
     
     func loadServers() {
         do {
-            var activeServers = try String(contentsOf: URL(string: "https://www.pente.org/gameServer/mobile/liveServers.jsp")!, encoding: String.Encoding.utf8)
+            var activeServers = try String(contentsOf: URL(string: "https://www.pente.org/gameServer/mobile/liveServers.jsp?iPhone")!, encoding: String.Encoding.utf8)
             if development {
-                activeServers = try String(contentsOf: URL(string: "https://development.pente.org/gameServer/activeServers")!, encoding: String.Encoding.utf8)
+                activeServers = try String(contentsOf: URL(string: "https://development.pente.org/gameServer/mobile/liveServers.jsp?iPhone")!, encoding: String.Encoding.utf8)
             }
 //            print(activeServers)
             let serverLines = activeServers.components(separatedBy: "\n")

@@ -316,19 +316,24 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
     }
 
     func showScore() {
-        let alertController = UIAlertController(title: nil, message: table.getGoScoreString(), preferredStyle: .actionSheet)
+        table.getTerritories()
         board.goDeadStones = table.goDeadStonesByPlayer; zoomedBoard.goDeadStones = table.goDeadStonesByPlayer;
         board.goTerritory = table.goTerritoryByPlayer; zoomedBoard.goTerritory = table.goTerritoryByPlayer;
         self.board.setNeedsDisplay(); self.zoomedBoard.setNeedsDisplay()
 
-        let cancelAction = UIAlertAction(title: NSLocalizedString("dismiss", comment: ""), style: .cancel) { (action) in
+        TSMessage.showNotification(in: self, title: "score", subtitle: table.getGoScoreString(), image: nil, type: TSMessageNotificationType.message, duration: TimeInterval(TSMessageNotificationDuration.endless.rawValue), callback: {
+            TSMessage.dismissActiveNotification()
             if self.table.state.goState == .play {
                 self.board.clearGoStructures(); self.zoomedBoard.clearGoStructures()
                 self.board.setNeedsDisplay(); self.zoomedBoard.setNeedsDisplay()
             }
-        }
-        alertController.addAction(cancelAction)
-        self.present(alertController, animated: true)
+        }, buttonTitle: NSLocalizedString("dismiss", comment: ""), buttonCallback: {
+            TSMessage.dismissActiveNotification()
+            if self.table.state.goState == .play {
+                self.board.clearGoStructures(); self.zoomedBoard.clearGoStructures()
+                self.board.setNeedsDisplay(); self.zoomedBoard.setNeedsDisplay()
+            }
+        }, at: TSMessageNotificationPosition.bottom, canBeDismissedByUser: true)
     }
     @objc func showOptions() {
         if table.state.state == .started && table.amIseated(i: me) {
@@ -392,6 +397,9 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
             }
             alertController.addAction(dismissAction)
             alertController.addAction(viewAction)
+            if let popoverController = alertController.popoverPresentationController {
+                popoverController.barButtonItem = self.navigationItem.rightBarButtonItems?[1]
+            }
 
             self.present(alertController, animated: true)
         } else {
@@ -450,6 +458,9 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
             let cancelAction = UIAlertAction(title: NSLocalizedString("cancel", comment: ""), style: .cancel) { (action) in
             }
             self.inviteAlertController?.addAction(cancelAction)
+            if let popoverController = self.inviteAlertController?.popoverPresentationController {
+                popoverController.sourceView = self.playButton
+            }
             self.present(self.inviteAlertController!, animated: true)
         }
     }
@@ -489,6 +500,9 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
             let cancelAction = UIAlertAction(title: NSLocalizedString("cancel", comment: ""), style: .cancel) { (action) in
             }
             self.inviteAlertController?.addAction(cancelAction)
+            if let popoverController = self.inviteAlertController?.popoverPresentationController {
+                popoverController.sourceView = self.playButton
+            }
             self.present(self.inviteAlertController!, animated: true)
         }
     }
@@ -565,6 +579,9 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
 //            stone.color = StoneColor(rawValue: color)!
             zoomedStone.color = StoneColor(rawValue: color)!
 //            stone.setNeedsDisplay()
+            if table.state.goState == .play {
+                board.clearGoStructures(); zoomedBoard.clearGoStructures()
+            }
             zoomedStone.setNeedsDisplay()
             board.setNeedsDisplay()
             zoomedBoard.setNeedsDisplay()
@@ -694,6 +711,8 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
         self.navigationItem.title = "\u{25CF} x \(table.blackCaptures) - \u{25CB} x \(table.whiteCaptures)"
         if table.isGo() && table.state.state == .started && table.currentPlayerName() == me {
             playButton.isHidden = false; playButton.setTitle(NSLocalizedString("PASS", comment: ""), for: .normal)
+        } else {
+            playButton.isHidden = true
         }
     }
     func showGoDialog() {
@@ -705,16 +724,15 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
             board.goTerritory = table.goTerritoryByPlayer
         }
         if table.showMarkStones(player: me) {
-//            print("showGoDialog mark")
-            let alertController = UIAlertController(title: NSLocalizedString("Double pass", comment: ""), message: NSLocalizedString("Your opponent made a pass as well, mark dead stones and end with a pass", comment: ""), preferredStyle: .actionSheet)
-            
-            let dismissAction = UIAlertAction(title: NSLocalizedString("dismiss", comment: ""), style: .cancel) { (action) in
-            }
-            alertController.addAction(dismissAction)
-            self.present(alertController, animated: true)
+            TSMessage.showNotification(in: self, title: NSLocalizedString("Double pass", comment: ""), subtitle: NSLocalizedString("Your opponent made a pass as well, mark dead stones and end with a pass", comment: ""), image: nil, type: TSMessageNotificationType.message, duration: TimeInterval(TSMessageNotificationDuration.endless.rawValue), callback: {
+                TSMessage.dismissActiveNotification()
+            }, buttonTitle: NSLocalizedString("dismiss", comment: ""), buttonCallback: {
+                TSMessage.dismissActiveNotification()
+            }, at: TSMessageNotificationPosition.bottom, canBeDismissedByUser: true)
+
         } else if table.showEvaluateStones(player: me) {
 //            print("showGoDialog evaluate")
-            let alertController = UIAlertController(title: NSLocalizedString("Accept score?", comment: ""), message: table.getGoScoreString(), preferredStyle: .actionSheet)
+            let alertController = UIAlertController(title: NSLocalizedString("Accept score?", comment: ""), message: table.getGoScoreString(), preferredStyle: .alert)
             
             let acceptAction = UIAlertAction(title: NSLocalizedString("accept", comment: ""), style: .default) { (action) in
                 self.sendMove(move: 361)
@@ -725,12 +743,16 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
             }
             alertController.addAction(acceptAction)
             alertController.addAction(rejectAction)
+            
+            if let popoverController = alertController.popoverPresentationController {
+                popoverController.sourceView = self.playButton
+            }
             self.present(alertController, animated: true)
         }
     }
     func requestUndo(player: String) {
         if me != player && table.amIseated(i: me) {
-            let alertController = UIAlertController(title: NSLocalizedString("\(player) requested to undo his last move", comment: ""), message: nil, preferredStyle: .actionSheet)
+            let alertController = UIAlertController(title: NSLocalizedString("\(player) requested to undo his last move", comment: ""), message: nil, preferredStyle: .alert)
             
             let p1Action = UIAlertAction(title: NSLocalizedString("accept undo", comment: ""), style: .default) { (action) in
                 let event = ["dsgUndoReplyTableEvent":["accepted":true,"player":self.me,"table":self.table.table,"time":0]]

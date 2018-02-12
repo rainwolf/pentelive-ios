@@ -210,25 +210,6 @@ CGFloat bottomOffset = 0;
 //    }
 
     
-//    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-//    int numberAppearances = 0;
-//    if ((numberAppearances = (int) [defaults integerForKey:@"gamesTableViewAppearances"])) {
-//        numberAppearances = (numberAppearances + 1) % 5;
-//    } else {
-//        ++numberAppearances;
-//    }
-//    [defaults setInteger:numberAppearances forKey:@"gamesTableViewAppearances"];
-//    if (!navController.receivedNotification) {
-//        if (numberAppearances == 0) {
-//            if ([self.interstitial isReady]) {
-//                [self.interstitial presentFromRootViewController:self];
-//            }
-//        }
-//
-//    } else if (numberAppearances == 0) {
-//        [defaults setInteger:4 forKey:@"gamesTableViewAppearances"];
-//    }
-    
 //    [self performSelector:@selector(scrollViewDidScroll:) withObject: self.tableView afterDelay:.05f];
     [super viewDidAppear:animated];
 //    [self toLive];

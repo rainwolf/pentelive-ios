@@ -185,8 +185,11 @@ class Table: NSObject {
         return isGo() && (state.goState == .markStones) && (doublePassMove() == moves.count - 1) && (currentPlayerName() == player)
     }
     func showEvaluateStones(player: String) -> Bool {
-//        return false
-        return isGo() && (state.goState == .evaluateStones) && (currentPlayerName() == player)
+        var notOver = true
+        if doublePassMove() < moves.count-2 && moves.count > 3 && moves[moves.count-1] == passMove && moves[moves.count-2] == passMove {
+            notOver = false
+        }
+        return isGo() && (state.goState == .evaluateStones) && state.state == .started && (currentPlayerName() == player) && notOver
     }
     func lastMove() -> Int {
         if moves.count > 0 {
