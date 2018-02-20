@@ -3253,7 +3253,6 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
     if ( inType == UIWebViewNavigationTypeLinkClicked ) {
         NSString *urlString = [[inRequest URL] absoluteString];
         PenteWebViewController *webViewController = [[PenteWebViewController alloc] initWithAddress: urlString];
-//        [webViewController setDelegate:self];
         [self.navigationController pushViewController:webViewController animated:YES];
         return NO;
     }

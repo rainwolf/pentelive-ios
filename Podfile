@@ -13,7 +13,7 @@ platform :ios, '8.0'
 	pod 'Firebase/AdMob'
 	pod 'TSMessages', :git => 'https://github.com/rainwolf/TSMessages.git'
 	pod 'PopoverView', :git => 'https://github.com/runway20/PopoverView.git'
-	pod 'SVWebViewController', :git => 'https://github.com/TransitApp/SVWebViewController.git'
+#	pod 'SVWebViewController', :git => 'https://github.com/TransitApp/SVWebViewController.git'
 	pod "Color-Picker-for-iOS", "~> 2.0"
 	pod "UIColor+Hex"
 	pod 'ICDMaterialActivityIndicatorView'
@@ -22,4 +22,5 @@ platform :ios, '8.0'
 	pod 'NSHash', '~> 1.1.0'
 	pod 'CocoaAsyncSocket'
 	pod 'UIBarButtonItem-Badge', :git => 'https://github.com/mikeMTOL/UIBarButtonItem-Badge.git'
+	pod 'AFWebViewController', '~> 1.0'
 end

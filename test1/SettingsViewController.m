@@ -12,6 +12,7 @@
 #import "ChangeColorViewController.h"
 #import "RMStore.h"
 #import "penteLive-Swift.h"
+#import "MMAIViewController.h"
 @import TSMessages;
 
 
@@ -31,6 +32,7 @@
 @synthesize popoverView;
 @synthesize progressView;
 @synthesize navC;
+@synthesize showAIOption;
 
 
 
@@ -91,6 +93,9 @@
     }
     if (self.navC.showSubscribe) {
         [self showSubscribeInfo];
+    } else if (showAIOption) {
+        showAIOption = NO;
+        [self showAIOptionDialog];
     }
 //    NSLog([NSString stringWithFormat:@"kitty viewDidAppear %@",[self navC]]);
 }
@@ -908,7 +913,27 @@
     // your code here to reconfigure the app for changed settings
 }
 
-
+-(void) showAIOptionDialog {
+    UIAlertController* alert = [UIAlertController alertControllerWithTitle:NSLocalizedString(@"Login failed or no Internet?", nil)
+                                                                   message:NSLocalizedString(@"Do you just want to play the onboard AI?", nil)
+                                                            preferredStyle:UIAlertControllerStyleActionSheet];
+    UIAlertAction* dismissAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"dismiss", nil) style:UIAlertActionStyleCancel
+                                                          handler:^(UIAlertAction * action) {
+                                                          }];
+    UIAlertAction* yesAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"yes please", nil) style:UIAlertActionStyleDefault
+                                                          handler:^(UIAlertAction * action) {
+                                                              UIStoryboard *sb = [UIStoryboard storyboardWithName:@"MainStoryboard" bundle:nil];
+                                                              MMAIViewController * vc = (MMAIViewController *)[sb instantiateViewControllerWithIdentifier:@"mmaiViewController"];
+                                                              [vc setShowAds: YES];
+                                                              [self.navigationController pushViewController:vc animated:YES];
+                                                          }];
+    [alert addAction:dismissAction];
+    [alert addAction:yesAction];
+    if (alert.popoverPresentationController) {
+        [alert.popoverPresentationController setBarButtonItem:self.navigationItem.rightBarButtonItem];
+    }
+    [self presentViewController:alert animated:YES completion:nil];
+}
 
 - (void)didReceiveMemoryWarning
 {

@@ -16,12 +16,14 @@
     PopoverView *popoverView;
     ICDMaterialActivityIndicatorView *progressView;
     PenteNavigationViewController *navC;
+    BOOL showAIOption;
 }
 @property(nonatomic,retain) NSString *username;
 @property(nonatomic,retain) NSString *password;
 @property(nonatomic,retain) PopoverView *popoverView;
 @property(nonatomic,retain) PenteNavigationViewController *navC;
 @property (strong,nonatomic) ICDMaterialActivityIndicatorView *progressView;
+@property(atomic, assign) BOOL showAIOption;
 
 //-(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath;
 

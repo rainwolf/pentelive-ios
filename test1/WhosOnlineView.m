@@ -139,10 +139,14 @@
 }
 
 -(void) tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+//    NSLog(@"didselect");
     if ([[self tableView:tableView titleForHeaderInSection:indexPath.section] isEqualToString:@"Mobile"]) {
+//        NSLog(@"mobile");
         [vc toInvitationsWithPlayer:[[rooms objectAtIndex:indexPath.section].players objectAtIndex:indexPath.row].name];
     } else {
-        PenteWebViewController *webVC = [[PenteWebViewController alloc] initWithURL:[NSURL URLWithString: [NSString stringWithFormat:@"https://www.pente.org/gameServer/profile?viewName=%@", [[rooms objectAtIndex:indexPath.section].players objectAtIndex:indexPath.row].name]]];
+//        NSLog(@"else");
+        NSString *address = [NSString stringWithFormat:@"https://www.pente.org/gameServer/profile?viewName=%@", [[rooms objectAtIndex:indexPath.section].players objectAtIndex:indexPath.row].name];
+        PenteWebViewController *webVC = [[PenteWebViewController alloc] initWithAddress:address];
         [vc.navigationController pushViewController:webVC animated:YES];
         [vc.actionPopoverView dismiss];
     }

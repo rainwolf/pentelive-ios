@@ -352,11 +352,11 @@ CGFloat bottomOffst = 0;
             [actionPopoverView layoutSubviews];
             ((PenteNavigationViewController *) self.navigationController).didMove = YES;
         } else {
-            NSURL *url = [NSURL URLWithString: [NSString stringWithFormat:@"https://www.pente.org/gameServer/profile?viewName=%@", playr.name]];
+            NSString *url = [NSString stringWithFormat:@"https://www.pente.org/gameServer/profile?viewName=%@", playr.name];
             if (development) {
-                url = [NSURL URLWithString: [NSString stringWithFormat:@"https://development.pente.org/gameServer/profile?viewName=%@", playr.name]];
+                url = [NSString stringWithFormat:@"https://development.pente.org/gameServer/profile?viewName=%@", playr.name];
             }
-            PenteWebViewController *webVC = [[PenteWebViewController alloc] initWithURL:url];
+            PenteWebViewController *webVC = [[PenteWebViewController alloc] initWithAddress:url];
             [self.navigationController pushViewController:webVC animated:YES];
         }
     }

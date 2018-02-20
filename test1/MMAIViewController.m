@@ -282,6 +282,7 @@
 -(void) startGame: (id) sender {
     aiThinking = NO;
     [((UIButton *) sender) setTitle:NSLocalizedString(@"restart game",nil) forState:UIControlStateNormal];
+    [((UIButton *)sender) sizeToFit];
     if (aiPlayer == nil) {
 //        NSLog(@"kitty");
         aiPlayer = [[MMAI alloc] init];

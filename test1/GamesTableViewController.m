@@ -62,6 +62,7 @@
 @synthesize gamesLimit;
 @synthesize actionPopoverView;
 @synthesize progressView;
+@synthesize settingsViewController;
 
 UIBarButtonItem *inviteButton, *moreButton;
 NSString *livePlayers, *onlineFollowing;
@@ -306,21 +307,25 @@ CGFloat bottomOffset = 0;
         if (error) {
             UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error",nil) message:[NSString stringWithFormat: @"Trouble connecting to pente.org, please try again in a bit.\nReason: %@",  error.localizedDescription] delegate:nil cancelButtonTitle:NSLocalizedString(@"OK",nil) otherButtonTitles:nil];
             [alert show];
-            [self performSegueWithIdentifier:@"settingsTap" sender:self];
+//            [self performSegueWithIdentifier:@"settingsTap" sender:self];
+//            settingsViewController.showAIOption = YES;
             return;
         } else if ([dashboardString isEqualToString:@""] || ([dashboardString rangeOfString:@"HTTP Error"].length != 0)) {
             UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error",nil) message:@"pente.org appears to be down, please try again later." delegate:nil cancelButtonTitle:NSLocalizedString(@"OK",nil) otherButtonTitles:nil];
             [alert show];
-            [self performSegueWithIdentifier:@"settingsTap" sender:self];
+//            [self performSegueWithIdentifier:@"settingsTap" sender:self];
+//            settingsViewController.showAIOption = YES;
             return;
         }
         else if ([dashboardString rangeOfString:@"<h2>Pente.org is undergoing maintenance.</h2>"].length != 0) {
             UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Maintenance" message:@"pente.org is undergoing maintenance, please try again in a few minutes." delegate:nil cancelButtonTitle:NSLocalizedString(@"OK",nil) otherButtonTitles:nil];
             [alert show];
-            [self performSegueWithIdentifier:@"settingsTap" sender:self];
+//            [self performSegueWithIdentifier:@"settingsTap" sender:self];
+//            settingsViewController.showAIOption = YES;
             return;
         } else if ([dashboardString rangeOfString:@"Invalid name or password, please try again."].length != 0) {
-            [self performSegueWithIdentifier:@"settingsTap" sender:self];
+//            [self performSegueWithIdentifier:@"settingsTap" sender:self];
+//            settingsViewController.showAIOption = YES;
             return;
         } else {
             PenteNavigationViewController *navControllor = (PenteNavigationViewController *) self.navigationController;
@@ -329,7 +334,8 @@ CGFloat bottomOffset = 0;
             [self dashboardParse];
         }
     } else {
-        [self performSegueWithIdentifier:@"settingsTap" sender:self];
+//        [self performSegueWithIdentifier:@"settingsTap" sender:self];
+//        settingsViewController.showAIOption = YES;
         return;
     }
 }
@@ -1180,6 +1186,9 @@ CGFloat bottomOffset = 0;
     if([segue.identifier isEqualToString:@"messagesTap"]){
         messagesViewController = (MessagesViewController *)segue.destinationViewController;
         [messagesViewController setShowAds:player.showAds];
+    }
+    if([segue.identifier isEqualToString:@"settingsTap"]){
+        settingsViewController = (SettingsViewController *)segue.destinationViewController;
     }
 //    if([segue.identifier isEqualToString:@"addInvitationsTap"]){
 //        invitationsViewController = (InvitationsViewController *)segue.destinationViewController;
@@ -2176,13 +2185,18 @@ CGFloat bottomOffset = 0;
 
 //    NSString *dashboardString = [NSString stringWithContentsOfURL:[NSURL URLWithString:url] encoding:NSUTF8StringEncoding error:&error];
     if (error) {
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error",nil) message:[NSString stringWithFormat:NSLocalizedString(@"Reason: %@",nil), error.localizedDescription] delegate:nil cancelButtonTitle:NSLocalizedString(@"OK",nil) otherButtonTitles:nil];
-        //        [alert show];
-        [alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:YES];
-        [self performSelector:@selector(pullDownToReloadActionFinished) withObject:nil];
-        self.tableView.layer.borderWidth = 0.0;
-        [self.tableView setUserInteractionEnabled:YES];
-        return;
+
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error",nil) message:[NSString stringWithFormat:NSLocalizedString(@"Reason: %@",nil), error.localizedDescription] delegate:nil cancelButtonTitle:NSLocalizedString(@"OK",nil) otherButtonTitles:nil];
+//            [alert show];
+                    [alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:YES];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self performSelector:@selector(pullDownToReloadActionFinished) withObject:nil];
+            self.tableView.layer.borderWidth = 0.0;
+            [self.tableView setUserInteractionEnabled:YES];
+//            [self performSegueWithIdentifier:@"settingsTap" sender:self];
+            //        settingsViewController.showAIOption = YES;
+            return;
+        });
     }
     NSString *dashboardString = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
 
@@ -2979,7 +2993,7 @@ CGFloat bottomOffset = 0;
         if (installationDate) {
             double daysPassed = 0;
             daysPassed = [installationDate timeIntervalSinceNow] / -86400.0;
-            if (daysPassed < 20) {
+            if (daysPassed < 15) {
                 return;
             }
             NSDate *lastRated = [[NSUserDefaults standardUserDefaults] objectForKey:@"lastRatedApp"];
@@ -3265,7 +3279,7 @@ CGFloat bottomOffset = 0;
         [navController setChallengedUser: playerName];
         [self performSegueWithIdentifier:@"addInvitationsTap" sender: self];
     } else {
-        PenteWebViewController *webVC = [[PenteWebViewController alloc] initWithURL:[NSURL URLWithString: [NSString stringWithFormat:@"https://www.pente.org/gameServer/profile?viewName=%@", username]]];
+        PenteWebViewController *webVC = [[PenteWebViewController alloc] initWithAddress:[NSString stringWithFormat:@"https://www.pente.org/gameServer/profile?viewName=%@", username]];
         [self.navigationController pushViewController:webVC animated:YES];
     }
 }

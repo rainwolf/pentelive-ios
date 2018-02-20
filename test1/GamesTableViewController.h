@@ -46,6 +46,7 @@
     int gamesLimit;
     PopoverView *actionPopoverView;
     ICDMaterialActivityIndicatorView *progressView;
+    SettingsViewController *settingsViewController;
 }
 @property(nonatomic,retain) PentePlayer *player;
 @property(nonatomic,retain) Game *selectedGame;
@@ -66,7 +67,7 @@ sentInvitationsCollapsed, nonActiveGamesCollapsed, alreadyAskedAboutInvitations,
 @property(nonatomic, strong) GADInterstitial *interstitial;
 @property(nonatomic, retain, readwrite) PopoverView *actionPopoverView;
 @property (strong,nonatomic) ICDMaterialActivityIndicatorView *progressView;
-
+@property(nonatomic, retain) SettingsViewController *settingsViewController;
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath;
 - (void) sectionTap:(UIGestureRecognizer *)gestureRecognizer;

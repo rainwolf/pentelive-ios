@@ -46,12 +46,12 @@
         whiteStoneView.clipsToBounds = YES;
         [whiteStoneView setOpaque:NO];
         whiteSquare = [[UIView alloc] init];
-        [whiteSquare setAlpha:0.8];
+//        [whiteSquare setAlpha:0.9];
         whiteSquare.clipsToBounds = YES;
         [whiteSquare setOpaque:NO];
         [whiteSquare setBackgroundColor:[UIColor whiteColor]];
         blackSquare = [[UIView alloc] init];
-        [blackSquare setAlpha:0.8];
+//        [blackSquare setAlpha:0.9];
         blackSquare.clipsToBounds = YES;
         [blackSquare setOpaque:NO];
         [blackSquare setBackgroundColor:[UIColor blackColor]];
@@ -192,9 +192,10 @@
         [blackStoneView.layer renderInContext:UIGraphicsGetCurrentContext()];
         CGContextRestoreGState(context);
     }
+    CGFloat width = margin*5/6;
     for (NSNumber *stone in whiteTerritory) {
         int stoneInt = stone.intValue, i = stoneInt/19, j = stoneInt%19;
-        circle = CGRectMake(j*2*margin + margin*2/3,i*2*margin + margin*2/3,margin*2/3,margin*2/3);
+        circle = CGRectMake(j*2*margin + margin - width/2,i*2*margin + margin - width/2,width,width);
         CGContextSaveGState(context);
         CGContextTranslateCTM(context, circle.origin.x, circle.origin.y);
         [whiteSquare setFrame:circle];
@@ -203,7 +204,7 @@
     }
     for (NSNumber *stone in blackTerritory) {
         int stoneInt = stone.intValue, i = stoneInt/19, j = stoneInt%19;
-        circle = CGRectMake(j*2*margin + margin*2/3,i*2*margin + margin*2/3,margin*2/3,margin*2/3);
+        circle = CGRectMake(j*2*margin + margin - width/2,i*2*margin + margin - width/2,width,width);
         CGContextSaveGState(context);
         CGContextTranslateCTM(context, circle.origin.x, circle.origin.y);
         [blackSquare setFrame:circle];
