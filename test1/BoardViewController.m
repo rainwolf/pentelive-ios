@@ -99,9 +99,9 @@ struct Capture {
 
 NSMutableDictionary<NSNumber*, NSMutableDictionary<NSNumber*, NSNumber*>*> *goStoneGroupIDsByPlayer;
 NSMutableDictionary<NSNumber*, NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*>*> *goStoneGroupsByPlayerAndID;
-int koMove = -1;
+int koMove = -1, gridSize = 19;
 NSMutableArray<NSNumber*> *deadWhiteStones, *deadBlackStones, *whiteTerritory, *blackTerritory;
-BOOL goMarkStones = NO, goEvaluateDeadStones = NO, go = NO;
+BOOL goMarkStones = NO, goEvaluateDeadStones = NO, go = NO, isGoGame = NO;
 NSMutableDictionary<NSNumber*, NSNumber*> *goStoneGroupIDs;
 NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
 
@@ -212,8 +212,6 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
         [zoomedBoard setHidden:YES];
         [zoomedStone setHidden:YES];
         [stone setHidden:YES];
-        [stone setBounds:CGRectMake(0, 0, 1.2*self.board.bounds.size.width/19,1.2*self.board.bounds.size.width/19)];
-        [zoomedStone setBounds:CGRectMake(0, 0, 1.2*1.5*2*self.board.bounds.size.width/19,1.2*1.5*2*self.board.bounds.size.width/19)];
         finalMove = -1;
         connect6Move1 = -1;
         connect6Move2 = -1;
@@ -239,7 +237,7 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
     UIBarButtonItem *positiveSpacer = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFixedSpace target:nil action:nil];
     positiveSpacer.width = 16.0;// it was -6 in iOS 6
     UIBarButtonItem *messsageBarButton = self.navigationItem.rightBarButtonItem;
-    if ([[game gameType] isEqualToString:@"Go"]) {
+    if (isGoGame) {
         UIBarButtonItem *goItem = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"database"] style:UIBarButtonItemStylePlain target:self action:@selector(showScore)];
         UIBarButtonItem *cancelItem = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"cancel.png"] style:UIBarButtonItemStylePlain target:self action:@selector(cancelResignHide)];
         [self.navigationItem setRightBarButtonItems:[NSArray arrayWithObjects: messsageBarButton, negativeSpacer, goItem, negativeSpacer, cancelItem, positiveSpacer, nil] animated:YES];
@@ -489,12 +487,15 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
     int i, j;
     CGPoint currentPoint = [recognizer locationInView: self.board];
     NSNumber *finaMoveNumber;
-    float cellSize = self.board.bounds.size.width / 19;
+    float cellSize = self.board.bounds.size.width / gridSize;
     j = (int) floorf(currentPoint.x/cellSize);
     i = (int) floorf(currentPoint.y/cellSize);
     
     switch ([recognizer state]) {
         case UIGestureRecognizerStateBegan:
+            [stone setBounds:CGRectMake(0, 0, 1.2*self.board.bounds.size.width/gridSize,1.2*self.board.bounds.size.width/gridSize)];
+            [zoomedStone setBounds:CGRectMake(0, 0, 1.2*1.5*2*self.board.bounds.size.width/gridSize,1.2*1.5*2*self.board.bounds.size.width/gridSize)];
+            [stone setNeedsDisplay]; [zoomedStone setNeedsDisplay];
 //            NSLog(@"hi start %i %i \n %@", lastMove, [movesList count], movesList);
             if (!goMarkStones &&  lastMove != [movesList count] && activeGame ) {
                 whiteCaptures = 0;
@@ -513,7 +514,7 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
             finalMove = -1;
             [zoomedBoard setHidden: NO];
             [stone setHidden: YES];
-            finaMoveNumber = [NSNumber numberWithInt:19*i + j];
+            finaMoveNumber = [NSNumber numberWithInt:gridSize*i + j];
             if (activeGame && ((!goMarkStones && ((go && abstractGoBoard[i][j]==0) || (abstractBoard[i][j] == 0))) || (goMarkStones && (abstractBoard[i][j] != 0 || [deadBlackStones containsObject:finaMoveNumber] || [deadWhiteStones containsObject:finaMoveNumber])))) {
                 [zoomedStone setHidden: NO];
                 [horizontalLine setHidden:NO];
@@ -523,7 +524,7 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
         case UIGestureRecognizerStateEnded:
 //            NSLog(@"hi ended");
             if ([zoomedBoard isHidden] && activeGame) {
-                if (![[game gameType] isEqualToString:@"Go"]) {
+                if (!isGoGame) {
                     [submitButton setEnabled:NO];
                     [submitButton setTitle:NSLocalizedString(@"submit",nil) forState:UIControlStateDisabled];
                     [submitButton setAlpha:0.5];
@@ -535,7 +536,7 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
             }
             [zoomedBoard setHidden: YES];
             
-            finalMove = 19*i + j;
+            finalMove = gridSize*i + j;
             finaMoveNumber = [NSNumber numberWithInt:finalMove];
             if (goMarkStones && activeGame && (abstractBoard[i][j] != 0 || [deadBlackStones containsObject:finaMoveNumber] || [deadWhiteStones containsObject:finaMoveNumber])) {
                 
@@ -551,7 +552,7 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
                     } else if (([[game gameType] isEqualToString:@"D-Pente"] || [[game gameType] isEqualToString:@"DK-Pente"]) && dPenteOpening) {
                         [submitButton setTitle: [NSString stringWithFormat:NSLocalizedString(@"submit: %c%d-%c%d-%c%d-%c%d",nil), coordinateLetters[dPenteMove1 % 19], 19 - (dPenteMove1 / 19), coordinateLetters[dPenteMove2 % 19], 19 - (dPenteMove2 / 19), coordinateLetters[dPenteMove3 % 19], 19 - (dPenteMove3 / 19), coordinateLetters[finalMove % 19], 19 - (finalMove / 19)] forState:UIControlStateNormal];
                     } else {
-                        [submitButton setTitle: [NSString stringWithFormat:NSLocalizedString(@"submit: %c%d",nil), coordinateLetters[finalMove % 19], 19 - (finalMove / 19)] forState:UIControlStateNormal];
+                        [submitButton setTitle: [NSString stringWithFormat:NSLocalizedString(@"submit: %c%d",nil), coordinateLetters[finalMove % gridSize], gridSize - (finalMove / gridSize)] forState:UIControlStateNormal];
                     }
                     [submitButton setAlpha:1];
                 }
@@ -593,7 +594,7 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
                         [self detectCaptureOfOpponent:1 atPosition:finalMove];
                     }
                 }
-                if ([[game gameType] isEqualToString:@"Go"]) {
+                if (isGoGame) {
                     if (finalMove != koMove) {
                         [self addGoMove:finalMove];
                     }
@@ -614,13 +615,13 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
                 }
             } else if (!goMarkStones && activeGame) {
                 finalMove = -1;
-                if (![[game gameType] isEqualToString:@"Go"]) {
+                if (!isGoGame) {
                     [submitButton setEnabled:NO];
                     [submitButton setTitle:NSLocalizedString(@"submit",nil) forState:UIControlStateDisabled];
                     [submitButton setAlpha:0.5];
                 } else {
                     [submitButton setTitle:NSLocalizedString(@"PASS",nil) forState:UIControlStateNormal];
-                    finalMove = 19*19;
+                    finalMove = gridSize*gridSize;
                     [self copyGoBoardBack];
                 }
             }
@@ -652,14 +653,14 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
         // re-center the zoomed board.
         zoomedBoard.center = CGPointMake(board.center.x - (currentPoint.x-board.center.x),board.center.y - (currentPoint.y-board.center.y));
         // re-center the stone, re-snap if needed.
-        float cellSize = self.zoomedBoard.bounds.size.width / 19;
+        float cellSize = self.zoomedBoard.bounds.size.width / gridSize;
         if ((fabs(zoomedStone.center.x - 2*currentPoint.x) >= cellSize/2) || (fabs(zoomedStone.center.y - 2*currentPoint.y) >= cellSize/2)) {
             
             zoomedStone.center = CGPointMake(cellSize*j + cellSize/2, cellSize*i + cellSize/2);
             verticalLine.center = CGPointMake(cellSize*j + cellSize/2, zoomedBoard.bounds.size.width/2);
             horizontalLine.center = CGPointMake(zoomedBoard.bounds.size.height/2, cellSize*i + cellSize/2);
             if (goMarkStones) {
-                finaMoveNumber = [NSNumber numberWithInt:19*i + j];
+                finaMoveNumber = [NSNumber numberWithInt:gridSize*i + j];
             }
             if (activeGame && ((!goMarkStones && ((go && abstractGoBoard[i][j] == 0) || (abstractBoard[i][j] == 0))) || (goMarkStones && (abstractBoard[i][j] != 0 || [deadBlackStones containsObject:finaMoveNumber] || [deadWhiteStones containsObject:finaMoveNumber])))) {
                 [zoomedStone setHidden:NO];
@@ -724,7 +725,7 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
 
 
 -(NSString*) getDeadStonesString {
-    NSMutableString *str = [[NSMutableString alloc] initWithString:@"361"];
+    NSMutableString *str = [[NSMutableString alloc] initWithString:[NSString stringWithFormat:@"%d",gridSize*gridSize]];
     for (NSNumber *move in deadBlackStones) {
         [str insertString:[NSString stringWithFormat:@"%i,", move.intValue] atIndex:0];
     }
@@ -748,12 +749,12 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
         moveString = [NSString stringWithFormat:@"%i", finalMove];
     }
     
-    if ([[game gameType] isEqualToString:@"Go"]) {
+    if (isGoGame) {
         if (goMarkStones) {
             moveString = [self getDeadStonesString];
         } else {
             if (finalMove == -1) {
-                moveString = @"361";
+                moveString = [NSString stringWithFormat:@"%d", (gridSize*gridSize)];
             }
         }
     }
@@ -833,6 +834,8 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
 
 
 -(void) replayGame {
+    gridSize = 19;
+    isGoGame = NO;
     [board setLastConnect6Move: -1];
     [zoomedBoard setLastConnect6Move: -1];
     whiteCaptures = 0;
@@ -884,7 +887,7 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
     int dashIDX = 0;
     NSString *myUsername = [[[NSUserDefaults standardUserDefaults] objectForKey:@"username"] lowercaseString], *p1Name, *p2Name;
     if (development) {
-        myUsername = @"iostest";
+//        myUsername = @"iostest";
     }
     NSString *currentPlayer = @"";
     while (dashIDX < [splitDash count]) {
@@ -892,22 +895,27 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
         @try {
             if ([dashLine hasPrefix:@"current_player="]) {
                 currentPlayer = [[dashLine stringByReplacingOccurrencesOfString:@"current_player=" withString:@""] lowercaseString];
-            } else if ([[dashLine substringToIndex:4] isEqualToString:@"sid="]) {
+            } else if ([dashLine hasPrefix:@"sid="]) {
                 [game setSetID:[dashLine substringFromIndex:4]];
             } else if ([dashLine containsString:@"undo=requested"]) {
                 undoRequest = YES;
-            } else if ([[dashLine substringToIndex:9] isEqualToString:@"gameName="]) {
+            } else if ([dashLine hasPrefix:@"gameName="]) {
                 [game setGameType:[dashLine substringFromIndex:9]];
-            } else if ([[dashLine substringToIndex:6] isEqualToString:@"moves="]) {
-                movesList  = [NSMutableArray arrayWithArray:[[dashLine substringFromIndex:6] componentsSeparatedByString:@","]];
+            } else if ([dashLine hasPrefix:@"moves="]) {
+//                NSLog(dashLine);
+                if (dashLine.length > 6) {
+                    movesList  = [NSMutableArray arrayWithArray:[[dashLine substringFromIndex:6] componentsSeparatedByString:@","]];
+                } else {
+                    movesList = [[NSMutableArray alloc] init];
+                }
                 lastMove = (int) [movesList count];
-            } else if ([[dashLine substringToIndex:9] isEqualToString:@"messages="]) {
+            } else if ([dashLine hasPrefix:@"messages="]) {
                 messages = [NSMutableArray arrayWithArray:[[dashLine substringFromIndex:9] componentsSeparatedByString:@","]];
-            } else if ([[dashLine substringToIndex:8] isEqualToString:@"private="]) {
+            } else if ([dashLine hasPrefix:@"private="]) {
                 [game setPrivateGame:[dashLine substringFromIndex:8]];
-            } else if ([[dashLine substringToIndex:6] isEqualToString:@"rated="]) {
+            } else if ([dashLine hasPrefix:@"rated="]) {
                 [game setRatedNot:[dashLine substringFromIndex:6]];
-            } else if ([[dashLine substringToIndex:7] isEqualToString:@"cancel="]) {
+            } else if ([dashLine hasPrefix:@"cancel="]) {
                 NSArray *playerRating = [NSArray arrayWithArray:[[dashLine substringFromIndex:7] componentsSeparatedByString:@","]];
                 if (![[playerRating objectAtIndex:0] isEqualToString:myUsername]) {
                     cancelRequest = YES;
@@ -917,7 +925,7 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
                         cancelMsg = [NSString stringWithFormat:@"/n and writes: %@",[playerRating objectAtIndex:1]];
                     }
                 }
-            } else if ([[dashLine substringToIndex:8] isEqualToString:@"player1="]) {
+            } else if ([dashLine hasPrefix:@"player1="]) {
                 NSArray *playerRating = [NSArray arrayWithArray:[[dashLine substringFromIndex:8] componentsSeparatedByString:@","]];
                 p1Name = [playerRating objectAtIndex:0];
                 if (![p1Name isEqualToString:myUsername]) {
@@ -925,7 +933,7 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
                     [game setOpponentName: [playerRating objectAtIndex:0]];
                     [game setOpponentRating: [playerRating objectAtIndex:1]];
                 }
-            } else if ([[dashLine substringToIndex:8] isEqualToString:@"player2="]) {
+            } else if ([dashLine hasPrefix:@"player2="]) {
                 NSArray *playerRating = [NSArray arrayWithArray:[[dashLine substringFromIndex:8] componentsSeparatedByString:@","]];
                 p2Name = [playerRating objectAtIndex:0];
                 if (![p2Name isEqualToString:myUsername]) {
@@ -933,7 +941,7 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
                     [game setOpponentName: [playerRating objectAtIndex:0]];
                     [game setOpponentRating: [playerRating objectAtIndex:1]];
                 }
-            } else if ([[dashLine substringToIndex:12] isEqualToString:@"messageNums="]) {
+            } else if ([dashLine hasPrefix:@"messageNums="]) {
                 atMoves = [NSMutableArray arrayWithArray:[[dashLine substringFromIndex:12] componentsSeparatedByString:@","]];
             }
         } @catch (NSException *exception) {
@@ -983,7 +991,7 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
             [receivedMessageView setFont:[UIFont fontWithName:@"HelveticaNeue-Bold" size:15.35f]];
             receivedMessage = [NSString stringWithFormat:@" %@: %@",[game opponentName], [messagesHistory objectForKey:[NSString stringWithFormat:@"%lu", (unsigned long)[movesList count]]]];
         }
-        if ([game.gameType isEqualToString:@"Go"]) {
+        if (isGoGame) {
             if (([[game myColor] isEqualToString:@"black"] && (([movesList count] % 2) == 1)) || ([[game myColor] isEqualToString:@"white"] && (([movesList count] % 2) == 0))) {
                 [receivedMessageView setFont:[UIFont fontWithName:@"HelveticaNeue" size:15.35f]];
                 receivedMessage = [NSString stringWithFormat:@" me: %@", [messagesHistory objectForKey:[NSString stringWithFormat:@"%lu", (unsigned long)[movesList count]]]];
@@ -1058,6 +1066,7 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
     whiteCaptures = 0;
     blackCaptures = 0;
     [self resetBoard];
+    isGoGame = ([game.gameType hasPrefix:@"Go"] && ![game.gameType hasPrefix:@"Gomoku"]) || ([game.gameType hasPrefix:@"Speed Go"] && ![game.gameType hasPrefix:@"Speed Gomoku"]);
 
     if ([[game gameType] isEqualToString:@"Pente"] || [[game gameType] isEqualToString:@"Boat-Pente"] || [[game gameType] isEqualToString:@"Speed Pente"] || [[game gameType] isEqualToString:@"Speed Boat-Pente"]) {
         [self replayPenteGame: (int) [movesList count]];
@@ -1103,7 +1112,12 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
         [self replayPoofPenteGame: (int) [movesList count]];
     }
     go = NO; goMarkStones = NO; goEvaluateDeadStones = NO;
-    if ([[game gameType] isEqualToString:@"Go"] || [[game gameType] isEqualToString:@"Speed Go"]) {
+    if (isGoGame) {
+        if ([game.gameType containsString:@"(9x9)"]) {
+            gridSize = 9;
+        } else if ([game.gameType containsString:@"(13x13)"]) {
+            gridSize = 13;
+        }
         goMarkStones = [htmlString containsString:@"Go=MARK_DEAD_STONES"];
         goEvaluateDeadStones = [htmlString containsString:@"Go=EVALUATE_DEAD_STONES"];
         [self replayGoGame: (int) [movesList count]];
@@ -1160,16 +1174,16 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
                 [moveStatsString appendString: @" - "];
             }
         }
-        if (rowCol < 19*19) {
-            [moveStatsString appendString:[NSString stringWithFormat:@"%c%d", coordinateLetters[rowCol % 19], 19 - (rowCol / 19)]];
+        if (rowCol < gridSize*gridSize) {
+            [moveStatsString appendString:[NSString stringWithFormat:@"%c%d", coordinateLetters[rowCol % gridSize], gridSize - (rowCol / gridSize)]];
         } else {
             [moveStatsString appendString:@"PASS"];
         }
     }
     [playerStats loadHTMLString: [playerStatsBaseString stringByAppendingString:moveStatsString] baseURL:nil];
 
-    [board setNeedsDisplay];
-    [zoomedBoard setNeedsDisplay];
+    [board setGridSize:gridSize]; [zoomedBoard setGridSize:gridSize];
+    [board setNeedsDisplay]; [zoomedBoard setNeedsDisplay];
 
     if (cancelRequest) {
         [self presentCancelReply];
@@ -1242,7 +1256,7 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
         [self presentDoublePass];
     }
     if (([myUsername isEqualToString:p1Name] || [myUsername isEqualToString:p2Name]) && !activeGame
-        && [htmlString containsString:@"state=active"] && ![htmlString containsString:@"dPenteState=2"] && ([movesList count] > 1 || ([movesList count]>0 && ([[game gameType] isEqualToString:@"Go"] || [[game gameType] isEqualToString:@"D-Pente"] || [[game gameType] isEqualToString:@"DK-Pente"])))) {
+        && [htmlString containsString:@"state=active"] && ![htmlString containsString:@"dPenteState=2"] && ([movesList count] > 1 || ([movesList count]>0 && (isGoGame || [[game gameType] isEqualToString:@"D-Pente"] || [[game gameType] isEqualToString:@"DK-Pente"])))) {
         [submitButton removeTarget:nil action:NULL forControlEvents:UIControlEventAllEvents];
         if (undoRequest) {
             [submitButton setTitle: NSLocalizedString(@"undo requested",nil) forState:UIControlStateDisabled];
@@ -1257,7 +1271,7 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
     } else if (([myUsername isEqualToString:p1Name] || [myUsername isEqualToString:p2Name]) && activeGame) {
         [submitButton removeTarget:nil action:NULL forControlEvents:UIControlEventAllEvents];
         [submitButton addTarget:self action:@selector(submitMove:) forControlEvents:UIControlEventTouchUpInside];
-        if ([[game gameType] isEqualToString:@"Go"]) {
+        if (isGoGame) {
             if (goMarkStones) {
                 [submitButton setTitle: NSLocalizedString(@"submit",nil) forState:UIControlStateNormal];
                 [submitButton setEnabled:YES];
@@ -1444,7 +1458,7 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
 -(void) toDB {
 //    NSLog(@"%d",lastMove);
     PenteNavigationViewController *navController = (PenteNavigationViewController*) self.navigationController;
-    if (![game.gameType isEqualToString:@"Go"]) {
+    if (!isGoGame) {
         [[NSUserDefaults standardUserDefaults] setObject:[game gameType] forKey:@"DBGame"];
     }
     UIStoryboard *sb = [UIStoryboard storyboardWithName:@"MainStoryboard" bundle:nil];
@@ -1484,7 +1498,7 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
         [self replayPoofPenteGame: untilMove];
     }
 
-    if ([[game gameType] isEqualToString:@"Go"] || [[game gameType] isEqualToString:@"Speed Go"]) {
+    if (isGoGame) {
         [self replayGoGame: untilMove];
     }
 
@@ -1518,7 +1532,7 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
             [receivedMessageView setFont:[UIFont fontWithName:@"HelveticaNeue-Bold" size:15.35f]];
             receivedMessage = [NSString stringWithFormat:@" %@: %@",[game opponentName], [messagesHistory objectForKey:[NSString stringWithFormat:@"%i", untilMove]]];
         }
-        if ([game.gameType isEqualToString:@"Go"]) {
+        if (isGoGame) {
                 [receivedMessageView setFont:[UIFont fontWithName:@"HelveticaNeue" size:15.35f]];
             if (([[game myColor] isEqualToString:@"black"] && ((untilMove % 2) == 1)) || ([[game myColor] isEqualToString:@"white"] && ((untilMove % 2) == 0))) {
                 receivedMessage = [NSString stringWithFormat:@" me: %@", [messagesHistory objectForKey:[NSString stringWithFormat:@"%lu", (unsigned long)untilMove]]];
@@ -1569,8 +1583,8 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
                 [moveStatsString appendString: @" - "];
             }
         }
-        if (rowCol < 19*19) {
-            [moveStatsString appendString:[NSString stringWithFormat:@"%c%d", coordinateLetters[rowCol % 19], 19 - (rowCol / 19)]];
+        if (rowCol < gridSize*gridSize) {
+            [moveStatsString appendString:[NSString stringWithFormat:@"%c%d", coordinateLetters[rowCol % gridSize], gridSize - (rowCol / gridSize)]];
         } else {
             [moveStatsString appendString:@"PASS"];
         }
@@ -1850,7 +1864,7 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
 -(void) replayGoGame: (int) untilMove {
     [self initGoStructures];
     BOOL hasPass = NO, doublePass = NO;
-    int gridSize = 19, passMove = gridSize*gridSize;
+    int passMove = gridSize*gridSize;
     
     for (int i = 0; i < untilMove; ++i) {
         int currentPlayer = (i % 2) + 1, opponent = 3 - currentPlayer;
@@ -1893,10 +1907,14 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
     [board setBackgroundColor:[UIColor colorWithRed:250.0/255 green:200.0/255 blue:50.0/255 alpha:1]];
     [zoomedBoard setBackgroundColor:[UIColor colorWithRed:250.0/255 green:200.0/255 blue:50.0/255 alpha:1]];
     [board setAbstractBoard: abstractBoard];
-    [board setLastMove:[self parseMove:[movesList objectAtIndex:untilMove - 1]]];
+    if (untilMove > 0) {
+        [board setLastMove:[self parseMove:[movesList objectAtIndex:untilMove - 1]]];
+    }
     if (lastMove == [movesList count]) {
         [zoomedBoard setAbstractBoard: abstractBoard];
-        [zoomedBoard setLastMove:[self parseMove:[movesList objectAtIndex:untilMove - 1]]];
+        if (untilMove > 0) {
+            [zoomedBoard setLastMove:[self parseMove:[movesList objectAtIndex:untilMove - 1]]];
+        }
     }
 }
 
@@ -1904,7 +1922,6 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
 
 -(void) makeCapturesWithMove: (int) move withGroups: (NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*>*) groupsByID andIDs: (NSMutableDictionary<NSNumber*, NSNumber*>*) stoneGroupIDs andAlterGroups: (BOOL) alter {
     int captures = 0;
-    int gridSize = 19;
     
     if (move%gridSize != 0) {
         int neighborStone = move - 1;
@@ -1931,11 +1948,11 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
     }
 }
 -(void) setValue: (int) val forPosition: (int) pos {
-    int gridSize = 19, i = pos/gridSize, j = pos%gridSize;
+    int i = pos/gridSize, j = pos%gridSize;
     abstractBoard[i][j] = val;
 }
 -(int) getBoardValue: (int) pos {
-    int gridSize = 19, i = pos/gridSize, j = pos%gridSize;
+    int i = pos/gridSize, j = pos%gridSize;
     return abstractBoard[i][j];
 }
 -(int) getCapturesOfMove: (int) move withGroups: (NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*>*) groupsByID andIDs: (NSMutableDictionary<NSNumber*, NSNumber*>*) stoneGroupIDs captures: (int) captures neighborStone: (int) neighborStone neighborStoneID: (NSNumber*) neighborStoneID andAlterGroups: (BOOL) alter {
@@ -1958,7 +1975,6 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
 }
 -(BOOL) checkKo: (int) move {
     int position = [self getBoardValue:move];
-    int gridSize = 19;
     
     if (move%gridSize != 0) {
         int neighborStone = move - 1;
@@ -2020,7 +2036,6 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
 }
 
 -(BOOL) stoneHasLiberties: (int) stone {
-    int gridSize = 19;
     if (stone%gridSize != 0) {
         int neighborStone = stone - 1;
         int neighborStonePos = [self getBoardValue:neighborStone];
@@ -2057,8 +2072,6 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
     [newGroup addObject: moveNumber];
     [stoneGroupIDs setObject:moveNumber forKey:moveNumber];
     [groupsByID setObject:newGroup forKey:moveNumber];
-    
-    int gridSize = 19;
     
     if (move%gridSize != 0) {
         int neighborStone = move - 1;
@@ -2130,16 +2143,16 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
     int currentOpponent = 2 - [movesList count]%2;
     goStoneGroups = [[NSMutableDictionary alloc] initWithDictionary: [goStoneGroupsByPlayerAndID objectForKey:[NSNumber numberWithInt:currentOpponent]] copyItems:YES];
     goStoneGroupIDs = [[NSMutableDictionary alloc] initWithDictionary: [goStoneGroupIDsByPlayer objectForKey:[NSNumber numberWithInt:currentOpponent]] copyItems:YES];
-    for (int i = 0; i<19; ++i) {
-        for (int j = 0; j<19; ++j) {
+    for (int i = 0; i<gridSize; ++i) {
+        for (int j = 0; j<gridSize; ++j) {
             abstractGoBoard[i][j] = abstractBoard[i][j];
         }
     }
 }
 
 -(void) copyGoBoardBack {
-    for (int i = 0; i<19; ++i) {
-        for (int j = 0; j<19; ++j) {
+    for (int i = 0; i<gridSize; ++i) {
+        for (int j = 0; j<gridSize; ++j) {
             abstractBoard[i][j] = abstractGoBoard[i][j];
         }
     }
@@ -2178,8 +2191,8 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
 }
 
 -(void) resetGoBoardBeforeFlood {
-    for (int i = 0; i<19; ++i) {
-        for (int j = 0; j<19; ++j) {
+    for (int i = 0; i<gridSize; ++i) {
+        for (int j = 0; j<gridSize; ++j) {
             int pos = abstractBoard[i][j];
             if (pos != 1 && pos != 2) {
                 abstractBoard[i][j] = 0;
@@ -2189,7 +2202,6 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
 }
 
 -(int) getEmpyNeighbor: (int) move {
-    int gridSize = 19;
     
     if (move%gridSize != 0) {
         int neighborStone = move - 1;
@@ -2220,10 +2232,10 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
 
 -(NSMutableArray<NSNumber*>*) getMovesForValue: (int) val {
     NSMutableArray<NSNumber*>* result = [[NSMutableArray alloc] init];
-    for (int i = 0; i<19; ++i) {
-        for (int j = 0; j<19; ++j) {
+    for (int i = 0; i<gridSize; ++i) {
+        for (int j = 0; j<gridSize; ++j) {
             if (abstractBoard[i][j] == val) {
-                [result addObject:[NSNumber numberWithInt: (i*19+j)]];
+                [result addObject:[NSNumber numberWithInt: (i*gridSize+j)]];
             }
         }
     }
@@ -2232,7 +2244,7 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
 
 
 -(void) floodForPlayer: (int) player {
-    for (int move = 0; move<361; ++move) {
+    for (int move = 0; move<gridSize*gridSize; ++move) {
         if ([self getBoardValue:move] == 3-player) {
             int emptyNeighbor = [self getEmpyNeighbor:move];
             while (emptyNeighbor > -1) {

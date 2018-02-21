@@ -33,11 +33,13 @@ typedef int AbstractBoard[19];
     StoneView *whiteStoneView, *blackStoneView;
     UIView *whiteSquare, *blackSquare;
     BOOL go;
+    int gridSize;
 }
 @property(nonatomic, retain) NSArray<NSNumber*> *whiteDeadStones, *blackDeadStones, *whiteTerritory, *blackTerritory;
 @property(nonatomic, retain) StoneView *whiteStoneView, *blackStoneView;
 @property(nonatomic, retain) UIView *whiteSquare, *blackSquare;
 @property(atomic, assign) BOOL go;
+@property(atomic, assign) int gridSize;
 @property int lastMove;
 @property int lastConnect6Move;
 -(instancetype) init;

@@ -2347,8 +2347,12 @@ CGFloat bottomOffset = 0;
                         gameStr = @"Boat-Pente";
                     } else if (gameInt < 19) {
                         gameStr = @"DK-Pente";
-                    } else {
+                    } else if (gameInt < 21) {
                         gameStr = @"Go";
+                    } else if (gameInt < 23) {
+                        gameStr = @"Go (9x9)";
+                    } else {
+                        gameStr = @"Go (13x13)";
                     }
                     if (hill.gameId > 50) {
                         [hill setGame: [@"tb-" stringByAppendingString:gameStr]];
@@ -2430,8 +2434,12 @@ CGFloat bottomOffset = 0;
                         gameStr = @"Boat-Pente";
                     } else if (gameInt < 19) {
                         gameStr = @"DK-Pente";
-                    } else {
+                    } else if (gameInt < 21) {
                         gameStr = @"Go";
+                    } else if (gameInt < 23) {
+                        gameStr = @"Go (9x9)";
+                    } else {
+                        gameStr = @"Go (13x13)";
                     }
                     if (ratingStat.gameId > 50) {
                         [ratingStat setGame: [@"tb-" stringByAppendingString:gameStr]];

@@ -54,37 +54,6 @@
 -(void) tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     NSString *username = [[NSUserDefaults standardUserDefaults] objectForKey:@"username"];
     int gameInt = [[ratingStats objectAtIndex: indexPath.row] gameId];
-//    NSString *game = [[ratingStats objectAtIndex: indexPath.row] game];
-//    if ([game containsString:@"Pente"]) {
-//        gameInt = 1;
-//    }
-//    if ([game containsString:@"Keryo-Pente"]) {
-//        gameInt = 3;
-//    }
-//    if ([game containsString:@"Gomoku"]) {
-//        gameInt = 5;
-//    }
-//    if ([game containsString:@"D-Pente"]) {
-//        gameInt = 7;
-//    }
-//    if ([game containsString:@"G-Pente"]) {
-//        gameInt = 9;
-//    }
-//    if ([game containsString:@"Poof-Pente"]) {
-//        gameInt = 11;
-//    }
-//    if ([game containsString:@"Connect6"]) {
-//        gameInt = 13;
-//    }
-//    if ([game containsString:@"Boat-Pente"]) {
-//        gameInt = 15;
-//    }
-//    if ([game containsString:@"Speed"]) {
-//        gameInt += 1;
-//    }
-//    if ([game containsString:@"tb-"]) {
-//        gameInt += 50;
-//    }
     NSString *urlString = [NSString stringWithFormat:@"https://www.pente.org/gameServer/viewLiveGames?p=%@&g=%i", username, gameInt];
     if (development) {
         urlString = [NSString stringWithFormat:@"https://development.pente.org/gameServer/viewLiveGames?p=%@&g=%i", username, gameInt];
