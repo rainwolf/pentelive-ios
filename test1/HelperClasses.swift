@@ -103,7 +103,8 @@ class Table: NSObject {
     
     let gameNames = [1: "Pente", 2: "Speed Pente", 3: "Keryo-Pente", 4: "Speed Keryo-Pente", 5: "Gomoku", 6: "Speed Gomoku",
                      7: "D-Pente", 8: "Speed D-Pente", 9: "G-Pente", 10: "Speed G-Pente", 11: "Poof-Pente", 12: "Speed Poof-Pente",
-                     13: "Connect6", 14: "Speed Connect6", 15: "Boat-Pente", 16: "Speed Boat-Pente", 17: "DK-Pente", 18: "Speed DK-Pente", 19: "Go", 20: "Speed Go"]
+                     13: "Connect6", 14: "Speed Connect6", 15: "Boat-Pente", 16: "Speed Boat-Pente", 17: "DK-Pente", 18: "Speed DK-Pente",
+                     19: "Go", 20: "Speed Go", 21: "Go (9x9)", 22: "Speed Go (9x9)", 23: "Go (13x13)", 24: "Speed Go (13x13)"]
     
     init(table: Int) {
         self.table = table
@@ -273,9 +274,15 @@ class Table: NSObject {
     }
     
     var hasPass = false, doublePass = false
-    let gridSize = 19, passMove = 19*19
+    var gridSize = 19, passMove = 19*19
     
     func addGoMove(move: Int) {
+        if game == 22 || game == 21 {
+            gridSize = 9
+        } else if game == 23 || game == 24 {
+            gridSize = 13
+        }
+        passMove = gridSize*gridSize
         let player = currentPlayer(), color = 3 - player
 //        print("Go move ",player)
         if move == passMove {
@@ -464,13 +471,12 @@ class Table: NSObject {
         }
     }
     func isGo() -> Bool {
-        return game == 19 || game == 20
+        return game > 18 && game < 25
     }
     
     
     func makeCaptures(move: Int, groupsByID: inout [Int:[Int]], stoneGroupIDs: inout [Int:Int]) {
         var captures = 0
-        let gridSize = 19
         if (move%gridSize != 0) {
             let neighborStone = move - 1
             if let neighborStoneID = stoneGroupIDs[neighborStone] {
@@ -514,7 +520,6 @@ class Table: NSObject {
 
     func checkKo(move: Int) -> Bool {
         let position = getBoardValue(move: move)
-        let gridSize = 19
         if (move%gridSize != 0) {
             let neighborStone = move - 1
             let neighborPosition = getBoardValue(move: neighborStone)
@@ -568,7 +573,6 @@ class Table: NSObject {
         return false
     }
     func stoneHasLiberties(move: Int) -> Bool {
-        let gridSize = 19
         if (move%gridSize != 0) {
             let neighborStone = move - 1
             let pos = getBoardValue(move: neighborStone)
@@ -600,20 +604,19 @@ class Table: NSObject {
         return false
     }
     func getBoardValue(move: Int) -> Int {
-        let i = move / 19
-        let j = move % 19
+        let i = move / gridSize
+        let j = move % gridSize
         return abstractBoard[i][j]
     }
     func setBoardValue(move: Int, value: Int) {
-        let i = move / 19
-        let j = move % 19
+        let i = move / gridSize
+        let j = move % gridSize
         abstractBoard[i][j] = value
     }
     func settleGroups(groupsByID: inout [Int:[Int]], stoneGroupIDs: inout [Int:Int], move: Int) {
         let newGroup = [move]
         groupsByID[move] = newGroup
         stoneGroupIDs[move] = move
-        let gridSize = 19
         if (move%gridSize != 0) {
             let neighborStone = move - 1
             if let neighborStoneID = stoneGroupIDs[neighborStone] {
@@ -668,8 +671,8 @@ class Table: NSObject {
     }
     
     func resetGoBeforeFlood() {
-        for i in 0..<19 {
-            for j in 0..<19 {
+        for i in 0..<gridSize {
+            for j in 0..<gridSize {
                 let pos = abstractBoard[i][j]
                 if pos != 1 && pos != 2 {
                     abstractBoard[i][j] = 0
@@ -679,7 +682,6 @@ class Table: NSObject {
     }
     
     func getEmptyNeighbor(move: Int) -> Int {
-        let gridSize = 19
         if (move%gridSize != 0) {
             let neighborStone = move - 1
             if getBoardValue(move: neighborStone) == 0 {
@@ -709,11 +711,11 @@ class Table: NSObject {
     
     func getMoves(value: Int) -> [Int] {
         var result = [Int]()
-        for i in 0..<19 {
-            for j in 0..<19 {
+        for i in 0..<gridSize {
+            for j in 0..<gridSize {
                 let pos = abstractBoard[i][j]
                 if pos == value {
-                    result.append(i*19+j)
+                    result.append(i*gridSize+j)
                 }
             }
         }
@@ -728,11 +730,11 @@ class Table: NSObject {
         }
     }
     func floodFill(player: Int) {
-        for i in 0..<19 {
-            for j in 0..<19 {
+        for i in 0..<gridSize {
+            for j in 0..<gridSize {
                 let pos = abstractBoard[i][j]
                 if pos == 3-player {
-                    let move = i*19+j
+                    let move = i*gridSize+j
                     var neighbor = getEmptyNeighbor(move: move)
                     while neighbor > -1 {
                         floodFillWorker(move: neighbor, value: player + 2)

@@ -213,7 +213,8 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
         
         let hideBoard = ((currentPoint.x <= 0) || (currentPoint.x >= self.board.bounds.size.width) || (currentPoint.y <= 0) || (currentPoint.y >= self.board.bounds.size.height)) || gestureReconizer.state == .ended
         var hideStone = false
-        if 0 <= i && i<19 && 0 <= j && j<19 {
+        let gridSize = table.gridSize
+        if 0 <= i && i<gridSize && 0 <= j && j<gridSize {
             if table.isGo() && table.state.goState == .markStones {
                 hideStone = table.abstractBoard[i][j] == 0
             } else {
@@ -222,7 +223,7 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
             if hideBoard && !hideStone {
 //                stone.isHidden = false
 //                stone.center = CGPoint(x: CGFloat(j)*cellSize + cellSize/2, y: CGFloat(i)*cellSize+cellSize/2)
-                sendMove(move: i*19 + j)
+                sendMove(move: i*gridSize + j)
             } else {
 //                stone.isHidden = true
             }
@@ -516,6 +517,18 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
         setupView.reloadData()
         board.backgroundColor = table.gameColor(); zoomedBoard.backgroundColor = table.gameColor()
         board.go = table.isGo(); zoomedBoard.go = table.isGo()
+        if table.game == 22 || table.game == 21 {
+            table.gridSize = 9
+        } else if table.game == 23 || table.game == 24 {
+            table.gridSize = 13
+        } else {
+            table.gridSize = 19
+        }
+        board.gridSize = table.gridSize; zoomedBoard.gridSize = table.gridSize;
+        cellSize = CGFloat(self.view.bounds.width/CGFloat(table.gridSize))
+        zoomedCellSize = zoomFactor*cellSize
+        zoomedStone.resize(size: zoomedCellSize); zoomedStone.setNeedsDisplay(); board.setNeedsDisplay(); zoomedBoard.setNeedsDisplay()
+
         if let player = table.seats[1] {
             seatsView.sit(player: player.getNameString(), seat: 1)
         } else {
@@ -582,9 +595,7 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
             if table.state.goState == .play {
                 board.clearGoStructures(); zoomedBoard.clearGoStructures()
             }
-            zoomedStone.setNeedsDisplay()
-            board.setNeedsDisplay()
-            zoomedBoard.setNeedsDisplay()
+            zoomedStone.setNeedsDisplay();  board.setNeedsDisplay(); zoomedBoard.setNeedsDisplay()
             if table.timed {
                 timer = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(countDownTimer), userInfo: nil, repeats: true)
             }
@@ -735,7 +746,7 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
             let alertController = UIAlertController(title: NSLocalizedString("Accept score?", comment: ""), message: table.getGoScoreString(), preferredStyle: .alert)
             
             let acceptAction = UIAlertAction(title: NSLocalizedString("accept", comment: ""), style: .default) { (action) in
-                self.sendMove(move: 361)
+                self.sendMove(move: (self.table.gridSize*self.table.gridSize))
             }
             let rejectAction = UIAlertAction(title: NSLocalizedString("continue play", comment: ""), style: .destructive) { (action) in
                 let event = ["dsgRejectGoStateEvent":["player":self.me,"table":self.table.table,"time":0]]
@@ -845,7 +856,7 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
     
     @objc func play() {
         if table.isGo() && table.state.state == .started && table.currentPlayerName() == me {
-            self.sendMove(move: 361)
+            self.sendMove(move: (table.gridSize*table.gridSize))
         } else {
             socket.sendEvent(eventDictionary: ["dsgPlayTableEvent":["table":table.table,"time":0]])
             playButton.isHidden = true

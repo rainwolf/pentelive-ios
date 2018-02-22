@@ -16,7 +16,8 @@ let development = false
     var broadcastAlertController: UIAlertController?
     let gameNames = ["any game", "Pente", "Speed Pente", "Keryo-Pente", "Speed Keryo-Pente", "Gomoku", "Speed Gomoku",
                      "D-Pente", "Speed D-Pente", "G-Pente", "Speed G-Pente", "Poof-Pente", "Speed Poof-Pente",
-                     "Connect6", "Speed Connect6", "Boat-Pente", "Speed Boat-Pente", "DK-Pente", "Speed DK-Pente"]
+                     "Connect6", "Speed Connect6", "Boat-Pente", "Speed Boat-Pente", "DK-Pente", "Speed DK-Pente",
+                     "Go", "Speed Go", "Go (9x9)", "Speed Go (9x9)", "Go (13x13)", "Speed Go (13x13)"]
     var pentePlayer: PentePlayer?
 
     var wantsToSeeAvatars = UserDefaults.standard.bool(forKey: "wantToSeeAvatars")

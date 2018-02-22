@@ -91,6 +91,12 @@
 		63874A26201CE5D7005DED57 /* kothcrown29.png in Resources */ = {isa = PBXBuildFile; fileRef = 63874A23201CE5D7005DED57 /* kothcrown29.png */; };
 		638DAF981AECA7A60086AD19 /* CoreMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 638DAF971AECA7A60086AD19 /* CoreMedia.framework */; };
 		638DAF991AECA8C20086AD19 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 63674A57188979E500C21C48 /* AVFoundation.framework */; };
+		638E32C1203EFAF600FE3062 /* kothcrown34.png in Resources */ = {isa = PBXBuildFile; fileRef = 638E32BB203EFAF400FE3062 /* kothcrown34.png */; };
+		638E32C2203EFAF600FE3062 /* kothcrown32.png in Resources */ = {isa = PBXBuildFile; fileRef = 638E32BC203EFAF400FE3062 /* kothcrown32.png */; };
+		638E32C3203EFAF600FE3062 /* kothcrown31.png in Resources */ = {isa = PBXBuildFile; fileRef = 638E32BD203EFAF500FE3062 /* kothcrown31.png */; };
+		638E32C4203EFAF600FE3062 /* kothcrown36.png in Resources */ = {isa = PBXBuildFile; fileRef = 638E32BE203EFAF500FE3062 /* kothcrown36.png */; };
+		638E32C5203EFAF600FE3062 /* kothcrown35.png in Resources */ = {isa = PBXBuildFile; fileRef = 638E32BF203EFAF500FE3062 /* kothcrown35.png */; };
+		638E32C6203EFAF600FE3062 /* kothcrown33.png in Resources */ = {isa = PBXBuildFile; fileRef = 638E32C0203EFAF500FE3062 /* kothcrown33.png */; };
 		6391953719D91B55007FBEE7 /* EventKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6391953619D91B55007FBEE7 /* EventKit.framework */; };
 		6391953919D91B71007FBEE7 /* EventKitUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6391953819D91B71007FBEE7 /* EventKitUI.framework */; };
 		6392B08219C354CB00916D41 /* Icon-76.png in Resources */ = {isa = PBXBuildFile; fileRef = 6392B08019C354CB00916D41 /* Icon-76.png */; };
@@ -297,6 +303,12 @@
 		63874A23201CE5D7005DED57 /* kothcrown29.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = kothcrown29.png; sourceTree = "<group>"; };
 		63893CC21B90B088009093F0 /* GoogleMobileAds.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GoogleMobileAds.framework; path = test1/GoogleMobileAdsSdkiOS/GoogleMobileAds.framework; sourceTree = "<group>"; };
 		638DAF971AECA7A60086AD19 /* CoreMedia.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMedia.framework; path = System/Library/Frameworks/CoreMedia.framework; sourceTree = SDKROOT; };
+		638E32BB203EFAF400FE3062 /* kothcrown34.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = kothcrown34.png; sourceTree = "<group>"; };
+		638E32BC203EFAF400FE3062 /* kothcrown32.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = kothcrown32.png; sourceTree = "<group>"; };
+		638E32BD203EFAF500FE3062 /* kothcrown31.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = kothcrown31.png; sourceTree = "<group>"; };
+		638E32BE203EFAF500FE3062 /* kothcrown36.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = kothcrown36.png; sourceTree = "<group>"; };
+		638E32BF203EFAF500FE3062 /* kothcrown35.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = kothcrown35.png; sourceTree = "<group>"; };
+		638E32C0203EFAF500FE3062 /* kothcrown33.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = kothcrown33.png; sourceTree = "<group>"; };
 		6391953619D91B55007FBEE7 /* EventKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = EventKit.framework; path = System/Library/Frameworks/EventKit.framework; sourceTree = SDKROOT; };
 		6391953819D91B71007FBEE7 /* EventKitUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = EventKitUI.framework; path = System/Library/Frameworks/EventKitUI.framework; sourceTree = SDKROOT; };
 		6392B08019C354CB00916D41 /* Icon-76.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Icon-76.png"; sourceTree = "<group>"; };
@@ -654,6 +666,12 @@
 		63FEFC86168CAAC50070E9AA /* images */ = {
 			isa = PBXGroup;
 			children = (
+				638E32BD203EFAF500FE3062 /* kothcrown31.png */,
+				638E32BC203EFAF400FE3062 /* kothcrown32.png */,
+				638E32C0203EFAF500FE3062 /* kothcrown33.png */,
+				638E32BB203EFAF400FE3062 /* kothcrown34.png */,
+				638E32BF203EFAF500FE3062 /* kothcrown35.png */,
+				638E32BE203EFAF500FE3062 /* kothcrown36.png */,
 				63874A22201CE5D7005DED57 /* kothcrown28.png */,
 				63874A23201CE5D7005DED57 /* kothcrown29.png */,
 				63874A21201CE5D7005DED57 /* kothcrown30.png */,
@@ -847,6 +865,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				63B3AC6F1CF64C0F00362111 /* showstats@2x.png in Resources */,
+				638E32C5203EFAF600FE3062 /* kothcrown35.png in Resources */,
 				638447781FBDEB930066DA2B /* kothcrown10.png in Resources */,
 				638447881FBDEB930066DA2B /* kothcrown8.png in Resources */,
 				633C9D2715BD5B98009AD00A /* InfoPlist.strings in Resources */,
@@ -890,6 +909,7 @@
 				63FEFC9A168CAAC50070E9AA /* whiteStone@2x.png in Resources */,
 				63C4199617B0FD2000983B57 /* icon_80x80.png in Resources */,
 				63FEFD4E168CF6E10070E9AA /* facebook.png in Resources */,
+				638E32C3203EFAF600FE3062 /* kothcrown31.png in Resources */,
 				63052FBB1D047F9000F78B30 /* unlock.png in Resources */,
 				63FEFD4F168CF6E10070E9AA /* facebook@2x.png in Resources */,
 				638447861FBDEB930066DA2B /* kothcrown24.png in Resources */,
@@ -903,6 +923,7 @@
 				638447791FBDEB930066DA2B /* kothcrown12.png in Resources */,
 				6392B08219C354CB00916D41 /* Icon-76.png in Resources */,
 				63052FBD1D047F9000F78B30 /* lock.png in Resources */,
+				638E32C4203EFAF600FE3062 /* kothcrown36.png in Resources */,
 				639A9CF61D0168910065B2FA /* person@2x.png in Resources */,
 				6384477D1FBDEB930066DA2B /* kothcrown2.png in Resources */,
 				631B675E169DA7FE0098B3E1 /* Settings.bundle in Resources */,
@@ -934,6 +955,7 @@
 				63AEDEFF1875C756006892F7 /* messageBubble1@2x.png in Resources */,
 				63D299F51D992BB9005AED78 /* subscribeIcon@2x.png in Resources */,
 				638447761FBDEB930066DA2B /* kothcrown20.png in Resources */,
+				638E32C6203EFAF600FE3062 /* kothcrown33.png in Resources */,
 				63052FBE1D047F9000F78B30 /* lock@2x.png in Resources */,
 				63A196C116FB936800986CDF /* closedEnvelope.png in Resources */,
 				63A196C216FB936800986CDF /* closedEnvelope@2x.png in Resources */,
@@ -962,6 +984,7 @@
 				639F1A231D0958A6008BD3DE /* pente.scs in Resources */,
 				639F1A241D0958A6008BD3DE /* pente.tbl in Resources */,
 				6322ECFA1744C93D00793511 /* preferencesBG@2x.png in Resources */,
+				638E32C2203EFAF600FE3062 /* kothcrown32.png in Resources */,
 				633648071CEDB48700F432E2 /* friends.png in Resources */,
 				63AEDF021875C756006892F7 /* messageBubble0.png in Resources */,
 				639A9CF81D0168910065B2FA /* computer@2x.png in Resources */,
@@ -973,6 +996,7 @@
 				6384478B1FBDEB930066DA2B /* kothcrown21.png in Resources */,
 				638447821FBDEB930066DA2B /* kothcrown1.png in Resources */,
 				6322ECFB1744C93D00793511 /* preferencesBG.png in Resources */,
+				638E32C1203EFAF600FE3062 /* kothcrown34.png in Resources */,
 				63A680221DF9568B005E1B65 /* gamesettings.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

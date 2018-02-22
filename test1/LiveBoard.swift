@@ -21,6 +21,7 @@ class LiveBoard: UIView {
     var goTerritory: [Int:[Int]]?
     var goDeadStones: [Int:[Int]]?
     let whiteSquare = UIView(), blackSquare = UIView()
+    var gridSize = 19
 
     init(table:Table) {
         self.table = table
@@ -51,9 +52,9 @@ class LiveBoard: UIView {
         let context = UIGraphicsGetCurrentContext()!
         context.setLineWidth(1.2)
         context.setStrokeColor(UIColor.black.cgColor)
-        let margin = self.bounds.size.width / 38
+        let margin = self.bounds.size.width / (2*CGFloat(gridSize))
         // draw the grid
-        for i in 0..<19 {
+        for i in 0..<gridSize {
             context.move(to: CGPoint(x: margin, y: margin + CGFloat(i)*margin*2))
             context.addLine(to: CGPoint(x: self.bounds.size.width - margin, y: margin + CGFloat(i)*margin*2))
             context.strokePath()
@@ -83,36 +84,45 @@ class LiveBoard: UIView {
             context.addEllipse(in: circle);
             context.strokePath();
         } else {
-            circle = CGRect(x: margin + 6*margin - margin/4, y: margin + 6*margin - margin/4, width: margin/2, height: margin/2);
+            let c = floor(CGFloat(gridSize/2))
+            let gridSizeFloat = CGFloat(gridSize)
+            var l:CGFloat = 3
+            if gridSize == 9 {
+                l = 2
+            }
+            circle = CGRect(x: margin + 2*l*margin - margin/4, y: margin + 2*l*margin - margin/4, width: margin/2, height: margin/2);
             context.addEllipse(in: circle)
             context.fillPath()
-            circle = CGRect(x: margin + 6*margin - margin/4, y: margin + 18*margin - margin/4, width: margin/2, height: margin/2);
+            circle = CGRect(x: margin + 2*l*margin - margin/4, y: margin + 2*(gridSizeFloat - l - 1)*margin - margin/4, width: margin/2, height: margin/2);
             context.addEllipse(in: circle)
             context.fillPath()
-            circle = CGRect(x: margin + 6*margin - margin/4, y: margin + 30*margin - margin/4, width: margin/2, height: margin/2);
+            circle = CGRect(x: margin + 2*c*margin - margin/4, y: margin + 2*c*margin - margin/4, width: margin/2, height: margin/2);
             context.addEllipse(in: circle)
             context.fillPath()
-            circle = CGRect(x: margin + 18*margin - margin/4, y: margin + 6*margin - margin/4, width: margin/2, height: margin/2);
+            circle = CGRect(x: margin + 2*(gridSizeFloat - l - 1)*margin - margin/4, y: margin + 2*l*margin - margin/4, width: margin/2, height: margin/2);
             context.addEllipse(in: circle)
             context.fillPath()
-            circle = CGRect(x: margin + 18*margin - margin/4, y: margin + 18*margin - margin/4, width: margin/2, height: margin/2);
+            circle = CGRect(x: margin + 2*(gridSizeFloat - l - 1)*margin - margin/4, y: margin + 2*(gridSizeFloat - l - 1)*margin - margin/4, width: margin/2, height: margin/2);
             context.addEllipse(in: circle)
             context.fillPath()
-            circle = CGRect(x: margin + 18*margin - margin/4, y: margin + 30*margin - margin/4, width: margin/2, height: margin/2);
-            context.addEllipse(in: circle)
-            context.fillPath()
-            circle = CGRect(x: margin + 30*margin - margin/4, y: margin + 6*margin - margin/4, width: margin/2, height: margin/2);
-            context.addEllipse(in: circle)
-            context.fillPath()
-            circle = CGRect(x: margin + 30*margin - margin/4, y: margin + 18*margin - margin/4, width: margin/2, height: margin/2);
-            context.addEllipse(in: circle)
-            context.fillPath()
-            circle = CGRect(x: margin + 30*margin - margin/4, y: margin + 30*margin - margin/4, width: margin/2, height: margin/2);
-            context.addEllipse(in: circle)
-            context.fillPath()
+
+            if gridSize != 9 {
+                circle = CGRect(x: margin + 2*l*margin - margin/4, y: margin + 2*c*margin - margin/4, width: margin/2, height: margin/2);
+                context.addEllipse(in: circle)
+                context.fillPath()
+                circle = CGRect(x: margin + 2*(gridSizeFloat - l - 1)*margin - margin/4, y: margin + 2*c*margin - margin/4, width: margin/2, height: margin/2);
+                context.addEllipse(in: circle)
+                context.fillPath()
+                circle = CGRect(x: margin + 2*c*margin - margin/4, y: margin + 2*(gridSizeFloat - l - 1)*margin - margin/4, width: margin/2, height: margin/2);
+                context.addEllipse(in: circle)
+                context.fillPath()
+                circle = CGRect(x: margin + 2*c*margin - margin/4, y: margin + 2*l*margin - margin/4, width: margin/2, height: margin/2);
+                context.addEllipse(in: circle)
+                context.fillPath()
+            }
         }
-        for i in 0..<19 {
-            for j in 0..<19 {
+        for i in 0..<gridSize {
+            for j in 0..<gridSize {
                 if table.abstractBoard[i][j] > 0 {
                     circle = CGRect(x: CGFloat(j)*2*margin, y: CGFloat(i)*2*margin, width: 2*margin, height: 2*margin)
                     let centre = CGPoint(x: circle.origin.x + margin - margin/6, y: circle.origin.y + margin - margin/6)
@@ -145,7 +155,7 @@ class LiveBoard: UIView {
         
         if goDeadStones != nil {
             for stone in goDeadStones![2]! {
-                let i = stone/19, j = stone%19;
+                let i = stone/gridSize, j = stone%gridSize;
                 circle = CGRect(x: CGFloat(j)*2*margin, y: CGFloat(i)*2*margin, width: 2*margin, height: 2*margin)
                 context.saveGState()
                 context.translateBy(x: circle.origin.x, y: circle.origin.y)
@@ -155,7 +165,7 @@ class LiveBoard: UIView {
                 context.restoreGState()
             }
             for stone in goDeadStones![1]! {
-                let i = stone/19, j = stone%19;
+                let i = stone/gridSize, j = stone%gridSize;
                 circle = CGRect(x: CGFloat(j)*2*margin, y: CGFloat(i)*2*margin, width: 2*margin, height: 2*margin)
                 context.saveGState()
                 context.translateBy(x: circle.origin.x, y: circle.origin.y)
@@ -167,7 +177,7 @@ class LiveBoard: UIView {
         }
         if goTerritory != nil {
             for stone in goTerritory![2]! {
-                let i = stone/19, j = stone%19;
+                let i = stone/gridSize, j = stone%gridSize;
                 circle = CGRect(x: CGFloat(j)*2*margin + margin*2/3, y: CGFloat(i)*2*margin + margin*2/3, width: 2*margin/3, height: 2*margin/3)
                 context.saveGState()
                 context.translateBy(x: circle.origin.x, y: circle.origin.y)
@@ -176,7 +186,7 @@ class LiveBoard: UIView {
                 context.restoreGState()
             }
             for stone in goTerritory![1]! {
-                let i = stone/19, j = stone%19;
+                let i = stone/gridSize, j = stone%gridSize;
                 circle = CGRect(x: CGFloat(j)*2*margin + margin*2/3, y: CGFloat(i)*2*margin + margin*2/3, width: 2*margin/3, height: 2*margin/3)
                 context.saveGState()
                 context.translateBy(x: circle.origin.x, y: circle.origin.y)
@@ -189,7 +199,7 @@ class LiveBoard: UIView {
         let lastMove = table.lastMove()
         if (lastMove > -1) {
             context.setFillColor(UIColor.red.cgColor)
-            let i = lastMove / 19, j = lastMove % 19
+            let i = lastMove / gridSize, j = lastMove % gridSize
             circle = CGRect(x: (CGFloat(j)*2 + 2/3)*margin, y: (CGFloat(i)*2 + 2/3)*margin, width: (CGFloat(2)/3)*margin, height: (CGFloat(2)/3)*margin)
             context.addEllipse(in: circle)
             context.fillPath()
@@ -217,6 +227,10 @@ class LiveStone: UIView {
     }
     required init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)!
+    }
+    
+    func resize(size: CGFloat) {
+        self.frame = CGRect(x: 0, y: 0, width: 1.3*size, height: 1.3*size)
     }
     
     override func draw(_ rect: CGRect) {
