@@ -16,7 +16,7 @@
 #import "InvitationsViewController.h"
 #import <GoogleMobileAds/GoogleMobileAds.h>
 #import "ICDMaterialActivityIndicatorView.h"
-
+@import PopoverView;
 
 
 @interface GameTableViewCell : UITableViewCell {

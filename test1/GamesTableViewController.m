@@ -227,9 +227,9 @@ CGFloat bottomOffset = 0;
     if (navControllor.didMove) {
         [navControllor setDidMove: NO];
 //        if (!activeGamesCollapsed) {
-//            for( int i = 0; i < [[player activeGames] count]; ++i) {
-//                if ([navControllor.activeGameToRemove isEqualToString:[[[player activeGames] objectAtIndex:i] gameID]]) {
-//                    [[player activeGames] removeObjectAtIndex:i];
+//            for( int i = 0; i < [[self.player activeGames] count]; ++i) {
+//                if ([navControllor.activeGameToRemove isEqualToString:[[[self.player activeGames] objectAtIndex:i] gameID]]) {
+//                    [[self.player activeGames] removeObjectAtIndex:i];
 //                    [self.tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject:[NSIndexPath indexPathForRow:i inSection:2]] withRowAnimation:UITableViewRowAnimationFade];
 //                    break;
 //                }
@@ -238,7 +238,7 @@ CGFloat bottomOffset = 0;
         [self dashboardParse];
     } else if (navControllor.messageDeleted) {
         [navControllor setMessageDeleted:NO];
-        [player.messages removeObjectAtIndex: navControllor.deletedMessageRow];
+        [self.player.messages removeObjectAtIndex: navControllor.deletedMessageRow];
         [UIView animateWithDuration:0.3 animations:^{ if (!messagesCollapsed) {
             [self.tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject: [NSIndexPath indexPathForRow:navControllor.deletedMessageRow inSection:0]] withRowAnimation:UITableViewRowAnimationFade];
         } else {
@@ -269,9 +269,9 @@ CGFloat bottomOffset = 0;
     username = [defaults objectForKey:usernameKey];
     password = [defaults objectForKey:passwordKey];
     if (development) {
-//        username = @"iostest";
+        username = @"iostest";
 //        username = @"harveyjoe";
-//        password = @"tsetsoi";
+        password = @"tsetsoi";
     }
     if (!((username == nil) || (password == nil) || [username isEqualToString:@""] || [password isEqualToString:@""])) {
         NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
@@ -334,7 +334,7 @@ CGFloat bottomOffset = 0;
             [self dashboardParse];
         }
     } else {
-//        [self performSegueWithIdentifier:@"settingsTap" sender:self];
+        [self performSegueWithIdentifier:@"settingsTap" sender:self];
 //        settingsViewController.showAIOption = YES;
         return;
     }
@@ -430,43 +430,43 @@ CGFloat bottomOffset = 0;
             if (messagesCollapsed) {
                 return 0;
             }
-            return [[player messages] count];
+            return [[self.player messages] count];
             break;
         case INVITATIONSSECTION:
             if (invitationsReceivedCollapsed) {
                 return 0;
             }
-            return [[player invitations] count];
+            return [[self.player invitations] count];
             break;
         case ACTIVEGAMESSECTION:
             if (activeGamesCollapsed) {
                 return 0;
             }
-            return [[player activeGames] count];
+            return [[self.player activeGames] count];
             break;
         case PUBLICINVITATIONSSECTION:
             if (publicInvitationsCollapsed) {
                 return 0;
             }
-            return [[player publicInvitations] count];
+            return [[self.player publicInvitations] count];
             break;
         case SENTINVITATIONSSECTION:
             if (sentInvitationsCollapsed) {
                 return 0;
             }
-            return [[player sentInvitations] count];
+            return [[self.player sentInvitations] count];
             break;
         case NONACTIVEGAMESSECTION:
             if (nonActiveGamesCollapsed) {
                 return 0;
             }
-            return [[player nonActiveGames] count];
+            return [[self.player nonActiveGames] count];
             break;
         case TOURNAMENTSSECTION:
             if (tournamentsCollapsed) {
                 return 0;
             }
-            return [[player tournaments] count];
+            return [[self.player tournaments] count];
             break;
         case KOTHSECTION:
             if (kothCollapsed) {
@@ -475,7 +475,7 @@ CGFloat bottomOffset = 0;
             if ([[NSUserDefaults standardUserDefaults] boolForKey:@"showOnlyTB"]) {
                 return player.tbHills;
             } else {
-                return [[player hills] count];
+                return [[self.player hills] count];
             }
             break;
         default:
@@ -533,7 +533,7 @@ CGFloat bottomOffset = 0;
     NSMutableString *txtStr;
     
     if (indexPath.section == MESSAGESSECTION) {
-        Message *message = [[player messages] objectAtIndex:indexPath.row];
+        Message *message = [[self.player messages] objectAtIndex:indexPath.row];
         UIImage *imgV = nil;
         if ([[message unread] isEqualToString:@"unread"]) {
             cell = (GameTableViewCell *) [tableView dequeueReusableCellWithIdentifier: CellWithUnreadImageIdentifier];
@@ -544,7 +544,7 @@ CGFloat bottomOffset = 0;
             cell.backgroundColor = [UIColor colorWithRed: 222.0/256 green:236.0/256 blue:222.0/256 alpha:1];
         } else {
             NSString *opponent = [message author];
-                imgV = [player.avatars objectForKey: opponent];
+                imgV = [self.player.avatars objectForKey: opponent];
             if (imgV) {
                 tmpIdentifier = CellWithAvatarIdentifier;
             } else {
@@ -558,7 +558,7 @@ CGFloat bottomOffset = 0;
         }
         cell.ratingLabel.text = @"";
         cell.ratingLabel.text = [message timeStamp];
-        cell.textLabel.attributedText = [player markIfOnline:[message author] andAttributedName:[message attributedName]];
+        cell.textLabel.attributedText = [self.player markIfOnline:[message author] andAttributedName:[message attributedName]];
         cell.detailTextLabel.text = [message subject];
         [cell setAccessoryType:UITableViewCellAccessoryDisclosureIndicator];
         [cell setUserInteractionEnabled:YES];
@@ -570,9 +570,9 @@ CGFloat bottomOffset = 0;
                 return selectedInvitationCell;
             }
         }
-        Game *game = [[player invitations] objectAtIndex:indexPath.row];
+        Game *game = [[self.player invitations] objectAtIndex:indexPath.row];
         NSString *opponent = [game opponentName];
-        UIImage *imgV = [player.avatars objectForKey: opponent];
+        UIImage *imgV = [self.player.avatars objectForKey: opponent];
         if (imgV) {
             tmpIdentifier = CellWithAvatarIdentifier;
         } else {
@@ -585,7 +585,7 @@ CGFloat bottomOffset = 0;
         [cell setAccessoryType:UITableViewCellAccessoryDisclosureIndicator];
         [cell.imageView removeFromSuperview];
         cell.ratingLabel.attributedText = [game ratingString];
-        cell.textLabel.attributedText = [player markIfOnline:[game opponentName] andAttributedName:[game attributedName]];
+        cell.textLabel.attributedText = [self.player markIfOnline:[game opponentName] andAttributedName:[game attributedName]];
         if (![[game ratedNot] isEqualToString:@"Not Rated"]) {
             txtStr = (NSMutableString *) [NSString stringWithFormat:@"%@ (%@) - %@", [game gameType], [game localizedRatedNot], [game localizedTimeString]];
         } else {
@@ -602,9 +602,9 @@ CGFloat bottomOffset = 0;
         }
     }
     if (indexPath.section == ACTIVEGAMESSECTION) {
-        Game *game = [[player activeGames] objectAtIndex:indexPath.row];
+        Game *game = [[self.player activeGames] objectAtIndex:indexPath.row];
         NSString *opponent = [game opponentName];
-        UIImage *imgV = [player.avatars objectForKey: opponent];
+        UIImage *imgV = [self.player.avatars objectForKey: opponent];
         if (imgV) {
             tmpIdentifier = CellWithAvatarIdentifier;
         } else {
@@ -617,7 +617,7 @@ CGFloat bottomOffset = 0;
 
         cell.ratingLabel.attributedText = [game ratingString];
    
-        cell.textLabel.attributedText = [player markIfOnline:[game opponentName] andAttributedName:[game attributedName]];
+        cell.textLabel.attributedText = [self.player markIfOnline:[game opponentName] andAttributedName:[game attributedName]];
         txtStr = [[NSMutableString alloc] initWithString:[game gameType]];
         [txtStr appendString:@" ("];
         [txtStr appendString: [game localizedRatedNot]];
@@ -639,14 +639,14 @@ CGFloat bottomOffset = 0;
         }
     }
     if (indexPath.section == PUBLICINVITATIONSSECTION) {
-        Game *game = [[player publicInvitations] objectAtIndex:indexPath.row];
+        Game *game = [[self.player publicInvitations] objectAtIndex:indexPath.row];
         if (selectedPublicInvitationIndexPath) {
             if ((selectedPublicInvitationIndexPath.section == PUBLICINVITATIONSSECTION) && (indexPath.row == selectedPublicInvitationIndexPath.row)) {
                 return selectedPublicInvitationCell;
             }
         }
         NSString *opponent = [game opponentName];
-        UIImage *imgV = [player.avatars objectForKey: opponent];
+        UIImage *imgV = [self.player.avatars objectForKey: opponent];
         if (imgV) {
             tmpIdentifier = CellWithAvatarIdentifier;
         } else {
@@ -658,7 +658,7 @@ CGFloat bottomOffset = 0;
         }
         cell.ratingLabel.attributedText = [game ratingString];
 
-        cell.textLabel.attributedText = [player markIfOnline:[game opponentName] andAttributedName:[game attributedName]];
+        cell.textLabel.attributedText = [self.player markIfOnline:[game opponentName] andAttributedName:[game attributedName]];
         if (![[game ratedNot] isEqualToString:@"Not Rated"]) {
             txtStr = (NSMutableString *) [NSString stringWithFormat:@"%@ (%@) - %@", [game gameType], [game localizedRatedNot], [game localizedTimeString]];
         } else {
@@ -679,9 +679,9 @@ CGFloat bottomOffset = 0;
 
     }
     if (indexPath.section == SENTINVITATIONSSECTION) {
-        Game *game = [[player sentInvitations] objectAtIndex:indexPath.row];
+        Game *game = [[self.player sentInvitations] objectAtIndex:indexPath.row];
         NSString *opponent = [game opponentName];
-        UIImage *imgV = [player.avatars objectForKey: opponent];
+        UIImage *imgV = [self.player.avatars objectForKey: opponent];
         if (imgV) {
             tmpIdentifier = CellWithAvatarIdentifier;
         } else {
@@ -697,7 +697,7 @@ CGFloat bottomOffset = 0;
             cell.ratingLabel.attributedText = [game ratingString];
         }
         
-        cell.textLabel.attributedText = [player markIfOnline:[game opponentName] andAttributedName:[game attributedName]];
+        cell.textLabel.attributedText = [self.player markIfOnline:[game opponentName] andAttributedName:[game attributedName]];
         txtStr = [[NSMutableString alloc] initWithString:[game gameType]];
         [txtStr appendString:@" ("];
         [txtStr appendString: [game localizedRatedNot]];
@@ -716,9 +716,9 @@ CGFloat bottomOffset = 0;
         cell.imageView.image = imgV;
     }
     if (indexPath.section == NONACTIVEGAMESSECTION) {
-        Game *game = [[player nonActiveGames] objectAtIndex:indexPath.row];
+        Game *game = [[self.player nonActiveGames] objectAtIndex:indexPath.row];
         NSString *opponent = [game opponentName];
-        UIImage *imgV = [player.avatars objectForKey: opponent];
+        UIImage *imgV = [self.player.avatars objectForKey: opponent];
         if (imgV) {
             tmpIdentifier = CellWithAvatarIdentifier;
         } else {
@@ -729,7 +729,7 @@ CGFloat bottomOffset = 0;
             cell = [[GameTableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:tmpIdentifier];
         }
         cell.ratingLabel.attributedText = [game ratingString];
-        cell.textLabel.attributedText = [player markIfOnline:[game opponentName] andAttributedName:[game attributedName]];
+        cell.textLabel.attributedText = [self.player markIfOnline:[game opponentName] andAttributedName:[game attributedName]];
         txtStr = [[NSMutableString alloc] initWithString:[game gameType]];
         if (![[game ratedNot] isEqualToString:@"Not Rated"]) {
             txtStr = (NSMutableString *) [NSString stringWithFormat:@"%@ (%@) - %@", [game gameType], [game localizedRatedNot], [game localizedTimeString]];
@@ -755,7 +755,7 @@ CGFloat bottomOffset = 0;
         }
     }
     if (indexPath.section == TOURNAMENTSSECTION) {
-        Tournament *tourney = [[player tournaments] objectAtIndex: indexPath.row];
+        Tournament *tourney = [[self.player tournaments] objectAtIndex: indexPath.row];
         cell = [tableView dequeueReusableCellWithIdentifier: @"tournament"];
         if (!cell) {
             cell = [[GameTableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:@"tournament"];
@@ -784,7 +784,7 @@ CGFloat bottomOffset = 0;
     }
     
     if (indexPath.section == KOTHSECTION) {
-        KingOfTheHill *koth = [[player hills] objectAtIndex: indexPath.row];
+        KingOfTheHill *koth = [[self.player hills] objectAtIndex: indexPath.row];
         cell = [tableView dequeueReusableCellWithIdentifier: @"kingOfTheHill"];
         if (!cell) {
             cell = [[GameTableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:@"kingOfTheHill"];
@@ -860,7 +860,7 @@ CGFloat bottomOffset = 0;
             messagesCollapsed = !messagesCollapsed;
             [defaults setBool:messagesCollapsed forKey:@"messagesCollapsed"];
             collapse = messagesCollapsed;
-            sectionArray = [player messages];
+            sectionArray = [self.player messages];
             break;
         case INVITATIONSSECTION:
             if (selectedInvitationIndexPath && !invitationsReceivedCollapsed) {
@@ -874,13 +874,13 @@ CGFloat bottomOffset = 0;
             invitationsReceivedCollapsed = !invitationsReceivedCollapsed;
             [defaults setBool:invitationsReceivedCollapsed forKey:@"invitationsReceivedCollapsed"];
             collapse = invitationsReceivedCollapsed;
-            sectionArray = [player invitations];
+            sectionArray = [self.player invitations];
             break;
         case ACTIVEGAMESSECTION:
             activeGamesCollapsed = !activeGamesCollapsed;
             [defaults setBool:activeGamesCollapsed forKey:@"activeGamesCollapsed"];
             collapse = activeGamesCollapsed;
-            sectionArray = [player activeGames];
+            sectionArray = [self.player activeGames];
             break;
         case PUBLICINVITATIONSSECTION:
             if (selectedPublicInvitationIndexPath && !publicInvitationsCollapsed) {
@@ -894,25 +894,25 @@ CGFloat bottomOffset = 0;
             publicInvitationsCollapsed = !publicInvitationsCollapsed;
             [defaults setBool:publicInvitationsCollapsed forKey:@"publicInvitationsCollapsed"];
             collapse = publicInvitationsCollapsed;
-            sectionArray = [player publicInvitations];
+            sectionArray = [self.player publicInvitations];
             break;
         case SENTINVITATIONSSECTION:
             sentInvitationsCollapsed = !sentInvitationsCollapsed;
             [defaults setBool:sentInvitationsCollapsed forKey:@"sentInvitationsCollapsed"];
             collapse = sentInvitationsCollapsed;
-            sectionArray = [player sentInvitations];
+            sectionArray = [self.player sentInvitations];
             break;
         case NONACTIVEGAMESSECTION:
             nonActiveGamesCollapsed = !nonActiveGamesCollapsed;
             [defaults setBool:nonActiveGamesCollapsed forKey:@"nonActiveGamesCollapsed"];
             collapse = nonActiveGamesCollapsed;
-            sectionArray = [player nonActiveGames];
+            sectionArray = [self.player nonActiveGames];
             break;
         case TOURNAMENTSSECTION:
             tournamentsCollapsed = !tournamentsCollapsed;
             [defaults setBool:tournamentsCollapsed forKey:@"tournamentsCollapsed"];
             collapse = tournamentsCollapsed;
-            sectionArray = [player tournaments];
+            sectionArray = [self.player tournaments];
             break;
         case KOTHSECTION:
             kothCollapsed = !kothCollapsed;
@@ -1040,14 +1040,14 @@ CGFloat bottomOffset = 0;
     }
     
     BOOL unread = NO;
-    for (Message *message in [player messages]) {
+    for (Message *message in [self.player messages]) {
         unread = [message.unread isEqualToString:@"unread"];
         if (unread) {
             break;
         }
     }
     BOOL king = NO;
-    for (KingOfTheHill *hill in [player hills]) {
+    for (KingOfTheHill *hill in [self.player hills]) {
         if ([hill king]) {
             king = YES;
             break;
@@ -1055,9 +1055,9 @@ CGFloat bottomOffset = 0;
     }
     if ((section == MESSAGESSECTION) && (unread)) {
         [sectionHeaderView setBackgroundColor:[UIColor colorWithRed:1.0f green:0.5f blue:0 alpha:1.0]];
-    } else if ((section == INVITATIONSSECTION) && ([[player invitations] count] > 0)) {
+    } else if ((section == INVITATIONSSECTION) && ([[self.player invitations] count] > 0)) {
         [sectionHeaderView setBackgroundColor:[UIColor colorWithRed:1.0f green:0.5f blue:0 alpha:1.0]];
-    } else if ((section == ACTIVEGAMESSECTION) && ([[player activeGames] count] > 0)) {
+    } else if ((section == ACTIVEGAMESSECTION) && ([[self.player activeGames] count] > 0)) {
         [sectionHeaderView setBackgroundColor:[UIColor colorWithRed:1.0f green:0.5f blue:0 alpha:1.0]];
     } else if ((section == KOTHSECTION) && king) {
         [sectionHeaderView setBackgroundColor:[UIColor colorWithRed:1.0f green:0.5f blue:0 alpha:1.0]];
@@ -1070,43 +1070,43 @@ CGFloat bottomOffset = 0;
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
     if(section == MESSAGESSECTION)    {
-        return [NSString stringWithFormat: NSLocalizedString(@"messages (%lu)", nil),(unsigned long)[[player messages] count]];
+        return [NSString stringWithFormat: NSLocalizedString(@"messages (%lu)", nil),(unsigned long)[[self.player messages] count]];
     }
     else if(section == INVITATIONSSECTION)    {
-        return [NSString stringWithFormat: NSLocalizedString(@"invitations (%lu)",nil),(unsigned long)[[player invitations] count]];
+        return [NSString stringWithFormat: NSLocalizedString(@"invitations (%lu)",nil),(unsigned long)[[self.player invitations] count]];
     }
     else if(section == ACTIVEGAMESSECTION)    {
-        return [NSString stringWithFormat: NSLocalizedString(@"my turn (%lu)",nil),(unsigned long)[[player activeGames] count]];
+        return [NSString stringWithFormat: NSLocalizedString(@"my turn (%lu)",nil),(unsigned long)[[self.player activeGames] count]];
     }
     else if(section == PUBLICINVITATIONSSECTION)    {
         int kothInvitations = 0;
-        for (Game *game in [player publicInvitations]) {
+        for (Game *game in [self.player publicInvitations]) {
             if ([[game ratedNot] isEqualToString:@"KotH"]) {
                 kothInvitations += 1;
             }
         }
         if (kothInvitations == 0) {
-            return [NSString stringWithFormat: NSLocalizedString(@"public invitations (%lu)",nil),(unsigned long)[[player publicInvitations] count]];
+            return [NSString stringWithFormat: NSLocalizedString(@"public invitations (%lu)",nil),(unsigned long)[[self.player publicInvitations] count]];
         } else {
-            return [NSString stringWithFormat: NSLocalizedString(@"public invitations (%lu + %i KotH)",nil),(unsigned long)[[player publicInvitations] count]-kothInvitations, kothInvitations];
+            return [NSString stringWithFormat: NSLocalizedString(@"public invitations (%lu + %i KotH)",nil),(unsigned long)[[self.player publicInvitations] count]-kothInvitations, kothInvitations];
         }
     }
     else if(section == SENTINVITATIONSSECTION)    {
-        return [NSString stringWithFormat: NSLocalizedString(@"invitations sent (%lu)",nil),(unsigned long)[[player sentInvitations] count]];
+        return [NSString stringWithFormat: NSLocalizedString(@"invitations sent (%lu)",nil),(unsigned long)[[self.player sentInvitations] count]];
     }
     else if(section == NONACTIVEGAMESSECTION)    {
-        return [NSString stringWithFormat: NSLocalizedString(@"opponent's turn (%lu)",nil),(unsigned long)[[player nonActiveGames] count]];
+        return [NSString stringWithFormat: NSLocalizedString(@"opponent's turn (%lu)",nil),(unsigned long)[[self.player nonActiveGames] count]];
     }
     else if (section == TOURNAMENTSSECTION)   {
-        return [NSString stringWithFormat: NSLocalizedString(@"tournaments (%lu)",nil),(unsigned long)[[player tournaments] count]];
+        return [NSString stringWithFormat: NSLocalizedString(@"tournaments (%lu)",nil),(unsigned long)[[self.player tournaments] count]];
     } else if (section == KOTHSECTION) {
         int hills = 0, totalHills;
         if ([[NSUserDefaults standardUserDefaults] boolForKey:@"showOnlyTB"]) {
             totalHills = player.tbHills;
         } else {
-            totalHills = (int) [[player hills] count];
+            totalHills = (int) [[self.player hills] count];
         }
-        for (KingOfTheHill *hill in [player hills]) {
+        for (KingOfTheHill *hill in [self.player hills]) {
             if ([hill king]) {
                 hills += 1;
             }
@@ -1192,8 +1192,8 @@ CGFloat bottomOffset = 0;
     }
 //    if([segue.identifier isEqualToString:@"addInvitationsTap"]){
 //        invitationsViewController = (InvitationsViewController *)segue.destinationViewController;
-//        long count = [[player activeGames] count] + [[player nonActiveGames] count];
-//        for (Game *game in [player sentInvitations]) {
+//        long count = [[self.player activeGames] count] + [[self.player nonActiveGames] count];
+//        for (Game *game in [self.player sentInvitations]) {
 //            if ([[game opponentName] isEqualToString:@"Anyone"]) {
 //                continue;
 //            }
@@ -1273,11 +1273,11 @@ CGFloat bottomOffset = 0;
         
         [messagesViewController setPlayer:player];
         [messagesViewController setGamesLimit: gamesLimit];
-        [messagesViewController setMessageID:[[[player messages] objectAtIndex:indexPath.row] messageID]];
-        [messagesViewController setAuthor:[[[player messages] objectAtIndex:indexPath.row] author]];
-        [messagesViewController setSubject:[[[player messages] objectAtIndex:indexPath.row] subject]];
-        if ([[[[player messages] objectAtIndex:indexPath.row] unread] isEqualToString:@"unread"]) {
-            [[[player messages] objectAtIndex:indexPath.row] setUnread:@"read"];
+        [messagesViewController setMessageID:[[[self.player messages] objectAtIndex:indexPath.row] messageID]];
+        [messagesViewController setAuthor:[[[self.player messages] objectAtIndex:indexPath.row] author]];
+        [messagesViewController setSubject:[[[self.player messages] objectAtIndex:indexPath.row] subject]];
+        if ([[[[self.player messages] objectAtIndex:indexPath.row] unread] isEqualToString:@"unread"]) {
+            [[[self.player messages] objectAtIndex:indexPath.row] setUnread:@"read"];
             [self.tableView reloadData];
         }
     }
@@ -1327,7 +1327,7 @@ CGFloat bottomOffset = 0;
                 [self addButtonsToCell:cell];
                 selectedInvitationCell = cell;
             }
-            selectedGame = [[player invitations] objectAtIndex: indexPath.row];
+            selectedGame = [[self.player invitations] objectAtIndex: indexPath.row];
 
         [self.tableView endUpdates];
         [CATransaction commit];
@@ -1355,7 +1355,7 @@ CGFloat bottomOffset = 0;
             }
         [self.tableView endUpdates];
         [CATransaction commit];
-        selectedGame = [[player activeGames] objectAtIndex: indexPath.row];
+        selectedGame = [[self.player activeGames] objectAtIndex: indexPath.row];
         [self performSegueWithIdentifier:@"gameTap" sender:self];
         [boardController setShowAds: player.showAds];
         [boardController setGame:selectedGame];
@@ -1412,7 +1412,7 @@ CGFloat bottomOffset = 0;
                 [self addButtonsToPublicInvitationsCell: cell];
                 selectedPublicInvitationCell = cell;
             }
-            selectedGame = [[player publicInvitations] objectAtIndex: indexPath.row];
+            selectedGame = [[self.player publicInvitations] objectAtIndex: indexPath.row];
         [self.tableView endUpdates];
         [CATransaction commit];
         
@@ -1443,7 +1443,7 @@ CGFloat bottomOffset = 0;
 
         [self performSegueWithIdentifier:@"gameTap" sender:self];
         
-        selectedGame = [[player nonActiveGames] objectAtIndex: indexPath.row];
+        selectedGame = [[self.player nonActiveGames] objectAtIndex: indexPath.row];
         [boardController setShowAds: player.showAds];
         [boardController setActiveGame:NO];
         [boardController setGame:selectedGame];
@@ -1454,20 +1454,20 @@ CGFloat bottomOffset = 0;
     
     if (indexPath.section == TOURNAMENTSSECTION) {
         NSString *url = @"https://www.google.com";
-        if ([[[[player tournaments] objectAtIndex: indexPath.row] tournamentState] isEqualToString:@"2"]) {
-            url = [NSString stringWithFormat:@"https://www.pente.org/gameServer/tournaments/status.jsp?eid=%@", [[[player tournaments] objectAtIndex: indexPath.row] tournamentID]];
+        if ([[[[self.player tournaments] objectAtIndex: indexPath.row] tournamentState] isEqualToString:@"2"]) {
+            url = [NSString stringWithFormat:@"https://www.pente.org/gameServer/tournaments/status.jsp?eid=%@", [[[self.player tournaments] objectAtIndex: indexPath.row] tournamentID]];
             if (development) {
-                url = [NSString stringWithFormat:@"https://development.pente.org/gameServer/tournaments/status.jsp?eid=%@", [[[player tournaments] objectAtIndex: indexPath.row] tournamentID]];
+                url = [NSString stringWithFormat:@"https://development.pente.org/gameServer/tournaments/status.jsp?eid=%@", [[[self.player tournaments] objectAtIndex: indexPath.row] tournamentID]];
             }
-        } else if ([[[[player tournaments] objectAtIndex: indexPath.row] tournamentState] isEqualToString:@"1"]) {
-            url = [NSString stringWithFormat:@"https://www.pente.org/gameServer/tournaments/tournamentConfirm.jsp?eid=%@", [[[player tournaments] objectAtIndex: indexPath.row] tournamentID]];
+        } else if ([[[[self.player tournaments] objectAtIndex: indexPath.row] tournamentState] isEqualToString:@"1"]) {
+            url = [NSString stringWithFormat:@"https://www.pente.org/gameServer/tournaments/tournamentConfirm.jsp?eid=%@", [[[self.player tournaments] objectAtIndex: indexPath.row] tournamentID]];
             if (development) {
-                url = [NSString stringWithFormat:@"https://development.pente.org/gameServer/tournaments/tournamentConfirm.jsp?eid=%@", [[[player tournaments] objectAtIndex: indexPath.row] tournamentID]];
+                url = [NSString stringWithFormat:@"https://development.pente.org/gameServer/tournaments/tournamentConfirm.jsp?eid=%@", [[[self.player tournaments] objectAtIndex: indexPath.row] tournamentID]];
             }
         } else {
-            url = [NSString stringWithFormat:@"https://www.pente.org/gameServer/tournaments/statusRound.jsp?eid=%@&round=%@", [[[player tournaments] objectAtIndex: indexPath.row] tournamentID], [[[player tournaments] objectAtIndex: indexPath.row] round]];
+            url = [NSString stringWithFormat:@"https://www.pente.org/gameServer/tournaments/statusRound.jsp?eid=%@&round=%@", [[[self.player tournaments] objectAtIndex: indexPath.row] tournamentID], [[[self.player tournaments] objectAtIndex: indexPath.row] round]];
                 if (development) {
-                    url = [NSString stringWithFormat:@"https://development.pente.org/gameServer/tournaments/statusRound.jsp?eid=%@&round=%@", [[[player tournaments] objectAtIndex: indexPath.row] tournamentID], [[[player tournaments] objectAtIndex: indexPath.row] round]];
+                    url = [NSString stringWithFormat:@"https://development.pente.org/gameServer/tournaments/statusRound.jsp?eid=%@&round=%@", [[[self.player tournaments] objectAtIndex: indexPath.row] tournamentID], [[[self.player tournaments] objectAtIndex: indexPath.row] round]];
                 }
         }
         PenteWebViewController *webViewController = [[PenteWebViewController alloc] initWithAddress: url];
@@ -1477,9 +1477,9 @@ CGFloat bottomOffset = 0;
     
     if (indexPath.section == KOTHSECTION) {
         KOTHTableViewController *vc = [[KOTHTableViewController alloc] init];
-        [vc setHillSummary: [[player hills] objectAtIndex: indexPath.row]];
+        [vc setHillSummary: [[self.player hills] objectAtIndex: indexPath.row]];
         [vc setPlayer: player];
-        [vc setTitle:[(KingOfTheHill*) [[player hills] objectAtIndex:indexPath.row] game]];
+        [vc setTitle:[(KingOfTheHill*) [[self.player hills] objectAtIndex:indexPath.row] game]];
         [self.navigationController pushViewController:vc animated:YES];
     }
     [self performSelector:@selector(scrollViewDidScroll:) withObject: self.tableView afterDelay:0.305];
@@ -1520,8 +1520,8 @@ CGFloat bottomOffset = 0;
 }
 
 -(void) acceptInvitation: (UIButton *) sender {
-//    long count = [[player activeGames] count] + [[player nonActiveGames] count];
-//    for (Game *game in [player sentInvitations]) {
+//    long count = [[self.player activeGames] count] + [[self.player nonActiveGames] count];
+//    for (Game *game in [self.player sentInvitations]) {
 //        if ([[game ratedNot] isEqualToString:@"rated"]) {
 //            count += 2;
 //        } else {
@@ -1543,11 +1543,11 @@ CGFloat bottomOffset = 0;
     if (development) {
         url = @"https://development.pente.org/gameServer/tb/replyInvitation";
     }
-    NSString *postString = [NSString stringWithFormat:@"sid=%@&inviteeMessage=&command=Accept&mobile=",[[player.invitations objectAtIndex:tmpPath.row] gameID]];
+    NSString *postString = [NSString stringWithFormat:@"sid=%@&inviteeMessage=&command=Accept&mobile=",[[self.player.invitations objectAtIndex:tmpPath.row] gameID]];
     NSDictionary *urlAndPostString = [NSDictionary dictionaryWithObjects:[NSArray arrayWithObjects:url,postString,nil] forKeys: [NSArray arrayWithObjects:@"url",@"postString",nil]];
     [NSThread detachNewThreadSelector:@selector(postToPenteOrgUrl:) toTarget:self withObject:urlAndPostString];
 
-    NSString *newFriend = [[player.invitations objectAtIndex:tmpPath.row] opponentName];
+    NSString *newFriend = [[self.player.invitations objectAtIndex:tmpPath.row] opponentName];
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
     NSMutableArray<NSString *> *toHistory = [[defaults objectForKey:@"invitedHistory"] mutableCopy];
     if (toHistory) {
@@ -1580,7 +1580,7 @@ CGFloat bottomOffset = 0;
             [self performSelector:@selector(scrollViewDidScroll:) withObject: self.tableView afterDelay:0.01];
     }];
 
-    [player.invitations removeObjectAtIndex:tmpPath.row];
+    [self.player.invitations removeObjectAtIndex:tmpPath.row];
     [UIView animateWithDuration:0.3 animations:^{[self.tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject: tmpPath] withRowAnimation:UITableViewRowAnimationFade];} completion:^(BOOL finished){
         [self dashboardParse];
 }];
@@ -1593,7 +1593,7 @@ CGFloat bottomOffset = 0;
 
     NSIndexPath *tmpPath = selectedInvitationIndexPath;
 
-    NSString *post = [NSString stringWithFormat:@"sid=%@&inviteeMessage=&command=Decline&mobile=",[[player.invitations objectAtIndex:tmpPath.row] gameID]];
+    NSString *post = [NSString stringWithFormat:@"sid=%@&inviteeMessage=&command=Decline&mobile=",[[self.player.invitations objectAtIndex:tmpPath.row] gameID]];
     NSData *postData = [post dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
     NSString *postLength = [NSString stringWithFormat:@"%lu", (unsigned long)[postData length]];
     
@@ -1634,7 +1634,7 @@ CGFloat bottomOffset = 0;
         //[self parseDashboard];
     }];
 
-    [player.invitations removeObjectAtIndex:tmpPath.row];
+    [self.player.invitations removeObjectAtIndex:tmpPath.row];
     
     [UIView animateWithDuration:0.3 animations:^{[self.tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject: tmpPath] withRowAnimation:UITableViewRowAnimationFade];} completion:^(BOOL finished){ [self dashboardParse];
 }];
@@ -1707,7 +1707,7 @@ CGFloat bottomOffset = 0;
 
 
 -(void) acceptPublicInvitation: (UIButton *) sender {
-    Game *game = [player.publicInvitations objectAtIndex:selectedPublicInvitationIndexPath.row];
+    Game *game = [self.player.publicInvitations objectAtIndex:selectedPublicInvitationIndexPath.row];
     if ([game.ratedNot containsString:@", beginner"]) {
         [self nagBeginnerAccept];
         return;
@@ -1729,8 +1729,8 @@ CGFloat bottomOffset = 0;
         }
     }
     
-//    long count = [[player activeGames] count] + [[player nonActiveGames] count];
-//    for (Game *game in [player sentInvitations]) {
+//    long count = [[self.player activeGames] count] + [[self.player nonActiveGames] count];
+//    for (Game *game in [self.player sentInvitations]) {
 //        if ([[game ratedNot] isEqualToString:@"rated"]) {
 //            count += 2;
 //        } else {
@@ -1755,7 +1755,7 @@ CGFloat bottomOffset = 0;
     NSDictionary *urlAndPostString = [NSDictionary dictionaryWithObjects:[NSArray arrayWithObjects:url,postString,nil] forKeys: [NSArray arrayWithObjects:@"url",@"postString",nil]];
     [NSThread detachNewThreadSelector:@selector(postToPenteOrgUrl:) toTarget:self withObject:urlAndPostString];
 
-    NSString *newFriend = [[player.publicInvitations objectAtIndex:selectedPublicInvitationIndexPath.row] opponentName];
+    NSString *newFriend = [[self.player.publicInvitations objectAtIndex:selectedPublicInvitationIndexPath.row] opponentName];
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
     NSMutableArray<NSString *> *toHistory = [[defaults objectForKey:@"invitedHistory"] mutableCopy];
     if (toHistory) {
@@ -1802,7 +1802,7 @@ CGFloat bottomOffset = 0;
                 [self performSelector:@selector(scrollViewDidScroll:) withObject: self.tableView afterDelay:0.01];
         }];
     
-        [player.publicInvitations removeObjectAtIndex:tmpPath.row];
+        [self.player.publicInvitations removeObjectAtIndex:tmpPath.row];
         [UIView animateWithDuration:0.3 animations:^{[self.tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject: tmpPath] withRowAnimation:UITableViewRowAnimationFade];} completion:^(BOOL finished){
             [self dashboardParse];
             //        [self performSelector:@selector(scrollViewDidScroll:) withObject: self.tableView afterDelay:0.4];
@@ -1936,7 +1936,7 @@ CGFloat bottomOffset = 0;
 //        username = [defaults objectForKey:usernameKey];
 //        password = [defaults objectForKey:passwordKey];
 
-        NSString *post = [NSString stringWithFormat:@"command=delete&mid=%@&name2=%@&password2=%@&mobile=", [[[player messages] objectAtIndex:indexPath.row] messageID],username,password];
+        NSString *post = [NSString stringWithFormat:@"command=delete&mid=%@&name2=%@&password2=%@&mobile=", [[[self.player messages] objectAtIndex:indexPath.row] messageID],username,password];
         NSData *postData = [post dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
         NSString *postLength = [NSString stringWithFormat:@"%lu", (unsigned long)[postData length]];
         
@@ -1971,7 +1971,7 @@ CGFloat bottomOffset = 0;
 //        //        [self login];
 //        NSLog(@"kitty %@", dashboardString);
 
-        [player.messages removeObjectAtIndex: indexPath.row];
+        [self.player.messages removeObjectAtIndex: indexPath.row];
         [UIView animateWithDuration:0.3 animations:^{[self.tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject: indexPath] withRowAnimation:UITableViewRowAnimationFade];
 //            [tableView reloadData];
         } completion:^(BOOL finished){
@@ -1986,7 +1986,7 @@ CGFloat bottomOffset = 0;
         //            [self.tableView setUserInteractionEnabled: NO];
         self.tableView.layer.borderWidth = 1.5;
         [self performSelector:@selector(scrollViewDidScroll:) withObject: self.tableView];
-        NSString *post = [NSString stringWithFormat:@"gid=%@&command=resign&mobile=",[[player.activeGames objectAtIndex:indexPath.row] gameID]];
+        NSString *post = [NSString stringWithFormat:@"gid=%@&command=resign&mobile=",[[self.player.activeGames objectAtIndex:indexPath.row] gameID]];
         NSData *postData = [post dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
         NSString *postLength = [NSString stringWithFormat:@"%lu", (unsigned long)[postData length]];
         
@@ -2017,7 +2017,7 @@ CGFloat bottomOffset = 0;
         //    NSData *responseData = [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
         //    NSString *dashboardString = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
         
-        [player.activeGames removeObjectAtIndex:indexPath.row];
+        [self.player.activeGames removeObjectAtIndex:indexPath.row];
         [UIView animateWithDuration:0.3 animations:^{[self.tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject: indexPath] withRowAnimation:UITableViewRowAnimationFade];} completion:^(BOOL finished){
             [self dashboardParse];
             [self performSelector:@selector(scrollViewDidScroll:) withObject: self.tableView afterDelay:0.01];
@@ -2031,7 +2031,7 @@ CGFloat bottomOffset = 0;
         //            [self.tableView setUserInteractionEnabled: NO];
         self.tableView.layer.borderWidth = 1.5;
         [self performSelector:@selector(scrollViewDidScroll:) withObject: self.tableView];
-        NSString *post = [NSString stringWithFormat:@"sid=%@&command=Cancel&mobile=",[[player.sentInvitations objectAtIndex:indexPath.row] gameID]];
+        NSString *post = [NSString stringWithFormat:@"sid=%@&command=Cancel&mobile=",[[self.player.sentInvitations objectAtIndex:indexPath.row] gameID]];
         NSData *postData = [post dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
         NSString *postLength = [NSString stringWithFormat:@"%lu", (unsigned long)[postData length]];
         
@@ -2062,7 +2062,7 @@ CGFloat bottomOffset = 0;
         //    NSData *responseData = [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
         //    NSString *dashboardString = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
         
-        [player.sentInvitations removeObjectAtIndex:indexPath.row];
+        [self.player.sentInvitations removeObjectAtIndex:indexPath.row];
         [UIView animateWithDuration:0.1 animations:^{[self.tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject: indexPath] withRowAnimation:UITableViewRowAnimationFade];} completion:^(BOOL finished){
             [self dashboardParse];
                 [self performSelector:@selector(scrollViewDidScroll:) withObject: self.tableView afterDelay:0.01];
@@ -2076,9 +2076,9 @@ CGFloat bottomOffset = 0;
         self.tableView.layer.borderWidth = 1.5;
         [self performSelector:@selector(scrollViewDidScroll:) withObject: self.tableView];
 
-        NSString *tmpStr = [NSString stringWithFormat:@"https://www.pente.org/gameServer/tb/game?gid=%@&command=load",[[player.nonActiveGames objectAtIndex:indexPath.row] gameID]];
+        NSString *tmpStr = [NSString stringWithFormat:@"https://www.pente.org/gameServer/tb/game?gid=%@&command=load",[[self.player.nonActiveGames objectAtIndex:indexPath.row] gameID]];
         if (development) {
-            tmpStr = [NSString stringWithFormat:@"https://development.pente.org/gameServer/tb/game?gid=%@&command=load",[[player.nonActiveGames objectAtIndex:indexPath.row] gameID]];
+            tmpStr = [NSString stringWithFormat:@"https://development.pente.org/gameServer/tb/game?gid=%@&command=load",[[self.player.nonActiveGames objectAtIndex:indexPath.row] gameID]];
         }
         NSURL *url = [NSURL URLWithString: tmpStr];
         NSError *error;
@@ -2089,9 +2089,9 @@ CGFloat bottomOffset = 0;
         movesRange.location = movesRange.location + 10;
         NSRange movesRangeEnd = [[htmlString substringWithRange:movesRange] rangeOfString:@"\""];
         movesRange.length = movesRangeEnd.location;
-        [[player.nonActiveGames objectAtIndex:indexPath.row] setSetID:[htmlString substringWithRange:movesRange]];
+        [[self.player.nonActiveGames objectAtIndex:indexPath.row] setSetID:[htmlString substringWithRange:movesRange]];
 
-        NSString *post = [NSString stringWithFormat:@"sid=%@&command=request&mobile=",[[player.nonActiveGames objectAtIndex:indexPath.row] setID]];
+        NSString *post = [NSString stringWithFormat:@"sid=%@&command=request&mobile=",[[self.player.nonActiveGames objectAtIndex:indexPath.row] setID]];
         NSData *postData = [post dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
         NSString *postLength = [NSString stringWithFormat:@"%lu", (unsigned long)[postData length]];
         
@@ -2156,8 +2156,8 @@ CGFloat bottomOffset = 0;
 //    password = [defaults objectForKey:passwordKey];
     BOOL wantsToSeeAvatars = [defaults boolForKey:@"wantToSeeAvatars"];
     if (!wantsToSeeAvatars) {
-        [player.avatars removeAllObjects];
-        [player.pendingAvatarChecks removeAllObjects];
+        [self.player.avatars removeAllObjects];
+        [self.player.pendingAvatarChecks removeAllObjects];
     }
     self.tableView.layer.borderWidth = 1.5;
     
@@ -2175,7 +2175,7 @@ CGFloat bottomOffset = 0;
     if (development) {
         url =  [NSString stringWithFormat:@"https://development.pente.org/gameServer/mobile/index.jsp?name=%@&password=%@",username,password];
 //        url =  [NSString stringWithFormat:@"https://development.pente.org/gameServer/mobile/index.jsp?name=%@&password=%@&checkname=iostest",username,password];
-//        username = @"iostest";
+        username = @"iostest";
     }
 
     [request setURL:[NSURL URLWithString:url]];
@@ -2252,14 +2252,14 @@ CGFloat bottomOffset = 0;
             if ((dashIDX < [splitDash count]) && ([[splitDash objectAtIndex:dashIDX] rangeOfString: [username lowercaseString]].location == 0)) {
                 dashLine = [splitDash objectAtIndex:dashIDX];
                 splitLine = [dashLine componentsSeparatedByString:@";"];
-                [player setMyColor:UIColorFromRGB([[splitLine objectAtIndex:1] intValue])];
+                [self.player setMyColor:UIColorFromRGB([[splitLine objectAtIndex:1] intValue])];
                 BOOL showAds = ![[splitLine objectAtIndex:2] isEqualToString:@"NoAds"];
-                [player setShowAds: showAds];
-                [player setSubscriber: [[splitLine objectAtIndex:3] isEqualToString:@"subscriber"]];
+                [self.player setShowAds: showAds];
+                [self.player setSubscriber: [[splitLine objectAtIndex:3] isEqualToString:@"subscriber"]];
                 livePlayers = [splitLine objectAtIndex:4];
                 inviteButton.badgeValue = livePlayers;
-                [player setDbAccess: [[splitLine objectAtIndex:5] isEqualToString:@"dbAccessGranted"]];
-                [player setEmailMe: [[splitLine objectAtIndex:6] isEqualToString:@"emailMe"]];
+                [self.player setDbAccess: [[splitLine objectAtIndex:5] isEqualToString:@"dbAccessGranted"]];
+                [self.player setEmailMe: [[splitLine objectAtIndex:6] isEqualToString:@"emailMe"]];
                 [[NSUserDefaults standardUserDefaults] setBool:player.emailMe forKey:@"emailMe"];
                 onlineFollowing = [splitLine objectAtIndex:7];
                 moreButton.badgeValue = onlineFollowing;
@@ -2290,9 +2290,9 @@ CGFloat bottomOffset = 0;
                 //    [self.interstitial setAdUnitID:@"567b72e8189a488c"];
                 [self.interstitial loadRequest:[GADRequest request]];
             }
-    //        [player setShowAds: showAds];
-    //        [player setSubscriber: ([dashboardString rangeOfString:@"tb GamesLimit"].location == NSNotFound) || ([dashboardString rangeOfString:@"tb GamesLimit"].location > 30)];
-            if ([player subscriber]) {
+    //        [self.player setShowAds: showAds];
+    //        [self.player setSubscriber: ([dashboardString rangeOfString:@"tb GamesLimit"].location == NSNotFound) || ([dashboardString rangeOfString:@"tb GamesLimit"].location > 30)];
+            if ([self.player subscriber]) {
                 [[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"shouldSendReceipt"];
             }
 //            if (([dashboardString rangeOfString:@"Unlimited Games"].location != NSNotFound) && ([dashboardString rangeOfString:@"Unlimited Games"].location < 30)) {
@@ -2364,7 +2364,7 @@ CGFloat bottomOffset = 0;
                     [sectionItems addObject:hill];
                     dashIDX++;
                 }
-                [player setTbHills: tbHills];
+                [self.player setTbHills: tbHills];
             }
             int totalHills = ([[NSUserDefaults standardUserDefaults] boolForKey:@"showOnlyTB"]?player.tbHills:(int) [sectionItems count]);
             long kothRows = 0;
@@ -2377,10 +2377,10 @@ CGFloat bottomOffset = 0;
                     for(int i = 0; i < kothRows; ++i) {
                         [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: KOTHSECTION]];
                     }
-                    [player setHills:[[NSMutableArray alloc] init]];
+                    [self.player setHills:[[NSMutableArray alloc] init]];
                     [self.tableView deleteRowsAtIndexPaths:indexSet withRowAnimation:UITableViewRowAnimationFade];
                 }
-                [player setHills:sectionItems];
+                [self.player setHills:sectionItems];
                 if (!kothCollapsed) {
                     indexSet = [[NSMutableArray alloc] init];
                     for(int i = 0; i < totalHills; ++i) {
@@ -2389,14 +2389,14 @@ CGFloat bottomOffset = 0;
                     [self.tableView insertRowsAtIndexPaths:indexSet withRowAnimation:UITableViewRowAnimationFade];
                 }
             } else {
-                [player setHills:sectionItems];
+                [self.player setHills:sectionItems];
             }
 
             while ((dashIDX < [splitDash count]) && (![[splitDash objectAtIndex:dashIDX] isEqualToString: @"Rating Stats"])) {
                 dashIDX++;
             }
             if ((dashIDX+1 < [splitDash count]) && [[splitDash objectAtIndex:dashIDX] isEqualToString: @"Rating Stats"]) {
-                [[player ratingStats] removeAllObjects];
+                [[self.player ratingStats] removeAllObjects];
                 dashIDX++;
                 int tbRatings = 0;
                 while ((![[splitDash objectAtIndex:dashIDX] isEqualToString: @"Invitations received"]) && (dashIDX < [splitDash count])) {
@@ -2409,7 +2409,7 @@ CGFloat bottomOffset = 0;
                     [ratingStat setLastPlayed: [splitLine objectAtIndex: 4]];
                     [ratingStat setCrown: [[splitLine objectAtIndex: 3] intValue]];
                     [ratingStat setGameId: [[splitLine objectAtIndex: 5] intValue]];
-                    [[player ratingStats] addObject:ratingStat];
+                    [[self.player ratingStats] addObject:ratingStat];
                     NSString *gameStr = @"Pente";
                     int gameInt = ratingStat.gameId;
                     if (gameInt > 50) {
@@ -2450,7 +2450,7 @@ CGFloat bottomOffset = 0;
                     }
                     dashIDX++;
                 }
-                [player setTbRatings: tbRatings];
+                [self.player setTbRatings: tbRatings];
             }
             sectionItems = [[NSMutableArray alloc] init];
             while ((dashIDX < [splitDash count]) && (![[splitDash objectAtIndex:dashIDX] isEqualToString: @"Invitations received"])) {
@@ -2472,29 +2472,29 @@ CGFloat bottomOffset = 0;
                     [game setNameColor: UIColorFromRGB([[splitLine objectAtIndex:7] intValue])];
                     [game setCrown:[[splitLine objectAtIndex:8] intValue]];
                     if (wantsToSeeAvatars && ![game.nameColor isEqual: blackColor]) {
-                        [player addUser:[game opponentName]];
+                        [self.player addUser:[game opponentName]];
                     }
                     [sectionItems addObject:game];
                     dashIDX++;
                 }
             }
-            if ([sectionItems count] != [[player invitations] count]) {
+            if ([sectionItems count] != [[self.player invitations] count]) {
                 if (!invitationsReceivedCollapsed) {
                     indexSet = [[NSMutableArray alloc] init];
-                    for(int i = 0; i < [[player invitations] count]; ++i)
+                    for(int i = 0; i < [[self.player invitations] count]; ++i)
                         [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: INVITATIONSSECTION]];
-                    [player setInvitations:[[NSMutableArray alloc] init]];
+                    [self.player setInvitations:[[NSMutableArray alloc] init]];
                     [self.tableView deleteRowsAtIndexPaths:indexSet withRowAnimation:UITableViewRowAnimationFade];
                 }
-                [player setInvitations:sectionItems];
+                [self.player setInvitations:sectionItems];
                 if (!invitationsReceivedCollapsed) {
                     indexSet = [[NSMutableArray alloc] init];
-                    for(int i = 0; i < [[player invitations] count]; ++i)
+                    for(int i = 0; i < [[self.player invitations] count]; ++i)
                         [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: INVITATIONSSECTION]];
                     [self.tableView insertRowsAtIndexPaths:indexSet withRowAnimation:UITableViewRowAnimationFade];
                 }
             } else {
-                [player setInvitations:sectionItems];
+                [self.player setInvitations:sectionItems];
             }
             //        [self.tableView reloadData];
 
@@ -2516,29 +2516,29 @@ CGFloat bottomOffset = 0;
                     [game setNameColor: UIColorFromRGB([[splitLine objectAtIndex:7] intValue])];
                     [game setCrown:[[splitLine objectAtIndex:8] intValue]];
                     if (wantsToSeeAvatars && ![game.nameColor isEqual: blackColor]) {
-                        [player addUser:[game opponentName]];
+                        [self.player addUser:[game opponentName]];
                     }
                     [sectionItems addObject:game];
                     dashIDX++;
                 }
             }
-            if ([sectionItems count] != [[player sentInvitations] count]) {
+            if ([sectionItems count] != [[self.player sentInvitations] count]) {
                 if (!sentInvitationsCollapsed) {
                     indexSet = [[NSMutableArray alloc] init];
-                    for(int i = 0; i < [[player sentInvitations] count]; ++i)
+                    for(int i = 0; i < [[self.player sentInvitations] count]; ++i)
                         [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: SENTINVITATIONSSECTION]];
-                    [player setSentInvitations:[[NSMutableArray alloc] init]];
+                    [self.player setSentInvitations:[[NSMutableArray alloc] init]];
                     [self.tableView deleteRowsAtIndexPaths:indexSet withRowAnimation:UITableViewRowAnimationFade];
                 }
-                [player setSentInvitations:sectionItems];
+                [self.player setSentInvitations:sectionItems];
                 if (!sentInvitationsCollapsed) {
                     indexSet = [[NSMutableArray alloc] init];
-                    for(int i = 0; i < [[player sentInvitations] count]; ++i)
+                    for(int i = 0; i < [[self.player sentInvitations] count]; ++i)
                         [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: SENTINVITATIONSSECTION]];
                     [self.tableView insertRowsAtIndexPaths:indexSet withRowAnimation:UITableViewRowAnimationFade];
                 }
             } else {
-                [player setSentInvitations:sectionItems];
+                [self.player setSentInvitations:sectionItems];
             }
             //        [self.tableView reloadData];
 
@@ -2570,29 +2570,29 @@ CGFloat bottomOffset = 0;
                     [game setNameColor: UIColorFromRGB([[splitLine objectAtIndex:8] intValue])];
                     [game setCrown:[[splitLine objectAtIndex:9] intValue]];
                     if (wantsToSeeAvatars && ![game.nameColor isEqual: blackColor]) {
-                        [player addUser:[game opponentName]];
+                        [self.player addUser:[game opponentName]];
                     }
                     [sectionItems addObject:game];
                     dashIDX++;
                 }
             }
-            if ([sectionItems count] != [[player activeGames] count]) {
+            if ([sectionItems count] != [[self.player activeGames] count]) {
                 if (!activeGamesCollapsed) {
                     indexSet = [[NSMutableArray alloc] init];
-                    for(int i = 0; i < [[player activeGames] count]; ++i)
+                    for(int i = 0; i < [[self.player activeGames] count]; ++i)
                         [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: ACTIVEGAMESSECTION]];
-                    [player setActiveGames:[[NSMutableArray alloc] init]];
+                    [self.player setActiveGames:[[NSMutableArray alloc] init]];
                     [self.tableView deleteRowsAtIndexPaths:indexSet withRowAnimation:UITableViewRowAnimationFade];
                 }
-                [player setActiveGames:sectionItems];
+                [self.player setActiveGames:sectionItems];
                 if (!activeGamesCollapsed) {
                     indexSet = [[NSMutableArray alloc] init];
-                    for(int i = 0; i < [[player activeGames] count]; ++i)
+                    for(int i = 0; i < [[self.player activeGames] count]; ++i)
                         [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: ACTIVEGAMESSECTION]];
                     [self.tableView insertRowsAtIndexPaths:indexSet withRowAnimation:UITableViewRowAnimationFade];
                 }
             } else {
-                [player setActiveGames:sectionItems];
+                [self.player setActiveGames:sectionItems];
             }
             //        [self.tableView reloadData];
         //    [self.tableView reloadData];
@@ -2616,31 +2616,31 @@ CGFloat bottomOffset = 0;
                     [game setNameColor: UIColorFromRGB([[splitLine objectAtIndex:8] intValue])];
                     [game setCrown:[[splitLine objectAtIndex:9] intValue]];
                     if (wantsToSeeAvatars && ![game.nameColor isEqual: blackColor]) {
-                        [player addUser:[game opponentName]];
+                        [self.player addUser:[game opponentName]];
                     }
                     [sectionItems addObject:game];
                     dashIDX++;
                 }
             }
-            if ([sectionItems count] != [[player nonActiveGames] count]) {
-                if (!nonActiveGamesCollapsed) {
+            if ([sectionItems count] != [[self.player nonActiveGames] count]) {
+                if (!self->nonActiveGamesCollapsed) {
                     indexSet = [[NSMutableArray alloc] init];
-                    for(int i = 0; i < [[player nonActiveGames] count]; ++i)
+                    for(int i = 0; i < [[self.player nonActiveGames] count]; ++i)
                         [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: NONACTIVEGAMESSECTION]];
-                    [player setNonActiveGames:[[NSMutableArray alloc] init]];
+                    [self.player setNonActiveGames:[[NSMutableArray alloc] init]];
                     //    [self performSelectorOnMainThread:@selector(scrollViewDidScroll:) withObject: self.tableView waitUntilDone:YES];
                     //                dispatch_async(dispatch_get_main_queue(), ^{
                     [self.tableView deleteRowsAtIndexPaths:indexSet withRowAnimation:UITableViewRowAnimationFade];
                 }
-                [player setNonActiveGames:sectionItems];
+                [self.player setNonActiveGames:sectionItems];
                 if (!nonActiveGamesCollapsed) {
                     indexSet = [[NSMutableArray alloc] init];
-                    for(int i = 0; i < [[player nonActiveGames] count]; ++i)
+                    for(int i = 0; i < [[self.player nonActiveGames] count]; ++i)
                         [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: NONACTIVEGAMESSECTION]];
                     [self.tableView insertRowsAtIndexPaths:indexSet withRowAnimation:UITableViewRowAnimationFade];
                 }
             } else {
-                [player setNonActiveGames:sectionItems];
+                [self.player setNonActiveGames:sectionItems];
             }
             //        [self.tableView reloadData];
             [self.pullToReloadHeaderView setStatusString:@"Loading Open Invitations..." animated:YES];
@@ -2676,29 +2676,29 @@ CGFloat bottomOffset = 0;
                     [game setNameColor: UIColorFromRGB([[splitLine objectAtIndex:7] intValue])];
                     [game setCrown:[[splitLine objectAtIndex:8] intValue]];
                     if (wantsToSeeAvatars && ![game.nameColor isEqual: blackColor]) {
-                        [player addUser:[game opponentName]];
+                        [self.player addUser:[game opponentName]];
                     }
                     [sectionItems addObject:game];
                     dashIDX++;
                 }
             }
-            if ([sectionItems count] != [[player publicInvitations] count]) {
-                if (!publicInvitationsCollapsed) {
+            if ([sectionItems count] != [[self.player publicInvitations] count]) {
+                if (!self->publicInvitationsCollapsed) {
                     indexSet = [[NSMutableArray alloc] init];
-                    for(int i = 0; i < [[player publicInvitations] count]; ++i)
+                    for(int i = 0; i < [[self.player publicInvitations] count]; ++i)
                         [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: PUBLICINVITATIONSSECTION]];
-                    [player setPublicInvitations:[[NSMutableArray alloc] init]];
+                    [self.player setPublicInvitations:[[NSMutableArray alloc] init]];
                     [self.tableView deleteRowsAtIndexPaths:indexSet withRowAnimation:UITableViewRowAnimationFade];
                 }
-                [player setPublicInvitations:sectionItems];
+                [self.player setPublicInvitations:sectionItems];
                 if (!publicInvitationsCollapsed) {
                     indexSet = [[NSMutableArray alloc] init];
-                    for(int i = 0; i < [[player publicInvitations] count]; ++i)
+                    for(int i = 0; i < [[self.player publicInvitations] count]; ++i)
                         [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: PUBLICINVITATIONSSECTION]];
                     [self.tableView insertRowsAtIndexPaths:indexSet withRowAnimation:UITableViewRowAnimationFade];
                 }
             } else {
-                [player setPublicInvitations:sectionItems];
+                [self.player setPublicInvitations:sectionItems];
             }
             //        [self.tableView reloadData];
         
@@ -2733,30 +2733,30 @@ CGFloat bottomOffset = 0;
                     [message setNameColor: UIColorFromRGB([[splitLine objectAtIndex:5] intValue])];
                     [message setCrown:[[splitLine objectAtIndex:6] intValue]];
                     if (wantsToSeeAvatars && ![message.nameColor isEqual: blackColor]) {
-                        [player addUser:[message author]];
+                        [self.player addUser:[message author]];
                     }
                     [sectionItems addObject:message];
                     dashIDX++;
                 }
             }
-            if ([sectionItems count] != [[player messages] count]) {
+            if ([sectionItems count] != [[self.player messages] count]) {
                 NSMutableArray *indexSet;
-                if (!messagesCollapsed) {
+                if (!self->messagesCollapsed) {
                     indexSet = [[NSMutableArray alloc] init];
-                    for(int i = 0; i < [[player messages] count]; ++i)
+                    for(int i = 0; i < [[self.player messages] count]; ++i)
                         [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: MESSAGESSECTION]];
-                    [player setMessages:[[NSMutableArray alloc] init]];
+                    [self.player setMessages:[[NSMutableArray alloc] init]];
                     [self.tableView deleteRowsAtIndexPaths:indexSet withRowAnimation:UITableViewRowAnimationFade];
                 }
-                [player setMessages:sectionItems];
-                if (!messagesCollapsed) {
+                [self.player setMessages:sectionItems];
+                if (!self->messagesCollapsed) {
                     indexSet = [[NSMutableArray alloc] init];
-                    for(int i = 0; i < [[player messages] count]; ++i)
+                    for(int i = 0; i < [[self.player messages] count]; ++i)
                         [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: MESSAGESSECTION]];
                     [self.tableView insertRowsAtIndexPaths:indexSet withRowAnimation:UITableViewRowAnimationFade];
                 }
             } else {
-                [player setMessages:sectionItems];
+                [self.player setMessages:sectionItems];
             }
 
             while ((dashIDX < [splitDash count]) && ![[splitDash objectAtIndex:dashIDX] isEqualToString: @"Tournaments"]) {
@@ -2779,24 +2779,24 @@ CGFloat bottomOffset = 0;
                     dashIDX++;
                 }
             }
-            if ([sectionItems count] != [[player tournaments] count]) {
+            if ([sectionItems count] != [[self.player tournaments] count]) {
                 NSMutableArray *indexSet;
-                if (!tournamentsCollapsed) {
+                if (!self->tournamentsCollapsed) {
                     indexSet = [[NSMutableArray alloc] init];
-                    for(int i = 0; i < [[player tournaments] count]; ++i)
+                    for(int i = 0; i < [[self.player tournaments] count]; ++i)
                         [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: TOURNAMENTSSECTION]];
-                    [player setTournaments:[[NSMutableArray alloc] init]];
+                    [self.player setTournaments:[[NSMutableArray alloc] init]];
                     [self.tableView deleteRowsAtIndexPaths:indexSet withRowAnimation:UITableViewRowAnimationFade];
                 }
-                [player setTournaments:sectionItems];
-                if (!tournamentsCollapsed) {
+                [self.player setTournaments:sectionItems];
+                if (!self->tournamentsCollapsed) {
                     indexSet = [[NSMutableArray alloc] init];
-                    for(int i = 0; i < [[player tournaments] count]; ++i)
+                    for(int i = 0; i < [[self.player tournaments] count]; ++i)
                         [indexSet addObject:[NSIndexPath indexPathForRow: i inSection: TOURNAMENTSSECTION]];
                     [self.tableView insertRowsAtIndexPaths:indexSet withRowAnimation:UITableViewRowAnimationFade];
                 }
             } else {
-                [player setTournaments: sectionItems];
+                [self.player setTournaments: sectionItems];
             }
 
         while ((dashIDX < [splitDash count]) && ![[splitDash objectAtIndex:dashIDX] hasPrefix: @"OnlinePlayers:"]) {
@@ -2810,7 +2810,7 @@ CGFloat bottomOffset = 0;
                 for (NSString *name in splitLine) {
                     [playersDict setObject:@"" forKey:name];
                 }
-                [player setOnlinePlayers: playersDict];
+                [self.player setOnlinePlayers: playersDict];
             }
         }
         while ((dashIDX < [splitDash count]) && ![[splitDash objectAtIndex:dashIDX] hasPrefix: @"OnlinePlayers:"]) {
@@ -2824,7 +2824,7 @@ CGFloat bottomOffset = 0;
                 for (NSString *name in splitLine) {
                     [playersDict setObject:@"" forKey:name];
                 }
-                [player setOnlinePlayers: playersDict];
+                [self.player setOnlinePlayers: playersDict];
             }
         }
 
@@ -2851,7 +2851,7 @@ CGFloat bottomOffset = 0;
         Game *notificationGame;
         if ([[navController receivedNotification] objectForKey:@"gameID"]) {
             Game *notificationGame;
-            for ( notificationGame in [player activeGames] ) {
+            for ( notificationGame in [self.player activeGames] ) {
                 if ([[notificationGame gameID] isEqualToString:[[navController receivedNotification] objectForKey:@"gameID"]]) {
                     break;
                 }
@@ -2866,18 +2866,18 @@ CGFloat bottomOffset = 0;
             }
         } else if ([[navController receivedNotification] objectForKey:@"setID"]) {
             long idx = 0;
-            for ( notificationGame in [player invitations] ) {
+            for ( notificationGame in [self.player invitations] ) {
                 if ([[notificationGame gameID] isEqualToString:[[navController receivedNotification] objectForKey:@"setID"]]) {
                     break;
                 }
                 idx++;
             }
-            if (idx < [[player invitations] count]) {
+            if (idx < [[self.player invitations] count]) {
                 if (invitationsReceivedCollapsed) {
                     invitationsReceivedCollapsed = !invitationsReceivedCollapsed;
                     [[NSUserDefaults standardUserDefaults] setBool:invitationsReceivedCollapsed forKey:@"invitationsReceivedCollapsed"];
                     NSMutableArray *indexSet = [[NSMutableArray alloc] init];
-                    for(int i = 0; i < [[player invitations] count]; ++i){
+                    for(int i = 0; i < [[self.player invitations] count]; ++i){
                         [indexSet addObject:[NSIndexPath indexPathForRow:i inSection: INVITATIONSSECTION]];
                     }
                     [self.tableView insertRowsAtIndexPaths:indexSet withRowAnimation:UITableViewRowAnimationFade];
@@ -2918,19 +2918,19 @@ CGFloat bottomOffset = 0;
                     [self addButtonsToCell:cell];
                     selectedInvitationCell = cell;
                 }
-                selectedGame = [[player invitations] objectAtIndex: idx];
+                selectedGame = [[self.player invitations] objectAtIndex: idx];
             }
         } else if ([[navController receivedNotification] objectForKey:@"msgID"]) {
 
             Message *notificationMessage;
             long idx = 0;
-            for ( notificationMessage in [player messages] ) {
+            for ( notificationMessage in [self.player messages] ) {
                 if ([[notificationMessage messageID] isEqualToString:[[navController receivedNotification] objectForKey:@"msgID"]]) {
                     break;
                 }
                 idx++;
             }
-            if (idx < [[player messages] count]) {
+            if (idx < [[self.player messages] count]) {
                 if ([[notificationMessage messageID] isEqualToString:[[navController receivedNotification] objectForKey:@"msgID"]]) {
                     if (selectedInvitationIndexPath) {
                         [self removeButtonsFromCell];
@@ -2951,11 +2951,11 @@ CGFloat bottomOffset = 0;
                     
                     [self performSegueWithIdentifier:@"messagesTap" sender:self];
                     
-                    [messagesViewController setMessageID:[[[player messages] objectAtIndex: idx] messageID]];
-                    [messagesViewController setAuthor:[[[player messages] objectAtIndex: idx] author]];
-                    [messagesViewController setSubject:[[[player messages] objectAtIndex: idx] subject]];
-                    if ([[[[player messages] objectAtIndex: idx] unread] isEqualToString:@"unread"]) {
-                        [[[player messages] objectAtIndex: idx] setUnread:@"read"];
+                    [messagesViewController setMessageID:[[[self.player messages] objectAtIndex: idx] messageID]];
+                    [messagesViewController setAuthor:[[[self.player messages] objectAtIndex: idx] author]];
+                    [messagesViewController setSubject:[[[self.player messages] objectAtIndex: idx] subject]];
+                    if ([[[[self.player messages] objectAtIndex: idx] unread] isEqualToString:@"unread"]) {
+                        [[[self.player messages] objectAtIndex: idx] setUnread:@"read"];
 //                            [self.tableView reloadData];
                     }
                 }
@@ -2964,7 +2964,7 @@ CGFloat bottomOffset = 0;
         }
     } else {
         if (navController.loggedIn) {
-            if ([[player activeGames] count] + [[player nonActiveGames] count] + [[player sentInvitations] count] == 0) {
+            if ([[self.player activeGames] count] + [[self.player nonActiveGames] count] + [[self.player sentInvitations] count] == 0) {
                 if (!alreadyAskedAboutInvitations) {
                     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
                     if (![defaults boolForKey:@"doNotRemindOpenInvitation"]) {
@@ -2978,8 +2978,8 @@ CGFloat bottomOffset = 0;
     }
     [navController setReceivedNotification:nil];
     [[UIApplication sharedApplication] cancelAllLocalNotifications];
-    long badgeNr = [[player activeGames] count] + [[player invitations] count];
-    for (Message *message in [player messages]) {
+    long badgeNr = [[self.player activeGames] count] + [[self.player invitations] count];
+    for (Message *message in [self.player messages]) {
         if ([message.unread isEqualToString:@"unread"]) {
             badgeNr++;
         }
@@ -3009,7 +3009,7 @@ CGFloat bottomOffset = 0;
             if (lastRated) {
                 daysPassed = [lastRated timeIntervalSinceNow] / -86400.0;
             }
-            if (!lastRated || daysPassed > 100) {
+            if (!lastRated || daysPassed > 120) {
                 [SKStoreReviewController requestReview];
                 [[NSUserDefaults standardUserDefaults] setObject:[NSDate date] forKey:@"lastRatedApp"];
             }
@@ -3097,12 +3097,12 @@ CGFloat bottomOffset = 0;
     
     CGFloat maxHeight = floor(self.view.frame.size.height*4/(5*44))*44;
     
-    RatingStatsView *ratingView = [[RatingStatsView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width*9/10, MIN(44*[[player ratingStats] count], maxHeight))];
+    RatingStatsView *ratingView = [[RatingStatsView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width*9/10, MIN(44*[[self.player ratingStats] count], maxHeight))];
     ratingView.layer.cornerRadius = 5.0f;
     ratingView.layer.borderWidth = 1.0f;
     [ratingView setDelegate: ratingView];
     [ratingView setDataSource: ratingView];
-    [ratingView setRatingStats: [player ratingStats]];
+    [ratingView setRatingStats: [self.player ratingStats]];
     //    [ratingView setUserInteractionEnabled:NO];
     [ratingView setVc: self];
     
@@ -3158,27 +3158,27 @@ CGFloat bottomOffset = 0;
                         [room addPlayer:playr];
                         [playersDict setObject:@"" forKey:playr.name];
                         if (wantsToSeeAvatars && (playr.color != 0)) {
-                            [player addUser: playr.name];
+                            [self.player addUser: playr.name];
                         }
                     }
                 }
                 [rooms addObject:room];
             }
         }
-        [player setOnlinePlayers: playersDict];
+        [self.player setOnlinePlayers: playersDict];
 
         dispatch_async(dispatch_get_main_queue(), ^{
             WhosOnlineView *playersView = [[WhosOnlineView alloc] initWithFrame:CGRectMake(0, 0, 285, floor(self.view.frame.size.height*2/(3*44))*44)];
-            [playersView setPlayer: player];
+            [playersView setPlayer: self.player];
             playersView.layer.cornerRadius = 5.0f;
             playersView.layer.borderWidth = 1.0f;
             [playersView setDelegate: playersView];
             [playersView setDataSource: playersView];
             [playersView setRooms:rooms];
-//            [playersView setPlayers:players];
+//            [self.playersView setPlayers:players];
             [playersView setVc: self];
-            actionPopoverView = [PopoverView showPopoverAtPoint: CGPointMake(self.view.bounds.size.width - 20, self.tableView.contentOffset.y) inView:self.view withTitle: NSLocalizedString(@"who's online",nil) withContentView:playersView delegate:self];
-            [actionPopoverView layoutSubviews];
+            self.actionPopoverView = [PopoverView showPopoverAtPoint: CGPointMake(self.view.bounds.size.width - 20, self.tableView.contentOffset.y) inView:self.view withTitle: NSLocalizedString(@"who's online",nil) withContentView:playersView delegate:self];
+            [self.actionPopoverView layoutSubviews];
             [playersView flashScrollIndicators];
         });
     });
@@ -3233,7 +3233,7 @@ CGFloat bottomOffset = 0;
     [button setImage:[UIImage imageNamed:@"database.png"] forState:UIControlStateNormal];
     [button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
     button.backgroundColor = [UIColor clearColor];
-    //    if (player && ![player subscriber]) {
+    //    if (player && ![self.player subscriber]) {
     //        [button setAlpha:0.5f];
     //    }
     //    [button setImage:[UIImage imageNamed:@"person.png"] forState:UIControlStateNormal];
@@ -3249,7 +3249,7 @@ CGFloat bottomOffset = 0;
     [button setImage:[UIImage imageNamed:@"lightning"] forState:UIControlStateNormal];
     [button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
     button.backgroundColor = [UIColor clearColor];
-    //    if (player && ![player subscriber]) {
+    //    if (player && ![self.player subscriber]) {
     //        [button setAlpha:0.5f];
     //    }
     //    [button setImage:[UIImage imageNamed:@"person.png"] forState:UIControlStateNormal];
@@ -3267,7 +3267,10 @@ CGFloat bottomOffset = 0;
     }
     
     actionPopoverView = [PopoverView showPopoverAtPoint: CGPointMake(self.view.bounds.size.width - 80, self.tableView.contentOffset.y) inView:self.view withViewArray: buttonsArray delegate:self];
-    
+//    actionPopoverView = [PopoverView showPopoverAtPoint: CGPointMake(100.0f, 100.0f) inView:self.view withViewArray: buttonsArray delegate:self];
+//    actionPopoverView = [PopoverView showPopoverAtPoint: CGPointMake(100.0f, 100.0f) inView:self.view withViewArray: buttonsArray delegate:self];
+//    actionPopoverView= [PopoverView showPopoverAtPoint:CGPointMake(100.0f, 100.0f) inView:self.tableView withTitle:@"test" withContentView:button delegate:self];
+
 }
 
 -(void) toLive {
@@ -3479,11 +3482,11 @@ CGFloat bottomOffset = 0;
     if (development) {
         url = @"https://development.pente.org/gameServer/tb/replyInvitation";
     }
-    NSString *postString = [NSString stringWithFormat:@"sid=%@&inviteeMessage=&command=Accept&mobile=",[[player.publicInvitations objectAtIndex:selectedPublicInvitationIndexPath.row] gameID]];
+    NSString *postString = [NSString stringWithFormat:@"sid=%@&inviteeMessage=&command=Accept&mobile=",[[self.player.publicInvitations objectAtIndex:selectedPublicInvitationIndexPath.row] gameID]];
     NSDictionary *urlAndPostString = [NSDictionary dictionaryWithObjects:[NSArray arrayWithObjects:url,postString,nil] forKeys: [NSArray arrayWithObjects:@"url",@"postString",nil]];
     [NSThread detachNewThreadSelector:@selector(postToPenteOrgUrl:) toTarget:self withObject:urlAndPostString];
     
-    NSString *newFriend = [[player.publicInvitations objectAtIndex:selectedPublicInvitationIndexPath.row] opponentName];
+    NSString *newFriend = [[self.player.publicInvitations objectAtIndex:selectedPublicInvitationIndexPath.row] opponentName];
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
     NSMutableArray<NSString *> *toHistory = [[defaults objectForKey:@"invitedHistory"] mutableCopy];
     if (toHistory) {
@@ -3523,12 +3526,12 @@ CGFloat bottomOffset = 0;
             [self.tableView beginUpdates];
             selectedPublicInvitationIndexPath = nil;
             [self.tableView endUpdates];
-            selectedPublicInvitationCell = nil;
+            self->selectedPublicInvitationCell = nil;
         } completion:^(BOOL finished){
             [self performSelector:@selector(scrollViewDidScroll:) withObject: self.tableView afterDelay:0.01];
         }];
         
-        [player.publicInvitations removeObjectAtIndex:tmpPath.row];
+        [self.player.publicInvitations removeObjectAtIndex:tmpPath.row];
         [UIView animateWithDuration:0.3 animations:^{[self.tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject: tmpPath] withRowAnimation:UITableViewRowAnimationFade];} completion:^(BOOL finished){
             [self dashboardParse];
         }];
