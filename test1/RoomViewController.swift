@@ -47,7 +47,7 @@ class RoomViewController: UIViewController, UITableViewDelegate, UITableViewData
     var tableView: UITableView = UITableView()
     var textView: UITextView = UITextView()
     var textField = UITextField()
-    let me = UserDefaults.standard.string(forKey: "username")!.lowercased()
+    var me = UserDefaults.standard.string(forKey: "username")!.lowercased()
     var showAds = true
     var bannerView: GADBannerView?
     var interstitial: GADInterstitial?
@@ -105,6 +105,9 @@ class RoomViewController: UIViewController, UITableViewDelegate, UITableViewData
         sndID = 0
         AudioServicesCreateSystemSoundID(url as CFURL, &sndID)
         newMoveSndID = sndID
+//        if development {
+//            me = "iostest"
+//        }
         
     }
     required init(coder aDecoder: NSCoder) {

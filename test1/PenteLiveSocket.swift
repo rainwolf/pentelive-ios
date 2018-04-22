@@ -161,8 +161,14 @@ import UIKit
         return nil
     }
     func login() {
-        let username = UserDefaults.standard.string(forKey: "username")!
+        let username = UserDefaults.standard.string(forKey: "username")!.lowercased()
         let password = UserDefaults.standard.string(forKey: "password")!
+//        var username = UserDefaults.standard.string(forKey: "username")!
+//        var password = UserDefaults.standard.string(forKey: "password")!
+//        if development {
+//            username = "Iostest".lowercased()
+//            password = "tsetsoi"
+//        }
         let loginStr = "{\"dsgLoginEvent\":{\"player\":\"\(username)\",\"password\":\"\(password)\",\"guest\":false,\"time\":0}}"
         var loginData = loginStr.data(using: .utf8)
         loginData?.append(separator)
