@@ -17,6 +17,20 @@
 
 
 
+-(NSInteger) numberOfComponentsInPickerView:(UIPickerView *)pickerView {
+    return 1;
+}
+-(NSInteger) pickerView:(UIPickerView *)pickerView numberOfRowsInComponent:(NSInteger)component {
+    return 8;
+}
+-(void) pickerView:(UIPickerView *)pickerView didSelectRow:(NSInteger)row inComponent:(NSInteger)component {
+    difficultyCell.textField.text = [NSString stringWithFormat:@"%ld", (row+1)];
+}
+
+-(NSString*) pickerView:(UIPickerView *)pickerView titleForRow:(NSInteger)row forComponent:(NSInteger)component {
+    return [NSString stringWithFormat:@"%ld", (row+1)];
+}
+
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
     return 1;
 }
@@ -50,28 +64,32 @@
         
         return cell;
     } else if (indexPath.row == 1) {
-        SimplePickerInputTableViewCell *cell = (SimplePickerInputTableViewCell *) [tableView dequeueReusableCellWithIdentifier: @"difficultyCell"];
+        InputPickerCell *cell = (InputPickerCell *) [tableView dequeueReusableCellWithIdentifier: @"difficultyCell"];
         if (cell == nil) {
-            cell = [[SimplePickerInputTableViewCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier: @"difficultyCell"];
+            cell = [[InputPickerCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier: @"difficultyCell"];
+            cell.selectionStyle = UITableViewCellSelectionStyleNone;
+            cell.textLabel.text =  NSLocalizedString(@"Difficulty:",nil);
+            
+            UIPickerView *picker = [[UIPickerView alloc] init];
+            UIToolbar *toolbar = [[UIToolbar alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, 44)];
+            toolbar.barStyle = UIBarStyleBlack;
+            UIBarButtonItem *extraSpace = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:nil];
+            UIBarButtonItem *doneButton = [[UIBarButtonItem alloc] initWithTitle:NSLocalizedString(@"Done", nil) style:UIBarButtonItemStyleDone target:self action:@selector(dismissPicker:)];
+            [toolbar setItems:@[extraSpace, doneButton] animated:YES];
+            picker.delegate = self;
+            picker.dataSource = self;
+            picker.tag = 0;
+            cell.textField.inputView = picker;
+            cell.textField.inputAccessoryView = toolbar;
+            int idx = (int) [[NSUserDefaults standardUserDefaults] integerForKey: @"MMAILevel"] - 1;
+            if (idx < 0) {
+                idx = 0;
+            }
+            [picker selectRow:idx inComponent:0 animated:NO];
+            cell.textField.text = [NSString stringWithFormat:@"%ld", (idx+1)];
+
+            difficultyCell = cell;
         }
-        NSMutableArray<NSString *> *difficulties = [[NSMutableArray alloc] init];
-        for ( int i = 1; i < 9; ++i) {
-            [difficulties addObject:[NSString stringWithFormat:@"%i",i]];
-        }
-        cell.datarray = difficulties;
-        [cell setDelegate: self];
-        [cell.picker reloadAllComponents];
-        [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
-       
-        cell.textLabel.text =  NSLocalizedString(@"Difficulty:",nil);
-        int idx = (int) [[NSUserDefaults standardUserDefaults] integerForKey: @"MMAILevel"] - 1;
-        if (idx < 0) {
-            idx = 0;
-        }
-        [cell.picker selectRow:idx inComponent:0 animated:NO];
-        cell.detailTextLabel.text = [difficulties objectAtIndex:idx];
-        
-        difficultyCell = cell;
         
         return cell;
     } else if (indexPath.row == 2) {
@@ -100,9 +118,13 @@
     return nil;
 }
 
+-(void) dismissPicker: (id) sender {
+    [difficultyCell.textField resignFirstResponder];
+}
+
 -(void) tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     if (indexPath.row == 2) {
-        [difficultyCell doResign];
+        [difficultyCell.textField resignFirstResponder];
         if ([colorCell.detailTextLabel.text isEqualToString:NSLocalizedString(@"white",nil)]) {
             [colorCell.detailTextLabel setText:NSLocalizedString(@"black",nil)];
         } else {
@@ -110,7 +132,7 @@
         }
     }
     if (indexPath.row == 0) {
-        [difficultyCell doResign];
+        [difficultyCell.textField resignFirstResponder];
         if ([gameCell.detailTextLabel.text isEqualToString:@"Pente"]) {
             [gameCell.detailTextLabel setText:@"Keryo-Pente"];
             [board setBackgroundColor:[UIColor colorWithRed:0.702 green:1 blue:0.518 alpha:1]];

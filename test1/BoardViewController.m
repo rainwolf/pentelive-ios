@@ -206,7 +206,6 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
 }
 
 - (void)viewWillAppear:(BOOL)animated {
-    //    NSLog(@"kittyAppear %i", finalMove);
     [super viewWillAppear:animated];
     if (!showedAd) {
         [zoomedBoard setHidden:YES];
@@ -261,6 +260,7 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
         playerStats.frame = CGRectMake(2, submitButton.frame.origin.y +  3 + submitButton.frame.size.height, self.view.bounds.size.width - 4, newOriginY - submitButton.frame.origin.y - 5 -  submitButton.frame.size.height - bottomOffset);
     }
     if (showAds) {
+//        NSLog(@"showAds");
         CGPoint origin = CGPointMake(0.0, self.view.frame.size.height - self.navigationController.navigationBar.frame.size.height - kGADAdSizeBanner.size.height - bottomOffset);
         bannerView = [[GADBannerView alloc] initWithAdSize:kGADAdSizeSmartBannerPortrait origin:origin];
         bannerView.rootViewController = self;
@@ -269,11 +269,16 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
         CGRect newBannerViewFrame = CGRectMake(bannerView.frame.origin.x, newOriginY, bannerView.frame.size.width, bannerView.frame.size.height);
         bannerView.frame = newBannerViewFrame;
         bannerView.adUnitID = @"ca-app-pub-3326997956703582/5064095440";
-        bannerView.rootViewController = self;
+//        bannerView.adUnitID = @"ca-app-pub-3326997956703582/8641559446";
+//        bannerView.adUnitID = @"ca-app-pub-3940256099942544/2934735716";
         GADRequest *request = [GADRequest request];
-        //            request.testDevices = [NSArray arrayWithObjects:kGADSimulatorID, nil];
-        [bannerView loadRequest:request];
+//                    request.testDevices = [NSArray arrayWithObjects:kGADSimulatorID, nil];
         [self.view addSubview:bannerView];
+        [bannerView loadRequest:request];
+
+        [self.view bringSubviewToFront:bannerView];
+//                NSLog(@"%f", bannerView.frame.origin.y);
+//                NSLog(@"%f", playerStats.frame.origin.y + playerStats.frame.size.height);
         //        [self.view addConstraints:@[
         //                                    [NSLayoutConstraint constraintWithItem:bannerView
         //                                                                 attribute:NSLayoutAttributeCenterX
@@ -289,6 +294,9 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
 
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
+//    if (bannerView) {
+//        [bannerView loadRequest:[GADRequest request]];
+//    }
 }
 
 - (void)viewWillDisappear:(BOOL)animated {

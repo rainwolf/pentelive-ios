@@ -11,7 +11,7 @@
 @implementation PickerInputTableViewCell
 @synthesize picker;
 @synthesize resign;
-
+@synthesize popoverController;
 //BOOL resign = NO;
 
 //@synthesize picker;
@@ -103,14 +103,14 @@
 		frame.size = pickerSize;
 		self.picker.frame = frame;
 		popoverController.popoverContentSize = pickerSize;
-		[popoverController presentPopoverFromRect:self.detailTextLabel.frame inView:self permittedArrowDirections:UIPopoverArrowDirectionAny animated:YES];
+        [popoverController presentPopoverFromRect:self.detailTextLabel.frame inView:self permittedArrowDirections:UIPopoverArrowDirectionAny animated:YES];
 		// resign the current first responder
 		for (UIView *subview in self.superview.subviews) {
 			if ([subview isFirstResponder]) {
 				[subview resignFirstResponder];
 			}
 		}
-		return NO;
+        return YES;
 	} else {
 //		[self.picker setNeedsLayout];
 	}

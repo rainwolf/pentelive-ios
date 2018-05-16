@@ -378,8 +378,7 @@ CGFloat bottomOffst = 0;
 
 
 - (void)popoverViewDidDismiss:(PopoverView *)popoverView {
-    [[challengeView  timeoutCell] doResign];
-    [[challengeView  restrictionCell] doResign];
+    [challengeView dismissPicker: nil];
     [self loadKoth];
 }
 

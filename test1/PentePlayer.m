@@ -270,12 +270,14 @@
 
 
 -(BOOL) showAds {
+//    return YES;
     if (development) {
         return YES;
     }
     return showAds;
 }
 -(BOOL) subscriber {
+//    return NO;
     if (development) {
         return NO;
     }

@@ -10,6 +10,7 @@
 #import "SimplePickerInputTableViewCell.h"
 #import "DBBoardView.h"
 #import "StringInputTableViewCell.h"
+#import "penteLive-Swift.h"
 
 
 @interface DateTableViewCell : UITableViewCell {
@@ -19,10 +20,10 @@
 
 @end
 
-@interface DBSetupView : UITableView <StringInputTableViewCellDelegate, UITableViewDelegate, UITableViewDataSource, UITextFieldDelegate, SimplePickerInputTableViewCellDelegate, UIPickerViewDelegate> {
+@interface DBSetupView : UITableView <StringInputTableViewCellDelegate, UITableViewDelegate, UITableViewDataSource, UITextFieldDelegate, UIPickerViewDataSource, UIPickerViewDelegate> {
     UITableViewCell *sortCell, *winnerCell, *eitherOrBothp1p2Cell, *excludeTimeoutCell, *liveOrTBCell;
     DateTableViewCell *beforeCell, *afterCell;
-    SimplePickerInputTableViewCell *p1RatingCell, *p2RatingCell, *gameCell;
+    InputPickerCell *p1RatingCell, *p2RatingCell, *gameCell;
     DBBoardView *board, *zBoard;
     StringInputTableViewCell *player1Cell, *player2Cell;
     UIDatePicker *beforePicker, *afterPicker;
@@ -31,7 +32,7 @@
 }
 @property(nonatomic, retain, readwrite) UITableViewCell *sortCell, *winnerCell, *eitherOrBothp1p2Cell, *excludeTimeoutCell, *liveOrTBCell;
 @property(nonatomic, retain, readwrite) DateTableViewCell *beforeCell, *afterCell;
-@property(nonatomic, retain, readwrite) SimplePickerInputTableViewCell *p1RatingCell, *p2RatingCell, *gameCell;
+@property(nonatomic, retain, readwrite) InputPickerCell *p1RatingCell, *p2RatingCell, *gameCell;
 @property(nonatomic, retain, readwrite) DBBoardView *board, *zBoard;
 @property(nonatomic, retain, readwrite) StringInputTableViewCell *player1Cell, *player2Cell;
 @property(nonatomic, retain, readwrite) UIDatePicker *beforePicker, *afterPicker;

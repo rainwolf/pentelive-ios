@@ -15,6 +15,7 @@
 @synthesize invitee;
 @synthesize gameId;
 
+NSArray<NSString *> *restrictions;
 
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
@@ -28,63 +29,109 @@
     return 1;
 }
 
+
+-(NSInteger) numberOfComponentsInPickerView:(UIPickerView *)pickerView {
+    return 1;
+}
+-(NSInteger) pickerView:(UIPickerView *)pickerView numberOfRowsInComponent:(NSInteger)component {
+    if (pickerView.tag == 0) {
+        return 30;
+    } else if (pickerView.tag == 1) {
+        return restrictions.count;
+    }
+    return 0;
+}
+-(void) pickerView:(UIPickerView *)pickerView didSelectRow:(NSInteger)row inComponent:(NSInteger)component {
+    if (pickerView.tag == 0) {
+        timeoutCell.textField.text = [NSString stringWithFormat:@"%ld", (row+1)];
+        [[NSUserDefaults standardUserDefaults] setInteger:row forKey:@"kothTimeout"];
+    } else if (pickerView.tag == 1) {
+        restrictionCell.textField.text = [restrictions objectAtIndex:row];
+        [[NSUserDefaults standardUserDefaults] setInteger:row forKey:@"kothRestriction"];
+    }
+}
+
+-(NSString*) pickerView:(UIPickerView *)pickerView titleForRow:(NSInteger)row forComponent:(NSInteger)component {
+    if (pickerView.tag == 0) {
+        return [NSString stringWithFormat:@"%ld", (row+1)];
+    } else if (pickerView.tag == 1) {
+        return [restrictions objectAtIndex:row];
+    }
+    return @"";
+}
+
+
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
 
     if (indexPath.section == 0) {
         if (indexPath.row == 0) {
-            SimplePickerInputTableViewCell *cell = (SimplePickerInputTableViewCell *) [tableView dequeueReusableCellWithIdentifier: @"timeoutCell"];
+            InputPickerCell *cell = (InputPickerCell *) [tableView dequeueReusableCellWithIdentifier: @"timeoutCell"];
             if (cell == nil) {
-                cell = [[SimplePickerInputTableViewCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier: @"timeoutCell"];
+                cell = [[InputPickerCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier: @"timeoutCell"];
+                cell.selectionStyle = UITableViewCellSelectionStyleNone;
+                cell.textLabel.text = NSLocalizedString(@"Days per move:",nil);
+                
+                UIPickerView *picker = [[UIPickerView alloc] init];
+                UIToolbar *toolbar = [[UIToolbar alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, 44)];
+                toolbar.barStyle = UIBarStyleBlack;
+                UIBarButtonItem *extraSpace = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:nil];
+                UIBarButtonItem *doneButton = [[UIBarButtonItem alloc] initWithTitle:NSLocalizedString(@"Done", nil) style:UIBarButtonItemStyleDone target:self action:@selector(dismissPicker:)];
+                [toolbar setItems:@[extraSpace, doneButton] animated:YES];
+                picker.delegate = self;
+                picker.dataSource = self;
+                picker.tag = 0;
+                cell.textField.inputView = picker;
+                cell.textField.inputAccessoryView = toolbar;
+                
+                int idx = (int) [[NSUserDefaults standardUserDefaults] integerForKey: @"kothTimeout"] - 1;
+                if (idx < 0) {
+                    idx = 6;
+                }
+                cell.textField.text = [NSString stringWithFormat:@"%d", idx+1];
+                [picker selectRow:idx inComponent:0 animated:NO];
+                
+                timeoutCell = cell;
             }
-            NSMutableArray<NSString *> *timouts = [[NSMutableArray alloc] init];
-            for ( int i = 1; i < 30; ++i) {
-                [timouts addObject:[NSString stringWithFormat:@"%i",i]];
-            }
-            cell.datarray = timouts;
-            [cell setDelegate: self];
-            [cell.picker reloadAllComponents];
-            [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
-            
-            cell.textLabel.text =  NSLocalizedString(@"Days per move:",nil);
-            int idx = (int) [[NSUserDefaults standardUserDefaults] integerForKey: @"kothTimeout"] - 1;
-            if (idx < 0) {
-                idx = 6;
-            }
-            [cell.picker selectRow:idx inComponent:0 animated:NO];
-            cell.detailTextLabel.text = [timouts objectAtIndex:idx];
             
             if (![invitee isEqualToString:@""]) {
                 cell.contentView.layer.cornerRadius = 5.0f;
                 cell.contentView.layer.borderWidth = 1.0f;
             }
 
-            timeoutCell = cell;
             
             return cell;
         } else if (indexPath.row == 1) {
-            SimplePickerInputTableViewCell *cell = (SimplePickerInputTableViewCell *) [tableView dequeueReusableCellWithIdentifier: @"restrictionCell"];
+            if (!restrictions) {
+                restrictions = [[NSArray alloc] initWithObjects:NSLocalizedString(@"of any rating",nil),NSLocalizedString(@"not already playing",nil),NSLocalizedString(@"of lower rating",nil),NSLocalizedString(@"of higher rating",nil),NSLocalizedString(@"of similar rating",nil),NSLocalizedString(@"in the same rating class",nil), nil];
+            }
+            InputPickerCell *cell = (InputPickerCell *) [tableView dequeueReusableCellWithIdentifier: @"restrictionCell"];
             if (cell == nil) {
-                cell = [[SimplePickerInputTableViewCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier: @"restrictionCell"];
-            }
-            NSArray<NSString *> *restrictions = [[NSArray alloc] initWithObjects:NSLocalizedString(@"of any rating",nil),NSLocalizedString(@"not already playing",nil),NSLocalizedString(@"of lower rating",nil),NSLocalizedString(@"of higher rating",nil),NSLocalizedString(@"of similar rating",nil),NSLocalizedString(@"in the same rating class",nil), nil];
+                cell = [[InputPickerCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier: @"restrictionCell"];
+                cell.selectionStyle = UITableViewCellSelectionStyleNone;
+                cell.textLabel.text =  NSLocalizedString(@"To players",nil);
 
-            cell.datarray = restrictions;
-            [cell setDelegate: self];
-            [cell.picker reloadAllComponents];
-            [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
-            
-            cell.textLabel.text =  NSLocalizedString(@"To players",nil);
-            int idx = (int) [[NSUserDefaults standardUserDefaults] integerForKey: @"kothRestriction"] - 1;
-            if (idx < 0) {
-                idx = 0;
+                UIPickerView *picker = [[UIPickerView alloc] init];
+                UIToolbar *toolbar = [[UIToolbar alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, 44)];
+                toolbar.barStyle = UIBarStyleBlack;
+                UIBarButtonItem *extraSpace = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:nil];
+                UIBarButtonItem *doneButton = [[UIBarButtonItem alloc] initWithTitle:NSLocalizedString(@"Done", nil) style:UIBarButtonItemStyleDone target:self action:@selector(dismissPicker:)];
+                [toolbar setItems:@[extraSpace, doneButton] animated:YES];
+                picker.delegate = self;
+                picker.dataSource = self;
+                picker.tag = 1;
+                cell.textField.inputView = picker;
+                cell.textField.inputAccessoryView = toolbar;
+                
+                int idx = (int) [[NSUserDefaults standardUserDefaults] integerForKey: @"kothRestriction"] - 1;
+                if (idx < 0) {
+                    idx = 0;
+                }
+                cell.textField.text = [restrictions objectAtIndex:idx];
+                [picker selectRow:idx inComponent:0 animated:NO];
+                
+                restrictionCell = cell;
             }
-            [cell.picker selectRow:idx inComponent:0 animated:NO];
-            cell.detailTextLabel.text = [restrictions objectAtIndex:idx];
-            
-//            cell.contentView.layer.cornerRadius = 5.0f;
-//            cell.contentView.layer.borderWidth = 1.0f;
 
-            restrictionCell = cell;
             
             return cell;
         }
@@ -116,17 +163,15 @@
 
 -(void) tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     if (indexPath.section == 1) {
-        [[NSUserDefaults standardUserDefaults] setInteger: [timeoutCell.detailTextLabel.text intValue] forKey:@"kothTimeout"];
-        [timeoutCell doResign];
-        [restrictionCell doResign];
+        [[NSUserDefaults standardUserDefaults] setInteger: [timeoutCell.textField.text intValue] forKey:@"kothTimeout"];
+        [self dismissPicker:nil];
         
 
 //        NSString *gameString = self.gameStr;
 
         NSString *restrictString = @"A";
         if ([invitee isEqualToString:@""]) {
-            [[NSUserDefaults standardUserDefaults] setInteger: [restrictionCell.detailTextLabel.text intValue] forKey:@"kothRestriction"];
-            [restrictionCell doResign];
+            [[NSUserDefaults standardUserDefaults] setInteger: [restrictionCell.textField.text intValue] forKey:@"kothRestriction"];
             if ([restrictionCell.detailTextLabel.text isEqualToString:NSLocalizedString(@"of any rating",nil)]) {
                 restrictString = @"A";
             }
@@ -201,6 +246,11 @@
         
         [popoverView dismiss];
     }
+}
+
+-(void) dismissPicker: (id) sender {
+    [timeoutCell.textField resignFirstResponder];
+    [restrictionCell.textField resignFirstResponder];
 }
 
 

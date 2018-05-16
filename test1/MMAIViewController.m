@@ -288,7 +288,7 @@
         aiPlayer = [[MMAI alloc] init];
     }
     [aiPlayer reset];
-    [aiPlayer setLevel:[setupView.difficultyCell.detailTextLabel.text intValue]];
+    [aiPlayer setLevel:[setupView.difficultyCell.textField.text intValue]];
     [aiPlayer setSeat: ([setupView.colorCell.detailTextLabel.text isEqualToString:NSLocalizedString(@"white",nil)]?2:1)];
 //    NSLog(@"kitty %@", setupView.colorCell.detailTextLabel.text);
     [aiPlayer addMove:180];
@@ -497,7 +497,7 @@
                                canBeDismissedByUser:YES];
     }
     NSString *colorStr = NSLocalizedString(@"Color:",nil), *difficultyStr = NSLocalizedString(@"difficulty:",nil);
-    moveStatsString = [[NSMutableString alloc] initWithString:[NSString stringWithFormat:@"<center><b>%@</b> %@, <b>%@</b> %@</center><hr>", colorStr, setupView.colorCell.detailTextLabel.text,difficultyStr, setupView.difficultyCell.detailTextLabel.text]];
+    moveStatsString = [[NSMutableString alloc] initWithString:[NSString stringWithFormat:@"<center><b>%@</b> %@, <b>%@</b> %@</center><hr>", colorStr, setupView.colorCell.detailTextLabel.text,difficultyStr, setupView.difficultyCell.textField.text]];
     int i = 0;
     for (NSNumber *move in [aiPlayer moves]) {
         int rowCol = [move intValue];
@@ -591,7 +591,7 @@
     }
     
     NSString *colorStr = NSLocalizedString(@"Color:",nil), *difficultyStr = NSLocalizedString(@"difficulty:",nil);
-    moveStatsString = [[NSMutableString alloc] initWithString:[NSString stringWithFormat:@"<center><b>%@</b> %@, <b>%@</b> %@</center><hr>", colorStr, setupView.colorCell.detailTextLabel.text,difficultyStr, setupView.difficultyCell.detailTextLabel.text]];
+    moveStatsString = [[NSMutableString alloc] initWithString:[NSString stringWithFormat:@"<center><b>%@</b> %@, <b>%@</b> %@</center><hr>", colorStr, setupView.colorCell.detailTextLabel.text,difficultyStr, setupView.difficultyCell.textField.text]];
     int i = 0;
     for (NSNumber *move in [aiPlayer moves]) {
         int rowCol = [move intValue];
@@ -975,7 +975,7 @@
 }
 
 - (void)popoverViewDidDismiss:(PopoverView *)popoverView {
-    [[setupView  difficultyCell] doResign];
+    [setupView.difficultyCell.textField resignFirstResponder];
 }
 
 

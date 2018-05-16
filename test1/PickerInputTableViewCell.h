@@ -20,6 +20,7 @@
 }
 @property(atomic) BOOL resign;
 @property (nonatomic, strong) UIPickerView *picker;
+@property (nonatomic, retain) UIPopoverController *popoverController;
 
 - (void) doResign;
 

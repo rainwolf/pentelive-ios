@@ -429,7 +429,7 @@ struct Capture {
                 }
                 [movesList addObject:[NSNumber numberWithInt:finalMove]];
                 if (!game) {
-                    game = setupView.gameCell.detailTextLabel.text;
+                    game = setupView.gameCell.textField.text;
                 }
                 if (!game) {
                     game = @"Pente";
@@ -597,12 +597,12 @@ struct Capture {
         if (game) {
             gameStr = game;
         } else {
-            gameStr = setupView.gameCell.detailTextLabel.text;
+            gameStr = setupView.gameCell.textField.text;
         }
         if (!game) {
             game = @"Pente";
         }
-        NSString *p1RatingStr = setupView.p1RatingCell.detailTextLabel.text;
+        NSString *p1RatingStr = setupView.p1RatingCell.textField.text;
         if (p1RatingStr == nil) {
             p1RatingStr = [[NSUserDefaults standardUserDefaults] objectForKey:@"DBP1Rating"];
         }
@@ -611,7 +611,7 @@ struct Capture {
         } else {
             [[NSUserDefaults standardUserDefaults] setObject:p1RatingStr forKey:@"DBP1Rating"];
         }
-        NSString *p2RatingStr = setupView.p2RatingCell.detailTextLabel.text;
+        NSString *p2RatingStr = setupView.p2RatingCell.textField.text;
         if (p2RatingStr == nil) {
             p2RatingStr = [[NSUserDefaults standardUserDefaults] objectForKey:@"DBP2Rating"];
         }
@@ -876,7 +876,7 @@ struct Capture {
             [aiPlayer setGame:2];
         }
     } else {
-        [aiPlayer setGame: ([setupView.gameCell.detailTextLabel.text containsString:@"Keryo-Pente"]?2:1)];
+        [aiPlayer setGame: ([setupView.gameCell.textField.text containsString:@"Keryo-Pente"]?2:1)];
     }
     [self.progressView startAnimating];
     [self.view addSubview:self.progressView];
@@ -897,7 +897,7 @@ struct Capture {
     abstractBoard[i][j] = 1 + ([movesList count]%2);
     [movesList addObject:[NSNumber numberWithInt:finalMove]];
     if (game == nil) {
-        game = setupView.gameCell.detailTextLabel.text;
+        game = setupView.gameCell.textField.text;
     }
     int color = 2 - ([movesList count] % 2), opponentColor = (color == 2) ? 1 : 2;
     [self detectCaptureOfOpponent:opponentColor atPosition:finalMove];
@@ -937,7 +937,7 @@ struct Capture {
     [self resetBoard];
     int i = 0;
     if (game == nil) {
-        game = setupView.gameCell.detailTextLabel.text;
+        game = setupView.gameCell.textField.text;
     }
     for (NSNumber *move in movesList) {
         int rowCol = [move intValue];
@@ -1476,7 +1476,7 @@ struct Capture {
 }
 
 - (void)popoverViewDidDismiss:(PopoverView *)popoverView {
-    game = setupView.gameCell.detailTextLabel.text;
+    game = setupView.gameCell.textField.text;
     if ([game containsString:@"Gomoku"] || [game containsString:@"Connect6"]) {
         [whiteStoneCaptures setHidden:YES];
         [whiteCapturesCountLabel setHidden:YES];

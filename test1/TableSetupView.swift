@@ -276,8 +276,8 @@ class TableSetupView: UITableView, UITableViewDelegate, UITableViewDataSource, U
     }
 }
 
-class InputPickerCell: UITableViewCell {
-    var textField: UITextField
+@objc class InputPickerCell: UITableViewCell {
+    @objc var textField: UITextField
 
     required override init(style: UITableViewCellStyle, reuseIdentifier: String?) {
         textField = UITextField()
