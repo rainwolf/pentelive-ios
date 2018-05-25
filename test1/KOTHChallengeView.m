@@ -46,7 +46,7 @@ NSArray<NSString *> *restrictions;
         timeoutCell.textField.text = [NSString stringWithFormat:@"%ld", (row+1)];
         [[NSUserDefaults standardUserDefaults] setInteger:row forKey:@"kothTimeout"];
     } else if (pickerView.tag == 1) {
-        restrictionCell.textField.text = [restrictions objectAtIndex:row];
+        restrictionCell.textField.text = [restrictions objectAtIndex: row];
         [[NSUserDefaults standardUserDefaults] setInteger:row forKey:@"kothRestriction"];
     }
 }
@@ -122,8 +122,8 @@ NSArray<NSString *> *restrictions;
                 cell.textField.inputView = picker;
                 cell.textField.inputAccessoryView = toolbar;
                 
-                int idx = (int) [[NSUserDefaults standardUserDefaults] integerForKey: @"kothRestriction"] - 1;
-                if (idx < 0) {
+                int idx = (int) [[NSUserDefaults standardUserDefaults] integerForKey: @"kothRestriction"];
+                if (idx < 0 || idx >= restrictions.count) {
                     idx = 0;
                 }
                 cell.textField.text = [restrictions objectAtIndex:idx];
@@ -171,29 +171,29 @@ NSArray<NSString *> *restrictions;
 
         NSString *restrictString = @"A";
         if ([invitee isEqualToString:@""]) {
-            [[NSUserDefaults standardUserDefaults] setInteger: [restrictionCell.textField.text intValue] forKey:@"kothRestriction"];
-            if ([restrictionCell.detailTextLabel.text isEqualToString:NSLocalizedString(@"of any rating",nil)]) {
+            [[NSUserDefaults standardUserDefaults] setInteger: [restrictions indexOfObject: restrictionCell.textField.text] forKey:@"kothRestriction"];
+            if ([restrictionCell.textField.text isEqualToString:NSLocalizedString(@"of any rating",nil)]) {
                 restrictString = @"A";
             }
-            if ([restrictionCell.detailTextLabel.text isEqualToString:NSLocalizedString(@"not already playing",nil)]) {
+            if ([restrictionCell.textField.text isEqualToString:NSLocalizedString(@"not already playing",nil)]) {
                 restrictString = @"N";
             }
-            if ([restrictionCell.detailTextLabel.text isEqualToString:NSLocalizedString(@"of lower rating",nil)]) {
+            if ([restrictionCell.textField.text isEqualToString:NSLocalizedString(@"of lower rating",nil)]) {
                 restrictString = @"L";
             }
-            if ([restrictionCell.detailTextLabel.text isEqualToString:NSLocalizedString(@"of higher rating",nil)]) {
+            if ([restrictionCell.textField.text isEqualToString:NSLocalizedString(@"of higher rating",nil)]) {
                 restrictString = @"H";
             }
-            if ([restrictionCell.detailTextLabel.text isEqualToString:NSLocalizedString(@"of similar rating",nil)]) {
+            if ([restrictionCell.textField.text isEqualToString:NSLocalizedString(@"of similar rating",nil)]) {
                 restrictString = @"S";
             }
-            if ([restrictionCell.detailTextLabel.text isEqualToString:NSLocalizedString(@"in the same rating class",nil)]) {
+            if ([restrictionCell.textField.text isEqualToString:NSLocalizedString(@"in the same rating class",nil)]) {
                 restrictString = @"C";
             }
         }
 
 
-        NSString *post = [NSString stringWithFormat:@"invitee=%@&game=%i&daysPerMove=%@&invitationRestriction=%@&rated=Y&inviterMessage=&mobile=&koth=", self.invitee ,gameId, timeoutCell.detailTextLabel.text, restrictString];
+        NSString *post = [NSString stringWithFormat:@"invitee=%@&game=%i&daysPerMove=%@&invitationRestriction=%@&rated=Y&inviterMessage=&mobile=&koth=", self.invitee ,gameId, timeoutCell.textField.text, restrictString];
         NSData *postData = [post dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
         NSString *postLength = [NSString stringWithFormat:@"%lu", (unsigned long)[postData length]];
         

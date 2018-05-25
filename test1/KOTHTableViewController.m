@@ -497,6 +497,7 @@ CGFloat bottomOffst = 0;
     // connect to the game server
     url =  [NSString stringWithFormat:@"https://www.pente.org/gameServer/mobile/koth.jsp?name=%@&game=%i",username, gameId];
     if (development) {
+        username = @"iostest";
         url =  [NSString stringWithFormat:@"https://development.pente.org/gameServer/mobile/koth.jsp?name=%@&game=%i",username, gameId];
     }
     [request setURL:[NSURL URLWithString:url]];
