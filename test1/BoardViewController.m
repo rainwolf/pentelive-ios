@@ -895,6 +895,7 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
     
     int dashIDX = 0;
     NSString *myUsername = [[[NSUserDefaults standardUserDefaults] objectForKey:@"username"] lowercaseString], *p1Name, *p2Name;
+//    myUsername = @"thomrr25"
     if (development) {
 //        myUsername = @"iostest";
     }

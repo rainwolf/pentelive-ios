@@ -268,11 +268,11 @@ CGFloat bottomOffset = 0;
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
     username = [defaults objectForKey:usernameKey];
     password = [defaults objectForKey:passwordKey];
-    if (development) {
-        username = @"iostest";
-//        username = @"harveyjoe";
-        password = @"tsetsoi";
-    }
+//    if (development) {
+//        username = @"iostest";
+////        username = @"harveyjoe";
+//        password = @"tsetsoi";
+//    }
     if (!((username == nil) || (password == nil) || [username isEqualToString:@""] || [password isEqualToString:@""])) {
         NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
         NSString *url = @"https://www.pente.org/gameServer/logout";
@@ -324,7 +324,7 @@ CGFloat bottomOffset = 0;
 //            settingsViewController.showAIOption = YES;
             return;
         } else if ([dashboardString rangeOfString:@"Invalid name or password, please try again."].length != 0) {
-//            [self performSegueWithIdentifier:@"settingsTap" sender:self];
+            [self performSegueWithIdentifier:@"settingsTap" sender:self];
 //            settingsViewController.showAIOption = YES;
             return;
         } else {
@@ -2146,6 +2146,7 @@ CGFloat bottomOffset = 0;
 
 
 -(void) parseDashboard {
+
     UIColor *blackColor = UIColorFromRGB(0);
     
     [self.pullToReloadHeaderView setStatusString:@"Loading Games..." animated:YES];
@@ -2170,12 +2171,13 @@ CGFloat bottomOffset = 0;
     
     // connect to the game server
     url =  [NSString stringWithFormat:@"https://www.pente.org/gameServer/mobile/index.jsp?name=%@&password=%@",username,password];
-//    url =  [NSString stringWithFormat:@"https://www.pente.org/gameServer/mobile/index.jsp?name=%@&password=%@&checkname=graviton",username,password];
-//    username = @"graviton";
+    //    url =  [NSString stringWithFormat:@"https://www.pente.org/gameServer/mobile/index.jsp?name=%@&password=%@&checkname=graviton",username,password];
+//        url =  [NSString stringWithFormat:@"https://www.pente.org/gameServer/mobile/index.jsp?name=%@&password=%@&checkname=thomrr25",username,password];
+//    username = @"thomrr25";
     if (development) {
         url =  [NSString stringWithFormat:@"https://development.pente.org/gameServer/mobile/index.jsp?name=%@&password=%@",username,password];
 //        url =  [NSString stringWithFormat:@"https://development.pente.org/gameServer/mobile/index.jsp?name=%@&password=%@&checkname=iostest",username,password];
-        username = @"iostest";
+//        username = @"iostest";
     }
 
     [request setURL:[NSURL URLWithString:url]];
@@ -2199,6 +2201,7 @@ CGFloat bottomOffset = 0;
         });
     }
     NSString *dashboardString = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
+//    NSLog(dashboardString);
 
     dispatch_async(dispatch_get_main_queue(), ^{
         [CATransaction begin];

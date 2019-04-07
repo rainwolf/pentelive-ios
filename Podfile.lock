@@ -5,33 +5,38 @@ PODS:
   - ARChromeActivity (1.0.6)
   - CocoaAsyncSocket (7.6.3)
   - Color-Picker-for-iOS (2.0.2)
-  - Firebase/AdMob (4.13.0):
-    - Firebase/Core
-    - Google-Mobile-Ads-SDK (= 7.30.0)
-  - Firebase/Core (4.13.0):
-    - FirebaseAnalytics (= 4.2.0)
-    - FirebaseCore (= 4.0.20)
-  - FirebaseAnalytics (4.2.0):
-    - FirebaseCore (~> 4.0)
-    - FirebaseInstanceID (~> 2.0)
-    - GoogleToolboxForMac/NSData+zlib (~> 2.1)
+  - Google-Mobile-Ads-SDK (7.42.2):
+    - GoogleAppMeasurement (~> 5.7)
+  - GoogleAppMeasurement (5.8.0):
+    - GoogleUtilities/AppDelegateSwizzler (~> 5.2)
+    - GoogleUtilities/MethodSwizzler (~> 5.2)
+    - GoogleUtilities/Network (~> 5.2)
+    - "GoogleUtilities/NSData+zlib (~> 5.2)"
     - nanopb (~> 0.3)
-  - FirebaseCore (4.0.20):
-    - GoogleToolboxForMac/NSData+zlib (~> 2.1)
-  - FirebaseInstanceID (2.0.10):
-    - FirebaseCore (~> 4.0)
-  - Google-Mobile-Ads-SDK (7.30.0)
-  - GoogleToolboxForMac/Defines (2.1.3)
-  - GoogleToolboxForMac/NSData+zlib (2.1.3):
-    - GoogleToolboxForMac/Defines (= 2.1.3)
+  - GoogleUtilities/AppDelegateSwizzler (5.5.0):
+    - GoogleUtilities/Environment
+    - GoogleUtilities/Logger
+    - GoogleUtilities/Network
+  - GoogleUtilities/Environment (5.5.0)
+  - GoogleUtilities/Logger (5.5.0):
+    - GoogleUtilities/Environment
+  - GoogleUtilities/MethodSwizzler (5.5.0):
+    - GoogleUtilities/Logger
+  - GoogleUtilities/Network (5.5.0):
+    - GoogleUtilities/Logger
+    - "GoogleUtilities/NSData+zlib"
+    - GoogleUtilities/Reachability
+  - "GoogleUtilities/NSData+zlib (5.5.0)"
+  - GoogleUtilities/Reachability (5.5.0):
+    - GoogleUtilities/Logger
   - HexColors (2.3.0)
   - ICDMaterialActivityIndicatorView (0.1.3)
-  - InAppSettingsKit (2.9)
-  - nanopb (0.3.8):
-    - nanopb/decode (= 0.3.8)
-    - nanopb/encode (= 0.3.8)
-  - nanopb/decode (0.3.8)
-  - nanopb/encode (0.3.8)
+  - InAppSettingsKit (2.10)
+  - nanopb (0.3.901):
+    - nanopb/decode (= 0.3.901)
+    - nanopb/encode (= 0.3.901)
+  - nanopb/decode (0.3.901)
+  - nanopb/encode (0.3.901)
   - NSHash (1.1.0)
   - PopoverView (0.0.2)
   - RMStore (0.7.1):
@@ -41,17 +46,16 @@ PODS:
     - HexColors (~> 2.3.0)
   - TUSafariActivity (1.0.4)
   - UIBarButtonItem-Badge (0.0.1)
-  - UIColor+Hex (1.0.1):
-    - UIColor+Hex/NSColor (= 1.0.1)
-    - UIColor+Hex/UIColor (= 1.0.1)
-  - UIColor+Hex/UIColor (1.0.1)
+  - "UIColor+Hex (1.0.1)":
+    - "UIColor+Hex/NSColor (= 1.0.1)"
+    - "UIColor+Hex/UIColor (= 1.0.1)"
+  - "UIColor+Hex/UIColor (1.0.1)"
 
 DEPENDENCIES:
   - AFWebViewController (~> 1.0)
   - CocoaAsyncSocket
   - Color-Picker-for-iOS (~> 2.0)
-  - Firebase/AdMob
-  - Firebase/Core
+  - Google-Mobile-Ads-SDK
   - ICDMaterialActivityIndicatorView
   - InAppSettingsKit
   - NSHash (~> 1.1.0)
@@ -59,7 +63,25 @@ DEPENDENCIES:
   - RMStore (~> 0.7)
   - TSMessages (from `https://github.com/rainwolf/TSMessages.git`)
   - UIBarButtonItem-Badge (from `https://github.com/mikeMTOL/UIBarButtonItem-Badge.git`)
-  - UIColor+Hex
+  - "UIColor+Hex"
+
+SPEC REPOS:
+  https://github.com/cocoapods/specs.git:
+    - AFWebViewController
+    - ARChromeActivity
+    - CocoaAsyncSocket
+    - Color-Picker-for-iOS
+    - Google-Mobile-Ads-SDK
+    - GoogleAppMeasurement
+    - GoogleUtilities
+    - HexColors
+    - ICDMaterialActivityIndicatorView
+    - InAppSettingsKit
+    - nanopb
+    - NSHash
+    - RMStore
+    - TUSafariActivity
+    - "UIColor+Hex"
 
 EXTERNAL SOURCES:
   PopoverView:
@@ -85,24 +107,21 @@ SPEC CHECKSUMS:
   ARChromeActivity: 5dcf9b9f09323761f992aff3525cdd777f83609d
   CocoaAsyncSocket: eafaa68a7e0ec99ead0a7b35015e0bf25d2c8987
   Color-Picker-for-iOS: 4980589b3e3cfe7198f227dd50be9adb02d8bc0b
-  Firebase: 5ec5e863d269d82d66b4bf56856726f8fb8f0fb3
-  FirebaseAnalytics: 7ef69e76a5142f643aeb47c780e1cdce4e23632e
-  FirebaseCore: 90cb1c53d69b556f112a1bf72b5fcfaad7650790
-  FirebaseInstanceID: 8d20d890d65c917f9f7d9950b6e10a760ad34321
-  Google-Mobile-Ads-SDK: 7404f68120ae8682afeb5af001fbf4aad731c78e
-  GoogleToolboxForMac: 2501e2ad72a52eb3dfe7bd9aee7dad11b858bd20
+  Google-Mobile-Ads-SDK: 8f4f7e793bfd3fff5b082181b54112f81b579a67
+  GoogleAppMeasurement: 1624046ab1bcc5e170061a56ef5679000b079c8e
+  GoogleUtilities: 6481e6318c5fcabaaa8513ef8120f329055d7c10
   HexColors: 6ad3947c3447a055a3aa8efa859def096351fe5f
   ICDMaterialActivityIndicatorView: 52e3f11f27ebf0b53a7bc7725f416b1a182367b6
-  InAppSettingsKit: fc3dea21846535b76b8289b119dbfdbe2505b2b2
-  nanopb: 5601e6bca2dbf1ed831b519092ec110f66982ca3
+  InAppSettingsKit: d965e29be941eb19857271e4625de3fba6e23c9f
+  nanopb: 2901f78ea1b7b4015c860c2fdd1ea2fee1a18d48
   NSHash: 61d598c6d48957c5557f1eef0aeafd6ef5ec5fb7
   PopoverView: 51d31a7f2398afbff710dc7933a357bf2c3cbe72
   RMStore: 64ba13a9c040e3b7572765d169f77175cd3243e5
   TSMessages: 6e403b790139636c15ab4f51946537095e03e79c
   TUSafariActivity: afc55a00965377939107ce4fdc7f951f62454546
   UIBarButtonItem-Badge: 8f5ed4d32d32dbb03034d4f273d02c8da680236b
-  UIColor+Hex: 9fee91bb8e19f17dd40a79ae1e98949a6a84489d
+  "UIColor+Hex": 9fee91bb8e19f17dd40a79ae1e98949a6a84489d
 
-PODFILE CHECKSUM: 8a97d44d3197e689c105cf5707c2ee8355e49257
+PODFILE CHECKSUM: df8b5b571131fb172175edde1921162dfc0013cd
 
-COCOAPODS: 1.3.1
+COCOAPODS: 1.5.3

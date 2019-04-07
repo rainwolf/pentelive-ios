@@ -10,7 +10,7 @@
 #import "AVFoundation/AVFoundation.h"
 #import "GamesTableViewController.h"
 #import "BoardViewController.h"
-@import Firebase;
+//@import Firebase;
 @import RMStore;
 #import "PenteNavigationViewController.h"
 @import TSMessages;
@@ -64,7 +64,7 @@
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
     if (![defaults boolForKey:@"termsAcceptedGDPR"]) {
         NSString *message =
-        NSLocalizedString(@"This app uses device identifiers to personalise ads, delivered by Google's Adsense network and Firebase. Please check our privacy policy for an overview of the data that is collected and what we do with it, you can find a link in the settings of this app. By proceeding to use this app, you consent to our privacy policy. You must be at least 16 years old to consent to this, otherwise consent from a parent or guardian is required.",nil);
+        NSLocalizedString(@"This app uses device identifiers to personalise ads, delivered by Google's Adsense network. Please check our privacy policy for an overview of the data that is collected and what we do with it, you can find a link in the settings of this app. By proceeding to use this app, you consent to our privacy policy. You must be at least 16 years old to consent to this, otherwise consent from a parent or guardian is required.",nil);
         UIAlertView *alert =
         [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"GDPR", nil)
                                    message:message
@@ -74,7 +74,7 @@
         [alert show];
     }
     
-    [FIRApp configure];
+//    [FIRApp configure];
 
     [[TSMessageView appearance] setAlpha:0.9f];
 

@@ -9,8 +9,9 @@ use_frameworks!
 target "penteLive" do
 platform :ios, '8.0'
 #	use_frameworks!
-	pod 'Firebase/Core'
-	pod 'Firebase/AdMob'
+#	pod 'Firebase/Core'
+#	pod 'Firebase/AdMob'
+    pod 'Google-Mobile-Ads-SDK'
 	pod 'TSMessages', :git => 'https://github.com/rainwolf/TSMessages.git'
 	pod 'PopoverView', :git => 'https://github.com/runway20/PopoverView.git'
 #	pod 'SVWebViewController', :git => 'https://github.com/TransitApp/SVWebViewController.git'

@@ -623,7 +623,7 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
                     popoverController.barButtonItem = self.navigationItem.rightBarButtonItems?[1]
                 }
                 self.present(waitAlertController!, animated: true)
-                waitSeconds = 7*60
+                waitSeconds = 1*60
                 waitTimer = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(countDownWait), userInfo: nil, repeats: true)
             }
         }
