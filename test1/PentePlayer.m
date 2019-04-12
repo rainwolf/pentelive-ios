@@ -270,7 +270,6 @@
 
 
 -(BOOL) showAds {
-//    return YES;
     if (development) {
         return YES;
     }

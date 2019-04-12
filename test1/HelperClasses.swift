@@ -14,6 +14,7 @@ class LivePlayer: NSObject {
     var color: UIColor!
     var subscriber = false
     var crown: Int = 0
+    var muted: Bool = false
     
     init(name: String) {
         self.name = name

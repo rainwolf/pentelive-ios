@@ -59,7 +59,8 @@ class RoomViewController: UIViewController, UITableViewDelegate, UITableViewData
     var pentePlayer: PentePlayer!
     var wantsToSeeAvatars = UserDefaults.standard.bool(forKey: "wantToSeeAvatars")
     let playSounds = !UserDefaults.standard.bool(forKey: "inAppSoundsOff")
-    
+    var playerNamesArray: [String] = []
+
     
     private let lockView = UIImageView(image: UIImage(named: "lock"))
     
@@ -233,8 +234,7 @@ class RoomViewController: UIViewController, UITableViewDelegate, UITableViewData
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         if segmentControl.selectedSegmentIndex == 0 {
             let cell = tableView.dequeueReusableCell(withIdentifier: "playerCell") ?? PlayerTableCell(style: .value1, reuseIdentifier: "playerCell")
-            let playerNamesArray = Array(playersAndTables.players.keys)
-            let player = playersAndTables.players[playerNamesArray[indexPath.row]]!
+            let player = playersAndTables.players[self.playerNamesArray[indexPath.row]]!
             cell.textLabel?.textAlignment = .center
 
             cell.textLabel?.font = UIFont(name: "HelveticaNeue", size: 16)
@@ -280,6 +280,28 @@ class RoomViewController: UIViewController, UITableViewDelegate, UITableViewData
                 socket.sendEvent(eventDictionary: eventDictionary)
             }
         }
+    }
+    
+    func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
+        if segmentControl.selectedSegmentIndex == 0 && self.playerNamesArray[indexPath.row] != self.me {
+            return true
+        }
+        return false
+    }
+    func tableView(_ tableView: UITableView, editingStyleForRowAt indexPath: IndexPath) -> UITableViewCellEditingStyle {
+        return .delete;
+    }
+    func tableView(_ tableView: UITableView, titleForDeleteConfirmationButtonForRowAt indexPath: IndexPath) -> String? {
+        let player = playersAndTables.players[self.playerNamesArray[indexPath.row]]!
+        if player.muted {
+            return "unmute"
+        } else {
+            return "mute"
+        }
+    }
+    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
+        let player = playersAndTables.players[self.playerNamesArray[indexPath.row]]!
+        player.muted = !player.muted
     }
 
     
@@ -339,6 +361,7 @@ class RoomViewController: UIViewController, UITableViewDelegate, UITableViewData
                 AudioServicesPlaySystemSound(self.newplayerSndID)
             }
             self.playersAndTables.addPlayer(player: player)
+            self.playerNamesArray = Array(self.playersAndTables.players.keys)
             self.tableView.reloadData()
             self.addText(text: NSLocalizedString("* \(playerName) has joined the main room", comment: ""))
         }
@@ -381,6 +404,7 @@ class RoomViewController: UIViewController, UITableViewDelegate, UITableViewData
         player.subscriber = playerData["unlimitedTBGames"] as! Bool
         DispatchQueue.main.async {
             self.playersAndTables.addPlayer(player: player)
+            self.playerNamesArray = Array(self.playersAndTables.players.keys)
             self.tableView.reloadData()
         }
     }
@@ -388,6 +412,7 @@ class RoomViewController: UIViewController, UITableViewDelegate, UITableViewData
         let playerName = event["player"] as! String
         DispatchQueue.main.async {
             self.playersAndTables.removePlayer(player: playerName)
+            self.playerNamesArray = Array(self.playersAndTables.players.keys)
             self.tableView.reloadData()
             self.addText(text: NSLocalizedString("\(playerName) has left the main room", comment: ""))
         }
@@ -395,8 +420,11 @@ class RoomViewController: UIViewController, UITableViewDelegate, UITableViewData
     func addRoomText(event: [String: Any]) {
         let playerName = event["player"] as! String
         let text = event["text"] as! String
-        DispatchQueue.main.async {
-            self.addText(text: "\(playerName): \(text)")
+        let player = playersAndTables.players[playerName]!
+        if !player.muted {
+            DispatchQueue.main.async {
+                self.addText(text: "\(playerName): \(text)")
+            }
         }
     }
     func addText(text: String) {
@@ -423,7 +451,10 @@ class RoomViewController: UIViewController, UITableViewDelegate, UITableViewData
             let invitedPlayer = event["toInvite"] as! String
             let inviteText = event["inviteText"] as! String
             if invitedPlayer == self.me {
-                if self.tableViewController != nil && (self.tableViewController?.table.amIseated(i: self.me))! && self.tableViewController?.table.state.state != .notStarted {
+                let player = self.playersAndTables.players[invitingPlayer]!
+                if player.muted {
+                    return
+                } else if self.tableViewController != nil && (self.tableViewController?.table.amIseated(i: self.me))! && self.tableViewController?.table.state.state != .notStarted {
                     let event = ["dsgInviteResponseTableEvent":["toPlayer":invitingPlayer,"responseText":"I can 't accept your invitation because I'm currently playing. This is an automated response","accept":false,"ignore":false,"table":tableId,"time":0]]
                     self.socket.sendEvent(eventDictionary: event)
                 } else {
@@ -779,7 +810,8 @@ class RoomViewController: UIViewController, UITableViewDelegate, UITableViewData
         let playerName = event["player"] as! String
         let text = event["text"] as! String
         let table = event["table"] as! Int
-        if table == self.tableViewController?.table.table {
+        let player = self.playersAndTables.players[playerName]!
+        if table == self.tableViewController?.table.table && !player.muted {
             DispatchQueue.main.async {
                 self.tableViewController?.addText(text: "\(playerName): \(text)")
             }
