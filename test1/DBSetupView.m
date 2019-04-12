@@ -127,7 +127,7 @@
             gameCell = cell;
 
             NSString *str = [[NSUserDefaults standardUserDefaults] objectForKey: @"DBGame"];
-            if (str) {
+            if (str && [gameChoices indexOfObject:str] > -1) {
                 cell.textField.text = str;
                 unsigned long idx = [gameChoices indexOfObject:str];
                 [gamePicker selectRow:idx inComponent:0 animated:NO];
@@ -261,7 +261,7 @@
             cell.textField.inputAccessoryView = toolbar;
             
             NSString *str = [[NSUserDefaults standardUserDefaults] objectForKey: @"DBP1Rating"];
-            if (str) {
+            if (str && [ratingChoices indexOfObject:str] > -1) {
                 cell.textField.text = str;
                 unsigned long idx = [ratingChoices indexOfObject:str];
                 [picker selectRow:idx inComponent:0 animated:NO];
@@ -292,7 +292,7 @@
             cell.textField.inputAccessoryView = toolbar;
             
             NSString *str = [[NSUserDefaults standardUserDefaults] objectForKey: @"DBP2Rating"];
-            if (str) {
+            if (str && [ratingChoices indexOfObject:str] > -1) {
                 cell.textField.text = str;
                 unsigned long idx = [ratingChoices indexOfObject:str];
                 [picker selectRow:idx inComponent:0 animated:NO];

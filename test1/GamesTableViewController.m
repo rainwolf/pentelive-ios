@@ -351,9 +351,9 @@ CGFloat bottomOffset = 0;
     [anonymousOrAIController addAction:cancelAction];
     
     if (anonymousOrAIController.popoverPresentationController != nil) {
-        //        subscribersOnlyController.popoverPresentationController.barButtonItem = self.navigationItem.rightBarButtonItems[1];
-        [anonymousOrAIController.popoverPresentationController setSourceView: self.navigationItem.titleView];
-        [anonymousOrAIController.popoverPresentationController setSourceRect: self.navigationItem.titleView.bounds];
+        anonymousOrAIController.popoverPresentationController.barButtonItem = self.navigationItem.rightBarButtonItems[1];
+//        [anonymousOrAIController.popoverPresentationController setSourceView: self.navigationItem.titleView];
+//        [anonymousOrAIController.popoverPresentationController setSourceRect: self.navigationItem.titleView.bounds];
     }
     
     [self presentViewController:anonymousOrAIController animated:YES completion:nil];
@@ -381,9 +381,9 @@ CGFloat bottomOffset = 0;
     [anonymousOrAIController addAction:liveGuestAction];
     
     if (anonymousOrAIController.popoverPresentationController != nil) {
-        //        subscribersOnlyController.popoverPresentationController.barButtonItem = self.navigationItem.rightBarButtonItems[1];
-        [anonymousOrAIController.popoverPresentationController setSourceView: self.navigationItem.titleView];
-        [anonymousOrAIController.popoverPresentationController setSourceRect: self.navigationItem.titleView.bounds];
+        anonymousOrAIController.popoverPresentationController.barButtonItem = self.navigationItem.rightBarButtonItems[1];
+//        [anonymousOrAIController.popoverPresentationController setSourceView: self.navigationItem.v];
+//        [anonymousOrAIController.popoverPresentationController setSourceRect: self.navigationItem.titleView.bounds];
     }
     
     [self presentViewController:anonymousOrAIController animated:YES completion:nil];
