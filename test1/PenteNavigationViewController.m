@@ -53,6 +53,7 @@
     messageDeleted = NO;
     challengeCancelled = NO;
     needHelp = NO;
+    self.player = [[PentePlayer alloc] init];
 //    NSLog(@"kitty2");
 
     AppDelegate *appDelegate = (AppDelegate *) [[UIApplication sharedApplication] delegate];

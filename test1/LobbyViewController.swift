@@ -236,9 +236,9 @@ let development = false
 
 }
 
-class GameRoom: NSObject {
-    var name: String
-    var port: Int
+@objc class GameRoom: NSObject {
+    @objc var name: String
+    @objc var port: Int
     var players = [LivePlayer]()
     
     init(name: String, port: Int) {
@@ -246,6 +246,12 @@ class GameRoom: NSObject {
         self.port = port
     }
     
+    required override init() {
+        self.name = ""
+        self.port = 0
+        super.init()
+    }
+
     func makeAttributedString() -> NSAttributedString {
         let titleAttributes = [NSAttributedStringKey.font: UIFont.preferredFont(forTextStyle: .headline)]
 //        let subtitleAttributes = [NSFontAttributeName: UIFont.preferredFont(forTextStyle: .subheadline)]

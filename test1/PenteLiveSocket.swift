@@ -14,11 +14,14 @@ import UIKit
     weak var room: RoomViewController!
     var server: String
     var port: Int
+    var me: String
     
-    init(server: String, port: Int) {
+    init(server: String, port: Int, room: RoomViewController) {
 //        self.socket = GCDAsyncSocket()
         self.server = server
         self.port = port
+        self.room = room
+        self.me = "guest"
         separator = Data(bytes: [255])
         super.init()
         self.socket = GCDAsyncSocket(delegate: self, delegateQueue: DispatchQueue(label: "penteLiveDelegateQueue"))
@@ -39,14 +42,23 @@ import UIKit
     }
     
     func socket(_ sock: GCDAsyncSocket, didConnectToHost host: String, port: UInt16) {
-        let username = (UserDefaults.standard.string(forKey: "username")!).lowercased()
-        let password = UserDefaults.standard.string(forKey: "password")!
-        let url = URL(string: "https://\(server)/gameServer/login.jsp?name2=\(username)&password2=\(password)")
+//        return
+//        print(room.pentePlayer?.playerName)
+        let url = URL(string: "https://\(server)")
+//        if room.pentePlayer?.playerName == "guest" {
+//            var username = (UserDefaults.standard.string(forKey: "username")!).lowercased()
+//            var password = UserDefaults.standard.string(forKey: "password")!
+//            var username = (UserDefaults.standard.string(forKey: "username")!).lowercased()
+//            var password = UserDefaults.standard.string(forKey: "password")!
+//            let url = URL(string: "https://\(server)/gameServer/login.jsp?name2=\(username)&password2=\(password)")
+//        } else {
+//
+//        }
         let session = URLSession.shared
-        _ = session.dataTask(with: url as URL!, completionHandler: { (data: Data?, response: URLResponse?, error: Error?) in
+        _ = session.dataTask(with: url!, completionHandler: { (data: Data?, response: URLResponse?, error: Error?) in
         }).resume()
 
-//        print("connected")
+        print("connected")
         var tlsSettings: [String:NSObject] = [:]
         tlsSettings.updateValue(server as NSObject, forKey: String(kCFStreamSSLPeerName))
         self.socket.startTLS(tlsSettings)
@@ -161,23 +173,30 @@ import UIKit
         return nil
     }
     func login() {
-        let username = UserDefaults.standard.string(forKey: "username")!.lowercased()
-        let password = UserDefaults.standard.string(forKey: "password")!
-//        var username = UserDefaults.standard.string(forKey: "username")!
-//        var password = UserDefaults.standard.string(forKey: "password")!
-//        if development {
-//            username = "Iostest".lowercased()
-//            password = "tsetsoi"
-//        }
-        let loginStr = "{\"dsgLoginEvent\":{\"player\":\"\(username)\",\"password\":\"\(password)\",\"guest\":false,\"time\":0}}"
-        var loginData = loginStr.data(using: .utf8)
-        loginData?.append(separator)
-        socket.write(loginData!, withTimeout: 5, tag: 1)
+        if (room.pentePlayer?.playerName.contains("guest"))! {
+            let loginStr = "{\"dsgLoginEvent\":{\"guest\":true,\"time\":0}}"
+            var loginData = loginStr.data(using: .utf8)
+            loginData?.append(separator)
+            socket.write(loginData!, withTimeout: 5, tag: 1)
+        } else {
+            let username = UserDefaults.standard.string(forKey: "username")!.lowercased()
+            let password = UserDefaults.standard.string(forKey: "password")!
+            //        var username = UserDefaults.standard.string(forKey: "username")!
+            //        var password = UserDefaults.standard.string(forKey: "password")!
+            //        if development {
+            //            username = "Iostest".lowercased()
+            //            password = "tsetsoi"
+            //        }
+            let loginStr = "{\"dsgLoginEvent\":{\"player\":\"\(username)\",\"password\":\"\(password)\",\"guest\":false,\"time\":0}}"
+            var loginData = loginStr.data(using: .utf8)
+            loginData?.append(separator)
+            socket.write(loginData!, withTimeout: 5, tag: 1)
+        }
     }
     func reLogin() {
         let url = URL(string: "https://\(server)/gameServer/bootMeMobile.jsp")
         let session = URLSession.shared
-        _ = session.dataTask(with: url as URL!, completionHandler: { (data: Data?, response: URLResponse?, error: Error?) in
+        _ = session.dataTask(with: url!, completionHandler: { (data: Data?, response: URLResponse?, error: Error?) in
         if error == nil {
             self.login()
         }

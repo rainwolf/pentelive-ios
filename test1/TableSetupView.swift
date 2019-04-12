@@ -14,13 +14,14 @@ class TableSetupView: UITableView, UITableViewDelegate, UITableViewDataSource, U
     var socket: PenteLiveSocket!
     var gameCell, initialMinutesCell, incrementalSecondsCell: InputPickerCell?
     var ratedCell, timedCell, privateCell: UITableViewCell!
-    let me = UserDefaults.standard.string(forKey: "username")!.lowercased()
+    var me: String
     
     
     
-    init(table: Table, socket: PenteLiveSocket) {
+    init(table: Table, socket: PenteLiveSocket, me: String) {
         self.table = table
         self.socket = socket
+        self.me = me
         super.init(frame: CGRect(x: 0, y: 0, width: 0, height: 0), style: UITableViewStyle.plain)
         self.delegate = self
         self.dataSource = self
@@ -30,6 +31,7 @@ class TableSetupView: UITableView, UITableViewDelegate, UITableViewDataSource, U
 
     required init(coder aDecoder: NSCoder) {
         self.table = Table(table: 1)
+        self.me = "guest"
         super.init(coder: aDecoder)!
     }
     

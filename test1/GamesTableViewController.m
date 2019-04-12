@@ -274,6 +274,7 @@ CGFloat bottomOffset = 0;
 //        password = @"tsetsoi";
 //    }
     if (!((username == nil) || (password == nil) || [username isEqualToString:@""] || [password isEqualToString:@""])) {
+        player.playerName = username.lowercaseString;
         NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
         NSString *url = @"https://www.pente.org/gameServer/logout";
         if (development) {
@@ -305,16 +306,10 @@ CGFloat bottomOffset = 0;
             dashboardString = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
         }
         if (error) {
-            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error",nil) message:[NSString stringWithFormat: @"Trouble connecting to pente.org, please try again in a bit.\nReason: %@",  error.localizedDescription] delegate:nil cancelButtonTitle:NSLocalizedString(@"OK",nil) otherButtonTitles:nil];
-            [alert show];
-//            [self performSegueWithIdentifier:@"settingsTap" sender:self];
-//            settingsViewController.showAIOption = YES;
+            [self noInternet:[NSString stringWithFormat: @"Trouble connecting to pente.org, please try again in a bit.\nReason: %@",  error.localizedDescription]];
             return;
         } else if ([dashboardString isEqualToString:@""] || ([dashboardString rangeOfString:@"HTTP Error"].length != 0)) {
-            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error",nil) message:@"pente.org appears to be down, please try again later." delegate:nil cancelButtonTitle:NSLocalizedString(@"OK",nil) otherButtonTitles:nil];
-            [alert show];
-//            [self performSegueWithIdentifier:@"settingsTap" sender:self];
-//            settingsViewController.showAIOption = YES;
+            [self noInternet: @"pente.org appears to be down, please try again later."];
             return;
         }
         else if ([dashboardString rangeOfString:@"<h2>Pente.org is undergoing maintenance.</h2>"].length != 0) {
@@ -334,10 +329,65 @@ CGFloat bottomOffset = 0;
             [self dashboardParse];
         }
     } else {
-        [self performSegueWithIdentifier:@"settingsTap" sender:self];
+        [self notRegisteredYet];
+//        [self performSegueWithIdentifier:@"settingsTap" sender:self];
 //        settingsViewController.showAIOption = YES;
         return;
     }
+}
+
+-(void) noInternet: (NSString *) message {
+    UIAlertController *anonymousOrAIController = [UIAlertController
+                                                  alertControllerWithTitle:NSLocalizedString(@"Error", nil)
+                                                  message: message
+                                                  preferredStyle:UIAlertControllerStyleActionSheet];
+    UIAlertAction *aiAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"play the onboard AI", nil) style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+        [self performSegueWithIdentifier:@"MMAItap" sender:self];
+    }];
+    UIAlertAction *cancelAction =[UIAlertAction actionWithTitle:NSLocalizedString(@"dismiss", nil) style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {
+        [self performSegueWithIdentifier:@"settingsTap" sender:self];
+    }];
+    [anonymousOrAIController addAction:aiAction];
+    [anonymousOrAIController addAction:cancelAction];
+    
+    if (anonymousOrAIController.popoverPresentationController != nil) {
+        //        subscribersOnlyController.popoverPresentationController.barButtonItem = self.navigationItem.rightBarButtonItems[1];
+        [anonymousOrAIController.popoverPresentationController setSourceView: self.navigationItem.titleView];
+        [anonymousOrAIController.popoverPresentationController setSourceRect: self.navigationItem.titleView.bounds];
+    }
+    
+    [self presentViewController:anonymousOrAIController animated:YES completion:nil];
+    
+}
+-(void) notRegisteredYet {
+    UIAlertController *anonymousOrAIController = [UIAlertController
+                                                  alertControllerWithTitle:NSLocalizedString(@"Not yet registered", nil)
+                                                  message: NSLocalizedString(@"Registration is needed to play turn-based games and maintain a rating. You can, however, play the onboard AI or play live games as a guest if you choose not to register now.", nil)
+                                                  preferredStyle:UIAlertControllerStyleActionSheet];
+    UIAlertAction *registerAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"register now", nil) style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+        [self performSegueWithIdentifier:@"settingsTap" sender:self];
+    }];
+    UIAlertAction *aiAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"play the onboard AI", nil) style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+        [self performSegueWithIdentifier:@"MMAItap" sender:self];
+    }];
+    UIAlertAction *liveGuestAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"play live as guest", nil) style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+        RoomViewController *vc = [[RoomViewController alloc] init];
+        //        NSLog(@"kitty %@", ((PenteNavigationViewController *) self.navigationController).player.playerName);
+        vc.pentePlayer = ((PenteNavigationViewController *) self.navigationController).player;
+        [self.navigationController pushViewController:vc animated:YES];
+    }];
+    [anonymousOrAIController addAction:registerAction];
+    [anonymousOrAIController addAction:aiAction];
+    [anonymousOrAIController addAction:liveGuestAction];
+    
+    if (anonymousOrAIController.popoverPresentationController != nil) {
+        //        subscribersOnlyController.popoverPresentationController.barButtonItem = self.navigationItem.rightBarButtonItems[1];
+        [anonymousOrAIController.popoverPresentationController setSourceView: self.navigationItem.titleView];
+        [anonymousOrAIController.popoverPresentationController setSourceRect: self.navigationItem.titleView.bounds];
+    }
+    
+    [self presentViewController:anonymousOrAIController animated:YES completion:nil];
+    
 }
 
 -(void) handleDeviceToken {

@@ -230,6 +230,7 @@
         subscriber = NO;
         dbAccess = NO;
         emailMe = YES;
+        playerName = @"guest";
         
         pendingAvatarChecks = [[NSMutableArray alloc] init];
         

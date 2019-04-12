@@ -36,9 +36,9 @@ class PlayerTableCell: UITableViewCell {
     }
 }
 
-class RoomViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, UITextFieldDelegate, GADBannerViewDelegate, GADInterstitialDelegate {
+@objc class RoomViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, UITextFieldDelegate, GADBannerViewDelegate, GADInterstitialDelegate {
     
-    var room: GameRoom!
+    @objc var room: GameRoom
     var socket: PenteLiveSocket!
     let segmentControl = UISegmentedControl(items: [NSLocalizedString("players", comment: ""), NSLocalizedString("tables", comment: "")])
     var playersAndTables = TablesAndPlayer()
@@ -47,7 +47,7 @@ class RoomViewController: UIViewController, UITableViewDelegate, UITableViewData
     var tableView: UITableView = UITableView()
     var textView: UITextView = UITextView()
     var textField = UITextField()
-    var me = UserDefaults.standard.string(forKey: "username")!.lowercased()
+    var me = ""
     var showAds = true
     var bannerView: GADBannerView?
     var interstitial: GADInterstitial?
@@ -56,7 +56,7 @@ class RoomViewController: UIViewController, UITableViewDelegate, UITableViewData
     var newplayerSndID:SystemSoundID!
     var invitationSndID:SystemSoundID!
     var newMoveSndID:SystemSoundID!
-    var pentePlayer: PentePlayer!
+    @objc var pentePlayer: PentePlayer?
     var wantsToSeeAvatars = UserDefaults.standard.bool(forKey: "wantToSeeAvatars")
     let playSounds = !UserDefaults.standard.bool(forKey: "inAppSoundsOff")
     var playerNamesArray: [String] = []
@@ -64,11 +64,19 @@ class RoomViewController: UIViewController, UITableViewDelegate, UITableViewData
     
     private let lockView = UIImageView(image: UIImage(named: "lock"))
     
-    
+    override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
+        self.room = GameRoom(name: "Beginners", port: 16001);
+        super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
+        self.initerface(room: self.room)
+    }
     
     init(room: GameRoom) {
         self.room = room
         super.init(nibName: nil, bundle: nil)
+        self.initerface(room: room)
+    }
+    func initerface(room: GameRoom) {
+        print("initerface")
         tableView.delegate = self
         tableView.dataSource = self
         tableView.tableHeaderView = segmentControl
@@ -106,12 +114,12 @@ class RoomViewController: UIViewController, UITableViewDelegate, UITableViewData
         sndID = 0
         AudioServicesCreateSystemSoundID(url as CFURL, &sndID)
         newMoveSndID = sndID
-//        if development {
-//            me = "iostest"
-//        }
-        
+        //        if development {
+        //            me = "iostest"
+        //        }
     }
     required init(coder aDecoder: NSCoder) {
+        self.room = GameRoom();
         super.init(coder: aDecoder)!
     }
     
@@ -135,12 +143,16 @@ class RoomViewController: UIViewController, UITableViewDelegate, UITableViewData
         frame.origin.y = frame.origin.y + frame.size.height
         frame.size.height = 40
         textField.frame = frame
+//        print("1")
+//        self.pentePlayer = (self.navigationController as! PenteNavigationViewController).player
+//                print("jitty \(self.pentePlayer?.playerName)")
         if development {
-            socket = PenteLiveSocket(server: "development.pente.org", port: room.port)
+            socket = PenteLiveSocket(server: "development.pente.org", port: room.port, room: self)
         } else {
-            socket = PenteLiveSocket(server: "pente.org", port: room.port)
+            socket = PenteLiveSocket(server: "pente.org", port: room.port, room: self)
         }
-        socket.room = self
+//        socket.room = self
+//        print("2")
     }
     
     override func willMove(toParentViewController parent: UIViewController?) {
@@ -169,8 +181,8 @@ class RoomViewController: UIViewController, UITableViewDelegate, UITableViewData
 //        } else {
 //            print("oh no")
 //        }
-        showAds = pentePlayer.showAds
-//        showAds = true
+        showAds = pentePlayer!.showAds
+//        showAds = false
         
         self.tableViewController = nil
         if showAds && bannerView == nil {
@@ -243,7 +255,7 @@ class RoomViewController: UIViewController, UITableViewDelegate, UITableViewData
             cell.detailTextLabel?.attributedText = player.getRatingString(game: 1)
             cell.selectionStyle = .none
             if wantsToSeeAvatars {
-                if let image = pentePlayer.avatars.object(forKey: player.name) as? UIImage {
+                if let image = pentePlayer?.avatars.object(forKey: player.name) as? UIImage {
                     cell.imageView?.image = image
                 } else {
                     cell.imageView?.image = nil
@@ -307,6 +319,9 @@ class RoomViewController: UIViewController, UITableViewDelegate, UITableViewData
     
     
     func loginEvent(event: [String: Any]) {
+        pentePlayer?.playerName = (event["player"] as! String)
+        self.me = pentePlayer!.playerName
+        socket.me = self.me
         let serverData = event["serverData"] as! [String:Any]
         let messages: [String] = serverData["loginMessages"] as! [String]
         DispatchQueue.main.async {
@@ -354,7 +369,7 @@ class RoomViewController: UIViewController, UITableViewDelegate, UITableViewData
 //        player.color = UIColor.black
         player.subscriber = playerData["unlimitedTBGames"] as! Bool
         if wantsToSeeAvatars && player.subscriber {
-            pentePlayer.addUser(playerName)
+            pentePlayer?.addUser(playerName)
         }
         DispatchQueue.main.async {
             if self.playSounds {
@@ -541,8 +556,8 @@ class RoomViewController: UIViewController, UITableViewDelegate, UITableViewData
             let table = self.playersAndTables.table(tableId: tableId)
             self.tableView.reloadData()
             if playerName == self.me {
-                self.tableViewController = TableViewController(table: table!, socket: self.socket, tablesAndPlayers: self.playersAndTables)
-                self.tableViewController?.pentePlayer = self.pentePlayer
+                self.tableViewController = TableViewController(table: table!, socket: self.socket, tablesAndPlayers: self.playersAndTables, pente_player: self.pentePlayer!, me: self.me)
+//                self.tableViewController?.pentePlayer = self.pentePlayer
                 self.navigationController?.pushViewController(self.tableViewController!, animated: true)
                 if self.showAds {
                     self.interstitial?.present(fromRootViewController: self.tableViewController!)

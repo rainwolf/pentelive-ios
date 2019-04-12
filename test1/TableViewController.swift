@@ -30,7 +30,7 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
     let zoomedBoard: LiveBoard!
     var textView: UITextView = UITextView()
     var textField = UITextField()
-    let me = UserDefaults.standard.string(forKey: "username")!.lowercased()
+    var me: String
     var showAds = true
     var bannerView: GADBannerView?
     var seatsView: SeatsView!
@@ -53,13 +53,15 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
     var pentePlayer: PentePlayer!
     
     
-    init(table: Table, socket: PenteLiveSocket, tablesAndPlayers: TablesAndPlayer) {
+    init(table: Table, socket: PenteLiveSocket, tablesAndPlayers: TablesAndPlayer, pente_player: PentePlayer, me: String) {
         self.table = table
         self.socket = socket
         self.board = LiveBoard(table: table)
         self.zoomedBoard = LiveBoard(table: table)
-        self.setupView = TableSetupView(table: table, socket: socket)
+        self.setupView = TableSetupView(table: table, socket: socket, me: me)
         self.tablesAndPlayers = tablesAndPlayers
+        self.pentePlayer = pente_player
+        self.me = me
         super.init(nibName: nil, bundle: nil)
         edgesForExtendedLayout = []
         textView.layer.borderWidth = 2.0
@@ -107,6 +109,7 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
         self.zoomedBoard = LiveBoard(table: Table(table: -1))
         self.setupView = TableSetupView(coder: aDecoder)
         self.tablesAndPlayers = TablesAndPlayer()
+        self.me = "guest"
         super.init(coder: aDecoder)!
     }
 
@@ -274,7 +277,7 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
         frame.origin.y = self.view.frame.size.height
         frame.size.height = 40
         textField.frame = frame
-        showAds = (self.navigationController as! PenteNavigationViewController).player.showAds
+        showAds = pentePlayer.showAds
 //        showAds = true
         if showAds {
             if bannerView == nil {
