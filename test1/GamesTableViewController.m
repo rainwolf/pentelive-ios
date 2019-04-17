@@ -2404,8 +2404,10 @@ CGFloat bottomOffset = 0;
                         gameStr = @"Go";
                     } else if (gameInt < 23) {
                         gameStr = @"Go (9x9)";
-                    } else {
+                    } else if (gameInt < 25) {
                         gameStr = @"Go (13x13)";
+                    } else {
+                        gameStr = @"O-Pente";
                     }
                     if (hill.gameId > 50) {
                         [hill setGame: [@"tb-" stringByAppendingString:gameStr]];
@@ -2491,8 +2493,10 @@ CGFloat bottomOffset = 0;
                         gameStr = @"Go";
                     } else if (gameInt < 23) {
                         gameStr = @"Go (9x9)";
-                    } else {
+                    } else if (gameInt < 25) {
                         gameStr = @"Go (13x13)";
+                    } else {
+                        gameStr = @"O-Pente";
                     }
                     if (ratingStat.gameId > 50) {
                         [ratingStat setGame: [@"tb-" stringByAppendingString:gameStr]];

@@ -105,7 +105,8 @@ class Table: NSObject {
     let gameNames = [1: "Pente", 2: "Speed Pente", 3: "Keryo-Pente", 4: "Speed Keryo-Pente", 5: "Gomoku", 6: "Speed Gomoku",
                      7: "D-Pente", 8: "Speed D-Pente", 9: "G-Pente", 10: "Speed G-Pente", 11: "Poof-Pente", 12: "Speed Poof-Pente",
                      13: "Connect6", 14: "Speed Connect6", 15: "Boat-Pente", 16: "Speed Boat-Pente", 17: "DK-Pente", 18: "Speed DK-Pente",
-                     19: "Go", 20: "Speed Go", 21: "Go (9x9)", 22: "Speed Go (9x9)", 23: "Go (13x13)", 24: "Speed Go (13x13)"]
+                     19: "Go", 20: "Speed Go", 21: "Go (9x9)", 22: "Speed Go (9x9)", 23: "Go (13x13)", 24: "Speed Go (13x13)",
+                     25: "O-Pente", 26: "Speed O-Pente"]
     
     init(table: Int) {
         self.table = table
@@ -213,11 +214,14 @@ class Table: NSObject {
         let j = move % 19
         abstractBoard[i][j] = color
         if game != 5 && game != 6 && game != 13 && game != 14 {
-            if game == 11 || game == 12 {
+            if game == 11 || game == 12 || game == 25 || game == 26 {
                 detectPoof(move: move, color: color)
             }
+            if game == 25 || game == 26 {
+                detectKeryoPoof(move: move, color: color)
+            }
             detectCapture(move: move, color: color)
-            if game == 3 || game == 4 || game == 17 || game == 18 {
+            if game == 3 || game == 4 || game == 17 || game == 18 || game == 25 || game == 26 {
                 detectKeryoCapture(move: move, color: color)
             }
         }
@@ -467,8 +471,10 @@ class Table: NSObject {
             return UIColor(red:0.145, green:0.729, blue:1, alpha:1)
         } else if game < 19 {
             return UIColor(red:1, green:165.0/255.0, blue:0, alpha:1)
-        } else {
+        } else if game < 25 {
             return UIColor(red:250.0/255, green:200.0/255.0, blue:50.0/255.0, alpha:1)
+        } else {
+            return UIColor(red:0.32, green:0.75, blue:0.50, alpha:1.0);
         }
     }
     func isGo() -> Bool {
@@ -1178,6 +1184,205 @@ class Table: NSObject {
                 blackCaptures = blackCaptures + 1
             }
         }
+    }
+    
+    func detectKeryoPoof(move: Int, color: Int) {
+        let i = move / 19
+        let j = move % 19
+        let myColor = color
+        let opponentColor = 3 - color
+        var poofed = false
+        if (((i-3) > -1) && ((i+1) < 19)) { // left
+            if (abstractBoard[i-1][j] == myColor && abstractBoard[i-2][j] == myColor) {
+                if ((abstractBoard[i-3][j] == opponentColor) && (abstractBoard[i+1][j] == opponentColor)) {
+                    abstractBoard[i-2][j] = 0;
+                    abstractBoard[i-1][j] = 0;
+                    abstractBoard[i][j] = 0;
+                    if (myColor == 1) {
+                        whiteCaptures += 2;
+                    } else {
+                        blackCaptures += 2;
+                    }
+                    poofed = true;
+                }
+            }
+        }
+        if (((i-3) > -1) && ((j-3) > -1) && ((i+1) < 19) && ((j+1) < 19)) { // up left
+            if (abstractBoard[i-1][j-1] == myColor && abstractBoard[i-2][j-2] == myColor) {
+                if ((abstractBoard[i-3][j-3] == opponentColor) && (abstractBoard[i+1][j+1] == opponentColor)) {
+                    abstractBoard[i-2][j-2] = 0;
+                    abstractBoard[i-1][j-1] = 0;
+                    abstractBoard[i][j] = 0;
+                    if (myColor == 1) {
+                        whiteCaptures += 2;
+                    } else {
+                        blackCaptures += 2;
+                    }
+                    poofed = true;
+                }
+            }
+        }
+        if (((j-3) > -1) && ((j+1) < 19)) { // up
+            if (abstractBoard[i][j-1] == myColor && abstractBoard[i][j-2] == myColor) {
+                if ((abstractBoard[i][j-3] == opponentColor) && (abstractBoard[i][j+1] == opponentColor)) {
+                    abstractBoard[i][j-2] = 0;
+                    abstractBoard[i][j-1] = 0;
+                    abstractBoard[i][j] = 0;
+                    if (myColor == 1) {
+                        whiteCaptures += 2;
+                    } else {
+                        blackCaptures += 2;
+                    }
+                    poofed = true;
+                }
+            }
+        }
+        if (((i-1) > -1) && ((j-3) > -1) && ((i+3) < 19) && ((j+1) < 19)) { // up right
+            if (abstractBoard[i+1][j-1] == myColor && abstractBoard[i+2][j-2] == myColor) {
+                if ((abstractBoard[i-1][j+1] == opponentColor) && (abstractBoard[i+3][j-3] == opponentColor)) {
+                    abstractBoard[i+2][j-2] = 0;
+                    abstractBoard[i+1][j-1] = 0;
+                    abstractBoard[i][j] = 0;
+                    if (myColor == 1) {
+                        whiteCaptures += 2;
+                    } else {
+                        blackCaptures += 2;
+                    }
+                    poofed = true;
+                }
+            }
+        }
+        if (((i+3) < 19) && ((i-1) > -1)) { // right
+            if (abstractBoard[i+1][j] == myColor && abstractBoard[i+2][j] == myColor) {
+                if ((abstractBoard[i+3][j] == opponentColor) && (abstractBoard[i-1][j] == opponentColor)) {
+                    abstractBoard[i+2][j] = 0;
+                    abstractBoard[i+1][j] = 0;
+                    abstractBoard[i][j] = 0;
+                    if (myColor == 1) {
+                        whiteCaptures += 2;
+                    } else {
+                        blackCaptures += 2;
+                    }
+                    poofed = true;
+                }
+            }
+        }
+        if (((i-1) > -1) && ((j-1) > -1) && ((i+3) < 19) && ((j+3) < 19)) { // down right
+            if (abstractBoard[i+1][j+1] == myColor && abstractBoard[i+2][j+2] == myColor) {
+                if ((abstractBoard[i-1][j-1] == opponentColor) && (abstractBoard[i+3][j+3] == opponentColor)) {
+                    abstractBoard[i+2][j+2] = 0;
+                    abstractBoard[i+1][j+1] = 0;
+                    abstractBoard[i][j] = 0;
+                    if (myColor == 1) {
+                        whiteCaptures += 2;
+                    } else {
+                        blackCaptures += 2;
+                    }
+                    poofed = true;
+                }
+            }
+        }
+        if (((j+2) < 19) && ((j-1) > -1)) { // down
+            if (abstractBoard[i][j+1] == myColor && abstractBoard[i][j+2] == myColor) {
+                if ((abstractBoard[i][j-1] == opponentColor) && (abstractBoard[i][j+3] == opponentColor)) {
+                    abstractBoard[i][j+1] = 0;
+                    abstractBoard[i][j+2] = 0;
+                    abstractBoard[i][j] = 0;
+                    if (myColor == 1) {
+                        whiteCaptures += 2;
+                    } else {
+                        blackCaptures += 2;
+                    }
+                    poofed = true;
+                }
+            }
+        }
+        if (((i-3) > -1) && ((j-1) > -1) && ((i+1) < 19) && ((j+3) < 19)) { // down left
+            if (abstractBoard[i-1][j+1] == myColor && abstractBoard[i-2][j+2] == myColor) {
+                if ((abstractBoard[i+1][j-1] == opponentColor) && (abstractBoard[i-3][j+3] == opponentColor)) {
+                    abstractBoard[i-2][j+2] = 0;
+                    abstractBoard[i-1][j+1] = 0;
+                    abstractBoard[i][j] = 0;
+                    if (myColor == 1) {
+                        whiteCaptures += 2;
+                    } else {
+                        blackCaptures += 2;
+                    }
+                    poofed = true;
+                }
+            }
+        }
+        
+        // 4 directions with center of 3 stones placed to poof
+        if (((i-2) > -1) && ((i+2) < 19)) { // horizontal
+            if (abstractBoard[i-1][j] == myColor && abstractBoard[i+1][j] == myColor) {
+                if ((abstractBoard[i-2][j] == opponentColor) && (abstractBoard[i+2][j] == opponentColor)) {
+                    abstractBoard[i+1][j] = 0;
+                    abstractBoard[i-1][j] = 0;
+                    abstractBoard[i][j] = 0;
+                    if (myColor == 1) {
+                        whiteCaptures += 2;
+                    } else {
+                        blackCaptures += 2;
+                    }
+                    poofed = true;
+                }
+            }
+        }
+        if (((i-2) > -1) && ((j-2) > -1) && ((i+2) < 19) && ((j+2) < 19)) { // up left
+            if (abstractBoard[i-1][j-1] == myColor && abstractBoard[i+1][j+1] == myColor) {
+                if ((abstractBoard[i-2][j-2] == opponentColor) && (abstractBoard[i+2][j+2] == opponentColor)) {
+                    abstractBoard[i+1][j+1] = 0;
+                    abstractBoard[i-1][j-1] = 0;
+                    abstractBoard[i][j] = 0;
+                    if (myColor == 1) {
+                        whiteCaptures += 2;
+                    } else {
+                        blackCaptures += 2;
+                    }
+                    poofed = true;
+                }
+            }
+        }
+        if (((j-2) > -1) && ((j+2) < 19)) { // vertical
+            if (abstractBoard[i][j-1] == myColor && abstractBoard[i][j+1] == myColor) {
+                if ((abstractBoard[i][j-2] == opponentColor) && (abstractBoard[i][j+2] == opponentColor)) {
+                    abstractBoard[i][j+1] = 0;
+                    abstractBoard[i][j-1] = 0;
+                    abstractBoard[i][j] = 0;
+                    if (myColor == 1) {
+                        whiteCaptures += 2;
+                    } else {
+                        blackCaptures += 2;
+                    }
+                    poofed = true;
+                }
+            }
+        }
+        if (((i-2) > -1) && ((j-2) > -1) && ((i+2) < 19) && ((j+2) < 19)) { // up right
+            if (abstractBoard[i+1][j-1] == myColor && abstractBoard[i+1][j-1] == myColor) {
+                if ((abstractBoard[i-2][j+2] == opponentColor) && (abstractBoard[i+2][j-2] == opponentColor)) {
+                    abstractBoard[i+1][j-1] = 0;
+                    abstractBoard[i-1][j+1] = 0;
+                    abstractBoard[i][j] = 0;
+                    if (myColor == 1) {
+                        whiteCaptures += 2;
+                    } else {
+                        blackCaptures += 2;
+                    }
+                    poofed = true;
+                }
+            }
+        }
+        
+        if (poofed) {
+            if (myColor == 1) {
+                whiteCaptures += 1;
+            } else {
+                blackCaptures += 1;
+            }
+        }
+
     }
 }
 

@@ -49,8 +49,8 @@
         for (int i = 1600; i<2800; i += 100) {
             [ratingChoices addObject:[NSString stringWithFormat:@"%d",i]];
         }
-        gameChoices = [[NSMutableArray alloc] initWithObjects:@"Pente", @"Keryo-Pente", @"Gomoku", @"D-Pente", @"G-Pente", @"Poof-Pente", @"Connect6", @"Boat-Pente", @"DK-Pente",
-                       @"Speed Pente", @"Speed Keryo-Pente", @"Speed Gomoku", @"Speed D-Pente", @"Speed G-Pente", @"Speed Poof-Pente", @"Speed Connect6", @"Speed Boat-Pente", @"Speed DK-Pente", nil];
+        gameChoices = [[NSMutableArray alloc] initWithObjects:@"Pente", @"Keryo-Pente", @"Gomoku", @"D-Pente", @"G-Pente", @"Poof-Pente", @"Connect6", @"Boat-Pente", @"DK-Pente", @"O-Pente",
+                       @"Speed Pente", @"Speed Keryo-Pente", @"Speed Gomoku", @"Speed D-Pente", @"Speed G-Pente", @"Speed Poof-Pente", @"Speed Connect6", @"Speed Boat-Pente", @"Speed DK-Pente", @"Speed O-Pente", nil];
     }
     return self;
 }
@@ -548,6 +548,9 @@
         //        [gameCell.textField setText:@"Pente"];
         [board setBackgroundColor:[UIColor colorWithRed:1 green:165.0/255.0 blue:0 alpha:1]];
         [zBoard setBackgroundColor:[UIColor colorWithRed:1 green:165.0/255.0 blue:0 alpha:1]];
+    } else if ([gameCell.textField.text isEqualToString:@"O-Pente"] || [gameCell.textField.text isEqualToString:@"Speed O-Pente"]) {
+        [board setBackgroundColor:[UIColor colorWithRed:0.32 green:0.75 blue:0.50 alpha:1.0]];
+        [zBoard setBackgroundColor:[UIColor colorWithRed:0.32 green:0.75 blue:0.50 alpha:1.0]];
     }
     [board setNeedsDisplay];
     [zBoard setNeedsDisplay];

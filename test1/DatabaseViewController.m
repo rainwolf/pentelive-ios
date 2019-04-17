@@ -308,6 +308,9 @@ struct Capture {
     } else if ([game containsString:@"DK-Pente"]) {
         [board setBackgroundColor:[UIColor colorWithRed:1 green:165.0/255.0 blue:0 alpha:1]];
         [zoomedBoard setBackgroundColor:[UIColor colorWithRed:1 green:165.0/255.0 blue:0 alpha:1]];
+    } else if ([game containsString:@"O-Pente"]) {
+        [board setBackgroundColor:[UIColor colorWithRed:0.32 green:0.75 blue:0.50 alpha:1.0]];
+        [zoomedBoard setBackgroundColor:[UIColor colorWithRed:0.32 green:0.75 blue:0.50 alpha:1.0]];
     } else if ([game containsString:@"Pente"]) {
         [board setBackgroundColor:[UIColor colorWithRed:0.984 green:0.851 blue:0.541 alpha:1]];
         [zoomedBoard setBackgroundColor:[UIColor colorWithRed:0.984 green:0.851 blue:0.541 alpha:1]];
@@ -436,11 +439,14 @@ struct Capture {
                 }
                 if (![game containsString:@"Gomoku"] && ![game containsString:@"Connect6"]) {
                     int color = 2 - ([movesList count] % 2), opponentColor = (color == 2) ? 1 : 2;
-                    if ([game containsString:@"Poof-Pente"]) {
+                    if ([game containsString:@"Poof-Pente"] || [game containsString:@"O-Pente"]) {
                         [self detectPoof:color atPosition:finalMove];
                     }
+                    if ([game containsString:@"O-Pente"]) {
+                        [self detectKeryoPoof:color atPosition:finalMove];
+                    }
                     [self detectCaptureOfOpponent:opponentColor atPosition:finalMove];
-                    if ([game containsString:@"Keryo-Pente"] || [game containsString:@"DK-Pente"]) {
+                    if ([game containsString:@"Keryo-Pente"] || [game containsString:@"DK-Pente"] || [game containsString:@"O-Pente"]) {
                         [self detectKeryoCaptureOfOpponent:opponentColor atPosition:finalMove];
                     }
                     if ([game containsString:@"G-Pente"] && [movesList count] == 2) {
@@ -948,11 +954,14 @@ struct Capture {
         abstractBoard[rowCol / 19][rowCol % 19] = color;
         i+=1;
         if (![game containsString:@"Gomoku"] && ![game containsString:@"Connect6"]) {
-            if ([game containsString:@"Poof-Pente"]) {
+            if ([game containsString:@"Poof-Pente"] || [game containsString:@"O-Pente"]) {
                 [self detectPoof:color atPosition:rowCol];
             }
+            if ([game containsString:@"O-Pente"]) {
+                [self detectKeryoPoof:color atPosition:rowCol];
+            }
             [self detectCaptureOfOpponent:opponentColor atPosition:rowCol];
-            if ([game containsString:@"Keryo-Pente"] || [game containsString:@"DK-Pente"]) {
+            if ([game containsString:@"Keryo-Pente"] || [game containsString:@"DK-Pente"] || [game containsString:@"O-Pente"]) {
                 [self detectKeryoCaptureOfOpponent:opponentColor atPosition:rowCol];
             }
         } else {
@@ -1408,6 +1417,266 @@ struct Capture {
                 capture.color = myColor;
                 capture.position = (i-1)*19 + (j+1);
                 [captures addObject:[NSValue value:&capture withObjCType:@encode(struct Capture)]];
+            }
+        }
+    }
+    
+    if (poof) {
+        if (myColor == 1) {
+            ++whiteCaptures;
+        } else {
+            ++blackCaptures;
+        }
+        capture.color = myColor;
+        capture.position = i*19 + j;
+        [captures insertObject:[NSValue value:&capture withObjCType:@encode(struct Capture)] atIndex: capturesLength];
+    }
+    return poof;
+}
+
+-(BOOL) detectKeryoPoof: (int) myColor atPosition: (int) rowCol {
+    BOOL poof = NO;
+    struct Capture capture;
+    int i = rowCol / 19, j = rowCol % 19, opponentColor = (myColor == 1) ? 2 : 1, capturesLength = (int) [captures count];
+    if (((i-3) > -1) && ((i+1) < 19)) { // left
+        if (abstractBoard[i-1][j] == myColor && abstractBoard[i-2][j] == myColor) {
+            if ((abstractBoard[i-3][j] == opponentColor) && (abstractBoard[i+1][j] == opponentColor)) {
+                abstractBoard[i-2][j] = 0;
+                abstractBoard[i-1][j] = 0;
+                abstractBoard[i][j] = 0;
+                if (myColor == 1) {
+                    whiteCaptures += 2;
+                } else {
+                    blackCaptures += 2;
+                }
+                capture.color = myColor;
+                capture.position = (i-2)*19 + (j);
+                [captures addObject:[NSValue value:&capture withObjCType:@encode(struct Capture)]];
+                capture.position = (i-1)*19 + (j);
+                [captures addObject:[NSValue value:&capture withObjCType:@encode(struct Capture)]];
+                poof = true;
+            }
+        }
+    }
+    if (((i-3) > -1) && ((j-3) > -1) && ((i+1) < 19) && ((j+1) < 19)) { // up left
+        if (abstractBoard[i-1][j-1] == myColor && abstractBoard[i-2][j-2] == myColor) {
+            if ((abstractBoard[i-3][j-3] == opponentColor) && (abstractBoard[i+1][j+1] == opponentColor)) {
+                abstractBoard[i-2][j-2] = 0;
+                abstractBoard[i-1][j-1] = 0;
+                abstractBoard[i][j] = 0;
+                if (myColor == 1) {
+                    whiteCaptures += 2;
+                } else {
+                    blackCaptures += 2;
+                }
+                capture.color = myColor;
+                capture.position = (i-2)*19 + (j-2);
+                [captures addObject:[NSValue value:&capture withObjCType:@encode(struct Capture)]];
+                capture.position = (i-1)*19 + (j-1);
+                [captures addObject:[NSValue value:&capture withObjCType:@encode(struct Capture)]];
+                poof = true;
+            }
+        }
+    }
+    if (((j-3) > -1) && ((j+1) < 19)) { // up
+        if (abstractBoard[i][j-1] == myColor && abstractBoard[i][j-2] == myColor) {
+            if ((abstractBoard[i][j-3] == opponentColor) && (abstractBoard[i][j+1] == opponentColor)) {
+                abstractBoard[i][j-2] = 0;
+                abstractBoard[i][j-1] = 0;
+                abstractBoard[i][j] = 0;
+                if (myColor == 1) {
+                    whiteCaptures += 2;
+                } else {
+                    blackCaptures += 2;
+                }
+                capture.color = myColor;
+                capture.position = (i)*19 + (j-2);
+                [captures addObject:[NSValue value:&capture withObjCType:@encode(struct Capture)]];
+                capture.position = (i)*19 + (j-1);
+                [captures addObject:[NSValue value:&capture withObjCType:@encode(struct Capture)]];
+                poof = true;
+            }
+        }
+    }
+    if (((i-1) > -1) && ((j-3) > -1) && ((i+3) < 19) && ((j+1) < 19)) { // up right
+        if (abstractBoard[i+1][j-1] == myColor && abstractBoard[i+2][j-2] == myColor) {
+            if ((abstractBoard[i-1][j+1] == opponentColor) && (abstractBoard[i+3][j-3] == opponentColor)) {
+                abstractBoard[i+2][j-2] = 0;
+                abstractBoard[i+1][j-1] = 0;
+                abstractBoard[i][j] = 0;
+                if (myColor == 1) {
+                    whiteCaptures += 2;
+                } else {
+                    blackCaptures += 2;
+                }
+                capture.color = myColor;
+                capture.position = (i+2)*19 + (j-2);
+                [captures addObject:[NSValue value:&capture withObjCType:@encode(struct Capture)]];
+                capture.position = (i+1)*19 + (j-1);
+                [captures addObject:[NSValue value:&capture withObjCType:@encode(struct Capture)]];
+                poof = true;
+            }
+        }
+    }
+    if (((i+3) < 19) && ((i-1) > -1)) { // right
+        if (abstractBoard[i+1][j] == myColor && abstractBoard[i+2][j] == myColor) {
+            if ((abstractBoard[i+3][j] == opponentColor) && (abstractBoard[i-1][j] == opponentColor)) {
+                abstractBoard[i+2][j] = 0;
+                abstractBoard[i+1][j] = 0;
+                abstractBoard[i][j] = 0;
+                if (myColor == 1) {
+                    whiteCaptures += 2;
+                } else {
+                    blackCaptures += 2;
+                }
+                capture.color = myColor;
+                capture.position = (i+2)*19 + (j);
+                [captures addObject:[NSValue value:&capture withObjCType:@encode(struct Capture)]];
+                capture.position = (i+1)*19 + (j);
+                [captures addObject:[NSValue value:&capture withObjCType:@encode(struct Capture)]];
+                poof = true;
+            }
+        }
+    }
+    if (((i-1) > -1) && ((j-1) > -1) && ((i+3) < 19) && ((j+3) < 19)) { // down right
+        if (abstractBoard[i+1][j+1] == myColor && abstractBoard[i+2][j+2] == myColor) {
+            if ((abstractBoard[i-1][j-1] == opponentColor) && (abstractBoard[i+3][j+3] == opponentColor)) {
+                abstractBoard[i+2][j+2] = 0;
+                abstractBoard[i+1][j+1] = 0;
+                abstractBoard[i][j] = 0;
+                if (myColor == 1) {
+                    whiteCaptures += 2;
+                } else {
+                    blackCaptures += 2;
+                }
+                capture.color = myColor;
+                capture.position = (i+2)*19 + (j+2);
+                [captures addObject:[NSValue value:&capture withObjCType:@encode(struct Capture)]];
+                capture.position = (i+1)*19 + (j+1);
+                [captures addObject:[NSValue value:&capture withObjCType:@encode(struct Capture)]];
+                poof = true;
+            }
+        }
+    }
+    if (((j+2) < 19) && ((j-1) > -1)) { // down
+        if (abstractBoard[i][j+1] == myColor && abstractBoard[i][j+2] == myColor) {
+            if ((abstractBoard[i][j-1] == opponentColor) && (abstractBoard[i][j+3] == opponentColor)) {
+                abstractBoard[i][j+1] = 0;
+                abstractBoard[i][j+2] = 0;
+                abstractBoard[i][j] = 0;
+                if (myColor == 1) {
+                    whiteCaptures += 2;
+                } else {
+                    blackCaptures += 2;
+                }
+                capture.color = myColor;
+                capture.position = (i)*19 + (j+1);
+                [captures addObject:[NSValue value:&capture withObjCType:@encode(struct Capture)]];
+                capture.position = (i)*19 + (j+2);
+                [captures addObject:[NSValue value:&capture withObjCType:@encode(struct Capture)]];
+                poof = true;
+            }
+        }
+    }
+    if (((i-3) > -1) && ((j-1) > -1) && ((i+1) < 19) && ((j+3) < 19)) { // down left
+        if (abstractBoard[i-1][j+1] == myColor && abstractBoard[i-2][j+2] == myColor) {
+            if ((abstractBoard[i+1][j-1] == opponentColor) && (abstractBoard[i-3][j+3] == opponentColor)) {
+                abstractBoard[i-2][j+2] = 0;
+                abstractBoard[i-1][j+1] = 0;
+                abstractBoard[i][j] = 0;
+                if (myColor == 1) {
+                    whiteCaptures += 2;
+                } else {
+                    blackCaptures += 2;
+                }
+                capture.color = myColor;
+                capture.position = (i-2)*19 + (j+2);
+                [captures addObject:[NSValue value:&capture withObjCType:@encode(struct Capture)]];
+                capture.position = (i-1)*19 + (j+1);
+                [captures addObject:[NSValue value:&capture withObjCType:@encode(struct Capture)]];
+                poof = true;
+            }
+        }
+    }
+    
+    // 4 directions with center of 3 stones placed to poof
+    if (((i-2) > -1) && ((i+2) < 19)) { // horizontal
+        if (abstractBoard[i-1][j] == myColor && abstractBoard[i+1][j] == myColor) {
+            if ((abstractBoard[i-2][j] == opponentColor) && (abstractBoard[i+2][j] == opponentColor)) {
+                abstractBoard[i+1][j] = 0;
+                abstractBoard[i-1][j] = 0;
+                abstractBoard[i][j] = 0;
+                if (myColor == 1) {
+                    whiteCaptures += 2;
+                } else {
+                    blackCaptures += 2;
+                }
+                capture.color = myColor;
+                capture.position = (i+1)*19 + (j);
+                [captures addObject:[NSValue value:&capture withObjCType:@encode(struct Capture)]];
+                capture.position = (i-1)*19 + (j);
+                [captures addObject:[NSValue value:&capture withObjCType:@encode(struct Capture)]];
+                poof = true;
+            }
+        }
+    }
+    if (((i-2) > -1) && ((j-2) > -1) && ((i+2) < 19) && ((j+2) < 19)) { // up left
+        if (abstractBoard[i-1][j-1] == myColor && abstractBoard[i+1][j+1] == myColor) {
+            if ((abstractBoard[i-2][j-2] == opponentColor) && (abstractBoard[i+2][j+2] == opponentColor)) {
+                abstractBoard[i+1][j+1] = 0;
+                abstractBoard[i-1][j-1] = 0;
+                abstractBoard[i][j] = 0;
+                if (myColor == 1) {
+                    whiteCaptures += 2;
+                } else {
+                    blackCaptures += 2;
+                }
+                capture.color = myColor;
+                capture.position = (i+1)*19 + (j+1);
+                [captures addObject:[NSValue value:&capture withObjCType:@encode(struct Capture)]];
+                capture.position = (i-1)*19 + (j-1);
+                [captures addObject:[NSValue value:&capture withObjCType:@encode(struct Capture)]];
+                poof = true;
+            }
+        }
+    }
+    if (((j-2) > -1) && ((j+2) < 19)) { // vertical
+        if (abstractBoard[i][j-1] == myColor && abstractBoard[i][j+1] == myColor) {
+            if ((abstractBoard[i][j-2] == opponentColor) && (abstractBoard[i][j+2] == opponentColor)) {
+                abstractBoard[i][j+1] = 0;
+                abstractBoard[i][j-1] = 0;
+                abstractBoard[i][j] = 0;
+                if (myColor == 1) {
+                    whiteCaptures += 2;
+                } else {
+                    blackCaptures += 2;
+                }
+                capture.color = myColor;
+                capture.position = (i)*19 + (j+1);
+                [captures addObject:[NSValue value:&capture withObjCType:@encode(struct Capture)]];
+                capture.position = (i)*19 + (j-1);
+                [captures addObject:[NSValue value:&capture withObjCType:@encode(struct Capture)]];
+                poof = true;
+            }
+        }
+    }
+    if (((i-2) > -1) && ((j-2) > -1) && ((i+2) < 19) && ((j+2) < 19)) { // up right
+        if (abstractBoard[i+1][j-1] == myColor && abstractBoard[i+1][j-1] == myColor) {
+            if ((abstractBoard[i-2][j+2] == opponentColor) && (abstractBoard[i+2][j-2] == opponentColor)) {
+                abstractBoard[i+1][j-1] = 0;
+                abstractBoard[i-1][j+1] = 0;
+                abstractBoard[i][j] = 0;
+                if (myColor == 1) {
+                    whiteCaptures += 2;
+                } else {
+                    blackCaptures += 2;
+                }
+                capture.color = myColor;
+                capture.position = (i+1)*19 + (j-1);
+                [captures addObject:[NSValue value:&capture withObjCType:@encode(struct Capture)]];
+                capture.position = (i-1)*19 + (j+1);
+                [captures addObject:[NSValue value:&capture withObjCType:@encode(struct Capture)]];
+                poof = true;
             }
         }
     }
