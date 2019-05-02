@@ -65,7 +65,7 @@ class PlayerTableCell: UITableViewCell {
     private let lockView = UIImageView(image: UIImage(named: "lock"))
     
     override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
-        self.room = GameRoom(name: "Beginners", port: 16001);
+        self.room = GameRoom(name: "Main Room", port: 16000);
         super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
         self.initerface(room: self.room)
     }
@@ -76,7 +76,6 @@ class PlayerTableCell: UITableViewCell {
         self.initerface(room: room)
     }
     func initerface(room: GameRoom) {
-        print("initerface")
         tableView.delegate = self
         tableView.dataSource = self
         tableView.tableHeaderView = segmentControl

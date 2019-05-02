@@ -5,29 +5,29 @@ PODS:
   - ARChromeActivity (1.0.6)
   - CocoaAsyncSocket (7.6.3)
   - Color-Picker-for-iOS (2.0.2)
-  - Google-Mobile-Ads-SDK (7.42.2):
+  - Google-Mobile-Ads-SDK (7.43.0):
     - GoogleAppMeasurement (~> 5.7)
-  - GoogleAppMeasurement (5.8.0):
+  - GoogleAppMeasurement (5.8.1):
     - GoogleUtilities/AppDelegateSwizzler (~> 5.2)
     - GoogleUtilities/MethodSwizzler (~> 5.2)
     - GoogleUtilities/Network (~> 5.2)
     - "GoogleUtilities/NSData+zlib (~> 5.2)"
     - nanopb (~> 0.3)
-  - GoogleUtilities/AppDelegateSwizzler (5.5.0):
+  - GoogleUtilities/AppDelegateSwizzler (5.8.0):
     - GoogleUtilities/Environment
     - GoogleUtilities/Logger
     - GoogleUtilities/Network
-  - GoogleUtilities/Environment (5.5.0)
-  - GoogleUtilities/Logger (5.5.0):
+  - GoogleUtilities/Environment (5.8.0)
+  - GoogleUtilities/Logger (5.8.0):
     - GoogleUtilities/Environment
-  - GoogleUtilities/MethodSwizzler (5.5.0):
+  - GoogleUtilities/MethodSwizzler (5.8.0):
     - GoogleUtilities/Logger
-  - GoogleUtilities/Network (5.5.0):
+  - GoogleUtilities/Network (5.8.0):
     - GoogleUtilities/Logger
     - "GoogleUtilities/NSData+zlib"
     - GoogleUtilities/Reachability
-  - "GoogleUtilities/NSData+zlib (5.5.0)"
-  - GoogleUtilities/Reachability (5.5.0):
+  - "GoogleUtilities/NSData+zlib (5.8.0)"
+  - GoogleUtilities/Reachability (5.8.0):
     - GoogleUtilities/Logger
   - HexColors (2.3.0)
   - ICDMaterialActivityIndicatorView (0.1.3)
@@ -107,9 +107,9 @@ SPEC CHECKSUMS:
   ARChromeActivity: 5dcf9b9f09323761f992aff3525cdd777f83609d
   CocoaAsyncSocket: eafaa68a7e0ec99ead0a7b35015e0bf25d2c8987
   Color-Picker-for-iOS: 4980589b3e3cfe7198f227dd50be9adb02d8bc0b
-  Google-Mobile-Ads-SDK: 8f4f7e793bfd3fff5b082181b54112f81b579a67
-  GoogleAppMeasurement: 1624046ab1bcc5e170061a56ef5679000b079c8e
-  GoogleUtilities: 6481e6318c5fcabaaa8513ef8120f329055d7c10
+  Google-Mobile-Ads-SDK: e911f5544fc6488f8372a183627a802c8bdb5e36
+  GoogleAppMeasurement: ffe513e90551844a739e7bcbb1d2aca1c28a4338
+  GoogleUtilities: 04fce34bcd5620c1ee76fb79172105c74a4df335
   HexColors: 6ad3947c3447a055a3aa8efa859def096351fe5f
   ICDMaterialActivityIndicatorView: 52e3f11f27ebf0b53a7bc7725f416b1a182367b6
   InAppSettingsKit: d965e29be941eb19857271e4625de3fba6e23c9f
