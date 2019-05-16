@@ -167,7 +167,7 @@ CGFloat bottomOffset = 0;
 - (void)interstitialDidDismissScreen:(GADInterstitial *)interstitial {
     self.interstitial = nil;
     if (player.showAds) {
-        self.interstitial = [[GADInterstitial alloc] initWithAdUnitID:@"ca-app-pub-3326997956703582/8641559446"];
+        self.interstitial = [[GADInterstitial alloc] initWithAdUnitID:@"ca-app-pub-3326997956703582/7746770806"];
         [self.interstitial setDelegate:self];
         [self.interstitial loadRequest:[GADRequest request]];
     }
@@ -2338,7 +2338,7 @@ CGFloat bottomOffset = 0;
                 //            request.testDevices = [NSArray arrayWithObjects:kGADSimulatorID, nil];
                 [bannerView loadRequest:request];
                 
-                self.interstitial = [[GADInterstitial alloc] initWithAdUnitID:@"ca-app-pub-3326997956703582/8641559446"];
+                self.interstitial = [[GADInterstitial alloc] initWithAdUnitID:@"ca-app-pub-3326997956703582/7746770806"];
                 [self.interstitial setDelegate:self];
                 //    [self.interstitial setAdUnitID:@"567b72e8189a488c"];
                 [self.interstitial loadRequest:[GADRequest request]];

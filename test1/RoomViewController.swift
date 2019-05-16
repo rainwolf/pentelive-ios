@@ -205,7 +205,7 @@ class PlayerTableCell: UITableViewCell {
             bannerView!.load(request)
             self.view.addSubview(bannerView!)
 
-            interstitial = GADInterstitial(adUnitID: "ca-app-pub-3326997956703582/8025733844")
+            interstitial = GADInterstitial(adUnitID: "ca-app-pub-3326997956703582/7746770806")
             interstitial!.delegate = self
             request = GADRequest()
 //            request.testDevices = [ kGADSimulatorID ]
@@ -569,7 +569,7 @@ class PlayerTableCell: UITableViewCell {
         }
     }
     func interstitialDidDismissScreen(_ ad: GADInterstitial) {
-        interstitial = GADInterstitial(adUnitID: "ca-app-pub-3326997956703582/8025733844")
+        interstitial = GADInterstitial(adUnitID: "ca-app-pub-3326997956703582/7746770806")
         interstitial!.delegate = self
         let request = GADRequest()
 //        request.testDevices = [ kGADSimulatorID ]
