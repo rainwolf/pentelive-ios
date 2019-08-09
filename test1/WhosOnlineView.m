@@ -144,8 +144,10 @@
 //        NSLog(@"mobile");
         [vc toInvitationsWithPlayer:[[rooms objectAtIndex:indexPath.section].players objectAtIndex:indexPath.row].name];
     } else {
+        NSString *username = [[NSUserDefaults standardUserDefaults] objectForKey:@"username"];
+        NSString *password = [[NSUserDefaults standardUserDefaults] objectForKey:@"password"];
 //        NSLog(@"else %@", [[rooms objectAtIndex:indexPath.section].players objectAtIndex:indexPath.row].name);
-        NSString *address = [NSString stringWithFormat:@"https://www.pente.org/gameServer/profile?viewName=%@", [[rooms objectAtIndex:indexPath.section].players objectAtIndex:indexPath.row].name];
+        NSString *address = [NSString stringWithFormat:@"https://www.pente.org/gameServer/profile?viewName=%@&name2=%@&password2=%@", [[rooms objectAtIndex:indexPath.section].players objectAtIndex:indexPath.row].name, username, password];
         PenteWebViewController *webVC = [[PenteWebViewController alloc] initWithAddress:address];
         [vc.navigationController pushViewController:webVC animated:YES];
         [vc.actionPopoverView dismiss];

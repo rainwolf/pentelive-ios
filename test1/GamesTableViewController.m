@@ -1505,19 +1505,19 @@ CGFloat bottomOffset = 0;
     if (indexPath.section == TOURNAMENTSSECTION) {
         NSString *url = @"https://www.google.com";
         if ([[[[self.player tournaments] objectAtIndex: indexPath.row] tournamentState] isEqualToString:@"2"]) {
-            url = [NSString stringWithFormat:@"https://www.pente.org/gameServer/tournaments/status.jsp?eid=%@", [[[self.player tournaments] objectAtIndex: indexPath.row] tournamentID]];
+            url = [NSString stringWithFormat:@"https://www.pente.org/gameServer/tournaments/status.jsp?eid=%@&name2=%@&password2=%@", [[[self.player tournaments] objectAtIndex: indexPath.row] tournamentID], username, password];
             if (development) {
-                url = [NSString stringWithFormat:@"https://development.pente.org/gameServer/tournaments/status.jsp?eid=%@", [[[self.player tournaments] objectAtIndex: indexPath.row] tournamentID]];
+                url = [NSString stringWithFormat:@"https://development.pente.org/gameServer/tournaments/status.jsp?eid=%@&name2=%@&password2=%@", [[[self.player tournaments] objectAtIndex: indexPath.row] tournamentID], username, password];
             }
         } else if ([[[[self.player tournaments] objectAtIndex: indexPath.row] tournamentState] isEqualToString:@"1"]) {
-            url = [NSString stringWithFormat:@"https://www.pente.org/gameServer/tournaments/tournamentConfirm.jsp?eid=%@", [[[self.player tournaments] objectAtIndex: indexPath.row] tournamentID]];
+            url = [NSString stringWithFormat:@"https://www.pente.org/gameServer/tournaments/tournamentConfirm.jsp?eid=%@&name2=%@&password2=%@", [[[self.player tournaments] objectAtIndex: indexPath.row] tournamentID], username, password];
             if (development) {
-                url = [NSString stringWithFormat:@"https://development.pente.org/gameServer/tournaments/tournamentConfirm.jsp?eid=%@", [[[self.player tournaments] objectAtIndex: indexPath.row] tournamentID]];
+                url = [NSString stringWithFormat:@"https://development.pente.org/gameServer/tournaments/tournamentConfirm.jsp?eid=%@&name2=%@&password2=%@", [[[self.player tournaments] objectAtIndex: indexPath.row] tournamentID], username, password];
             }
         } else {
-            url = [NSString stringWithFormat:@"https://www.pente.org/gameServer/tournaments/statusRound.jsp?eid=%@&round=%@", [[[self.player tournaments] objectAtIndex: indexPath.row] tournamentID], [[[self.player tournaments] objectAtIndex: indexPath.row] round]];
+            url = [NSString stringWithFormat:@"https://www.pente.org/gameServer/tournaments/statusRound.jsp?eid=%@&round=%@&name2=%@&password2=%@", [[[self.player tournaments] objectAtIndex: indexPath.row] tournamentID], [[[self.player tournaments] objectAtIndex: indexPath.row] round], username, password];
                 if (development) {
-                    url = [NSString stringWithFormat:@"https://development.pente.org/gameServer/tournaments/statusRound.jsp?eid=%@&round=%@", [[[self.player tournaments] objectAtIndex: indexPath.row] tournamentID], [[[self.player tournaments] objectAtIndex: indexPath.row] round]];
+                    url = [NSString stringWithFormat:@"https://development.pente.org/gameServer/tournaments/statusRound.jsp?eid=%@&round=%@&name2=%@&password2=%@", [[[self.player tournaments] objectAtIndex: indexPath.row] tournamentID], [[[self.player tournaments] objectAtIndex: indexPath.row] round], username, password];
                 }
         }
         PenteWebViewController *webViewController = [[PenteWebViewController alloc] initWithAddress: url];

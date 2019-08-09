@@ -352,9 +352,11 @@ CGFloat bottomOffst = 0;
             [actionPopoverView layoutSubviews];
             ((PenteNavigationViewController *) self.navigationController).didMove = YES;
         } else {
-            NSString *url = [NSString stringWithFormat:@"https://www.pente.org/gameServer/profile?viewName=%@", playr.name];
+            NSString *username = [[NSUserDefaults standardUserDefaults] objectForKey:@"username"];
+            NSString *password = [[NSUserDefaults standardUserDefaults] objectForKey:@"password"];
+            NSString *url = [NSString stringWithFormat:@"https://www.pente.org/gameServer/profile?viewName=%@&name2=%@&password2=%@", playr.name, username, password];
             if (development) {
-                url = [NSString stringWithFormat:@"https://development.pente.org/gameServer/profile?viewName=%@", playr.name];
+                url = [NSString stringWithFormat:@"https://development.pente.org/gameServer/profile?viewName=%@&name2=%@&password2=%@", playr.name, username, password];
             }
             PenteWebViewController *webVC = [[PenteWebViewController alloc] initWithAddress:url];
             [self.navigationController pushViewController:webVC animated:YES];
@@ -483,6 +485,7 @@ CGFloat bottomOffst = 0;
     
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
     NSString *username = [defaults objectForKey: @"username"];
+    NSString *password = [defaults objectForKey: @"password"];
     int gameId = [hillSummary gameId];
 
     self.tableView.layer.borderWidth = 1.5;
@@ -495,10 +498,10 @@ CGFloat bottomOffst = 0;
     NSData *responseData;
     
     // connect to the game server
-    url =  [NSString stringWithFormat:@"https://www.pente.org/gameServer/mobile/koth.jsp?name=%@&game=%i",username, gameId];
+    url =  [NSString stringWithFormat:@"https://www.pente.org/gameServer/mobile/koth.jsp?name=%@&game=%i&name2=%@&password2=%@",username, gameId, username, password];
     if (development) {
         username = @"iostest";
-        url =  [NSString stringWithFormat:@"https://development.pente.org/gameServer/mobile/koth.jsp?name=%@&game=%i",username, gameId];
+        url =  [NSString stringWithFormat:@"https://development.pente.org/gameServer/mobile/koth.jsp?name=%@&game=%i&name2=%@&password2=%@",username, gameId, username, password];
     }
     [request setURL:[NSURL URLWithString:url]];
     [request setHTTPMethod:@"GET"];
