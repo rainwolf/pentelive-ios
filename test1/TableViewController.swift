@@ -265,7 +265,7 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
 //        }
 //    }
     override func viewDidAppear(_ animated: Bool) {
-        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShowHide), name:NSNotification.Name.UIKeyboardWillChangeFrame, object: nil);
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShowHide), name:UIResponder.keyboardWillChangeFrameNotification, object: nil);
         var bottomOffset: CGFloat = 0
         if UIDevice.current.userInterfaceIdiom == .phone && Int(UIScreen.main.nativeBounds.size.height) == 2436 {
             bottomOffset = 34.0
@@ -303,7 +303,7 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
 //            request.testDevices = [ kGADSimulatorID ]
 //            interstitial!.load(request)
         }
-        let backBtn = UIBarButtonItem(title: NSLocalizedString("Exit", comment: ""), style: UIBarButtonItemStyle.plain, target: self, action: #selector(backToMainRoom))
+        let backBtn = UIBarButtonItem(title: NSLocalizedString("Exit", comment: ""), style: UIBarButtonItem.Style.plain, target: self, action: #selector(backToMainRoom))
         self.navigationItem.leftBarButtonItem = backBtn
     }
     override func viewDidDisappear(_ animated: Bool) {
@@ -920,10 +920,10 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
         }
         let info = notification.userInfo
         var keyboardHeight: CGFloat = 0.0
-        if (info?[UIKeyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue.origin.y == self.view.frame.origin.y + self.view.bounds.size.height {
+        if (info?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue.origin.y == self.view.frame.origin.y + self.view.bounds.size.height {
             keyboardHeight = 0
         } else {
-            keyboardHeight = ((info?[UIKeyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue.height)!
+            keyboardHeight = ((info?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue.height)!
         }
         //        print("keyboardWillShowHide \(keyboardHeight)")
         var frame = textView.frame

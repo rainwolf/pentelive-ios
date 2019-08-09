@@ -6,7 +6,7 @@
 //  Copyright (c) 2012 Triade. All rights reserved.
 //
 
-#import "IASKAppSettingsViewController.h"
+#import "InAppSettingsKit/IASKAppSettingsViewController.h"
 #import "PenteNavigationViewController.h"
 #import "PopoverView.h"
 #import "ICDMaterialActivityIndicatorView.h"

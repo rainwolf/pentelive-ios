@@ -3352,7 +3352,7 @@ CGFloat bottomOffset = 0;
     }
 }
 -(void) toMMAI {
-    if (player.showAds) {
+    if (player.showAds && ![player.playerName containsString:@"guest"]) {
         if ([self.interstitial isReady]) {
             [self.interstitial presentFromRootViewController:self];
         }

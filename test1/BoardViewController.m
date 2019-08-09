@@ -983,7 +983,9 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
 
     for (int i = 0; i < [messages count]; ++i) {
         NSString *tmpStrComma = [[messages objectAtIndex:i] stringByReplacingOccurrencesOfString:@"\\1" withString: @","];
-        NSString *tmpStrSmiley = [tmpStrComma stringByReplacingOccurrencesOfString:@"<img border='0' src='http://[host]/gameServer/forums/images/emoticons/happy.gif' alt=''>" withString: @":)"];
+        NSString *tmpStrQuote = [tmpStrComma stringByReplacingOccurrencesOfString:@"\\2" withString: @"\""];
+        NSString *tmpStrAmp = [tmpStrQuote stringByReplacingOccurrencesOfString:@"&amp;#38;" withString: @"&"];
+        NSString *tmpStrSmiley = [tmpStrAmp stringByReplacingOccurrencesOfString:@"<img border='0' src='http://[host]/gameServer/forums/images/emoticons/happy.gif' alt=''>" withString: @":)"];
         NSString *tmpStrWink = [tmpStrSmiley stringByReplacingOccurrencesOfString:@"<img border='0' src='http://[host]/gameServer/forums/images/emoticons/wink.gif' alt=''>" withString: @";)"];
         NSString *tmpStrTongue = [tmpStrWink stringByReplacingOccurrencesOfString:@"<img border='0' src='http://[host]/gameServer/forums/images/emoticons/silly.gif' alt=''>" withString: @":p"];
         NSString *tmpStrGrin = [tmpStrTongue stringByReplacingOccurrencesOfString:@"<img border='0' src='http://[host]/gameServer/forums/images/emoticons/grin.gif' alt=''>" withString: @":D"];

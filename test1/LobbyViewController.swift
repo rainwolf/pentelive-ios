@@ -28,7 +28,7 @@ let development = false
         let tableView = UITableView(frame: self.view.frame)
         tableView.delegate = self
         tableView.dataSource = self
-        tableView.rowHeight = UITableViewAutomaticDimension
+        tableView.rowHeight = UITableView.automaticDimension
         tableView.estimatedRowHeight = 44.0
         self.view.addSubview(tableView)
         
@@ -253,7 +253,7 @@ let development = false
     }
 
     func makeAttributedString() -> NSAttributedString {
-        let titleAttributes = [NSAttributedStringKey.font: UIFont.preferredFont(forTextStyle: .headline)]
+        let titleAttributes = [NSAttributedString.Key.font: UIFont.preferredFont(forTextStyle: .headline)]
 //        let subtitleAttributes = [NSFontAttributeName: UIFont.preferredFont(forTextStyle: .subheadline)]
         
         let titleString = NSMutableAttributedString(string: "\(name)", attributes: titleAttributes)

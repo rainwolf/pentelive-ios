@@ -22,7 +22,7 @@ class TableSetupView: UITableView, UITableViewDelegate, UITableViewDataSource, U
         self.table = table
         self.socket = socket
         self.me = me
-        super.init(frame: CGRect(x: 0, y: 0, width: 0, height: 0), style: UITableViewStyle.plain)
+        super.init(frame: CGRect(x: 0, y: 0, width: 0, height: 0), style: UITableView.Style.plain)
         self.delegate = self
         self.dataSource = self
         self.layer.borderWidth = 1.0
@@ -281,7 +281,7 @@ class TableSetupView: UITableView, UITableViewDelegate, UITableViewDataSource, U
 @objc class InputPickerCell: UITableViewCell {
     @objc var textField: UITextField
 
-    required override init(style: UITableViewCellStyle, reuseIdentifier: String?) {
+    required override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         textField = UITextField()
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         textField.textAlignment = .right

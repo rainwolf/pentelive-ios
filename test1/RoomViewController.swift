@@ -79,10 +79,10 @@ class PlayerTableCell: UITableViewCell {
         tableView.delegate = self
         tableView.dataSource = self
         tableView.tableHeaderView = segmentControl
-        tableView.rowHeight = UITableViewAutomaticDimension
+        tableView.rowHeight = UITableView.automaticDimension
         tableView.estimatedRowHeight = 44.0
         segmentControl.selectedSegmentIndex = 0
-        segmentControl.addTarget(tableView, action: #selector(tableView.reloadData), for: UIControlEvents.valueChanged)
+        segmentControl.addTarget(tableView, action: #selector(tableView.reloadData), for: UIControl.Event.valueChanged)
         self.view.addSubview(tableView)
         textView.layer.borderWidth = 2.0
         textView.layer.cornerRadius = 2.0
@@ -97,7 +97,7 @@ class PlayerTableCell: UITableViewCell {
         self.view.addSubview(textField)
         self.navigationItem.title = room.name
         
-        self.navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.add, target: self, action: #selector(createTable))
+        self.navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.add, target: self, action: #selector(createTable))
         var sndPath = Bundle.main.path(forResource: "newplayer", ofType: "caf")
         var url = URL.init(fileURLWithPath: sndPath!)
         var sndID:SystemSoundID = 0
@@ -154,8 +154,8 @@ class PlayerTableCell: UITableViewCell {
 //        print("2")
     }
     
-    override func willMove(toParentViewController parent: UIViewController?) {
-        super.willMove(toParentViewController: parent)
+    override func willMove(toParent parent: UIViewController?) {
+        super.willMove(toParent: parent)
         if parent == nil {
             // The back button was pressed or interactive gesture used
             print("leaving")
@@ -174,7 +174,7 @@ class PlayerTableCell: UITableViewCell {
 
     
     override func viewDidAppear(_ animated: Bool) {
-        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShowHide), name:NSNotification.Name.UIKeyboardWillChangeFrame, object: nil);
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShowHide), name:UIResponder.keyboardWillChangeFrameNotification, object: nil);
 //        if let navc = self.navigationController {
 //            print("navc")
 //        } else {
@@ -299,7 +299,7 @@ class PlayerTableCell: UITableViewCell {
         }
         return false
     }
-    func tableView(_ tableView: UITableView, editingStyleForRowAt indexPath: IndexPath) -> UITableViewCellEditingStyle {
+    func tableView(_ tableView: UITableView, editingStyleForRowAt indexPath: IndexPath) -> UITableViewCell.EditingStyle {
         return .delete;
     }
     func tableView(_ tableView: UITableView, titleForDeleteConfirmationButtonForRowAt indexPath: IndexPath) -> String? {
@@ -310,7 +310,7 @@ class PlayerTableCell: UITableViewCell {
             return "mute"
         }
     }
-    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
+    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         let player = playersAndTables.players[self.playerNamesArray[indexPath.row]]!
         player.muted = !player.muted
     }
@@ -558,7 +558,7 @@ class PlayerTableCell: UITableViewCell {
                 self.tableViewController = TableViewController(table: table!, socket: self.socket, tablesAndPlayers: self.playersAndTables, pente_player: self.pentePlayer!, me: self.me)
 //                self.tableViewController?.pentePlayer = self.pentePlayer
                 self.navigationController?.pushViewController(self.tableViewController!, animated: true)
-                if self.showAds {
+                if self.showAds && !playerName.contains("guest") && self.interstitial?.isReady ?? false {
                     self.interstitial?.present(fromRootViewController: self.tableViewController!)
                 }
             } else {
@@ -876,10 +876,10 @@ class PlayerTableCell: UITableViewCell {
 
         let info = notification.userInfo
         var keyboardHeight: CGFloat = 0.0
-        if (info?[UIKeyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue.origin.y == self.view.frame.origin.y + self.view.bounds.size.height {
+        if (info?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue.origin.y == self.view.frame.origin.y + self.view.bounds.size.height {
             keyboardHeight = 0
         } else {
-            keyboardHeight = ((info?[UIKeyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue.height)!
+            keyboardHeight = ((info?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue.height)!
         }
 //        print("keyboardWillShowHide \(keyboardHeight)")
         var frame = textView.frame

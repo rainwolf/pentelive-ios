@@ -57,15 +57,15 @@ class SocialViewController: UIViewController, UITableViewDelegate, UITableViewDa
         tableView.dataSource = self
         tableView.tableHeaderView = segmentControl
         segmentControl.selectedSegmentIndex = 0
-        segmentControl.addTarget(tableView, action: #selector(tableView.reloadData), for: UIControlEvents.valueChanged)
+        segmentControl.addTarget(tableView, action: #selector(tableView.reloadData), for: UIControl.Event.valueChanged)
         self.view.addSubview(tableView)
         self.navigationItem.title = NSLocalizedString("Social", comment: "")
         
         self.refreshControl.attributedTitle = NSAttributedString(string: NSLocalizedString("Pull to refresh", comment: ""))
-        self.refreshControl.addTarget(self, action: #selector(refresh), for: UIControlEvents.valueChanged)
+        self.refreshControl.addTarget(self, action: #selector(refresh), for: UIControl.Event.valueChanged)
         self.tableView.addSubview(refreshControl)
         
-        let addButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.add, target: self, action: #selector(addFollowing))
+        let addButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.add, target: self, action: #selector(addFollowing))
         let settingsItem = UIBarButtonItem(image: UIImage(named: "gamesettings"), style: .plain, target: self, action: #selector(selectGame))
         self.navigationItem.rightBarButtonItems = [addButton, settingsItem]
         
@@ -192,7 +192,7 @@ class SocialViewController: UIViewController, UITableViewDelegate, UITableViewDa
         return false
     }
     
-    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
+    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         do {
             let _ = try String(contentsOf: URL(string: "https://www.pente.org/gameServer/social?unfollow=\(following[indexPath.row].name)")!, encoding: String.Encoding.utf8)
         } catch let error {
@@ -310,7 +310,7 @@ class SocialViewController: UIViewController, UITableViewDelegate, UITableViewDa
 //        if game%2 == 0 {
 //            game = game - 1
 //        }
-        gamePicker.selectRow(gameNamesArray.index(of: gameString!)!, inComponent: 0, animated: true)
+        gamePicker.selectRow(gameNamesArray.firstIndex(of: gameString!)!, inComponent: 0, animated: true)
         
         textField.inputView = gamePicker
         textField.tag = 1;

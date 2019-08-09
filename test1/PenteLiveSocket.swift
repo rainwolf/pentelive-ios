@@ -31,7 +31,7 @@ import UIKit
         } catch let error {
             print("connecting error: \(error.localizedDescription)")
             let alertController = UIAlertController(title: NSLocalizedString("Error", comment: ""), message: NSLocalizedString("There was an error getting the game rooms. Reason: \(error.localizedDescription)", comment: ""), preferredStyle: .alert)
-            alertController.addAction(UIAlertAction(title: NSLocalizedString("Dismiss", comment: ""), style: UIAlertActionStyle.default, handler: nil))
+            alertController.addAction(UIAlertAction(title: NSLocalizedString("Dismiss", comment: ""), style: UIAlertAction.Style.default, handler: nil))
             //            self.present(alertController, animated: true, completion: nil)
         }
     }

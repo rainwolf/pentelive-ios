@@ -11,7 +11,7 @@
 #import "BoardViewController.h"
 #import "MessagesViewController.h"
 #import "UIPullToReloadTableViewController.h"
-#import "IASKAppSettingsViewController.h"
+//#import "IASKAppSettingsViewController.h"
 #import "SettingsViewController.h"
 #import "InvitationsViewController.h"
 #import <GoogleMobileAds/GoogleMobileAds.h>
