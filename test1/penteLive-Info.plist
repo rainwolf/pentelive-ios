@@ -21,11 +21,11 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>2.6.4</string>
+	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>2.6.4</string>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>GADApplicationIdentifier</key>
 	<string>ca-app-pub-3326997956703582~7164826246</string>
 	<key>LSRequiresIPhoneOS</key>
@@ -37,8 +37,6 @@
 	</dict>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>This app accesses your photos only upon request and for the purpose of uploading an avatar</string>
-	<key>UIApplicationExitsOnSuspend</key>
-	<true/>
 	<key>UIMainStoryboardFile</key>
 	<string>MainStoryboard</string>
 	<key>UIMainStoryboardFile~ipad</key>
