@@ -79,26 +79,22 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
         playButton.titleLabel?.font = UIFont.boldSystemFont(ofSize:25)
         playButton.setTitleColor(UIColor.blue, for: .normal)
         playButton.addTarget(self, action: #selector(play), for: .touchUpInside)
-        var button = UIButton(type: .custom)
-        button.setImage(UIImage(named: "gamesettings"), for: .normal)
-        button.addTarget(self, action:#selector(showSettings), for: .touchUpInside)
-        button.frame = CGRect(x: 0, y: 0, width: 32, height: 32)
-        let settingsItem = UIBarButtonItem(customView: button)
-//        if #available(iOS 9.0, *) {
-//            let widthConstraint = button.widthAnchor.constraint(equalToConstant: 32)
-//            let heightConstraint = button.heightAnchor.constraint(equalToConstant: 32)
-//            heightConstraint.isActive = true
-//            widthConstraint.isActive = true
-//        }
-        button = UIButton(type: .custom)
-        button.setImage(UIImage(named: "cancel"), for: .normal)
-        button.addTarget(self, action:#selector(showOptions), for: .touchUpInside)
-        button.frame = CGRect(x: 0, y: 0, width: 32, height: 32)
-        let optionsItem = UIBarButtonItem(customView: button)
-        button = UIButton(type: .custom)
-        button.setImage(UIImage(named: "onlineUsers"), for: .normal)
-        button.addTarget(self, action:#selector(showPlayersOptions), for: .touchUpInside)
-        button.frame = CGRect(x: 0, y: 0, width: 32, height: 32)
+//        var button = UIButton(type: .custom)
+//        button.setImage(UIImage(named: "gamesettings"), for: .normal)
+//        button.addTarget(self, action:#selector(showSettings), for: .touchUpInside)
+//        button.frame = CGRect(x: 0, y: 0, width: 32, height: 32)
+//        let settingsItem = UIBarButtonItem(customView: button)
+        let settingsItem = UIBarButtonItem(image: UIImage(named: "gamesettings"), style: .plain, target: self, action: #selector(showSettings))
+//        button = UIButton(type: .custom)
+//        button.setImage(UIImage(named: "cancel"), for: .normal)
+//        button.addTarget(self, action:#selector(showOptions), for: .touchUpInside)
+//        button.frame = CGRect(x: 0, y: 0, width: 32, height: 32)
+//        let optionsItem = UIBarButtonItem(customView: button)
+        let optionsItem = UIBarButtonItem(image: UIImage(named: "cancel"), style: .plain, target: self, action: #selector(showOptions))
+//        button = UIButton(type: .custom)
+//        button.setImage(UIImage(named: "onlineUsers"), for: .normal)
+//        button.addTarget(self, action:#selector(showPlayersOptions), for: .touchUpInside)
+//        button.frame = CGRect(x: 0, y: 0, width: 32, height: 32)
         let onlineUsersItem = UIBarButtonItem(image: UIImage(named: "onlineUsers"), style: .plain, target: self, action: #selector(showPlayersOptions))
         self.navigationItem.setRightBarButtonItems([settingsItem,
                                                     optionsItem,
@@ -542,7 +538,7 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
         } else {
             seatsView.stand(seat: 2)
         }
-        seatsView.setRatedTimer(rated: table.rated, initialMinutes: table.timer["initialMinutes"]!, incrementalSeconds: table.timer["incrementalSeconds"]!)
+        seatsView.setRatedTimer(rated: table.rated, timed: table.timed, initialMinutes: table.timer["initialMinutes"]!, incrementalSeconds: table.timer["incrementalSeconds"]!)
         if table.isGo() && table.state.state == .started && table.currentPlayerName() == me {
             playButton.isHidden = false; playButton.setTitle(NSLocalizedString("PASS", comment: ""), for: .normal)
         } else {
@@ -686,6 +682,11 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
 //        stone.isHidden = true
         if table.gameHasCaptures() {
             self.navigationItem.title = "\u{25CF} x \(table.blackCaptures) - \u{25CB} x \(table.whiteCaptures)"
+            if #available(iOS 13.0, *) {
+                if UITraitCollection.current.userInterfaceStyle == .dark {
+                    self.navigationItem.title = "\u{25CB} x \(table.blackCaptures) - \u{25CF} x \(table.whiteCaptures)"
+                }
+            }
         } else {
             self.navigationItem.title = ""
         }

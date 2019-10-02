@@ -52,7 +52,11 @@ class SeatsView: UIView {
         ratedTimerLabel.textAlignment = .center
         ratedTimerLabel.font = UIFont.preferredFont(forTextStyle: .subheadline)
         ratedTimerLabel.numberOfLines = 2
-        backgroundColor = UIColor.white
+        if #available(iOS 13.0, *) {
+            backgroundColor = UIColor.systemBackground
+        } else {
+            backgroundColor = UIColor.white
+        }
         seat1Label.attributedText = NSAttributedString(string: NSLocalizedString("Tap to sit", comment: ""))
         seat2Label.attributedText = NSAttributedString(string: NSLocalizedString("Tap to sit", comment: ""))
         seat1Label.isUserInteractionEnabled = true
@@ -82,12 +86,16 @@ class SeatsView: UIView {
             seat2Label.alpha = 0.6
         }
     }
-    func setRatedTimer(rated: Bool, initialMinutes: Int, incrementalSeconds: Int) {
-        if rated {
-            ratedTimerLabel.text = NSLocalizedString("Rated", comment: "") + "\n" + NSLocalizedString("Timer: \(initialMinutes)/\(incrementalSeconds)", comment: "")
-        } else {
-            ratedTimerLabel.text = NSLocalizedString("Not rated", comment: "") + "\n" + NSLocalizedString("Timer: \(initialMinutes)/\(incrementalSeconds)", comment: "")
+    func setRatedTimer(rated: Bool, timed: Bool, initialMinutes: Int, incrementalSeconds: Int) {
+        var ratedStr = "Rated"
+        if !rated {
+            ratedStr = "Not rated"
         }
+        var timerStr = "Not timed"
+        if timed {
+            timerStr = NSLocalizedString("Timer: \(initialMinutes)/\(incrementalSeconds)", comment: "")
+        }
+        ratedTimerLabel.text = NSLocalizedString(ratedStr, comment: "") + "\n" + timerStr
     }
     func setTimers(timers: [Int:[String:Int]]) {
         seat1TimeLabel.text = "\(timers[1]!["minutes"]!):\(timers[1]!["seconds"]!)"

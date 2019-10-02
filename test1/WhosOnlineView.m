@@ -71,9 +71,11 @@
         cell.backgroundColor = [UIColor colorWithRed: 222.0/256 green:236.0/256 blue:222.0/256 alpha:1];
 //        [cell setUserInteractionEnabled:YES];
     } else {
-//        [cell setAccessoryType:UITableViewCellAccessoryNone];
-        cell.backgroundColor = [UIColor whiteColor];
-//        [cell setUserInteractionEnabled:NO];
+        if (@available(iOS 13.0, *)) {
+            cell.backgroundColor = [UIColor systemBackgroundColor];
+        } else {
+            cell.backgroundColor = [UIColor whiteColor];
+        }
     }
     [cell setAccessoryType:UITableViewCellAccessoryDisclosureIndicator];
     NSMutableString *txtStr = [[NSMutableString alloc] initWithString: [playr name]];
@@ -106,13 +108,17 @@
     ((PlayerCell *) cell).ratingLabel.attributedText = tmpStr;
     
     tmpStr = [[NSMutableAttributedString alloc] initWithString: txtStr];
-    [tmpStr addAttribute:NSForegroundColorAttributeName value:UIColorFromRGB([playr color]) range:NSMakeRange(0, [[playr name] length])];
+    if ([playr color] != 0 || [[[rooms objectAtIndex:indexPath.section] name] isEqualToString:@"Mobile"]) {
+        [tmpStr addAttribute:NSForegroundColorAttributeName value:UIColorFromRGB([playr color]) range:NSMakeRange(0, [[playr name] length])];
+    }
     [tmpStr addAttribute:NSFontAttributeName value:[UIFont fontWithName:@"HelveticaNeue" size:16.f] range:NSMakeRange(0, [tmpStr length])];
     if ([playr color] != 0) {
         [tmpStr addAttribute:NSFontAttributeName value: [UIFont fontWithName:@"HelveticaNeue-Bold" size:16] range:NSMakeRange(0, [[playr name] length])];
     }
-    [tmpStr appendAttributedString:[[NSMutableAttributedString alloc] initWithString:@" "]];
-    [tmpStr appendAttributedString:crownStr];
+    if (crown > 0) {
+        [tmpStr appendAttributedString:[[NSMutableAttributedString alloc] initWithString:@" "]];
+        [tmpStr appendAttributedString:crownStr];
+    }
     cell.textLabel.attributedText = tmpStr;
     [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
 

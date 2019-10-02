@@ -62,7 +62,7 @@
 @synthesize name, rating, lastGame, numberOfGames;
 @synthesize canBeChallenged;
 @synthesize crown, color;
--(NSAttributedString *) attributedName {
+-(NSAttributedString *) attributedName: (BOOL) dark {
     NSMutableAttributedString *txtStr;
     if ([name isEqualToString:@"Anyone"]) {
         txtStr = [[NSMutableAttributedString alloc] initWithString:NSLocalizedString(@"Anyone", nil)];
@@ -71,8 +71,10 @@
     }
     if (color != 0) {
         [txtStr addAttribute:NSFontAttributeName value: [UIFont fontWithName:@"HelveticaNeue-Bold" size:16] range:NSMakeRange(0, [txtStr length])];
+        [txtStr addAttribute:NSForegroundColorAttributeName value:UIColorFromRGB(color) range:NSMakeRange(0, [txtStr length])];
+    } else if (dark) {
+        [txtStr addAttribute:NSForegroundColorAttributeName value:[UIColor blackColor] range:NSMakeRange(0, [txtStr length])];
     }
-    [txtStr addAttribute:NSForegroundColorAttributeName value:UIColorFromRGB(color) range:NSMakeRange(0, [txtStr length])];
     [txtStr appendAttributedString:[[NSMutableAttributedString alloc] initWithString:@" "]];
     if (crown > 0) {
         NSTextAttachment *textAttachment = [[NSTextAttachment alloc] init];
@@ -98,7 +100,7 @@
     return txtStr;
 }
 
--(NSAttributedString *) ratingString {
+-(NSAttributedString *) ratingString: (BOOL) dark {
     int ratingInt = [rating intValue];
     UIColor *ratingColor;
     if (ratingInt >= 1900) {
@@ -119,6 +121,13 @@
     }
     [txtStr addAttribute:NSFontAttributeName value:[UIFont fontWithName:@"HelveticaNeue-Bold" size:12.f] range: NSMakeRange(0, 1)];
     [txtStr appendAttributedString:[[NSAttributedString alloc] initWithString:rating]];
+    if (dark) {
+        if (@available(iOS 13.0, *)) {
+            if (UITraitCollection.currentTraitCollection.userInterfaceStyle == UIUserInterfaceStyleDark) {
+                [txtStr addAttribute:NSForegroundColorAttributeName value: [UIColor blackColor] range:NSMakeRange(2, [txtStr length] - 2)];
+            }
+        }
+    }
     return txtStr;
 }
 @end
@@ -293,18 +302,21 @@ CGFloat bottomOffst = 0;
     } else {
         Player *playr = [[[hill steps] objectAtIndex: indexPath.section - 1] objectAtIndex:indexPath.row];
         [cell setAccessoryType:UITableViewCellAccessoryDisclosureIndicator];
-        ((PlayerTableViewCell *) cell).ratingLabel.attributedText = [playr ratingString];
-        cell.textLabel.attributedText = [player markIfOnline:[playr name] andAttributedName:[playr attributedName]];
-        cell.detailTextLabel.text = [NSString stringWithFormat: NSLocalizedString(@"Last game played on %@",nil), [playr lastGame]];
+        ((PlayerTableViewCell *) cell).ratingLabel.attributedText = [playr ratingString: [playr canBeChallenged]];
+        cell.textLabel.attributedText = [player markIfOnline:[playr name] andAttributedName:[playr attributedName: [playr canBeChallenged]]];
+        NSMutableAttributedString *detailStr = [[NSMutableAttributedString alloc] initWithString:[NSString stringWithFormat: NSLocalizedString(@"Last game played on %@",nil), [playr lastGame]]];
         [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
         if ([playr canBeChallenged]) {
             cell.backgroundColor = [UIColor colorWithRed: 222.0/256 green:236.0/256 blue:222.0/256 alpha:1];
-//            [cell setUserInteractionEnabled: YES];
+            [detailStr addAttribute:NSForegroundColorAttributeName value: [UIColor blackColor] range:NSMakeRange(0, [detailStr length])];
         } else {
-            cell.backgroundColor = [UIColor whiteColor];
-//            [cell setUserInteractionEnabled: NO];
+            if (@available(iOS 13.0, *)) {
+                cell.backgroundColor = [UIColor systemBackgroundColor];
+            } else {
+                cell.backgroundColor = [UIColor whiteColor];
+            }
         }
-
+        cell.detailTextLabel.attributedText = detailStr;
     }
     
     return cell;

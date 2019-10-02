@@ -780,12 +780,23 @@ class Table: NSObject {
         addMoves(moves: newMoves)
     }
     
+    func makeFontBlackIfNeeded(seat: Int) -> NSAttributedString {
+        if seats[seat]!.subscriber {
+            return (seats[seat]?.getNameString())!
+        } else {
+            let str = NSMutableAttributedString(attributedString: (seats[seat]?.getNameString())!)
+            str.addAttribute(.foregroundColor, value: UIColor.black, range: NSMakeRange(0, (seats[seat]?.name.count)!))
+            return str
+        }
+    }
+    
     func makeAttributedString() -> NSAttributedString {
 //        let titleAttributes = [NSFontAttributeName: UIFont.preferredFont(forTextStyle: .headline), NSForegroundColorAttributeName: UIColor(red: 255/255, green: 193/255, blue: 7/255, alpha: 1.0)]
         let titleAttributes = [NSAttributedString.Key.font: UIFont.preferredFont(forTextStyle: .headline)]
-        let subtitleAttributes = [NSAttributedString.Key.font: UIFont.preferredFont(forTextStyle: .subheadline)]
+        let subtitleAttributes = [NSAttributedString.Key.font: UIFont.preferredFont(forTextStyle: .subheadline), NSAttributedString.Key.foregroundColor: UIColor.black]
         
         let titleString = NSMutableAttributedString(string: "\(gameName())", attributes: titleAttributes)
+        titleString.addAttribute(.foregroundColor, value: UIColor.black, range: NSMakeRange(0, titleString.length))
         if seats.count > 0 {
             titleString.append(NSAttributedString(string: "\n"))
             var p1Color = UIColor.white, p2Color = UIColor.black
@@ -794,21 +805,26 @@ class Table: NSObject {
             }
             if seats.count == 2 {
                 titleString.append(NSAttributedString(string: "\u{25CF} ", attributes: [NSAttributedString.Key.foregroundColor: p1Color]))
-                titleString.append((seats[1]?.getNameString())!)
+                titleString.append(makeFontBlackIfNeeded(seat: 1))
                 titleString.append(NSAttributedString(string: " - \u{25CF} ", attributes: [NSAttributedString.Key.foregroundColor: p2Color]))
-                titleString.append((seats[2]?.getNameString())!)
+                titleString.append(makeFontBlackIfNeeded(seat: 2))
             } else {
                 if seats[1] != nil {
                     titleString.append(NSAttributedString(string: "\u{25CF} ", attributes: [NSAttributedString.Key.foregroundColor: p1Color]))
-                    titleString.append((seats[1]?.getNameString())!)
+                    titleString.append(makeFontBlackIfNeeded(seat: 1))
                 } else if seats[2] != nil {
                     titleString.append(NSAttributedString(string: "\u{25CF} ", attributes: [NSAttributedString.Key.foregroundColor: p2Color]))
-                    titleString.append((seats[2]?.getNameString())!)
+                    titleString.append(makeFontBlackIfNeeded(seat: 2))
                 }
             }
         }
         titleString.append(NSAttributedString(string: "\n"))
-        let subtitleString = NSMutableAttributedString(string: NSLocalizedString("Timer: \(timer["initialMinutes"]!)/\(timer["incrementalSeconds"]!)", comment: ""))
+        var subtitleString = NSMutableAttributedString()
+        if timed {
+            subtitleString = NSMutableAttributedString(string: NSLocalizedString("Timer: \(timer["initialMinutes"]!)/\(timer["incrementalSeconds"]!)", comment: ""))
+        } else {
+            subtitleString = NSMutableAttributedString(string: "Not timed")
+        }
         if rated {
             subtitleString.append(NSAttributedString(string: NSLocalizedString(", rated ", comment: "")))
         } else {
@@ -821,7 +837,13 @@ class Table: NSObject {
         subtitleString.setAttributes(subtitleAttributes, range: NSRange(location: 0, length: subtitleString.string.count))
         for player in players.values {
             if !amIseated(i: player.name) {
-                subtitleString.append(player.getNameString())
+                if !player.subscriber {
+                    let nameStr = NSMutableAttributedString(attributedString: player.getNameString())
+                    nameStr.addAttribute(.foregroundColor, value: UIColor.black, range: NSMakeRange(0, player.name.count))
+                    subtitleString.append(nameStr)
+                } else {
+                    subtitleString.append(player.getNameString())
+                }
                 subtitleString.append(NSAttributedString(string: ", "))
             }
         }

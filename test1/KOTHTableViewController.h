@@ -22,8 +22,8 @@
 @property(retain, nonatomic, readwrite) NSString *name, *rating, *lastGame, *numberOfGames;
 @property(assign, atomic, readwrite) BOOL canBeChallenged;
 @property(assign, atomic, readwrite) int crown, color;
--(NSAttributedString *) attributedName;
--(NSAttributedString *) ratingString;
+-(NSAttributedString *) attributedName: (BOOL) dark;
+-(NSAttributedString *) ratingString: (BOOL) dark;
 @end
 
 

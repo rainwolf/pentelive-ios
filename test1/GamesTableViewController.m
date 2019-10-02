@@ -415,6 +415,9 @@ CGFloat bottomOffset = 0;
         NSURLResponse *response;
         NSError *error;
         NSData *responseData = [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
+//        if (error) {
+//            NSLog(@"wth \n %@", error.localizedDescription);
+//        }
         NSString *replyString = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
 
 //        NSLog(@"wth \n %@", replyString);
@@ -604,7 +607,11 @@ CGFloat bottomOffset = 0;
             if (!cell) {
                 cell = [[GameTableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:tmpIdentifier];
             }
-            cell.backgroundColor = [UIColor whiteColor];
+            if (@available(iOS 13.0, *)) {
+                cell.backgroundColor = [UIColor systemBackgroundColor];
+            } else {
+                cell.backgroundColor = [UIColor whiteColor];
+            }
         }
         cell.ratingLabel.text = @"";
         cell.ratingLabel.text = [message timeStamp];
@@ -648,7 +655,19 @@ CGFloat bottomOffset = 0;
         if ([[game ratedNot] rangeOfString:@"KotH"].location != NSNotFound) {
             cell.backgroundColor = [UIColor colorWithRed: 222.0/256 green:236.0/256 blue:222.0/256 alpha:1];
         } else {
-            cell.backgroundColor = [UIColor whiteColor];
+            if (@available(iOS 13.0, *)) {
+                cell.backgroundColor = [UIColor systemBackgroundColor];
+            } else {
+                cell.backgroundColor = [UIColor whiteColor];
+            }
+        }
+        if ([[game ratedNot] containsString:@"KotH"]) {
+            NSMutableAttributedString *attStr = [[NSMutableAttributedString alloc] initWithAttributedString:cell.ratingLabel.attributedText];
+            [attStr addAttribute:NSForegroundColorAttributeName value: [UIColor blackColor] range:NSMakeRange(2, [attStr length]-2)];
+            cell.ratingLabel.attributedText = attStr;
+            attStr = [[NSMutableAttributedString alloc] initWithAttributedString:cell.textLabel.attributedText];
+            [attStr addAttribute:NSForegroundColorAttributeName value: [UIColor blackColor] range:NSMakeRange(0, [attStr length])];
+            cell.textLabel.attributedText = attStr;
         }
     }
     if (indexPath.section == ACTIVEGAMESSECTION) {
@@ -685,7 +704,11 @@ CGFloat bottomOffset = 0;
         if ([[game ratedNot] rangeOfString:@"Tournament"].location != NSNotFound) {
             cell.backgroundColor = [UIColor colorWithRed: 222.0/256 green:236.0/256 blue:222.0/256 alpha:1];
         } else {
-            cell.backgroundColor = [UIColor whiteColor];
+            if (@available(iOS 13.0, *)) {
+                cell.backgroundColor = [UIColor systemBackgroundColor];
+            } else {
+                cell.backgroundColor = [UIColor whiteColor];
+            }
         }
     }
     if (indexPath.section == PUBLICINVITATIONSSECTION) {
@@ -724,9 +747,20 @@ CGFloat bottomOffset = 0;
         } else if ([[game ratedNot] containsString:@", beginner"]) {
             cell.backgroundColor = [UIColor colorWithRed: 242.0/256 green:249.0/256 blue:222.0/256 alpha:1];
         } else {
-            cell.backgroundColor = [UIColor whiteColor];
+            if (@available(iOS 13.0, *)) {
+                cell.backgroundColor = [UIColor systemBackgroundColor];
+            } else {
+                cell.backgroundColor = [UIColor whiteColor];
+            }
         }
-
+        if ([[game ratedNot] containsString:@"KotH"] || [[game ratedNot] containsString:@", beginner"]) {
+            NSMutableAttributedString *attStr = [[NSMutableAttributedString alloc] initWithAttributedString:cell.ratingLabel.attributedText];
+            [attStr addAttribute:NSForegroundColorAttributeName value: [UIColor blackColor] range:NSMakeRange(2, [attStr length]-2)];
+            cell.ratingLabel.attributedText = attStr;
+            attStr = [[NSMutableAttributedString alloc] initWithAttributedString:cell.textLabel.attributedText];
+            [attStr addAttribute:NSForegroundColorAttributeName value: [UIColor blackColor] range:NSMakeRange(0, [attStr length])];
+            cell.textLabel.attributedText = attStr;
+        }
     }
     if (indexPath.section == SENTINVITATIONSSECTION) {
         Game *game = [[self.player sentInvitations] objectAtIndex:indexPath.row];
@@ -760,9 +794,20 @@ CGFloat bottomOffset = 0;
         if ([[game ratedNot] rangeOfString:@"KotH"].location != NSNotFound) {
             cell.backgroundColor = [UIColor colorWithRed: 222.0/256 green:236.0/256 blue:222.0/256 alpha:1];
         } else {
-            cell.backgroundColor = [UIColor whiteColor];
+            if (@available(iOS 13.0, *)) {
+                cell.backgroundColor = [UIColor systemBackgroundColor];
+            } else {
+                cell.backgroundColor = [UIColor whiteColor];
+            }
         }
-        
+        if ([[game ratedNot] containsString:@"KotH"] || [[game ratedNot] containsString:@", beginner"]) {
+            NSMutableAttributedString *attStr = [[NSMutableAttributedString alloc] initWithAttributedString:cell.ratingLabel.attributedText];
+            [attStr addAttribute:NSForegroundColorAttributeName value: [UIColor blackColor] range:NSMakeRange(2, [attStr length]-2)];
+            cell.ratingLabel.attributedText = attStr;
+            attStr = [[NSMutableAttributedString alloc] initWithAttributedString:cell.textLabel.attributedText];
+            [attStr addAttribute:NSForegroundColorAttributeName value: [UIColor blackColor] range:NSMakeRange(0, [attStr length])];
+            cell.textLabel.attributedText = attStr;
+        }
         cell.imageView.image = imgV;
     }
     if (indexPath.section == NONACTIVEGAMESSECTION) {
@@ -801,7 +846,11 @@ CGFloat bottomOffset = 0;
         if ([[game ratedNot] rangeOfString:@"Tournament"].location != NSNotFound) {
             cell.backgroundColor = [UIColor colorWithRed: 222.0/256 green:236.0/256 blue:222.0/256 alpha:1];
         } else {
-            cell.backgroundColor = [UIColor whiteColor];
+            if (@available(iOS 13.0, *)) {
+                cell.backgroundColor = [UIColor systemBackgroundColor];
+            } else {
+                cell.backgroundColor = [UIColor whiteColor];
+            }
         }
     }
     if (indexPath.section == TOURNAMENTSSECTION) {
@@ -851,6 +900,7 @@ CGFloat bottomOffset = 0;
         }
         [tmpStr addAttribute:NSForegroundColorAttributeName value:statusColor range:NSMakeRange(0, 1)];
         if ([koth king]) {
+            [tmpStr addAttribute:NSForegroundColorAttributeName value:[UIColor blackColor] range:NSMakeRange(1, [tmpStr length]-1)];
             NSTextAttachment *textAttachment = [[NSTextAttachment alloc] init];
             textAttachment.image = [UIImage imageNamed:@"kothcrown.gif"];
             NSAttributedString *crownStr = [NSAttributedString attributedStringWithAttachment:textAttachment];
@@ -878,7 +928,11 @@ CGFloat bottomOffset = 0;
         if ([koth king]) {
             cell.backgroundColor = [UIColor colorWithRed: 222.0/256 green:236.0/256 blue:222.0/256 alpha:1];
         } else {
-            cell.backgroundColor = [UIColor whiteColor];
+            if (@available(iOS 13.0, *)) {
+                cell.backgroundColor = [UIColor systemBackgroundColor];
+            } else {
+                cell.backgroundColor = [UIColor whiteColor];
+            }
         }
     }
     

@@ -229,7 +229,7 @@ InvitationsViewController *invitationVC;
     self.view.backgroundColor = [UIColor colorWithPatternImage:[UIImage imageNamed:@"preferencesBG.png"]];
     
     toField = [[HTAutocompleteTextField alloc] initWithFrame:CGRectMake(2, -32, self.view.frame.size.width - 4, 30)];
-    [toField setBackgroundColor:[UIColor whiteColor]];
+//    [toField setBackgroundColor:[UIColor whiteColor]];
     [toField setFont:[UIFont systemFontOfSize:15]];
     [toField setTextAlignment:NSTextAlignmentLeft];
     [toField setContentVerticalAlignment:UIControlContentVerticalAlignmentCenter];
@@ -254,7 +254,7 @@ InvitationsViewController *invitationVC;
     [self.toField setAutocompleteDataSource:self];
 
     subjectField = [[UITextField alloc] initWithFrame:CGRectMake(2, toField.frame.origin.y - 32, self.view.frame.size.width - 4, 30)];
-    [subjectField setBackgroundColor:[UIColor whiteColor]];
+//    [subjectField setBackgroundColor:[UIColor whiteColor]];
     [subjectField setFont:[UIFont systemFontOfSize:15]];
     [subjectField setContentVerticalAlignment:UIControlContentVerticalAlignmentCenter];
     subjectField.layer.borderWidth = 1.0f;
@@ -277,7 +277,7 @@ InvitationsViewController *invitationVC;
     //    NSLog(@"kitty history %@", messagesHistory);
     [receivedMessageView setEditable:NO];
     [receivedMessageView setAlpha:0.90];
-    [receivedMessageView setBackgroundColor:[UIColor colorWithRed:0.98f green:0.98f blue:0.98f alpha:0.95]];
+//    [receivedMessageView setBackgroundColor:[UIColor colorWithRed:0.98f green:0.98f blue:0.98f alpha:0.95]];
     receivedMessageView.clipsToBounds = YES;
     receivedMessageView.layer.cornerRadius = 1.0f;
     receivedMessageView.layer.borderWidth = 1.0f;
