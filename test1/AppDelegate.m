@@ -202,8 +202,15 @@
 //    [defaults removeObjectForKey:@"lastPing"];
 //    [defaults synchronize];
     if (deviceToken) {
-        NSString *tokenString = [[[[NSString stringWithFormat:@"%@", deviceToken] stringByReplacingOccurrencesOfString:@" " withString:@""] stringByReplacingOccurrencesOfString:@">" withString:@""] stringByReplacingOccurrencesOfString:@"<" withString:@""];
-//NSLog(@"My token is: %@", tokenString);
+//        NSString *tokenString = [[[[NSString stringWithFormat:@"%@", deviceToken] stringByReplacingOccurrencesOfString:@" " withString:@""] stringByReplacingOccurrencesOfString:@">" withString:@""] stringByReplacingOccurrencesOfString:@"<" withString:@""];
+        NSUInteger capacity = deviceToken.length * 2;
+        NSMutableString *tokenString = [NSMutableString stringWithCapacity:capacity];
+        const unsigned char *buf = deviceToken.bytes;
+        NSInteger i;
+        for (i=0; i<deviceToken.length; ++i) {
+            [tokenString appendFormat:@"%02X", (unsigned int)buf[i]];
+        }
+
         NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
         NSString *storedTokenString = [defaults objectForKey: @"deviceToken"];
         if (storedTokenString) {
