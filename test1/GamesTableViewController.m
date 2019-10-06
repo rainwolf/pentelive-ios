@@ -235,7 +235,9 @@ CGFloat bottomOffset = 0;
 //                }
 //            }
 //        }
-        [self dashboardParse];
+//        if ([[NSUserDefaults standardUserDefaults] boolForKey: @"registrationSuccess"]) {
+            [self dashboardParse];
+//        }
     } else if (navControllor.messageDeleted) {
         [navControllor setMessageDeleted:NO];
         [self.player.messages removeObjectAtIndex: navControllor.deletedMessageRow];
@@ -757,9 +759,11 @@ CGFloat bottomOffset = 0;
             NSMutableAttributedString *attStr = [[NSMutableAttributedString alloc] initWithAttributedString:cell.ratingLabel.attributedText];
             [attStr addAttribute:NSForegroundColorAttributeName value: [UIColor blackColor] range:NSMakeRange(2, [attStr length]-2)];
             cell.ratingLabel.attributedText = attStr;
-            attStr = [[NSMutableAttributedString alloc] initWithAttributedString:cell.textLabel.attributedText];
-            [attStr addAttribute:NSForegroundColorAttributeName value: [UIColor blackColor] range:NSMakeRange(0, [attStr length])];
-            cell.textLabel.attributedText = attStr;
+            if ([game.nameColor isEqual: UIColorFromRGB(0)]) {
+                attStr = [[NSMutableAttributedString alloc] initWithAttributedString:cell.textLabel.attributedText];
+                [attStr addAttribute:NSForegroundColorAttributeName value: [UIColor blackColor] range:NSMakeRange(0, [attStr length])];
+                cell.textLabel.attributedText = attStr;
+            }
         }
     }
     if (indexPath.section == SENTINVITATIONSSECTION) {
@@ -2257,8 +2261,8 @@ CGFloat bottomOffset = 0;
     [self.pullToReloadHeaderView layoutSubviews];
     
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-//    username = [defaults objectForKey:usernameKey];
-//    password = [defaults objectForKey:passwordKey];
+    username = [defaults objectForKey:usernameKey];
+    password = [defaults objectForKey:passwordKey];
     BOOL wantsToSeeAvatars = [defaults boolForKey:@"wantToSeeAvatars"];
     if (!wantsToSeeAvatars) {
         [self.player.avatars removeAllObjects];
@@ -2276,13 +2280,17 @@ CGFloat bottomOffset = 0;
     // connect to the game server
     url =  [NSString stringWithFormat:@"https://www.pente.org/gameServer/mobile/index.jsp?name=%@&password=%@",username,password];
     //    url =  [NSString stringWithFormat:@"https://www.pente.org/gameServer/mobile/index.jsp?name=%@&password=%@&checkname=graviton",username,password];
-//        url =  [NSString stringWithFormat:@"https://www.pente.org/gameServer/mobile/index.jsp?name=%@&password=%@&checkname=thomrr25",username,password];
-//    username = @"thomrr25";
+//        url =  [NSString stringWithFormat:@"https://www.pente.org/gameServer/mobile/index.jsp?name=%@&password=%@&checkname=harveyjoe",username,password];
+//    username = @"harveyjoe";
     if (development) {
         url =  [NSString stringWithFormat:@"https://development.pente.org/gameServer/mobile/index.jsp?name=%@&password=%@",username,password];
+//        url =  [NSString stringWithFormat:@"https://development.pente.org/gameServer/mobile/index.jsp?name=harveyjoe&password=tsetsoi"];
+//        url =  [NSString stringWithFormat:@"https://development.pente.org/gameServer/mobile/index.jsp?name=%@&password=%@&checkname=harveyjoe",username,password];
 //        url =  [NSString stringWithFormat:@"https://development.pente.org/gameServer/mobile/index.jsp?name=%@&password=%@&checkname=iostest",username,password];
-//        username = @"iostest";
+//        username = @"harveyjoe";
     }
+    
+//    NSLog(@"kitty %@, %@", username, password);
 
     [request setURL:[NSURL URLWithString:url]];
     [request setHTTPMethod:@"GET"];
@@ -2305,6 +2313,8 @@ CGFloat bottomOffset = 0;
         });
     }
     NSString *dashboardString = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
+
+//    printf("%s", [dashboardString UTF8String]);
 //    NSLog(dashboardString);
 
     dispatch_async(dispatch_get_main_queue(), ^{

@@ -217,7 +217,7 @@
             NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
             username = [defaults objectForKey:usernameKey];
             password = [defaults objectForKey:passwordKey];
-            //        NSLog(@"kittyyyyyy %@ %@", username, password);
+//                    NSLog(@"kittyyyyyy %@ %@", username, password);
             if (!((username == nil) || (password == nil) || [username isEqualToString:@""] || [password isEqualToString:@""])) {
                 NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
                 NSString *url = @"https://www.pente.org/gameServer/logout";

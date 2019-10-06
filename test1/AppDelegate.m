@@ -181,7 +181,13 @@
 
 - (void)applicationWillEnterForeground:(UIApplication *)application
 {
-    // Called as part of the transition from the background to the inactive state; here you can undo many of the changes made on entering the background.
+    NSLog(@"penteliveee: foreground");
+    if ([((PenteNavigationViewController *)self.window.rootViewController).visibleViewController respondsToSelector:@selector(dashboardParse)]) {
+        [((GamesTableViewController *)((PenteNavigationViewController *)self.window.rootViewController).visibleViewController) dashboardParse];
+    } else {
+        [(PenteNavigationViewController *)self.window.rootViewController setDidMove:YES];
+        [(PenteNavigationViewController *)self.window.rootViewController popToRootViewControllerAnimated:YES];
+    }
 }
 
 - (void)applicationDidBecomeActive:(UIApplication *)application
@@ -235,6 +241,12 @@
 {
 //    NSLog(@"Received notification: %@", [userInfo objectForKey:@"gameID"]);
 //    [self addMessageFromRemoteNotification:userInfo updateUI:YES];
+    
+    if (application.applicationState == UIApplicationStateInactive) {
+        [(PenteNavigationViewController *)(self.window.rootViewController) setReceivedNotification: userInfo];
+        NSLog(@"penteliveee: inactive notif %@", userInfo);
+        return;
+    }
 
     if ([userInfo objectForKey:@"silentNotification"]) {
         PenteNavigationViewController *navController = (PenteNavigationViewController *) (self.window.rootViewController);

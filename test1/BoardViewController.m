@@ -1037,7 +1037,7 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
     
     [receivedMessageView setEditable:NO];
     [receivedMessageView setAlpha:0.90];
-    [receivedMessageView setBackgroundColor:[UIColor colorWithRed:0.98f green:0.98f blue:0.98f alpha:0.95]];
+//    [receivedMessageView setBackgroundColor:[UIColor colorWithRed:0.98f green:0.98f blue:0.98f alpha:0.95]];
     receivedMessageView.clipsToBounds = YES;
     receivedMessageView.layer.cornerRadius = 5.0f;
     receivedMessageView.contentInset = UIEdgeInsetsMake(-10.0,0.0,0,0.0);
