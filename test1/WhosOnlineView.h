@@ -27,12 +27,7 @@
 //@end
 //
 
-@interface PlayerCell : UITableViewCell {
-    UILabel *ratingLabel;
-}
-@property(nonatomic, retain, readwrite) UILabel *ratingLabel;
 
-@end
 @interface Room : NSObject {
     NSString *name;
     NSMutableArray<Player *> *players;
@@ -42,7 +37,6 @@
 -(void) addPlayer: (Player *) player;
 
 @end
-
 
 @interface WhosOnlineView : UITableView <UITableViewDelegate, UITableViewDataSource> {
     PentePlayer *player;
@@ -55,3 +49,12 @@
 @property(retain, nonatomic, readwrite) PentePlayer *player;
 
 @end
+
+
+@interface PlayerCell : UITableViewCell {
+    UILabel *ratingLabel;
+}
+@property(nonatomic, retain, readwrite) UILabel *ratingLabel;
+
+@end
+

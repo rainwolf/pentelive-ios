@@ -618,7 +618,21 @@ CGFloat bottomOffset = 0;
         cell.ratingLabel.text = @"";
         cell.ratingLabel.text = [message timeStamp];
         cell.textLabel.attributedText = [self.player markIfOnline:[message author] andAttributedName:[message attributedName]];
-        cell.detailTextLabel.text = [message subject];
+        if ([[message unread] isEqualToString:@"unread"]) {
+            NSMutableAttributedString *str = [[NSMutableAttributedString alloc] initWithString: [message subject]];
+            [str addAttribute: NSForegroundColorAttributeName value: [UIColor blackColor] range: NSMakeRange(0, [str length])];
+            cell.detailTextLabel.attributedText = str;
+            if ([message.nameColor isEqual: UIColorFromRGB(0)]) {
+                str = [[NSMutableAttributedString alloc] initWithAttributedString:cell.textLabel.attributedText];
+                [str addAttribute:NSForegroundColorAttributeName value: [UIColor blackColor] range:NSMakeRange(0, [str length])];
+                cell.textLabel.attributedText = str;
+            }
+            str = [[NSMutableAttributedString alloc] initWithAttributedString:cell.ratingLabel.attributedText];
+            [str addAttribute:NSForegroundColorAttributeName value: [UIColor blackColor] range:NSMakeRange(0, [str length])];
+            cell.ratingLabel.attributedText = str;
+        } else {
+            cell.detailTextLabel.text = [message subject];
+        }
         [cell setAccessoryType:UITableViewCellAccessoryDisclosureIndicator];
         [cell setUserInteractionEnabled:YES];
         cell.imageView.image = imgV;
@@ -806,8 +820,10 @@ CGFloat bottomOffset = 0;
         }
         if ([[game ratedNot] containsString:@"KotH"] || [[game ratedNot] containsString:@", beginner"]) {
             NSMutableAttributedString *attStr = [[NSMutableAttributedString alloc] initWithAttributedString:cell.ratingLabel.attributedText];
-            [attStr addAttribute:NSForegroundColorAttributeName value: [UIColor blackColor] range:NSMakeRange(2, [attStr length]-2)];
-            cell.ratingLabel.attributedText = attStr;
+            if (attStr.length > 2) {
+                [attStr addAttribute:NSForegroundColorAttributeName value: [UIColor blackColor] range:NSMakeRange(2, [attStr length]-2)];
+                cell.ratingLabel.attributedText = attStr;
+            }
             attStr = [[NSMutableAttributedString alloc] initWithAttributedString:cell.textLabel.attributedText];
             [attStr addAttribute:NSForegroundColorAttributeName value: [UIColor blackColor] range:NSMakeRange(0, [attStr length])];
             cell.textLabel.attributedText = attStr;

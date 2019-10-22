@@ -482,19 +482,21 @@
                 iWin = NO;
             }
         }
-        [TSMessage showNotificationInViewController:self.navigationController
-                                              title: NSLocalizedString(@"Game Over",nil)
-                                           subtitle: message
-                                              image:nil
-                                               type: (iWin?TSMessageNotificationTypeSuccess:TSMessageNotificationTypeError)
-                                           duration:TSMessageNotificationDurationAutomatic
-                                           callback: ^{
-                                               [TSMessage dismissActiveNotification];
-                                           }
-                                        buttonTitle: nil
-                                     buttonCallback:nil
-                                         atPosition:TSMessageNotificationPositionBottom
-                               canBeDismissedByUser:YES];
+        dispatch_async(dispatch_get_main_queue(), ^{
+          [TSMessage showNotificationInViewController:self.navigationController
+                                                title: NSLocalizedString(@"Game Over",nil)
+                                             subtitle: message
+                                                image:nil
+                                                 type: (iWin?TSMessageNotificationTypeSuccess:TSMessageNotificationTypeError)
+                                             duration:TSMessageNotificationDurationAutomatic
+                                             callback: ^{
+                                                 [TSMessage dismissActiveNotification];
+                                             }
+                                          buttonTitle: nil
+                                       buttonCallback:nil
+                                           atPosition:TSMessageNotificationPositionBottom
+                                 canBeDismissedByUser:YES];
+        });
     }
     NSString *colorStr = NSLocalizedString(@"Color:",nil), *difficultyStr = NSLocalizedString(@"difficulty:",nil);
     moveStatsString = [[NSMutableString alloc] initWithString:[NSString stringWithFormat:@"<center><b>%@</b> %@, <b>%@</b> %@</center><hr>", colorStr, setupView.colorCell.detailTextLabel.text,difficultyStr, setupView.difficultyCell.textField.text]];

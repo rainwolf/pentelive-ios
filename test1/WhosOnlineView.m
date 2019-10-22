@@ -67,16 +67,6 @@
         cell = [[PlayerCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:cellIdentifier];
     }
     Player *playr = [[rooms objectAtIndex:indexPath.section].players objectAtIndex:indexPath.row];
-    if ([[[rooms objectAtIndex:indexPath.section] name] isEqualToString:@"Mobile"]) {
-        cell.backgroundColor = [UIColor colorWithRed: 222.0/256 green:236.0/256 blue:222.0/256 alpha:1];
-//        [cell setUserInteractionEnabled:YES];
-    } else {
-        if (@available(iOS 13.0, *)) {
-            cell.backgroundColor = [UIColor systemBackgroundColor];
-        } else {
-            cell.backgroundColor = [UIColor whiteColor];
-        }
-    }
     [cell setAccessoryType:UITableViewCellAccessoryDisclosureIndicator];
     NSMutableString *txtStr = [[NSMutableString alloc] initWithString: [playr name]];
     int crown = [playr crown];
@@ -122,13 +112,32 @@
     cell.textLabel.attributedText = tmpStr;
     [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
 
-    cell.detailTextLabel.text = [NSString stringWithFormat: NSLocalizedString(@"Total games: %@",nil), [playr numberOfGames]];
+    if ([[[rooms objectAtIndex:indexPath.section] name] isEqualToString:@"Mobile"]) {
+        tmpStr = [[NSMutableAttributedString alloc] initWithString: [NSString stringWithFormat: NSLocalizedString(@"Total games: %@",nil), [playr numberOfGames]]];
+        [tmpStr addAttribute: NSForegroundColorAttributeName value: [UIColor blackColor] range: NSMakeRange(0, [tmpStr length])];
+        cell.detailTextLabel.attributedText = tmpStr;
+        tmpStr = [[NSMutableAttributedString alloc] initWithAttributedString: ((PlayerCell *) cell).ratingLabel.attributedText];
+        [tmpStr addAttribute: NSForegroundColorAttributeName value: [UIColor blackColor] range: NSMakeRange(1, [tmpStr length]-1)];
+        cell.ratingLabel.attributedText = tmpStr;
+    } else {
+        cell.detailTextLabel.attributedText = nil;
+        cell.detailTextLabel.text = [NSString stringWithFormat: NSLocalizedString(@"Total games: %@",nil), [playr numberOfGames]];
+    }
 
     if (playr.color != 0) {
         UIImage *imgV = [player.avatars objectForKey: playr.name];
         cell.imageView.image = imgV;
     } else {
         cell.imageView.image = nil;
+    }
+    if ([[[rooms objectAtIndex:indexPath.section] name] isEqualToString:@"Mobile"]) {
+        cell.backgroundColor = [UIColor colorWithRed: 222.0/256 green:236.0/256 blue:222.0/256 alpha:1];
+    } else {
+        if (@available(iOS 13.0, *)) {
+            cell.backgroundColor = [UIColor systemBackgroundColor];
+        } else {
+            cell.backgroundColor = [UIColor whiteColor];
+        }
     }
 //    cell.textLabel.text =  [players objectAtIndex: indexPath.row].name;
 //    NSMutableString *ratingStr = [NSMutableString stringWithString:@"\u25A0 "];

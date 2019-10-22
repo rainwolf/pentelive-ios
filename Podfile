@@ -5,6 +5,7 @@ end
 
 source 'https://github.com/CocoaPods/Specs.git'
 use_frameworks!
+use_modular_headers!
 
 target "penteLive" do
 platform :ios, '8.0'
