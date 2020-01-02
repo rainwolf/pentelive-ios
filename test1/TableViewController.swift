@@ -210,7 +210,7 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
 //            default: break
 //        }
         
-        let hideBoard = ((currentPoint.x <= 0) || (currentPoint.x >= self.board.bounds.size.width) || (currentPoint.y <= 0) || (currentPoint.y >= self.board.bounds.size.height)) || gestureReconizer.state == .ended
+        let hideBoard = gestureReconizer.state == .ended
         var hideStone = false
         let gridSize = table.gridSize
         if 0 <= i && i<gridSize && 0 <= j && j<gridSize {
@@ -222,7 +222,9 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
             if hideBoard && !hideStone {
 //                stone.isHidden = false
 //                stone.center = CGPoint(x: CGFloat(j)*cellSize + cellSize/2, y: CGFloat(i)*cellSize+cellSize/2)
-                sendMove(move: i*gridSize + j)
+                if !((currentPoint.x <= 0) || (currentPoint.x >= self.board.bounds.size.width) || (currentPoint.y <= 0) || (currentPoint.y >= self.board.bounds.size.height)) {
+                    sendMove(move: i*gridSize + j)
+                }
             } else {
 //                stone.isHidden = true
             }

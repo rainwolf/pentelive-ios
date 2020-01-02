@@ -624,7 +624,11 @@ CGFloat bottomOffset = 0;
             cell.detailTextLabel.attributedText = str;
             if ([message.nameColor isEqual: UIColorFromRGB(0)]) {
                 str = [[NSMutableAttributedString alloc] initWithAttributedString:cell.textLabel.attributedText];
-                [str addAttribute:NSForegroundColorAttributeName value: [UIColor blackColor] range:NSMakeRange(0, [str length])];
+                long len = [str length];
+                if ([str.string containsString: @" "]) {
+                    len--;
+                }
+                [str addAttribute:NSForegroundColorAttributeName value: [UIColor blackColor] range:NSMakeRange(0, len)];
                 cell.textLabel.attributedText = str;
             }
             str = [[NSMutableAttributedString alloc] initWithAttributedString:cell.ratingLabel.attributedText];
@@ -682,7 +686,11 @@ CGFloat bottomOffset = 0;
             [attStr addAttribute:NSForegroundColorAttributeName value: [UIColor blackColor] range:NSMakeRange(2, [attStr length]-2)];
             cell.ratingLabel.attributedText = attStr;
             attStr = [[NSMutableAttributedString alloc] initWithAttributedString:cell.textLabel.attributedText];
-            [attStr addAttribute:NSForegroundColorAttributeName value: [UIColor blackColor] range:NSMakeRange(0, [attStr length])];
+            long len = [attStr length];
+            if ([attStr.string containsString: @" "]) {
+                len--;
+            }
+            [attStr addAttribute:NSForegroundColorAttributeName value: [UIColor blackColor] range:NSMakeRange(0, len)];
             cell.textLabel.attributedText = attStr;
         }
     }
@@ -717,8 +725,20 @@ CGFloat bottomOffset = 0;
         } else {
             cell.imageView.image = [UIImage imageNamed:[NSString stringWithFormat:@"%@Stone.png",[game myColor]]];
         }
-        if ([[game ratedNot] rangeOfString:@"Tournament"].location != NSNotFound) {
+        if ([[game ratedNot] containsString:@"Tournament"]) {
             cell.backgroundColor = [UIColor colorWithRed: 222.0/256 green:236.0/256 blue:222.0/256 alpha:1];
+            NSMutableAttributedString *attStr = [[NSMutableAttributedString alloc] initWithAttributedString:cell.ratingLabel.attributedText];
+            [attStr addAttribute:NSForegroundColorAttributeName value: [UIColor blackColor] range:NSMakeRange(2, [attStr length]-2)];
+            cell.ratingLabel.attributedText = attStr;
+            if ([game.nameColor isEqual: UIColorFromRGB(0)]) {
+                attStr = [[NSMutableAttributedString alloc] initWithAttributedString:cell.textLabel.attributedText];
+                long len = [attStr length];
+                if ([attStr.string containsString: @" "]) {
+                    len--;
+                }
+                [attStr addAttribute:NSForegroundColorAttributeName value: [UIColor blackColor] range:NSMakeRange(0, len)];
+                cell.textLabel.attributedText = attStr;
+            }
         } else {
             if (@available(iOS 13.0, *)) {
                 cell.backgroundColor = [UIColor systemBackgroundColor];
@@ -775,7 +795,11 @@ CGFloat bottomOffset = 0;
             cell.ratingLabel.attributedText = attStr;
             if ([game.nameColor isEqual: UIColorFromRGB(0)]) {
                 attStr = [[NSMutableAttributedString alloc] initWithAttributedString:cell.textLabel.attributedText];
-                [attStr addAttribute:NSForegroundColorAttributeName value: [UIColor blackColor] range:NSMakeRange(0, [attStr length])];
+                long len = [attStr length];
+                if ([attStr.string containsString: @" "]) {
+                    len--;
+                }
+                [attStr addAttribute:NSForegroundColorAttributeName value: [UIColor blackColor] range:NSMakeRange(0, len)];
                 cell.textLabel.attributedText = attStr;
             }
         }
@@ -863,8 +887,21 @@ CGFloat bottomOffset = 0;
         } else {
             cell.imageView.image = [UIImage imageNamed:[NSString stringWithFormat:@"%@Stone.png",[game myColor]]];
         }
-        if ([[game ratedNot] rangeOfString:@"Tournament"].location != NSNotFound) {
+        if ([[game ratedNot] containsString:@"Tournament"]) {
             cell.backgroundColor = [UIColor colorWithRed: 222.0/256 green:236.0/256 blue:222.0/256 alpha:1];
+            NSMutableAttributedString *attStr = [[NSMutableAttributedString alloc] initWithAttributedString:cell.ratingLabel.attributedText];
+            [attStr addAttribute:NSForegroundColorAttributeName value: [UIColor blackColor] range:NSMakeRange(2, [attStr length]-2)];
+            cell.ratingLabel.attributedText = attStr;
+            if ([game.nameColor isEqual: UIColorFromRGB(0)]) {
+                attStr = [[NSMutableAttributedString alloc] initWithAttributedString:cell.textLabel.attributedText];
+                long len = [attStr length];
+                if ([attStr.string containsString: @" "]) {
+                    len--;
+                }
+                [attStr addAttribute:NSForegroundColorAttributeName value: [UIColor blackColor] range:NSMakeRange(0, len)];
+                cell.textLabel.attributedText = attStr;
+            }
+
         } else {
             if (@available(iOS 13.0, *)) {
                 cell.backgroundColor = [UIColor systemBackgroundColor];
@@ -1786,6 +1823,11 @@ CGFloat bottomOffset = 0;
     cancelButton.backgroundColor = [UIColor clearColor];
     cancelButton.titleLabel.font = [UIFont boldSystemFontOfSize:20];
     [cancelButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+    if (@available(iOS 13.0, *)) {
+        if ([cell.backgroundColor isEqual: [UIColor systemBackgroundColor]]) {
+            [cancelButton setTitleColor:[UIColor labelColor] forState:UIControlStateNormal];
+        }
+    }
     [cancelButton setTitle:NSLocalizedString(@"cancel",nil) forState:UIControlStateNormal];
     [cancelButton addTarget:self action:@selector(cancelInvitation:) forControlEvents:UIControlEventTouchUpInside];
     
@@ -1972,6 +2014,11 @@ CGFloat bottomOffset = 0;
     cancelButton.backgroundColor = [UIColor clearColor];
     cancelButton.titleLabel.font = [UIFont boldSystemFontOfSize:20];
     [cancelButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+    if (@available(iOS 13.0, *)) {
+        if ([cell.backgroundColor isEqual: [UIColor systemBackgroundColor]]) {
+            [cancelButton setTitleColor:[UIColor labelColor] forState:UIControlStateNormal];
+        }
+    }
     [cancelButton setTitle:NSLocalizedString(@"cancel",nil) forState:UIControlStateNormal];
     [cancelButton addTarget:self action:@selector(cancelPublicInvitation:) forControlEvents:UIControlEventTouchUpInside];
     

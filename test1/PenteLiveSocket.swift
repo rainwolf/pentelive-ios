@@ -22,7 +22,7 @@ import UIKit
         self.port = port
         self.room = room
         self.me = "guest"
-        separator = Data(bytes: [255])
+        separator = Data([255])
         super.init()
         self.socket = GCDAsyncSocket(delegate: self, delegateQueue: DispatchQueue(label: "penteLiveDelegateQueue"))
         do {

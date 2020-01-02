@@ -68,7 +68,7 @@ multipbem=0, np=2;
 unsigned long turn;
 
 int fr, fhn, en, np, cp, Kgame, cap1, tourn;
-int mvct, lvl, ppd, vct, ferr, alpha, beta, a1, b1;
+int mvct, lvl, ppd, vct, ferr, a1, b1;
 int sco[7], mxst, plv;
 
 unsigned char *pHashD;
@@ -85,18 +85,10 @@ CGPoint p1xy[24], pxy[24], p2xy[24], p3xy[24];
 int *pfhn, *pFk, *pFh; //fuk[361][4], fhole[500][4],
 int *pTr, *pTm, *pTo, *pTi;
 int fr, en, np, cp, Kgame, cap1, tourn, multipbem, breadth;
-int bd[19][19], cc[20][7], p1d[24], p2d[24], p3d[24], cap2, cap3;
 int sco[7], exfl[20], exel[20], mxst, plv, extnt, extent;
-int rotx[8], roty[8], rotf[8], maxscr;
 int fhn, mvct, lvl, gf, ppd, vct, ferr, alpha, beta, a1, b1;
-int ciel[20][7], mxnd[20], dx[8], dy[8], sec[3];
-int mxvt[19], mxvf[19];
+int ciel[20][7], mxnd[20], sec[3];
 
-unsigned int *pHashY, HValX[20], HValY[20],
-TableX[362], TableY[362];
-short int *pHashS;
-unsigned char *pHashD;
-int bmove, bscr;
 short int *pAs, *pAt;//*pPbk, *pKbk, *pPNm, *pPOs, *pKNm, *pKOs;
 
 
@@ -133,10 +125,12 @@ short int *pAs, *pAt;//*pPbk, *pKbk, *pPNm, *pPOs, *pKNm, *pKOs;
                     table[i*4+j]= (((short int) fileDataArray[fileCntr + 1]) << 8) | fileDataArray[fileCntr];
                     fileCntr += 2;
                 }
-                //System.out.println(table[i*4+j]);
             }
         }
         pAt = table;
+//        for(int i = 3600; i<3650; i++) {
+//            NSLog(@"kitten %d", pAt[i]);
+//        }
 
         path = [[NSBundle mainBundle] pathForResource:@"pente" ofType:@"scs"];
         fileData = [NSData dataWithContentsOfFile:path];
@@ -1520,6 +1514,7 @@ short int *pAs, *pAt;//*pPbk, *pKbk, *pPNm, *pPOs, *pKNm, *pKOs;
                     for (i=1; i<hlim+3; i++)
                         if (!lb[i] && ld[i] && i!=4) lb[i]=ld[i];
                 do { //c2
+//                    NSLog(@"kitty %d", index);
                     iw=*(pAt+index*4+0)*sign;
                     side=1; iv=iw+4;
                     if (iw<0) { side=0; iv=-iw; }

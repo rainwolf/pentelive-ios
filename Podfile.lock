@@ -5,38 +5,38 @@ PODS:
   - ARChromeActivity (1.0.6)
   - CocoaAsyncSocket (7.6.3)
   - Color-Picker-for-iOS (2.0.2)
-  - Google-Mobile-Ads-SDK (7.50.0):
+  - Google-Mobile-Ads-SDK (7.53.1):
     - GoogleAppMeasurement (~> 6.0)
-  - GoogleAppMeasurement (6.1.3):
+  - GoogleAppMeasurement (6.1.7):
     - GoogleUtilities/AppDelegateSwizzler (~> 6.0)
     - GoogleUtilities/MethodSwizzler (~> 6.0)
     - GoogleUtilities/Network (~> 6.0)
     - "GoogleUtilities/NSData+zlib (~> 6.0)"
-    - nanopb (~> 0.3.901)
-  - GoogleUtilities/AppDelegateSwizzler (6.3.1):
+    - nanopb (= 0.3.9011)
+  - GoogleUtilities/AppDelegateSwizzler (6.4.0):
     - GoogleUtilities/Environment
     - GoogleUtilities/Logger
     - GoogleUtilities/Network
-  - GoogleUtilities/Environment (6.3.1)
-  - GoogleUtilities/Logger (6.3.1):
+  - GoogleUtilities/Environment (6.4.0)
+  - GoogleUtilities/Logger (6.4.0):
     - GoogleUtilities/Environment
-  - GoogleUtilities/MethodSwizzler (6.3.1):
+  - GoogleUtilities/MethodSwizzler (6.4.0):
     - GoogleUtilities/Logger
-  - GoogleUtilities/Network (6.3.1):
+  - GoogleUtilities/Network (6.4.0):
     - GoogleUtilities/Logger
     - "GoogleUtilities/NSData+zlib"
     - GoogleUtilities/Reachability
-  - "GoogleUtilities/NSData+zlib (6.3.1)"
-  - GoogleUtilities/Reachability (6.3.1):
+  - "GoogleUtilities/NSData+zlib (6.4.0)"
+  - GoogleUtilities/Reachability (6.4.0):
     - GoogleUtilities/Logger
   - HexColors (2.3.0)
   - ICDMaterialActivityIndicatorView (0.1.3)
   - InAppSettingsKit (2.14)
-  - nanopb (0.3.901):
-    - nanopb/decode (= 0.3.901)
-    - nanopb/encode (= 0.3.901)
-  - nanopb/decode (0.3.901)
-  - nanopb/encode (0.3.901)
+  - nanopb (0.3.9011):
+    - nanopb/decode (= 0.3.9011)
+    - nanopb/encode (= 0.3.9011)
+  - nanopb/decode (0.3.9011)
+  - nanopb/encode (0.3.9011)
   - NSHash (1.1.0)
   - PopoverView (0.0.2)
   - RMStore (0.7.1):
@@ -107,13 +107,13 @@ SPEC CHECKSUMS:
   ARChromeActivity: 5dcf9b9f09323761f992aff3525cdd777f83609d
   CocoaAsyncSocket: eafaa68a7e0ec99ead0a7b35015e0bf25d2c8987
   Color-Picker-for-iOS: 4980589b3e3cfe7198f227dd50be9adb02d8bc0b
-  Google-Mobile-Ads-SDK: d48dbaf5bae1ab7a94a9786f493c26c454bc6f16
-  GoogleAppMeasurement: 434cc7be25e71dc04b8d0e3079125127b330e84a
-  GoogleUtilities: f895fde57977df4e0233edda0dbeac490e3703b6
+  Google-Mobile-Ads-SDK: fac081606dbd438d8db57198b83ba8b5f875a601
+  GoogleAppMeasurement: db118eb61a97dd8c4f7014e368d3c335cbbcf80a
+  GoogleUtilities: 29bd0d8f850efbd28cff6d99e8b7da1f8d236bcf
   HexColors: 6ad3947c3447a055a3aa8efa859def096351fe5f
   ICDMaterialActivityIndicatorView: 52e3f11f27ebf0b53a7bc7725f416b1a182367b6
   InAppSettingsKit: 800853da39388780c15191846688c0974c5b13b5
-  nanopb: 2901f78ea1b7b4015c860c2fdd1ea2fee1a18d48
+  nanopb: 18003b5e52dab79db540fe93fe9579f399bd1ccd
   NSHash: 61d598c6d48957c5557f1eef0aeafd6ef5ec5fb7
   PopoverView: 51d31a7f2398afbff710dc7933a357bf2c3cbe72
   RMStore: 64ba13a9c040e3b7572765d169f77175cd3243e5

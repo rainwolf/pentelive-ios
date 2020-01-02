@@ -288,6 +288,18 @@
         aiPlayer = [[MMAI alloc] init];
     }
     [aiPlayer reset];
+//    [aiPlayer setGame:1];
+//    [aiPlayer addMove:180];
+//    [aiPlayer addMove:161];
+//    [aiPlayer addMove:104];
+//    [aiPlayer addMove:200];
+//    [aiPlayer addMove:144];
+//    [aiPlayer addMove:198];
+//    [aiPlayer addMove:201];
+//    [aiPlayer setSeat:2];
+//    [aiPlayer setLevel:3];
+//    NSLog(@"kitty %d", [aiPlayer getMove]);
+//    return;
     [aiPlayer setLevel:[setupView.difficultyCell.textField.text intValue]];
     [aiPlayer setSeat: ([setupView.colorCell.detailTextLabel.text isEqualToString:NSLocalizedString(@"white",nil)]?2:1)];
 //    NSLog(@"kitty %@", setupView.colorCell.detailTextLabel.text);
