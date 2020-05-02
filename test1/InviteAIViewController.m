@@ -308,7 +308,11 @@
     NSString *postLength = [NSString stringWithFormat:@"%lu", (unsigned long)[postData length]];
     
     NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
-    [request setURL:[NSURL URLWithString:@"https://www.pente.org/gameServer/tb/newGame"]];
+    if (development) {
+        [request setURL:[NSURL URLWithString:@"https://development.pente.org/gameServer/tb/newGame"]];
+    } else {
+        [request setURL:[NSURL URLWithString:@"https://www.pente.org/gameServer/tb/newGame"]];
+    }
     [request setHTTPMethod:@"POST"];
     [request setValue:postLength forHTTPHeaderField:@"Content-Length"];
     [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
@@ -320,29 +324,30 @@
     NSString *dashboardString = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
     
     
-    [spinner performSelectorOnMainThread:@selector(stopAnimating) withObject:nil waitUntilDone:NO];
-    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-    [defaults setObject:gameCell.detailTextLabel.text forKey:@"lastInvitedAIGame"];
-    [defaults setObject:opponentCell.detailTextLabel.text forKey:@"lastInvitedAIdifficulty"];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [spinner performSelectorOnMainThread:@selector(stopAnimating) withObject:nil waitUntilDone:NO];
+        NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+        [defaults setObject:gameCell.detailTextLabel.text forKey:@"lastInvitedAIGame"];
+        [defaults setObject:opponentCell.detailTextLabel.text forKey:@"lastInvitedAIdifficulty"];
 
-    if (error) {
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error",nil) message:[NSString stringWithFormat:NSLocalizedString(@"Reason: %@",nil), error.localizedDescription] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
-        //        [alert show];
-        [alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:YES];
-        return;
-    } else if ([dashboardString rangeOfString:@"against the AI player. You can start a new one after finishing the current one."].location != NSNotFound) {
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error",nil) message:NSLocalizedString(@"The AI player will only play 1 game or set of each game at a time.",nil) delegate:nil cancelButtonTitle:NSLocalizedString(@"OK",nil) otherButtonTitles:nil];
-        [alert show];
+        if (error) {
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error",nil) message:[NSString stringWithFormat:NSLocalizedString(@"Reason: %@",nil), error.localizedDescription] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+            //        [alert show];
+            [alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:YES];
+            return;
+        } else if ([dashboardString rangeOfString:@"against the AI player. You can start a new one after finishing the current one."].location != NSNotFound) {
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error",nil) message:NSLocalizedString(@"The AI player will only play 1 game or set of each game at a time.",nil) delegate:nil cancelButtonTitle:NSLocalizedString(@"OK",nil) otherButtonTitles:nil];
+            [alert show];
 
-    } else {
-        PenteNavigationViewController *navController = (PenteNavigationViewController *) self.navigationController;
-        [navController setDidMove: YES];
-        [navController setChallengeCancelled: YES];
-        
-        
-        //        [navController popToRootViewControllerAnimated:YES];
-        [navController popViewControllerAnimated:YES];
-    }
+        } else {
+            PenteNavigationViewController *navController = (PenteNavigationViewController *) self.navigationController;
+            [navController setDidMove: YES];
+            [navController setChallengeCancelled: YES];
+            
+            //        [navController popToRootViewControllerAnimated:YES];
+            [navController popViewControllerAnimated:YES];
+        }
+    });
 }
 
 //-(void) showError: (NSError *) error {

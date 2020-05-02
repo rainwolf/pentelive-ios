@@ -2372,8 +2372,8 @@ CGFloat bottomOffset = 0;
             [self.tableView setUserInteractionEnabled:YES];
 //            [self performSegueWithIdentifier:@"settingsTap" sender:self];
             //        settingsViewController.showAIOption = YES;
-            return;
         });
+        return;
     }
     NSString *dashboardString = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
 

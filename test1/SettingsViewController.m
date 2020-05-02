@@ -555,27 +555,48 @@
         NSString *dashboardString = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
         //        NSLog(dashboardString);
         
-        [self.progressView stopAnimating];
-        [self.progressView removeFromSuperview];
-        if ([dashboardString containsString:@"success"]) {
-            [[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"shouldSendReceipt"];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self.progressView stopAnimating];
+            [self.progressView removeFromSuperview];
+            if ([dashboardString containsString:@"success"]) {
+                [[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"shouldSendReceipt"];
+                [TSMessage showNotificationInViewController:self.navigationController
+                                                      title: NSLocalizedString(@"Purchase registration successful",nil)
+                                                   subtitle: nil
+                                                      image:nil
+                                                       type: TSMessageNotificationTypeSuccess
+                                                   duration:TSMessageNotificationDurationAutomatic
+                                                   callback: ^{
+                                                       [TSMessage dismissActiveNotification];
+                                                   }
+                                                buttonTitle: nil
+                                             buttonCallback:nil
+                                                 atPosition:TSMessageNotificationPositionBottom
+                                       canBeDismissedByUser:YES];
+            } else {
+                [TSMessage showNotificationInViewController:self.navigationController
+                                                      title: NSLocalizedString(@"Purchase registration failed", nil)
+                                                   subtitle: NSLocalizedString(@"The app will retry purchase registration at pente.org every time the app starts",nil)
+                                                      image:nil
+                                                       type: TSMessageNotificationTypeWarning
+                                                   duration:TSMessageNotificationDurationAutomatic
+                                                   callback: ^{
+                                                       [TSMessage dismissActiveNotification];
+                                                   }
+                                                buttonTitle: nil
+                                             buttonCallback:nil
+                                                 atPosition:TSMessageNotificationPositionBottom
+                                       canBeDismissedByUser:YES];
+            }
+        });
+        
+    } failure:^(SKPaymentTransaction *transaction, NSError *error) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self.progressView stopAnimating];
+            [self.progressView removeFromSuperview];
             [TSMessage showNotificationInViewController:self.navigationController
-                                                  title: NSLocalizedString(@"Purchase registration successful",nil)
-                                               subtitle: nil
-                                                  image:nil
-                                                   type: TSMessageNotificationTypeSuccess
-                                               duration:TSMessageNotificationDurationAutomatic
-                                               callback: ^{
-                                                   [TSMessage dismissActiveNotification];
-                                               }
-                                            buttonTitle: nil
-                                         buttonCallback:nil
-                                             atPosition:TSMessageNotificationPositionBottom
-                                   canBeDismissedByUser:YES];
-        } else {
-            [TSMessage showNotificationInViewController:self.navigationController
-                                                  title: NSLocalizedString(@"Purchase registration failed", nil)
-                                               subtitle: NSLocalizedString(@"The app will retry purchase registration at pente.org every time the app starts",nil)
+                                                  title: NSLocalizedString(@"Purchase failed",nil)
+                                               subtitle: [NSString stringWithFormat:NSLocalizedString(@"Reason: %@",nil), error.localizedFailureReason]
                                                   image:nil
                                                    type: TSMessageNotificationTypeWarning
                                                duration:TSMessageNotificationDurationAutomatic
@@ -586,25 +607,8 @@
                                          buttonCallback:nil
                                              atPosition:TSMessageNotificationPositionBottom
                                    canBeDismissedByUser:YES];
-        }
-        
-    } failure:^(SKPaymentTransaction *transaction, NSError *error) {
-        [self.progressView stopAnimating];
-        [self.progressView removeFromSuperview];
-        [TSMessage showNotificationInViewController:self.navigationController
-                                              title: NSLocalizedString(@"Purchase failed",nil)
-                                           subtitle: [NSString stringWithFormat:NSLocalizedString(@"Reason: %@",nil), error.localizedFailureReason]
-                                              image:nil
-                                               type: TSMessageNotificationTypeWarning
-                                           duration:TSMessageNotificationDurationAutomatic
-                                           callback: ^{
-                                               [TSMessage dismissActiveNotification];
-                                           }
-                                        buttonTitle: nil
-                                     buttonCallback:nil
-                                         atPosition:TSMessageNotificationPositionBottom
-                               canBeDismissedByUser:YES];
-        NSLog(@"Something went wrong, %@", error.localizedFailureReason);
+            NSLog(@"Something went wrong, %@", error.localizedFailureReason);
+        });
     }];
     
     [popoverView dismiss];
@@ -636,6 +640,7 @@
     [self.view addSubview:self.progressView];
     subscribing = YES;
 
+    NSLog(@"start restore");
     
     [[RMStore defaultStore] restoreTransactionsOnSuccess:^(NSArray *transactions) {
         [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"shouldSendReceipt"];
@@ -660,46 +665,70 @@
         
         NSURLResponse *response;
         NSError *error;
+        NSLog(@"before sending to server");
         NSData *responseData = [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
         NSString *dashboardString = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
         //        NSLog(dashboardString);
         
-        [self.progressView stopAnimating];
-        [self.progressView removeFromSuperview];
-        if ([dashboardString containsString:@"success"]) {
-            [[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"shouldSendReceipt"];
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self.progressView stopAnimating];
+            [self.progressView removeFromSuperview];
+            if ([dashboardString containsString:@"success"]) {
+                [[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"shouldSendReceipt"];
+                [TSMessage showNotificationInViewController:self.navigationController
+                                                      title: NSLocalizedString(@"Purchase restore successful",nil)
+                                                   subtitle: nil
+                                                      image:nil
+                                                       type: TSMessageNotificationTypeSuccess
+                                                   duration:TSMessageNotificationDurationAutomatic
+                                                   callback: ^{
+                                                       [TSMessage dismissActiveNotification];
+                                                   }
+                                                buttonTitle: nil
+                                             buttonCallback:nil
+                                                 atPosition:TSMessageNotificationPositionBottom
+                                       canBeDismissedByUser:YES];
+            } else if ([dashboardString containsString:@"invalid receipt"]) {
+                [[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"shouldSendReceipt"];
+                [TSMessage showNotificationInViewController:self.navigationController
+                                                      title: NSLocalizedString(@"Purchase restore failed",nil)
+                                                   subtitle: NSLocalizedString(@"No valid purchase to restore",nil)
+                                                      image:nil
+                                                       type: TSMessageNotificationTypeSuccess
+                                                   duration:TSMessageNotificationDurationAutomatic
+                                                   callback: ^{
+                                                       [TSMessage dismissActiveNotification];
+                                                   }
+                                                buttonTitle: nil
+                                             buttonCallback:nil
+                                                 atPosition:TSMessageNotificationPositionBottom
+                                       canBeDismissedByUser:YES];
+            } else {
+                [TSMessage showNotificationInViewController:self.navigationController
+                                                      title: NSLocalizedString(@"Purchase restore failed", nil)
+                                                   subtitle: NSLocalizedString(@"The app will retry purchase restore at pente.org every time the app starts",nil)
+                                                      image:nil
+                                                       type: TSMessageNotificationTypeWarning
+                                                   duration:TSMessageNotificationDurationAutomatic
+                                                   callback: ^{
+                                                       [TSMessage dismissActiveNotification];
+                                                   }
+                                                buttonTitle: nil
+                                             buttonCallback:nil
+                                                 atPosition:TSMessageNotificationPositionBottom
+                                       canBeDismissedByUser:YES];
+            }
+        });
+        
+    } failure:^(NSError *error) {
+        NSLog(@"Something went wrong, %@", error.localizedFailureReason);
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self.progressView stopAnimating];
+            [self.progressView removeFromSuperview];
             [TSMessage showNotificationInViewController:self.navigationController
-                                                  title: NSLocalizedString(@"Purchase restore successful",nil)
-                                               subtitle: nil
-                                                  image:nil
-                                                   type: TSMessageNotificationTypeSuccess
-                                               duration:TSMessageNotificationDurationAutomatic
-                                               callback: ^{
-                                                   [TSMessage dismissActiveNotification];
-                                               }
-                                            buttonTitle: nil
-                                         buttonCallback:nil
-                                             atPosition:TSMessageNotificationPositionBottom
-                                   canBeDismissedByUser:YES];
-        } else if ([dashboardString containsString:@"invalid receipt"]) {
-            [[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"shouldSendReceipt"];
-            [TSMessage showNotificationInViewController:self.navigationController
-                                                  title: NSLocalizedString(@"Purchase restore failed",nil)
-                                               subtitle: NSLocalizedString(@"No valid purchase to restore",nil)
-                                                  image:nil
-                                                   type: TSMessageNotificationTypeSuccess
-                                               duration:TSMessageNotificationDurationAutomatic
-                                               callback: ^{
-                                                   [TSMessage dismissActiveNotification];
-                                               }
-                                            buttonTitle: nil
-                                         buttonCallback:nil
-                                             atPosition:TSMessageNotificationPositionBottom
-                                   canBeDismissedByUser:YES];
-        } else {
-            [TSMessage showNotificationInViewController:self.navigationController
-                                                  title: NSLocalizedString(@"Purchase restore failed", nil)
-                                               subtitle: NSLocalizedString(@"The app will retry purchase restore at pente.org every time the app starts",nil)
+                                                  title: NSLocalizedString(@"Purchase failed",nil)
+                                               subtitle: [NSString stringWithFormat:NSLocalizedString(@"Reason: %@",nil), error.localizedFailureReason]
                                                   image:nil
                                                    type: TSMessageNotificationTypeWarning
                                                duration:TSMessageNotificationDurationAutomatic
@@ -710,25 +739,8 @@
                                          buttonCallback:nil
                                              atPosition:TSMessageNotificationPositionBottom
                                    canBeDismissedByUser:YES];
-        }
-        
-    } failure:^(NSError *error) {
-        [self.progressView stopAnimating];
-        [self.progressView removeFromSuperview];
-        [TSMessage showNotificationInViewController:self.navigationController
-                                              title: NSLocalizedString(@"Purchase failed",nil)
-                                           subtitle: [NSString stringWithFormat:NSLocalizedString(@"Reason: %@",nil), error.localizedFailureReason]
-                                              image:nil
-                                               type: TSMessageNotificationTypeWarning
-                                           duration:TSMessageNotificationDurationAutomatic
-                                           callback: ^{
-                                               [TSMessage dismissActiveNotification];
-                                           }
-                                        buttonTitle: nil
-                                     buttonCallback:nil
-                                         atPosition:TSMessageNotificationPositionBottom
-                               canBeDismissedByUser:YES];
-        NSLog(@"Something went wrong, %@", error.localizedFailureReason);
+            NSLog(@"Something went wrong, %@", error.localizedFailureReason);
+        });
     }];
 }
 
