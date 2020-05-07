@@ -3575,47 +3575,6 @@ CGFloat bottomOffset = 0;
     return [tmpStrShocked stringByReplacingOccurrencesOfString:@"<img border=\"0\" src=\"http://[host]/gameServer/forums/images/emoticons/plain.gif\" alt=\"\">" withString: @":|"];
 }
 
-//- (void)connection:(NSURLConnection *)connection didReceiveAuthenticationChallenge:(NSURLAuthenticationChallenge *)challenge {
-//    NSLog(@"kittennnnnn");
-//    NSArray *trustedHosts = [NSArray arrayWithObjects:@"mytrustedhost",nil];
-//    
-//    if ([challenge.protectionSpace.authenticationMethod isEqualToString:NSURLAuthenticationMethodServerTrust]){
-//        if ([trustedHosts containsObject:challenge.protectionSpace.host]) {
-//            [challenge.sender useCredential:[NSURLCredential credentialForTrust:challenge.protectionSpace.serverTrust] forAuthenticationChallenge:challenge];
-//        }
-//    }
-//    [challenge.sender continueWithoutCredentialForAuthenticationChallenge:challenge];
-//}
-
-- (BOOL)webView:(UIWebView *)webView shouldStartLoadWithRequest:(NSURLRequest *)request navigationType:(UIWebViewNavigationType)navigationType {
-    if ( navigationType == UIWebViewNavigationTypeLinkClicked || navigationType == UIWebViewNavigationTypeOther) {
-        NSString *urlString = [[request URL] absoluteString];
-        NSLog(@"kittyy %@", urlString);
-        
-        if ([urlString rangeOfString:@"mobile&g="].location != NSNotFound) {
-            
-            NSString *gameStr = [urlString substringFromIndex:[urlString rangeOfString:@"="].location + 1];
-            [self performSegueWithIdentifier:@"gameTap" sender:self];
-//                    NSLog(@"kittyy %@", gameStr);
-            Game *gameObj = [[Game alloc] init];
-            [gameObj setGameID: gameStr];
-            [gameObj setRemainingTime:@"0 days"];
-            
-            [boardController setShowAds: player.showAds];
-            [boardController setActiveGame:NO];
-            [boardController setGame:gameObj];
-            [boardController replayGame];
-            [[boardController boardTapRecognizer] setEnabled: NO];
-            return NO;
-        }
-        return YES;
-    }
-    return YES;
-}
-
-- (void)viewDidUnload {
-    [super viewDidUnload];
-}
 
 -(void) nagBeginnerAccept {
     if (![[NSUserDefaults standardUserDefaults] boolForKey:@"remindBeginnerAccept"]) {

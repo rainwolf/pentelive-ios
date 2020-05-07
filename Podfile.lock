@@ -5,14 +5,14 @@ PODS:
   - ARChromeActivity (1.0.6)
   - CocoaAsyncSocket (7.6.4)
   - Color-Picker-for-iOS (2.0.2)
-  - Google-Mobile-Ads-SDK (7.58.0):
+  - Google-Mobile-Ads-SDK (7.59.0):
     - GoogleAppMeasurement (~> 6.0)
-  - GoogleAppMeasurement (6.4.2):
+  - GoogleAppMeasurement (6.5.0):
     - GoogleUtilities/AppDelegateSwizzler (~> 6.0)
     - GoogleUtilities/MethodSwizzler (~> 6.0)
     - GoogleUtilities/Network (~> 6.0)
     - "GoogleUtilities/NSData+zlib (~> 6.0)"
-    - nanopb (= 0.3.9011)
+    - nanopb (~> 1.30905.0)
   - GoogleUtilities/AppDelegateSwizzler (6.6.0):
     - GoogleUtilities/Environment
     - GoogleUtilities/Logger
@@ -33,12 +33,13 @@ PODS:
   - HexColors (2.3.0)
   - ICDMaterialActivityIndicatorView (0.1.3)
   - InAppSettingsKit (2.15)
-  - nanopb (0.3.9011):
-    - nanopb/decode (= 0.3.9011)
-    - nanopb/encode (= 0.3.9011)
-  - nanopb/decode (0.3.9011)
-  - nanopb/encode (0.3.9011)
+  - nanopb (1.30905.0):
+    - nanopb/decode (= 1.30905.0)
+    - nanopb/encode (= 1.30905.0)
+  - nanopb/decode (1.30905.0)
+  - nanopb/encode (1.30905.0)
   - NSHash (1.1.0)
+  - PersonalizedAdConsent (1.0.5)
   - PopoverView (0.0.2)
   - PromisesObjC (1.2.8)
   - RMStore (0.7.1):
@@ -61,6 +62,7 @@ DEPENDENCIES:
   - ICDMaterialActivityIndicatorView
   - InAppSettingsKit
   - NSHash (~> 1.1.0)
+  - PersonalizedAdConsent
   - PopoverView (from `https://github.com/runway20/PopoverView.git`)
   - RMStore (~> 0.7)
   - TSMessages (from `https://github.com/rainwolf/TSMessages.git`)
@@ -81,6 +83,7 @@ SPEC REPOS:
     - InAppSettingsKit
     - nanopb
     - NSHash
+    - PersonalizedAdConsent
     - PromisesObjC
     - RMStore
     - TUSafariActivity
@@ -110,14 +113,15 @@ SPEC CHECKSUMS:
   ARChromeActivity: 5dcf9b9f09323761f992aff3525cdd777f83609d
   CocoaAsyncSocket: 694058e7c0ed05a9e217d1b3c7ded962f4180845
   Color-Picker-for-iOS: 4980589b3e3cfe7198f227dd50be9adb02d8bc0b
-  Google-Mobile-Ads-SDK: 7052557293c75c676db55feb707ace9b790f32c1
-  GoogleAppMeasurement: 2253e99c1f22638cf234c059144660c338ad76c3
+  Google-Mobile-Ads-SDK: 118217ac8b80e28aabe0c00aedab1cd885857776
+  GoogleAppMeasurement: 4c644d86835d827bab30ab6aabb9ecaf1f500735
   GoogleUtilities: 39530bc0ad980530298e9c4af8549e991fd033b1
   HexColors: 6ad3947c3447a055a3aa8efa859def096351fe5f
   ICDMaterialActivityIndicatorView: 52e3f11f27ebf0b53a7bc7725f416b1a182367b6
   InAppSettingsKit: 4890a44f9df7a1742c632920f0ea939cbeb29ea2
-  nanopb: 18003b5e52dab79db540fe93fe9579f399bd1ccd
+  nanopb: c43f40fadfe79e8b8db116583945847910cbabc9
   NSHash: 61d598c6d48957c5557f1eef0aeafd6ef5ec5fb7
+  PersonalizedAdConsent: dbecabb3467df967c16d9cebc2ef4a8890e4bbd8
   PopoverView: 51d31a7f2398afbff710dc7933a357bf2c3cbe72
   PromisesObjC: c119f3cd559f50b7ae681fa59dc1acd19173b7e6
   RMStore: 64ba13a9c040e3b7572765d169f77175cd3243e5
@@ -126,6 +130,6 @@ SPEC CHECKSUMS:
   UIBarButtonItem-Badge: 8f5ed4d32d32dbb03034d4f273d02c8da680236b
   "UIColor+Hex": 9fee91bb8e19f17dd40a79ae1e98949a6a84489d
 
-PODFILE CHECKSUM: c4ab5b627ded4d719f2a24a8290d36408a1953d9
+PODFILE CHECKSUM: 2f724fe0b4e1ca1c02f5784a9aed1c2f84651560
 
 COCOAPODS: 1.9.1
