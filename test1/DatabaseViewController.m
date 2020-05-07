@@ -77,7 +77,7 @@ struct Capture {
     int position;
 };
 
-
+NSString *headerString = @"<header><meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no'></header>";
 
 - (void)viewDidLoad
 {
@@ -179,7 +179,7 @@ struct Capture {
     }
 
     playerStatsBaseString = @"";
-    playerStats = [[UIWebView alloc] initWithFrame:CGRectMake(2, blackStoneCaptures.frame.origin.y + 3, self.view.bounds.size.width - 4,  blackStoneCaptures.frame.origin.y - 3)];
+    playerStats = [[WKWebView alloc] initWithFrame:CGRectMake(2, blackStoneCaptures.frame.origin.y + 3, self.view.bounds.size.width - 4,  blackStoneCaptures.frame.origin.y - 3)];
     [playerStats setAlpha:0.90];
     [playerStats setBackgroundColor:[UIColor colorWithRed:0.98f green:0.98f blue:0.98f alpha:0.95]];
     playerStats.clipsToBounds = YES;
@@ -187,10 +187,9 @@ struct Capture {
     playerStats.layer.borderWidth = 1.0f;
     playerStats.layer.borderColor = [[UIColor grayColor] CGColor];
     //    receivedMessageView.contentInset = UIEdgeInsetsMake(7.0,7.0,0,0.0);
-    [playerStats setDataDetectorTypes:UIDataDetectorTypeLink];
     [playerStats setUserInteractionEnabled:YES];
 //    [playerStats.scrollView setScrollEnabled:NO];
-    [playerStats setDelegate:self];
+    [playerStats setNavigationDelegate:self];
     //    playerStats.contentInset = UIEdgeInsetsMake(-5.0,0.0,0,0.0);
     CGFloat screenHeight = UIScreen.mainScreen.bounds.size.height;
     CGFloat newOriginY = screenHeight - self.navigationController.navigationBar.frame.size.height - [UIApplication sharedApplication].statusBarFrame.size.height;
@@ -509,7 +508,7 @@ struct Capture {
                     [moveStatsString appendString: @" - "];
                 }
                 [moveStatsString appendString:[NSString stringWithFormat:@"%c%d", coordinateLetters[finalMove % 19], 19 - (finalMove / 19)]];
-                [playerStats loadHTMLString: [playerStatsBaseString stringByAppendingString:moveStatsString] baseURL:nil];
+                [playerStats loadHTMLString: [headerString stringByAppendingString:[playerStatsBaseString stringByAppendingString:moveStatsString]] baseURL:nil];
                 [board setAbstractBoard: abstractBoard];
                 [zoomedBoard setAbstractBoard: abstractBoard];
                 [board setDbOptions:nil];
@@ -807,7 +806,7 @@ struct Capture {
         }
         
         dispatch_async(dispatch_get_main_queue(), ^{
-            [playerStats loadHTMLString: [[moveStatsString stringByAppendingString:@"</center><br>"] stringByAppendingString:dashboardString] baseURL:nil];
+            [playerStats loadHTMLString: [headerString stringByAppendingString:[[moveStatsString stringByAppendingString:@"</center><br>"] stringByAppendingString:dashboardString]] baseURL:nil];
             //    dbOptions = [NSDictionary dictionaryWithObjects:colors forKeys:moves count:[moves count]];
             [board setDbOptions:dbOptions];
             [zoomedBoard setDbOptions:dbOptions];
@@ -826,20 +825,15 @@ struct Capture {
         return;
     }
 }
--(void)webViewDidFinishLoad:(UIWebView *)webView {
-//    NSInteger height = [[webView stringByEvaluatingJavaScriptFromString:@"document.body.offsetHeight;"] intValue];
-//    NSString* javascript = [NSString stringWithFormat:@"window.scrollBy(0, %ld);", (long)height];
-//    [webView stringByEvaluatingJavaScriptFromString:javascript];
-    //    NSLog(@"kitty");
+
+
+- (void)webView:(WKWebView *)webView didFinishNavigation:(WKNavigation *)navigation {
     playerStats.scrollView.contentOffset = CGPointMake(0, 0);
 }
 
-
-
--(BOOL) webView:(UIWebView *)inWeb shouldStartLoadWithRequest:(NSURLRequest *)inRequest navigationType:(UIWebViewNavigationType)inType {
-    if ( inType == UIWebViewNavigationTypeLinkClicked ) {
-        NSString *urlString = [[inRequest URL] absoluteString];
-
+-(void) webView:(WKWebView *)webView decidePolicyForNavigationAction:(WKNavigationAction *)navigationAction decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler {
+    if (navigationAction.navigationType == WKNavigationTypeLinkActivated) {
+        NSString *urlString = navigationAction.request.URL.absoluteString;
         if ([urlString rangeOfString:@"mobile&g="].location != NSNotFound) {
             
             NSString *gameStr = [urlString substringFromIndex:[urlString rangeOfString:@"="].location + 1];
@@ -853,17 +847,16 @@ struct Capture {
             [boardController setGame:gameObj];
             [boardController replayGame];
             [[boardController boardTapRecognizer] setEnabled: NO];
-            return NO;
-            
+            decisionHandler(WKNavigationActionPolicyCancel);
+            return;
         }
         PenteWebViewController *webViewController = [[PenteWebViewController alloc] initWithAddress: urlString];
         [self.navigationController pushViewController:webViewController animated:YES];
-        return NO;
+        decisionHandler(WKNavigationActionPolicyCancel);
+        return;
     }
-    
-    return YES;
+    decisionHandler(WKNavigationActionPolicyAllow);
 }
-
 
 -(void) startThinking {
     [messagePopover dismiss];
@@ -916,7 +909,8 @@ struct Capture {
         [moveStatsString appendString: @" - "];
     }
     [moveStatsString appendString:[NSString stringWithFormat:@"%c%d", coordinateLetters[finalMove % 19], 19 - (finalMove / 19)]];
-    [playerStats loadHTMLString: [playerStatsBaseString stringByAppendingString:moveStatsString] baseURL:nil];
+//    [playerStats loadHTMLString: [playerStatsBaseString stringByAppendingString:moveStatsString] baseURL:nil];
+    [playerStats loadHTMLString: [headerString stringByAppendingString:[playerStatsBaseString stringByAppendingString:moveStatsString]] baseURL:nil];
     [board setAbstractBoard: abstractBoard];
     [zoomedBoard setAbstractBoard: abstractBoard];
     [board setDbOptions:nil];
@@ -1043,7 +1037,7 @@ struct Capture {
         }
         [moveStatsString appendString:[NSString stringWithFormat:@"%c%d", coordinateLetters[rowCol % 19], 19 - (rowCol / 19)]];
     }
-    [playerStats loadHTMLString: [playerStatsBaseString stringByAppendingString:moveStatsString] baseURL:nil];
+    [playerStats loadHTMLString: [headerString stringByAppendingString:[playerStatsBaseString stringByAppendingString:moveStatsString]] baseURL:nil];
     
 }
 
@@ -1710,7 +1704,7 @@ struct Capture {
 -(void) resetState {
     moveStatsString = [[NSMutableString alloc] init];
     [moveStatsString appendString: @"<b>1.</b> K10"];
-    [playerStats loadHTMLString: [playerStatsBaseString stringByAppendingString:moveStatsString] baseURL:nil];
+    [playerStats loadHTMLString: [headerString stringByAppendingString:[playerStatsBaseString stringByAppendingString:moveStatsString]] baseURL:nil];
     [self resetBoard];
     abstractBoard[9][9] = 1;
     [movesList removeAllObjects];

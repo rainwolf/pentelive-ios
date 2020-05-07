@@ -19,13 +19,13 @@
 
 //#define IS_IPHONE_5 ( fabs( ( double )[ [ UIScreen mainScreen ] bounds ].size.height - ( double )568 ) < DBL_EPSILON )
 
-@interface DatabaseViewController : UIViewController <GADBannerViewDelegate, PopoverViewDelegate, UIAlertViewDelegate, UIWebViewDelegate> {
+@interface DatabaseViewController : UIViewController <GADBannerViewDelegate, PopoverViewDelegate, UIAlertViewDelegate, WKNavigationDelegate> {
     GADBannerView *bannerView;
     BOOL showedAd;
     NSMutableArray *movesList, *captures;
     NSString *playerStatsBaseString, *game;
     NSMutableString *moveStatsString;
-    UIWebView *playerStats;
+    WKWebView *playerStats;
     PopoverView *messagePopover;
     BOOL activeGame, showAds;
     MMAI *aiPlayer;
@@ -53,7 +53,7 @@
 @property (weak, nonatomic) IBOutlet StoneView *whiteStoneCaptures;
 @property (weak, nonatomic) IBOutlet StoneView *blackStoneCaptures;
 @property (weak, nonatomic) IBOutlet UIActivityIndicatorView *spinner;
-@property(nonatomic,retain) UIWebView *playerStats;
+@property(nonatomic,retain) WKWebView *playerStats;
 @property(nonatomic,retain) PopoverView *messagePopover;
 - (IBAction)goBackOneMoveSwipe:(UISwipeGestureRecognizer *)sender;
 
