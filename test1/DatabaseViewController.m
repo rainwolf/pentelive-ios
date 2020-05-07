@@ -77,7 +77,6 @@ struct Capture {
     int position;
 };
 
-NSString *headerString = @"<header><meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no'></header>";
 
 - (void)viewDidLoad
 {
@@ -508,7 +507,7 @@ NSString *headerString = @"<header><meta name='viewport' content='width=device-w
                     [moveStatsString appendString: @" - "];
                 }
                 [moveStatsString appendString:[NSString stringWithFormat:@"%c%d", coordinateLetters[finalMove % 19], 19 - (finalMove / 19)]];
-                [playerStats loadHTMLString: [headerString stringByAppendingString:[playerStatsBaseString stringByAppendingString:moveStatsString]] baseURL:nil];
+                [playerStats loadHTMLString: [HEADERSTRING stringByAppendingString:[playerStatsBaseString stringByAppendingString:moveStatsString]] baseURL:nil];
                 [board setAbstractBoard: abstractBoard];
                 [zoomedBoard setAbstractBoard: abstractBoard];
                 [board setDbOptions:nil];
@@ -806,7 +805,7 @@ NSString *headerString = @"<header><meta name='viewport' content='width=device-w
         }
         
         dispatch_async(dispatch_get_main_queue(), ^{
-            [playerStats loadHTMLString: [headerString stringByAppendingString:[[moveStatsString stringByAppendingString:@"</center><br>"] stringByAppendingString:dashboardString]] baseURL:nil];
+            [playerStats loadHTMLString: [HEADERSTRING stringByAppendingString:[[moveStatsString stringByAppendingString:@"</center><br>"] stringByAppendingString:dashboardString]] baseURL:nil];
             //    dbOptions = [NSDictionary dictionaryWithObjects:colors forKeys:moves count:[moves count]];
             [board setDbOptions:dbOptions];
             [zoomedBoard setDbOptions:dbOptions];
@@ -910,7 +909,7 @@ NSString *headerString = @"<header><meta name='viewport' content='width=device-w
     }
     [moveStatsString appendString:[NSString stringWithFormat:@"%c%d", coordinateLetters[finalMove % 19], 19 - (finalMove / 19)]];
 //    [playerStats loadHTMLString: [playerStatsBaseString stringByAppendingString:moveStatsString] baseURL:nil];
-    [playerStats loadHTMLString: [headerString stringByAppendingString:[playerStatsBaseString stringByAppendingString:moveStatsString]] baseURL:nil];
+    [playerStats loadHTMLString: [HEADERSTRING stringByAppendingString:[playerStatsBaseString stringByAppendingString:moveStatsString]] baseURL:nil];
     [board setAbstractBoard: abstractBoard];
     [zoomedBoard setAbstractBoard: abstractBoard];
     [board setDbOptions:nil];
@@ -1037,7 +1036,7 @@ NSString *headerString = @"<header><meta name='viewport' content='width=device-w
         }
         [moveStatsString appendString:[NSString stringWithFormat:@"%c%d", coordinateLetters[rowCol % 19], 19 - (rowCol / 19)]];
     }
-    [playerStats loadHTMLString: [headerString stringByAppendingString:[playerStatsBaseString stringByAppendingString:moveStatsString]] baseURL:nil];
+    [playerStats loadHTMLString: [HEADERSTRING stringByAppendingString:[playerStatsBaseString stringByAppendingString:moveStatsString]] baseURL:nil];
     
 }
 
@@ -1704,7 +1703,7 @@ NSString *headerString = @"<header><meta name='viewport' content='width=device-w
 -(void) resetState {
     moveStatsString = [[NSMutableString alloc] init];
     [moveStatsString appendString: @"<b>1.</b> K10"];
-    [playerStats loadHTMLString: [headerString stringByAppendingString:[playerStatsBaseString stringByAppendingString:moveStatsString]] baseURL:nil];
+    [playerStats loadHTMLString: [HEADERSTRING stringByAppendingString:[playerStatsBaseString stringByAppendingString:moveStatsString]] baseURL:nil];
     [self resetBoard];
     abstractBoard[9][9] = 1;
     [movesList removeAllObjects];

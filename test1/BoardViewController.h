@@ -7,6 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
+#import <WebKit/WebKit.h>
 #import "BoardView.h"
 #import "PenteNavigationViewController.h"
 #import <GoogleMobileAds/GoogleMobileAds.h>
@@ -14,7 +15,7 @@
 
 //#define IS_IPHONE_5 ( fabs( ( double )[ [ UIScreen mainScreen ] bounds ].size.height - ( double )568 ) < DBL_EPSILON )
 
-@interface BoardViewController : UIViewController <GADBannerViewDelegate, UITextViewDelegate, PopoverViewDelegate, UIWebViewDelegate, UIAlertViewDelegate> {
+@interface BoardViewController : UIViewController <GADBannerViewDelegate, UITextViewDelegate, PopoverViewDelegate, WKNavigationDelegate, UIAlertViewDelegate> {
     Game *game;
     GADBannerView *bannerView;
     BOOL showedAd;
@@ -23,7 +24,7 @@
     NSMutableString *moveStatsString;
     UIImageView *messageButtonImageView;
     UITextView *receivedMessageView, *replyMessageView;
-    UIWebView *playerStats;
+    WKWebView *playerStats;
     PopoverView *messagePopover;
     NSMutableDictionary *messagesHistory;
     BOOL activeGame, isLastMove, showAds;
@@ -59,7 +60,7 @@
 @property (weak, nonatomic) IBOutlet UIActivityIndicatorView *spinner;
 @property(nonatomic,retain) UIImageView *messageButtonImageView;
 @property(nonatomic,retain) UITextView *receivedMessageView, *replyMessageView;
-@property(nonatomic,retain) UIWebView *playerStats;
+@property(nonatomic,retain) WKWebView *playerStats;
 @property(nonatomic,retain) PopoverView *messagePopover;
 - (IBAction)goForwardOneMoveSwipe:(UISwipeGestureRecognizer *)sender;
 - (IBAction)goBackOneMoveSwipe:(UISwipeGestureRecognizer *)sender;

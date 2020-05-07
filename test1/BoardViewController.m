@@ -104,6 +104,7 @@ BOOL goMarkStones = NO, goEvaluateDeadStones = NO, go = NO, isGoGame = NO;
 NSMutableDictionary<NSNumber*, NSNumber*> *goStoneGroupIDs;
 NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
 
+
 - (void)viewDidLoad {
     [super viewDidLoad];
     
@@ -178,8 +179,8 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
     rect.origin.y = (player1Button.frame.origin.y +3);
     dPenteChoiceLabel.frame = rect;
 
-    playerStats = [[UIWebView alloc] initWithFrame:CGRectMake(2, submitButton.frame.origin.y + 3, self.view.bounds.size.width - 4,  submitButton.frame.origin.y - 3)];
-    [playerStats setDelegate:self];
+    playerStats = [[WKWebView alloc] initWithFrame:CGRectMake(2, submitButton.frame.origin.y + 3, self.view.bounds.size.width - 4,  submitButton.frame.origin.y - 3)];
+    [playerStats setNavigationDelegate:self];
     [playerStats setAlpha:0.90];
     [playerStats setBackgroundColor:[UIColor colorWithRed:0.98f green:0.98f blue:0.98f alpha:0.95]];
     playerStats.clipsToBounds = YES;
@@ -187,7 +188,6 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
     playerStats.layer.borderWidth = 1.0f;
     playerStats.layer.borderColor = [[UIColor grayColor] CGColor];
     //    receivedMessageView.contentInset = UIEdgeInsetsMake(7.0,7.0,0,0.0);
-    [playerStats setDataDetectorTypes:UIDataDetectorTypeLink];
     [playerStats setUserInteractionEnabled:YES];
     [playerStats.scrollView setScrollEnabled:NO];
     //    playerStats.contentInset = UIEdgeInsetsMake(-5.0,0.0,0,0.0);
@@ -1210,7 +1210,7 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
             [moveStatsString appendString:@"PASS"];
         }
     }
-    [playerStats loadHTMLString: [playerStatsBaseString stringByAppendingString:moveStatsString] baseURL:nil];
+    [playerStats loadHTMLString: [HEADERSTRING stringByAppendingString:[playerStatsBaseString stringByAppendingString:moveStatsString]] baseURL:nil];
 
     [board setGridSize:gridSize]; [zoomedBoard setGridSize:gridSize];
     [board setNeedsDisplay]; [zoomedBoard setNeedsDisplay];
@@ -1622,7 +1622,7 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
             [moveStatsString appendString:@"PASS"];
         }
     }
-    [playerStats loadHTMLString: [playerStatsBaseString stringByAppendingString:moveStatsString] baseURL:nil];
+    [playerStats loadHTMLString: [HEADERSTRING stringByAppendingString:[playerStatsBaseString stringByAppendingString:moveStatsString]] baseURL:nil];
     
     [board setNeedsDisplay];
     [zoomedBoard setNeedsDisplay];
@@ -3590,33 +3590,36 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
 //    NSLog(@"kitty Dismiss");
 }
 
--(BOOL) webView:(UIWebView *)inWeb shouldStartLoadWithRequest:(NSURLRequest *)inRequest navigationType:(UIWebViewNavigationType)inType {
-    if ( inType == UIWebViewNavigationTypeLinkClicked ) {
-        NSString *urlString = [[inRequest URL] absoluteString];
+- (void)webView:(WKWebView *)webView didFinishNavigation:(WKNavigation *)navigation {
+    [webView evaluateJavaScript:@"document.body.scrollHeight;" completionHandler:^(NSString *result, NSError * _Nullable error) {
+        int contentSize = [result intValue];
+        //        int contentSize = [[webView stringByEvaluatingJavaScriptFromString:[NSString stringWithFormat:@"document.body.scrollHeight;"]] intValue],
+        int webViewSize = (int) webView.scrollView.contentSize.height;
+        webViewSize = (int) webView.frame.size.height;
+
+    //    NSLog(@"%i %i", contentSize, webViewSize);
+        if (contentSize*2 > 3*webViewSize && [moveStatsString length]>10) {
+            [moveStatsString deleteCharactersInRange:NSMakeRange(0, moveStatsString.length/2)];
+            [playerStats loadHTMLString: [HEADERSTRING stringByAppendingString:[playerStatsBaseString stringByAppendingString:moveStatsString]] baseURL:nil];
+        } else if (contentSize > webViewSize && [moveStatsString length]>10) {
+            [moveStatsString deleteCharactersInRange:NSMakeRange(0, [moveStatsString rangeOfString:@".</b> "].location+6)];
+    //        NSLog(moveStatsString);
+            [playerStats loadHTMLString: [HEADERSTRING stringByAppendingString:[playerStatsBaseString stringByAppendingString:moveStatsString]] baseURL:nil];
+        }
+    }];
+                               
+}
+
+-(void) webView:(WKWebView *)webView decidePolicyForNavigationAction:(WKNavigationAction *)navigationAction decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler {
+    if (navigationAction.navigationType == WKNavigationTypeLinkActivated) {
+        NSString *urlString = navigationAction.request.URL.absoluteString;
         PenteWebViewController *webViewController = [[PenteWebViewController alloc] initWithAddress: urlString];
         [self.navigationController pushViewController:webViewController animated:YES];
-        return NO;
+        decisionHandler(WKNavigationActionPolicyCancel);
+        return;
     }
-    
-    return YES;
+    decisionHandler(WKNavigationActionPolicyAllow);
 }
-
-- (void)webViewDidFinishLoad:(UIWebView *)webView {
-    int contentSize = [[webView stringByEvaluatingJavaScriptFromString:[NSString stringWithFormat:@"document.body.scrollHeight;"]] intValue],
-    webViewSize = (int) webView.scrollView.contentSize.height;
-    webViewSize = (int) webView.frame.size.height;
-
-//    NSLog(@"%i %i", contentSize, webViewSize);
-    if (contentSize*2 > 3*webViewSize && [moveStatsString length]>10) {
-        [moveStatsString deleteCharactersInRange:NSMakeRange(0, moveStatsString.length/2)];
-        [playerStats loadHTMLString: [playerStatsBaseString stringByAppendingString:moveStatsString] baseURL:nil];
-    } else if (contentSize > webViewSize && [moveStatsString length]>10) {
-        [moveStatsString deleteCharactersInRange:NSMakeRange(0, [moveStatsString rangeOfString:@".</b> "].location+6)];
-//        NSLog(moveStatsString);
-        [playerStats loadHTMLString: [playerStatsBaseString stringByAppendingString:moveStatsString] baseURL:nil];
-    }
-}
-
 
 
 @end
