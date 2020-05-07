@@ -152,7 +152,7 @@
 
     
     playerStatsBaseString = @"";
-    playerStats = [[UIWebView alloc] initWithFrame:CGRectMake(2, blackStoneCaptures.frame.origin.y + 3, self.view.bounds.size.width - 4,  blackStoneCaptures.frame.origin.y - 3)];
+    playerStats = [[WKWebView alloc] initWithFrame:CGRectMake(2, blackStoneCaptures.frame.origin.y + 3, self.view.bounds.size.width - 4,  blackStoneCaptures.frame.origin.y - 3)];
     [playerStats setAlpha:0.90];
     [playerStats setBackgroundColor:[UIColor colorWithRed:0.98f green:0.98f blue:0.98f alpha:0.95]];
     playerStats.clipsToBounds = YES;
@@ -160,10 +160,9 @@
     playerStats.layer.borderWidth = 1.0f;
     playerStats.layer.borderColor = [[UIColor grayColor] CGColor];
     //    receivedMessageView.contentInset = UIEdgeInsetsMake(7.0,7.0,0,0.0);
-    [playerStats setDataDetectorTypes:UIDataDetectorTypeLink];
     [playerStats setUserInteractionEnabled:YES];
 //    [playerStats.scrollView setScrollEnabled:NO];
-    [playerStats setDelegate:self];
+    [playerStats setNavigationDelegate:self];
     //    playerStats.contentInset = UIEdgeInsetsMake(-5.0,0.0,0,0.0);
     [self.view addSubview: playerStats];
 
@@ -527,7 +526,7 @@
         [moveStatsString appendString:[NSString stringWithFormat:@"%c%d", coordinateLetters[rowCol % 19], 19 - (rowCol / 19)]];
         ++i;
     }
-    [playerStats loadHTMLString: moveStatsString baseURL:nil];
+    [playerStats loadHTMLString: [HEADERSTRING stringByAppendingString: moveStatsString] baseURL:nil];
 
 }
 
@@ -621,17 +620,19 @@
         [moveStatsString appendString:[NSString stringWithFormat:@"%c%d", coordinateLetters[rowCol % 19], 19 - (rowCol / 19)]];
         ++i;
     }
-    [playerStats loadHTMLString: moveStatsString baseURL:nil];
+    [playerStats loadHTMLString: [HEADERSTRING stringByAppendingString: moveStatsString] baseURL:nil];
 }
 
-
-
--(void)webViewDidFinishLoad:(UIWebView *)webView {
-    NSInteger height = [[webView stringByEvaluatingJavaScriptFromString:@"document.body.offsetHeight;"] intValue];
-    NSString* javascript = [NSString stringWithFormat:@"window.scrollBy(0, %ld);", (long)height];
-    [webView stringByEvaluatingJavaScriptFromString:javascript];
-//    NSLog(@"kitty");
+- (void)webView:(WKWebView *)webView didFinishNavigation:(WKNavigation *)navigation {
+    [webView evaluateJavaScript:@"document.body.offsetHeight;" completionHandler:^(NSString *result, NSError * _Nullable error) {
+        NSInteger height = [result intValue];
+        NSString* javascript = [NSString stringWithFormat:@"window.scrollBy(0, %ld);", (long)height];
+        [webView evaluateJavaScript:javascript completionHandler:^(id res, NSError * _Nullable error) {
+            return;
+        }];
+    }];
 }
+
 
 
 -(void) detectCaptureOfOpponent: (int) opponentColor atPosition: (int) rowCol {
