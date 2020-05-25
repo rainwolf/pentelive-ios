@@ -25,4 +25,5 @@ platform :ios, '8.0'
 	pod 'CocoaAsyncSocket'
 	pod 'UIBarButtonItem-Badge', :git => 'https://github.com/mikeMTOL/UIBarButtonItem-Badge.git'
 	pod 'AFWebViewController', '~> 1.0'
+	pod 'PersonalizedAdConsent'
 end

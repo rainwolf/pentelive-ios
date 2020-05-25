@@ -206,7 +206,7 @@
 @synthesize playerName;
 @synthesize invitations, sentInvitations, activeGames, nonActiveGames, publicInvitations, messages, ratingStats, tournaments, hills;
 //@synthesize showAds, subscriber;
-@synthesize dbAccess, emailMe;
+@synthesize dbAccess, emailMe, personalizeAds;
 @synthesize avatars;
 @synthesize pendingAvatarChecks;
 @synthesize myColor;
@@ -271,16 +271,16 @@
 
 
 -(BOOL) showAds {
-    if (development) {
-        return YES;
-    }
+//    if (development) {
+//        return YES;
+//    }
     return showAds;
 }
 -(BOOL) subscriber {
 //    return NO;
-    if (development) {
-        return NO;
-    }
+//    if (development) {
+//        return NO;
+//    }
     return subscriber;
 }
 -(void) setShowAds:(BOOL)showAdss {

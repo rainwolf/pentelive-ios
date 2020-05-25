@@ -111,6 +111,16 @@
 			<string>IASKUITextAlignmentCenter</string>
 		</dict>
 		<dict>
+			<key>Type</key>
+			<string>PSToggleSwitchSpecifier</string>
+			<key>Title</key>
+			<string>Personalize Ads</string>
+			<key>Key</key>
+			<string>personalizeAds</string>
+			<key>DefaultValue</key>
+			<false/>
+		</dict>
+		<dict>
 			<key>File</key>
 			<string>MoreSettings</string>
 			<key>Type</key>

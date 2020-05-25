@@ -5,9 +5,9 @@ PODS:
   - ARChromeActivity (1.0.6)
   - CocoaAsyncSocket (7.6.4)
   - Color-Picker-for-iOS (2.0.2)
-  - Google-Mobile-Ads-SDK (7.59.0):
+  - Google-Mobile-Ads-SDK (7.60.0):
     - GoogleAppMeasurement (~> 6.0)
-  - GoogleAppMeasurement (6.5.0):
+  - GoogleAppMeasurement (6.5.1):
     - GoogleUtilities/AppDelegateSwizzler (~> 6.0)
     - GoogleUtilities/MethodSwizzler (~> 6.0)
     - GoogleUtilities/Network (~> 6.0)
@@ -32,7 +32,7 @@ PODS:
     - GoogleUtilities/Logger
   - HexColors (2.3.0)
   - ICDMaterialActivityIndicatorView (0.1.3)
-  - InAppSettingsKit (2.15)
+  - InAppSettingsKit (3.0.1)
   - nanopb (1.30905.0):
     - nanopb/decode (= 1.30905.0)
     - nanopb/encode (= 1.30905.0)
@@ -112,13 +112,13 @@ SPEC CHECKSUMS:
   AFWebViewController: 3cee572a8e043f3ca7c5b5906dac149cb740ed1f
   ARChromeActivity: 5dcf9b9f09323761f992aff3525cdd777f83609d
   CocoaAsyncSocket: 694058e7c0ed05a9e217d1b3c7ded962f4180845
-  Color-Picker-for-iOS: 4980589b3e3cfe7198f227dd50be9adb02d8bc0b
-  Google-Mobile-Ads-SDK: 118217ac8b80e28aabe0c00aedab1cd885857776
-  GoogleAppMeasurement: 4c644d86835d827bab30ab6aabb9ecaf1f500735
+  Color-Picker-for-iOS: 1fe5c2bdad770aff88150393bb920e6718d03535
+  Google-Mobile-Ads-SDK: d70efb31e7ea19fe99d466dc5d4788966b6914f8
+  GoogleAppMeasurement: 137afe68bfa406c3f4221b9395253d9e5d4654cf
   GoogleUtilities: 39530bc0ad980530298e9c4af8549e991fd033b1
   HexColors: 6ad3947c3447a055a3aa8efa859def096351fe5f
   ICDMaterialActivityIndicatorView: 52e3f11f27ebf0b53a7bc7725f416b1a182367b6
-  InAppSettingsKit: 4890a44f9df7a1742c632920f0ea939cbeb29ea2
+  InAppSettingsKit: 0d6cf327364085375cbfd8011fd6ae1c0d2c7d1c
   nanopb: c43f40fadfe79e8b8db116583945847910cbabc9
   NSHash: 61d598c6d48957c5557f1eef0aeafd6ef5ec5fb7
   PersonalizedAdConsent: dbecabb3467df967c16d9cebc2ef4a8890e4bbd8

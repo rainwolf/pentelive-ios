@@ -284,7 +284,11 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
                 bannerView!.delegate = self
                 bannerView!.adUnitID = "ca-app-pub-3326997956703582/2339127047"
                 let request = GADRequest()
-                //            request.testDevices = [ kGADSimulatorID ]
+                if (pentePlayer?.personalizeAds == false) {
+                    let extras = GADExtras()
+                    extras.additionalParameters = ["npa": "1"]
+                    request.register(extras)
+                }
                 bannerView!.load(request)
                 self.view.addSubview(bannerView!)
             }

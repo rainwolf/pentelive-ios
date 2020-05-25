@@ -28,6 +28,8 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>GADApplicationIdentifier</key>
 	<string>ca-app-pub-3326997956703582~7164826246</string>
+	<key>GADDelayAppMeasurementInit</key>
+	<true/>
 	<key>LSRequiresIPhoneOS</key>
 	<false/>
 	<key>NSAppTransportSecurity</key>
@@ -35,6 +37,8 @@
 		<key>NSAllowsArbitraryLoads</key>
 		<false/>
 	</dict>
+	<key>NSCameraUsageDescription</key>
+	<string>This app accesses your camera only upon request and for the purpose of uploading an avatar</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>This app accesses your photos only upon request and for the purpose of uploading an avatar</string>
 	<key>UIMainStoryboardFile</key>

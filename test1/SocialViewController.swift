@@ -115,7 +115,11 @@ class SocialViewController: UIViewController, UITableViewDelegate, UITableViewDa
             bannerView!.frame = frame
             bannerView!.adUnitID = "ca-app-pub-3326997956703582/3285001842"
             let request = GADRequest()
-//            request.testDevices = [kGADSimulatorID]
+            if (pentePlayer?.personalizeAds == false) {
+                let extras = GADExtras()
+                extras.additionalParameters = ["npa": "1"]
+                request.register(extras)
+            }
             bannerView!.load(request)
             self.view.addSubview(bannerView!)
         }

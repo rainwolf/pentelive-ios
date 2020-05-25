@@ -202,13 +202,22 @@ class PlayerTableCell: UITableViewCell {
             bannerView!.frame = frame
             bannerView!.adUnitID = "ca-app-pub-3326997956703582/5072267445"
             var request = GADRequest()
+            if (pentePlayer?.personalizeAds == false) {
+                let extras = GADExtras()
+                extras.additionalParameters = ["npa": "1"]
+                request.register(extras)
+            }
             bannerView!.load(request)
             self.view.addSubview(bannerView!)
 
             interstitial = GADInterstitial(adUnitID: "ca-app-pub-3326997956703582/7746770806")
             interstitial!.delegate = self
             request = GADRequest()
-//            request.testDevices = [ kGADSimulatorID ]
+            if (pentePlayer?.personalizeAds == false) {
+                let extras = GADExtras()
+                extras.additionalParameters = ["npa": "1"]
+                request.register(extras)
+            }
             interstitial!.load(request)
             
         }
@@ -572,7 +581,11 @@ class PlayerTableCell: UITableViewCell {
         interstitial = GADInterstitial(adUnitID: "ca-app-pub-3326997956703582/7746770806")
         interstitial!.delegate = self
         let request = GADRequest()
-//        request.testDevices = [ kGADSimulatorID ]
+        if (pentePlayer?.personalizeAds == false) {
+            let extras = GADExtras()
+            extras.additionalParameters = ["npa": "1"]
+            request.register(extras)
+        }
         interstitial!.load(request)
     }
     func exitTableEvent(event: [String: Any]) {

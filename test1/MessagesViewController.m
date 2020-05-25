@@ -109,7 +109,12 @@ InvitationsViewController *invitationVC;
         bannerView.frame = newBannerViewFrame;
         bannerView.adUnitID = @"ca-app-pub-3326997956703582/4645293043";
         GADRequest *request = [GADRequest request];
-//        request.testDevices = @[ kGADSimulatorID ];
+        PentePlayer *player = ((PenteNavigationViewController *)self.navigationController).player;
+        if (!player.personalizeAds) {
+            GADExtras *extras = [[GADExtras alloc] init];
+            extras.additionalParameters = @{@"npa": @"1"};
+            [request registerAdNetworkExtras:extras];
+        }
         [bannerView loadRequest:request];
         [self.view addSubview:bannerView];
     }

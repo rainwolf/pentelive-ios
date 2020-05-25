@@ -113,7 +113,7 @@
 - (void)viewWillAppear:(BOOL)animated {
     if ([[NSUserDefaults standardUserDefaults] boolForKey:@"registrationSuccess"]) {
         if (self.navC.player && self.navC.player.subscriber) {
-            self.hiddenKeys = [NSSet setWithObjects:@"RestorePurchaseButton",@"SubscribeButton",@"SignUpButton", @"SignUpLabel", nil];
+            self.hiddenKeys = [NSSet setWithObjects:@"RestorePurchaseButton",@"SubscribeButton",@"SignUpButton", @"SignUpLabel", @"personalizeAds", nil];
             //            self.hiddenKeys = [NSSet setWithObjects:@"SignUpButton", @"SignUpLabel", nil];
         } else {
             self.hiddenKeys = [NSSet setWithObjects:@"SignUpButton",@"manageSubscriptions", @"SignUpLabel", nil];
@@ -776,7 +776,9 @@
             }
 
             NSString *urlString = @"https://www.pente.org/gameServer/changeAvatar";
-            
+            if (development) {
+                urlString = @"https://development.pente.org/gameServer/changeAvatar";
+            }
             NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
             [request setURL:[NSURL URLWithString:urlString]];
             [request setHTTPMethod:@"POST"];
@@ -872,6 +874,36 @@
         }
         [self.navC.player setEmailMe: [[NSUserDefaults standardUserDefaults] boolForKey:@"emailMe"]];
         NSString *postString = [NSString stringWithFormat:@"emailMe=%@",(self.navC.player.emailMe?@"Y":@"N")];
+        
+        NSData *postData = [postString dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
+        NSString *postLength = [NSString stringWithFormat:@"%lu", (unsigned long)[postData length]];
+        
+        NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
+        [request setURL:[NSURL URLWithString:url]];
+        [request setHTTPMethod:@"POST"];
+        [request setValue:postLength forHTTPHeaderField:@"Content-Length"];
+        [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
+        [request setHTTPBody:postData];
+        [request setTimeoutInterval:7.0];
+        
+        [request setHTTPShouldUsePipelining: YES];
+        
+        NSURLResponse *response;
+        NSError *error;
+        [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
+        
+        if (error) {
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error", nil) message:[NSString stringWithFormat:@"Reason: %@", error.localizedDescription] delegate:nil cancelButtonTitle:NSLocalizedString(@"OK",nil) otherButtonTitles:nil];
+            [alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:YES];
+        }
+    }
+    if (self.navC.player && self.navC.player.personalizeAds != [[NSUserDefaults standardUserDefaults] boolForKey:PERSONALIZEADSKEY]) {
+        NSString *url = @"https://www.pente.org/gameServer/changeAdsPreference";
+        if (development) {
+            url = @"https://development.pente.org/gameServer/changeAdsPreference";
+        }
+        [self.navC.player setPersonalizeAds: [[NSUserDefaults standardUserDefaults] boolForKey:PERSONALIZEADSKEY]];
+        NSString *postString = [NSString stringWithFormat:@"personalizeAds=%@",(self.navC.player.personalizeAds?@"Y":@"N")];
         
         NSData *postData = [postString dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
         NSString *postLength = [NSString stringWithFormat:@"%lu", (unsigned long)[postData length]];

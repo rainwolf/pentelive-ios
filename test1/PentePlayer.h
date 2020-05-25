@@ -16,6 +16,10 @@ alpha:1.0]
 
 #define development NO
 #define HEADERSTRING @"<header><meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no'></header>"
+#define PERSONALIZEADSKEY @"personalizeAds"
+#define GDPRTERMSKEY @"termsAcceptedGDPR_0"
+
+
 
 @interface Game : NSObject {
     NSString *gameID, *setID, *gameType, *opponentName, *opponentRating, *myColor, *remainingTime, *ratedNot, *privateGame, *localizedTime, *localizedRatedNot;
@@ -86,7 +90,7 @@ alpha:1.0]
     NSString *playerName;
     NSMutableArray *invitations, *sentInvitations, *activeGames, *nonActiveGames, *publicInvitations, *messages, *ratingStats, *tournaments, *hills;
     int tbHills, tbRatings;
-    BOOL showAds, subscriber, dbAccess, emailMe;
+    BOOL showAds, subscriber, dbAccess, emailMe, personalizeAds;
     NSMutableDictionary<NSString *, UIImage *> *avatars;
     NSMutableArray<NSString *> *pendingAvatarChecks;
     UIColor *myColor;
@@ -94,7 +98,7 @@ alpha:1.0]
 }
 @property(nonatomic,retain) NSString *playerName;
 @property(nonatomic,retain) NSMutableArray *invitations, *sentInvitations, *activeGames, *nonActiveGames, *publicInvitations, *messages, *ratingStats, *tournaments, *hills;
-@property(atomic, assign) BOOL dbAccess, emailMe;
+@property(atomic, assign) BOOL dbAccess, emailMe, personalizeAds;
 @property(atomic, assign, getter=subscriber, setter=setSubscriber:) BOOL subscriber;
 @property(atomic, assign, getter=showAds, setter=setShowAds:) BOOL showAds;
 @property(nonatomic, retain, readwrite) NSMutableDictionary<NSString *, UIImage *> *avatars;

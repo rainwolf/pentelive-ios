@@ -203,6 +203,12 @@
         [bannerView setDelegate: self];
         bannerView.adUnitID = @"ca-app-pub-3326997956703582/6122026245";
         GADRequest *request = [GADRequest request];
+        PentePlayer *player = ((PenteNavigationViewController *)self.navigationController).player;
+        if (!player.personalizeAds) {
+            GADExtras *extras = [[GADExtras alloc] init];
+            extras.additionalParameters = @{@"npa": @"1"};
+            [request registerAdNetworkExtras:extras];
+        }
         [bannerView loadRequest:request];
         [self.view addSubview:bannerView];
     }

@@ -169,7 +169,14 @@ CGFloat bottomOffset = 0;
     if (player.showAds) {
         self.interstitial = [[GADInterstitial alloc] initWithAdUnitID:@"ca-app-pub-3326997956703582/7746770806"];
         [self.interstitial setDelegate:self];
-        [self.interstitial loadRequest:[GADRequest request]];
+        GADRequest *request = [GADRequest request];
+        PentePlayer *player = ((PenteNavigationViewController *)self.navigationController).player;
+        if (!player.personalizeAds) {
+            GADExtras *extras = [[GADExtras alloc] init];
+            extras.additionalParameters = @{@"npa": @"1"};
+            [request registerAdNetworkExtras:extras];
+        }
+        [self.interstitial loadRequest:request];
     }
 }
 
@@ -397,10 +404,13 @@ CGFloat bottomOffset = 0;
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
     NSString *storedTokenString = [defaults objectForKey: @"deviceToken"];
 //    NSLog(@"kittnnn %@", storedTokenString);
+//    NSDate *dateOfLastPing = [defaults objectForKey:@"lastPing"];
+//    NSLog(@"kitty date: %@", [NSDateFormatter localizedStringFromDate:dateOfLastPing dateStyle:NSDateFormatterShortStyle timeStyle:NSDateFormatterFullStyle]);
     if (storedTokenString) {
         NSDate *dateOfLastPing = [defaults objectForKey:@"lastPing"];
         if (dateOfLastPing) {
             double daysPassed = [dateOfLastPing timeIntervalSinceNow] / -86400.0;
+//            NSLog(@"daysPassed : %f", daysPassed);
             if (daysPassed < 1) {
                 return;
             }
@@ -431,6 +441,105 @@ CGFloat bottomOffset = 0;
     }
 }
 
+-(void) handleGDPR {
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    if (![defaults boolForKey:GDPRTERMSKEY]) {
+        NSString *message =
+        NSLocalizedString(@"This app delivers ads to non-subscribers, delivered by Google's Adsense network, you may opt for personalized or non-personalized ads, and can change your choice at any time in the settings. Please check our privacy policy for an overview of the data that is collected and what we do with it, you can find a link in the settings of this app. By proceeding to use this app, you consent to our privacy policy. You must be at least 16 years old to consent to this, otherwise consent from a parent or guardian is required.",nil);
+        UIAlertController *gdprController = [UIAlertController
+                                           alertControllerWithTitle:NSLocalizedString(@"GDPR", nil)
+                                           message: message
+                                           preferredStyle:UIAlertControllerStyleActionSheet];
+        UIAlertAction *viewPolicyAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"privacy policy", nil) style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {
+          PenteWebViewController *webViewController = [[PenteWebViewController alloc] initWithAddress: @"https://www.pente.org/help/helpWindow.jsp?file=privacyPolicy"];
+          [(PenteNavigationViewController *)self.navigationController pushViewController:webViewController animated:YES];
+        }];
+        UIAlertAction *personalizeAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"Personalise ads", nil) style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+            [defaults setBool:YES forKey:PERSONALIZEADSKEY];
+            [defaults setBool:YES forKey:GDPRTERMSKEY];
+            NSString *url = @"https://www.pente.org/gameServer/changeAdsPreference";
+            if (development) {
+                url = @"https://development.pente.org/gameServer/changeAdsPreference";
+            }
+            [((PenteNavigationViewController *)self.navigationController).player setPersonalizeAds: [[NSUserDefaults standardUserDefaults] boolForKey:PERSONALIZEADSKEY]];
+            NSString *postString = @"personalizeAds=Y";
+            
+            NSData *postData = [postString dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
+            NSString *postLength = [NSString stringWithFormat:@"%lu", (unsigned long)[postData length]];
+            
+            NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
+            [request setURL:[NSURL URLWithString:url]];
+            [request setHTTPMethod:@"POST"];
+            [request setValue:postLength forHTTPHeaderField:@"Content-Length"];
+            [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
+            [request setHTTPBody:postData];
+            [request setTimeoutInterval:7.0];
+            
+            [request setHTTPShouldUsePipelining: YES];
+            
+            NSURLResponse *response;
+            NSError *error;
+            [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
+            
+            if (error) {
+                UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error", nil) message:[NSString stringWithFormat:@"Reason: %@", error.localizedDescription] delegate:nil cancelButtonTitle:NSLocalizedString(@"OK",nil) otherButtonTitles:nil];
+                [alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:YES];
+                return;
+            }
+        }];
+        UIAlertAction *anonymizeAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"Anonymise ads", nil) style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+            [defaults setBool:NO forKey:PERSONALIZEADSKEY];
+            [defaults setBool:YES forKey:GDPRTERMSKEY];
+            NSString *url = @"https://www.pente.org/gameServer/changeAdsPreference";
+            if (development) {
+                url = @"https://development.pente.org/gameServer/changeAdsPreference";
+            }
+            [((PenteNavigationViewController *)self.navigationController).player setPersonalizeAds: [[NSUserDefaults standardUserDefaults] boolForKey:PERSONALIZEADSKEY]];
+            NSString *postString = @"personalizeAds=N";
+            
+            NSData *postData = [postString dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
+            NSString *postLength = [NSString stringWithFormat:@"%lu", (unsigned long)[postData length]];
+            
+            NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
+            [request setURL:[NSURL URLWithString:url]];
+            [request setHTTPMethod:@"POST"];
+            [request setValue:postLength forHTTPHeaderField:@"Content-Length"];
+            [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
+            [request setHTTPBody:postData];
+            [request setTimeoutInterval:7.0];
+            
+            [request setHTTPShouldUsePipelining: YES];
+            
+            NSURLResponse *response;
+            NSError *error;
+            [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
+            
+            if (error) {
+                UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error", nil) message:[NSString stringWithFormat:@"Reason: %@", error.localizedDescription] delegate:nil cancelButtonTitle:NSLocalizedString(@"OK",nil) otherButtonTitles:nil];
+                [alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:YES];
+                return;
+            }
+        }];
+        UIAlertAction *acceptAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"Anonymise ads", nil) style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+            [defaults setBool:YES forKey:GDPRTERMSKEY];
+        }];
+        if (player.subscriber) {
+            [gdprController addAction:acceptAction];
+        } else {
+            [gdprController addAction:anonymizeAction];
+            [gdprController addAction:personalizeAction];
+        }
+        [gdprController addAction:viewPolicyAction];
+
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+            if (gdprController.popoverPresentationController != nil) {
+                gdprController.popoverPresentationController.barButtonItem = self.navigationItem.rightBarButtonItems[1];
+            }
+            [self presentViewController:gdprController animated:NO completion:nil];
+        });
+    }
+}
 
 
 
@@ -2444,6 +2553,8 @@ CGFloat bottomOffset = 0;
                 onlineFollowing = [splitLine objectAtIndex:7];
                 moreButton.badgeValue = onlineFollowing;
                 [moreButton setBadgeBGColor:[UIColor colorWithRed:(8.0/255) green:(52.0/255) blue:(29.0/255) alpha:1.0]];
+                [self.player setPersonalizeAds: [[splitLine objectAtIndex:8] isEqualToString:PERSONALIZEADSKEY]];
+                [[NSUserDefaults standardUserDefaults] setBool:player.personalizeAds forKey:PERSONALIZEADSKEY];
             }
     //        showAds = ([dashboardString rangeOfString:@"No Ads"].location == NSNotFound) || ([dashboardString rangeOfString:@"No Ads"].location > 30);
             if (player.showAds && bannerView == nil) {
@@ -2461,14 +2572,23 @@ CGFloat bottomOffset = 0;
                 //    bannerView.adUnitID = @"567b72e8189a488c";
                 bannerView.adUnitID = @"ca-app-pub-3326997956703582/8641559446";
                 GADRequest *request = [GADRequest request];
-                //            request.testDevices = [NSArray arrayWithObjects:@"simulator", nil];
-                //            request.testDevices = [NSArray arrayWithObjects:kGADSimulatorID, nil];
+                PentePlayer *player = ((PenteNavigationViewController *)self.navigationController).player;
+                if (!player.personalizeAds) {
+                    GADExtras *extras = [[GADExtras alloc] init];
+                    extras.additionalParameters = @{@"npa": @"1"};
+                    [request registerAdNetworkExtras:extras];
+                }
                 [bannerView loadRequest:request];
                 
                 self.interstitial = [[GADInterstitial alloc] initWithAdUnitID:@"ca-app-pub-3326997956703582/7746770806"];
                 [self.interstitial setDelegate:self];
-                //    [self.interstitial setAdUnitID:@"567b72e8189a488c"];
-                [self.interstitial loadRequest:[GADRequest request]];
+                request = [GADRequest request];
+                if (player.personalizeAds) {
+                    GADExtras *extras = [[GADExtras alloc] init];
+                    extras.additionalParameters = @{@"npa": @"1"};
+                    [request registerAdNetworkExtras:extras];
+                }
+                [self.interstitial loadRequest: request];
             }
     //        [self.player setShowAds: showAds];
     //        [self.player setSubscriber: ([dashboardString rangeOfString:@"tb GamesLimit"].location == NSNotFound) || ([dashboardString rangeOfString:@"tb GamesLimit"].location > 30)];
@@ -3147,10 +3267,10 @@ CGFloat bottomOffset = 0;
 
         }
     } else {
-        if (navController.loggedIn) {
+        NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+        if (navController.loggedIn && [defaults boolForKey:GDPRTERMSKEY]) {
             if ([[self.player activeGames] count] + [[self.player nonActiveGames] count] + [[self.player sentInvitations] count] == 0) {
                 if (!alreadyAskedAboutInvitations) {
-                    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
                     if (![defaults boolForKey:@"doNotRemindOpenInvitation"]) {
                             UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Nothing to see here",nil) message:NSLocalizedString(@"You have no ongoing games, shall we post an open invitation and get you started?",nil) delegate:self cancelButtonTitle:NSLocalizedString(@"Remind me next time.",nil) otherButtonTitles:NSLocalizedString(@"Sure!",nil), NSLocalizedString(@"Do not remind me again.",nil), nil];
                             [alert setTag: 0];

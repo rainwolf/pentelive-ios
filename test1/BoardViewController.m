@@ -270,7 +270,12 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
 //        bannerView.adUnitID = @"ca-app-pub-3326997956703582/8641559446";
 //        bannerView.adUnitID = @"ca-app-pub-3940256099942544/2934735716";
         GADRequest *request = [GADRequest request];
-//                    request.testDevices = [NSArray arrayWithObjects:kGADSimulatorID, nil];
+        PentePlayer *player = ((PenteNavigationViewController *)self.navigationController).player;
+        if (!player.personalizeAds) {
+            GADExtras *extras = [[GADExtras alloc] init];
+            extras.additionalParameters = @{@"npa": @"1"};
+            [request registerAdNetworkExtras:extras];
+        }
         [self.view addSubview:bannerView];
         [bannerView loadRequest:request];
 

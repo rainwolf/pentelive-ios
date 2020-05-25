@@ -199,6 +199,12 @@ CGFloat bottomOffst = 0;
         bannerView.frame = newBannerViewFrame;
         bannerView.adUnitID = @"ca-app-pub-3326997956703582/7598759449";
         GADRequest *request = [GADRequest request];
+        PentePlayer *player = ((PenteNavigationViewController *)self.navigationController).player;
+        if (!player.personalizeAds) {
+            GADExtras *extras = [[GADExtras alloc] init];
+            extras.additionalParameters = @{@"npa": @"1"};
+            [request registerAdNetworkExtras:extras];
+        }
         [bannerView loadRequest:request];
         [self.view addSubview:bannerView];
         [self.tableView setTableFooterView:bannerView];
