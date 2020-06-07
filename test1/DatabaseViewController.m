@@ -570,6 +570,7 @@ struct Capture {
     [self.progressView startAnimating];
     [self.view addSubview:self.progressView];
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
         //    [[NSRunLoop mainRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:2.0]];
         NSMutableString *movesStr = [[NSMutableString alloc] init];
         for (NSNumber *move in movesList) {
@@ -614,25 +615,25 @@ struct Capture {
         }
         NSString *p1RatingStr = setupView.p1RatingCell.textField.text;
         if (p1RatingStr == nil) {
-            p1RatingStr = [[NSUserDefaults standardUserDefaults] objectForKey:@"DBP1Rating"];
+            p1RatingStr = [defaults objectForKey:@"DBP1Rating"];
         }
         if (p1RatingStr == nil || [p1RatingStr isEqualToString:@""]) {
             p1RatingStr = @"0";
         } else {
-            [[NSUserDefaults standardUserDefaults] setObject:p1RatingStr forKey:@"DBP1Rating"];
+            [defaults setObject:p1RatingStr forKey:@"DBP1Rating"];
         }
         NSString *p2RatingStr = setupView.p2RatingCell.textField.text;
         if (p2RatingStr == nil) {
-            p2RatingStr = [[NSUserDefaults standardUserDefaults] objectForKey:@"DBP2Rating"];
+            p2RatingStr = [defaults objectForKey:@"DBP2Rating"];
         }
         if (p2RatingStr == nil || [p2RatingStr isEqualToString:@""]) {
             p2RatingStr = @"0";
         } else {
-            [[NSUserDefaults standardUserDefaults] setObject:p2RatingStr forKey:@"DBP2Rating"];
+            [defaults setObject:p2RatingStr forKey:@"DBP2Rating"];
         }
         NSString *bothOrEitherStr = setupView.eitherOrBothp1p2Cell.detailTextLabel.text;
         if (!bothOrEitherStr) {
-            bothOrEitherStr = [[NSUserDefaults standardUserDefaults] objectForKey:@"DBBothOrEither"];
+            bothOrEitherStr = [defaults objectForKey:@"DBBothOrEither"];
         }
         if (!bothOrEitherStr || [bothOrEitherStr isEqualToString:NSLocalizedString(@"both", nil)]) {
             bothOrEitherStr = @"";
@@ -641,7 +642,7 @@ struct Capture {
         }
         NSString *excludeTimeoutStr = setupView.excludeTimeoutCell.detailTextLabel.text;
         if (!excludeTimeoutStr) {
-            excludeTimeoutStr = [[NSUserDefaults standardUserDefaults] objectForKey:@"DBExcludeTimeouts"];
+            excludeTimeoutStr = [defaults objectForKey:@"DBExcludeTimeouts"];
         }
         if (!excludeTimeoutStr || [excludeTimeoutStr isEqualToString:NSLocalizedString(@"no", nil)]) {
             excludeTimeoutStr = @"";
@@ -650,9 +651,9 @@ struct Capture {
         }
         NSString *liveOrTBStr = setupView.liveOrTBCell.detailTextLabel.text;
         if (!liveOrTBStr) {
-            liveOrTBStr = [[NSUserDefaults standardUserDefaults] objectForKey:@"DBLiveOrTB"];
+            liveOrTBStr = [defaults objectForKey:@"DBLiveOrTB"];
         } else {
-            [[NSUserDefaults standardUserDefaults] setObject:liveOrTBStr forKey:@"DBLiveOrTB"];
+            [defaults setObject:liveOrTBStr forKey:@"DBLiveOrTB"];
         }
         if (!liveOrTBStr || [liveOrTBStr isEqualToString:NSLocalizedString(@"all", nil)]) {
             liveOrTBStr = @"";
@@ -664,8 +665,16 @@ struct Capture {
             }
         }
 //        NSLog(@"testkitty %@", [NSString stringWithFormat:@"start_game_num=0&end_game_num=100&player_1_name=%@&player_2_name=%@&game=%@&site=All%%20Sites&event=All%%20Events&round=All%%20Rounds&section=All%%20Sections&winner=%@%@%@&p1_rating_above=%@&p2_rating_above=%@%@%@%@&iPhone=yes", p1Str, p2Str, gameStr, winnerStr, afterStr, beforeStr, p1RatingStr, p2RatingStr, bothOrEitherStr, excludeTimeoutStr, liveOrTBStr]);
+        int sort = 1;
+        NSString *sortString = setupView.sortCell.detailTextLabel.text;
+        if (!sortString) {
+            sortString = [defaults stringForKey:@"DBSort"];
+        }
+        if (sortString && ![sortString isEqualToString:NSLocalizedString(@"popularity", nil)]) {
+            sort = 2;
+        }
         NSString *getStr = [NSString stringWithFormat:@"moves=%@&response_format=org.pente.gameDatabase.SimpleHtmlGameStorerSearchResponseFormat&response_params=%@&results_order=%i&filter_data=%@",[self URLEncodedString_ch:movesStr],
-                            [self URLEncodedString_ch:@"zippedPartNumParam=1"],[setupView.sortCell.detailTextLabel.text isEqualToString:@"popularity"]?1:2,
+                            [self URLEncodedString_ch:@"zippedPartNumParam=1"],sort,
                             [self URLEncodedString_ch:[NSString stringWithFormat:@"start_game_num=0&end_game_num=100&player_1_name=%@&player_2_name=%@&game=%@&site=All%%20Sites&event=All%%20Events&round=All%%20Rounds&section=All%%20Sections&winner=%@%@%@&p1_rating_above=%@&p2_rating_above=%@%@%@%@&iPhone=yes", p1Str, p2Str, gameStr, winnerStr, afterStr, beforeStr, p1RatingStr, p2RatingStr, bothOrEitherStr, excludeTimeoutStr, liveOrTBStr]]];
         
 //        NSLog(@"\ngetkittyyyyyyString -\n%@-", [self URLEncodedString_ch:getStr]);
