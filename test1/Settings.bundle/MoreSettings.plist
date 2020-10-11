@@ -45,6 +45,36 @@
 			<false/>
 		</dict>
 		<dict>
+			<key>Type</key>
+			<string>PSToggleSwitchSpecifier</string>
+			<key>Title</key>
+			<string>Hide unread messages from badge</string>
+			<key>Key</key>
+			<string>badgeMessages</string>
+			<key>DefaultValue</key>
+			<false/>
+		</dict>
+		<dict>
+			<key>Type</key>
+			<string>PSToggleSwitchSpecifier</string>
+			<key>Title</key>
+			<string>Hide invitations from badge</string>
+			<key>Key</key>
+			<string>badgeInvitations</string>
+			<key>DefaultValue</key>
+			<false/>
+		</dict>
+		<dict>
+			<key>Type</key>
+			<string>PSToggleSwitchSpecifier</string>
+			<key>Title</key>
+			<string>Hide my turn games from badge</string>
+			<key>Key</key>
+			<string>badgeMyTurn</string>
+			<key>DefaultValue</key>
+			<false/>
+		</dict>
+		<dict>
 			<key>FooterText</key>
 			<string>Loading avatars will use more data and is preferred on faster connections</string>
 			<key>Type</key>

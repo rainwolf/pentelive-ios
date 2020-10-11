@@ -61,21 +61,6 @@
     [[TSMessageView appearance] setTitleTextColor:[UIColor blackColor]];
 
     
-    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-    if (![defaults boolForKey:@"termsAcceptedGDPR"]) {
-        NSString *message =
-        NSLocalizedString(@"This app uses device identifiers to personalise ads, delivered by Google's Adsense network. Please check our privacy policy for an overview of the data that is collected and what we do with it, you can find a link in the settings of this app. By proceeding to use this app, you consent to our privacy policy. You must be at least 16 years old to consent to this, otherwise consent from a parent or guardian is required.",nil);
-        UIAlertView *alert =
-        [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"GDPR", nil)
-                                   message:message
-                                  delegate:self
-                         cancelButtonTitle:NSLocalizedString(@"Privacy Policy", nil)
-                         otherButtonTitles:NSLocalizedString(@"Accept terms",nil), nil];
-        [alert show];
-    }
-    
-//    [FIRApp configure];
-
     [[TSMessageView appearance] setAlpha:0.9f];
 
     NSSet *products = [NSSet setWithArray:@[@"1YRNOADSORLIMITS"]];
@@ -242,8 +227,7 @@
 //    NSLog(@"Received notification: %@", [userInfo objectForKey:@"gameID"]);
 //    [self addMessageFromRemoteNotification:userInfo updateUI:YES];
     
-    if (application.applicationState == UIApplicationStateInactive) {
-        [(PenteNavigationViewController *)(self.window.rootViewController) setReceivedNotification: userInfo];
+    if ( application.applicationState == UIApplicationStateInactive || application.applicationState == UIApplicationStateBackground  ) {        [(PenteNavigationViewController *)(self.window.rootViewController) setReceivedNotification: userInfo];
         NSLog(@"penteliveee: inactive notif %@", userInfo);
         return;
     }
@@ -312,8 +296,8 @@
                                            duration:TSMessageNotificationDurationAutomatic
                                            callback:^{
                                                [(PenteNavigationViewController *)self.window.rootViewController setReceivedNotification:userInfo];
-                                               if ([((PenteNavigationViewController *)self.window.rootViewController).visibleViewController respondsToSelector:@selector(parseMessages)]) {
-                                                   [((GamesTableViewController *)((PenteNavigationViewController *)self.window.rootViewController).visibleViewController) parseMessages];
+                                               if ([((PenteNavigationViewController *)self.window.rootViewController).visibleViewController respondsToSelector:@selector(dashboardParse)]) {
+                                                   [((GamesTableViewController *)((PenteNavigationViewController *)self.window.rootViewController).visibleViewController) dashboardParse];
                                                } else {
                                                    [(PenteNavigationViewController *)self.window.rootViewController setDidMove:YES];
                                                    [(PenteNavigationViewController *)self.window.rootViewController popToRootViewControllerAnimated:YES];
@@ -344,15 +328,6 @@
 }
 
 
-- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
-    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-    [defaults setBool:YES forKey:@"termsAcceptedGDPR"];
-    [defaults synchronize];
-    if (buttonIndex == 0) {
-        PenteWebViewController *webViewController = [[PenteWebViewController alloc] initWithAddress: @"https://www.pente.org/help/helpWindow.jsp?file=privacyPolicy"];
-        [(PenteNavigationViewController *)self.window.rootViewController pushViewController:webViewController animated:YES];
-    }
-}
 
 - (NSString *) URLEncodedString_ch: (NSString *) input{
     NSMutableString * output = [NSMutableString string];

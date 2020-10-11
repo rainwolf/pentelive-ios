@@ -3282,10 +3282,19 @@ CGFloat bottomOffset = 0;
     }
     [navController setReceivedNotification:nil];
     [[UIApplication sharedApplication] cancelAllLocalNotifications];
-    long badgeNr = [[self.player activeGames] count] + [[self.player invitations] count];
-    for (Message *message in [self.player messages]) {
-        if ([message.unread isEqualToString:@"unread"]) {
-            badgeNr++;
+    long badgeNr = 0;
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    if (![defaults boolForKey:@"badgeMyTurn"]) {
+        badgeNr += [[self.player activeGames] count];
+    }
+    if (![defaults boolForKey:@"badgeInvitations"]) {
+        badgeNr += [[self.player invitations] count];
+    }
+    if (![defaults boolForKey:@"badgeMessages"]) {
+        for (Message *message in [self.player messages]) {
+            if ([message.unread isEqualToString:@"unread"]) {
+                badgeNr++;
+            }
         }
     }
     [[UIApplication sharedApplication] setApplicationIconBadgeNumber:1];
