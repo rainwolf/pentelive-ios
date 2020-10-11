@@ -686,7 +686,7 @@ struct Capture {
         }
         [request setURL:[NSURL URLWithString:url]];
         [request setHTTPMethod:@"GET"];
-        [request setTimeoutInterval:15.0];
+        [request setTimeoutInterval:200.0];
         NSURLResponse *response;
         NSError *error;
         NSData *responseData = [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
