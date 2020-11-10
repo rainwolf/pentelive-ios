@@ -216,6 +216,18 @@
 			<key>IASKTextAlignment</key>
 			<string>IASKUITextAlignmentCenter</string>
 		</dict>
+		<dict>
+			<key>Key</key>
+			<string>penteOrgEULAButton</string>
+			<key>Title</key>
+			<string>EULA</string>
+			<key>IASKCellImage</key>
+			<string>subscribeIcon</string>
+			<key>Type</key>
+			<string>IASKButtonSpecifier</string>
+			<key>IASKTextAlignment</key>
+			<string>IASKUITextAlignmentCenter</string>
+		</dict>
 	</array>
 	<key>Strings Table</key>
 	<string>Root</string>

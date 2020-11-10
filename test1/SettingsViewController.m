@@ -398,6 +398,10 @@
         PenteWebViewController *webViewController = [[PenteWebViewController alloc] initWithAddress: @"https://www.pente.org/help/helpWindow.jsp?file=privacyPolicy"];
         [self.navigationController pushViewController:webViewController animated:YES];
     }
+    if ([specifier.key isEqualToString:@"penteOrgEULAButton"]) {
+        PenteWebViewController *webViewController = [[PenteWebViewController alloc] initWithAddress: @"https://www.pente.org/help/helpWindow.jsp?file=eula"];
+        [self.navigationController pushViewController:webViewController animated:YES];
+    }
     if ([specifier.key isEqualToString:@"changeColorButton"]) {
 //        NSLog([NSString stringWithFormat:@"kitty wth %@", self.navC]);
         if (!self.navC.player.subscriber) {
@@ -465,6 +469,7 @@
     [subscribeText setNumberOfLines:0];
     NSString *subscribeString = NSLocalizedString(@"\u2022 remove play limits\n\u2022 request undo in turn-based games\n\u2022 see no more ads\n\u2022 change your name color or avatar\n\u2022 access the database!", nil);
     [subscribeText setText:subscribeString];
+    [subscribeText setTextColor:[UIColor blackColor]];
     [subscribeText sizeToFit];
     
     //        UILabel *priceText = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width*9/10, CGFLOAT_MAX)];
@@ -484,6 +489,7 @@
     NSString *clearInfoString = NSLocalizedString(@"(This subscription auto-renews every year and can be canceled up to 24hrs before renewal. Payment will be charged on your iTunes account. Renewal will occur 24hrs before the end of the subscription period at the same cost. Subscriptions can be canceled in the settings with \"Manage Subscription\".)", nil);
     [clearInfoText setText:clearInfoString];
     [clearInfoText setFont:[UIFont systemFontOfSize: 12]];
+    [clearInfoText setTextColor:[UIColor blackColor]];
     [clearInfoText sizeToFit];
     
     UILabel *privacyPolicyAndTOSText = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width*9/10, CGFLOAT_MAX)];
@@ -500,7 +506,22 @@
     tapGestureRecognizer.numberOfTapsRequired = 1;
     [privacyPolicyAndTOSText addGestureRecognizer:tapGestureRecognizer];
     privacyPolicyAndTOSText.userInteractionEnabled = YES;
-    
+
+    UILabel *eulaText = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width*9/10, CGFLOAT_MAX)];
+    [eulaText setLineBreakMode:NSLineBreakByTruncatingTail];
+    [eulaText setNumberOfLines:1];
+    NSString *eulaString = NSLocalizedString(@"View our EULA", nil);
+    attStr = [[NSMutableAttributedString alloc] initWithString:eulaString];
+    [attStr addAttribute:NSForegroundColorAttributeName value:[UIColor blueColor] range:NSMakeRange(0, eulaString.length)];
+    [attStr addAttribute:NSUnderlineStyleAttributeName value: @(NSUnderlineStyleSingle) range:NSMakeRange(0, eulaString.length)];
+    [eulaText setAttributedText:attStr];
+    [eulaText setFont:[UIFont systemFontOfSize: 16]];
+    [eulaText sizeToFit];
+    tapGestureRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(openEULA)];
+    tapGestureRecognizer.numberOfTapsRequired = 1;
+    [eulaText addGestureRecognizer:tapGestureRecognizer];
+    eulaText.userInteractionEnabled = YES;
+
     UIButton *subscribeButton = [UIButton buttonWithType:UIButtonTypeCustom];
     subscribeButton.backgroundColor = [UIColor clearColor];
     subscribeButton.titleLabel.font = [UIFont boldSystemFontOfSize:22];
@@ -516,12 +537,18 @@
     [self.progressView setAlpha:0.75];
     [self.progressView startAnimating];
     [self.view addSubview:self.progressView];
-    popoverView = [PopoverView showPopoverAtPoint: CGPointMake(self.view.bounds.size.width/2, [self.tableView contentOffset].y) inView:self.view withTitle: NSLocalizedString(@"Subscribe today and",nil) withViewArray: @[subscribeText, priceText, clearInfoText, privacyPolicyAndTOSText, subscribeButton] delegate:self];
+    popoverView = [PopoverView showPopoverAtPoint: CGPointMake(self.view.bounds.size.width/2, [self.tableView contentOffset].y) inView:self.view withTitle: NSLocalizedString(@"Subscribe today and",nil) withViewArray: @[subscribeText, priceText, clearInfoText, privacyPolicyAndTOSText, eulaText, subscribeButton] delegate:self];
     [popoverView setDelegate:self];
 }
 
 -(void) openPrivacyPolicyAndTOS {
     PenteWebViewController *webViewController = [[PenteWebViewController alloc] initWithAddress: @"https://www.pente.org/help/helpWindow.jsp?file=privacyPolicy"];
+    [self.navigationController pushViewController:webViewController animated:YES];
+    [navC setShowSubscribe:YES];
+    [popoverView dismiss];
+}
+-(void) openEULA {
+    PenteWebViewController *webViewController = [[PenteWebViewController alloc] initWithAddress: @"https://www.pente.org/help/helpWindow.jsp?file=eula"];
     [self.navigationController pushViewController:webViewController animated:YES];
     [navC setShowSubscribe:YES];
     [popoverView dismiss];

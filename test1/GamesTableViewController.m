@@ -2452,8 +2452,8 @@ CGFloat bottomOffset = 0;
     // connect to the game server
     url =  [NSString stringWithFormat:@"https://www.pente.org/gameServer/mobile/index.jsp?name=%@&password=%@",username,password];
     //    url =  [NSString stringWithFormat:@"https://www.pente.org/gameServer/mobile/index.jsp?name=%@&password=%@&checkname=graviton",username,password];
-//        url =  [NSString stringWithFormat:@"https://www.pente.org/gameServer/mobile/index.jsp?name=%@&password=%@&checkname=harveyjoe",username,password];
-//    username = @"harveyjoe";
+//    url =  [NSString stringWithFormat:@"https://www.pente.org/gameServer/mobile/index.jsp?name=%@&password=%@&checkname=padler66",username,password];
+//    username = @"padler66";
     if (development) {
         url =  [NSString stringWithFormat:@"https://development.pente.org/gameServer/mobile/index.jsp?name=%@&password=%@",username,password];
 //        url =  [NSString stringWithFormat:@"https://development.pente.org/gameServer/mobile/index.jsp?name=harveyjoe&password=tsetsoi"];
