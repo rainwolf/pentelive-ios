@@ -402,6 +402,10 @@
         PenteWebViewController *webViewController = [[PenteWebViewController alloc] initWithAddress: @"https://www.pente.org/help/helpWindow.jsp?file=eula"];
         [self.navigationController pushViewController:webViewController animated:YES];
     }
+    if ([specifier.key isEqualToString:@"ForgotPasswordButton"]) {
+        PenteWebViewController *webViewController = [[PenteWebViewController alloc] initWithAddress: @"https://www.pente.org/gameServer/forgotpassword.jsp"];
+        [self.navigationController pushViewController:webViewController animated:YES];
+    }
     if ([specifier.key isEqualToString:@"changeColorButton"]) {
 //        NSLog([NSString stringWithFormat:@"kitty wth %@", self.navC]);
         if (!self.navC.player.subscriber) {

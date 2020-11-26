@@ -44,6 +44,14 @@
 		</dict>
 		<dict>
 			<key>Key</key>
+			<string>ForgotPasswordButton</string>
+			<key>Title</key>
+			<string>Forgot Password?</string>
+			<key>Type</key>
+			<string>IASKButtonSpecifier</string>
+		</dict>
+		<dict>
+			<key>Key</key>
 			<string>SignUpLabel</string>
 			<key>FooterText</key>
 			<string></string>
