@@ -227,6 +227,7 @@
 //    NSLog(@"Received notification: %@", [userInfo objectForKey:@"gameID"]);
 //    [self addMessageFromRemoteNotification:userInfo updateUI:YES];
     
+//    NSLog(@"penteliveee: %@", userInfo);
     if ( application.applicationState == UIApplicationStateInactive || application.applicationState == UIApplicationStateBackground  ) {        [(PenteNavigationViewController *)(self.window.rootViewController) setReceivedNotification: userInfo];
         NSLog(@"penteliveee: inactive notif %@", userInfo);
         return;
@@ -242,7 +243,13 @@
         return;
     }
     
-    NSString *message = [[userInfo objectForKey:@"aps"] objectForKey:@"alert"];
+    NSString *message;
+    if ([[[userInfo objectForKey:@"aps"] objectForKey:@"alert"] isKindOfClass:[NSDictionary class]]) {
+        message = [[[userInfo objectForKey:@"aps"] objectForKey:@"alert"] objectForKey:@"body"];
+    } else {
+        message = [[userInfo objectForKey:@"aps"] objectForKey:@"alert"];
+    }
+    
     if (![[NSUserDefaults standardUserDefaults] boolForKey:@"inAppSoundsOff"]) {
         if ([message containsString:@"Live Game Alert"] && [message containsString:@"wants to play live"] && [userInfo objectForKey:@"liveBroadCastPlayer"] && [userInfo objectForKey:@"liveBroadCastGame"]) {
             AudioServicesPlaySystemSound(self.broadcastSndID);
