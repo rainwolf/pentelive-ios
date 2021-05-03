@@ -22,7 +22,7 @@ class TableNavigationBar: UINavigationBar {
 }
 
 
-class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewDelegate, GADInterstitialDelegate, UIGestureRecognizerDelegate, PopoverViewDelegate, UIPickerViewDelegate, UIPickerViewDataSource {
+class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewDelegate, GADFullScreenContentDelegate, UIGestureRecognizerDelegate, PopoverViewDelegate, UIPickerViewDelegate, UIPickerViewDataSource {
     
     var socket: PenteLiveSocket!
     var table: Table!
@@ -279,7 +279,7 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
 //        showAds = true
         if showAds {
             if bannerView == nil {
-                bannerView = GADBannerView(adSize: kGADAdSizeSmartBannerPortrait)
+                bannerView = GADBannerView(adSize: GADPortraitAnchoredAdaptiveBannerAdSizeWithWidth(self.view.bounds.width))
                 bannerView!.rootViewController = self
                 bannerView!.delegate = self
                 bannerView!.adUnitID = "ca-app-pub-3326997956703582/2339127047"

@@ -36,7 +36,7 @@ class PlayerTableCell: UITableViewCell {
     }
 }
 
-@objc class RoomViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, UITextFieldDelegate, GADBannerViewDelegate, GADInterstitialDelegate {
+@objc class RoomViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, UITextFieldDelegate, GADBannerViewDelegate, GADFullScreenContentDelegate {
     
     @objc var room: GameRoom
     var socket: PenteLiveSocket!
@@ -50,7 +50,7 @@ class PlayerTableCell: UITableViewCell {
     var me = ""
     var showAds = true
     var bannerView: GADBannerView?
-    var interstitial: GADInterstitial?
+    var interstitial: GADInterstitialAd?
     var tableViewController: TableViewController?
     var invitationAlertController: UIAlertController?
     var newplayerSndID:SystemSoundID!
@@ -191,7 +191,7 @@ class PlayerTableCell: UITableViewCell {
                 bottomOffset = 34.0
             }
 
-            bannerView = GADBannerView(adSize: kGADAdSizeSmartBannerPortrait)
+            bannerView = GADBannerView(adSize: GADPortraitAnchoredAdaptiveBannerAdSizeWithWidth(self.view.bounds.width))
             bannerView!.rootViewController = self
             bannerView!.delegate = self
             var frame = textView.frame
@@ -210,16 +210,22 @@ class PlayerTableCell: UITableViewCell {
             bannerView!.load(request)
             self.view.addSubview(bannerView!)
 
-            interstitial = GADInterstitial(adUnitID: "ca-app-pub-3326997956703582/7746770806")
-            interstitial!.delegate = self
             request = GADRequest()
             if (pentePlayer?.personalizeAds == false) {
                 let extras = GADExtras()
                 extras.additionalParameters = ["npa": "1"]
                 request.register(extras)
             }
-            interstitial!.load(request)
-            
+            GADInterstitialAd.load(withAdUnitID:"ca-app-pub-3326997956703582/7746770806",
+                                        request: request,
+                              completionHandler: { [self] ad, error in
+                                if let error = error {
+                                  print("Failed to load interstitial ad with error: \(error.localizedDescription)")
+                                  return
+                                }
+                                interstitial = ad
+                                interstitial?.fullScreenContentDelegate = self
+                              })
         }
     }
     override func viewDidDisappear(_ animated: Bool) {
@@ -567,7 +573,7 @@ class PlayerTableCell: UITableViewCell {
                 self.tableViewController = TableViewController(table: table!, socket: self.socket, tablesAndPlayers: self.playersAndTables, pente_player: self.pentePlayer!, me: self.me)
 //                self.tableViewController?.pentePlayer = self.pentePlayer
                 self.navigationController?.pushViewController(self.tableViewController!, animated: true)
-                if self.showAds && !playerName.contains("guest") && self.interstitial?.isReady ?? false {
+                if self.showAds && self.interstitial != nil && !playerName.contains("guest") {
                     self.interstitial?.present(fromRootViewController: self.tableViewController!)
                 }
             } else {
@@ -577,16 +583,23 @@ class PlayerTableCell: UITableViewCell {
             }
         }
     }
-    func interstitialDidDismissScreen(_ ad: GADInterstitial) {
-        interstitial = GADInterstitial(adUnitID: "ca-app-pub-3326997956703582/7746770806")
-        interstitial!.delegate = self
+    func interstitialDidDismissScreen(_ ad: GADInterstitialAd) {
         let request = GADRequest()
         if (pentePlayer?.personalizeAds == false) {
             let extras = GADExtras()
             extras.additionalParameters = ["npa": "1"]
             request.register(extras)
         }
-        interstitial!.load(request)
+        GADInterstitialAd.load(withAdUnitID:"ca-app-pub-3326997956703582/7746770806",
+                                    request: request,
+                          completionHandler: { [self] ad, error in
+                            if let error = error {
+                              print("Failed to load interstitial ad with error: \(error.localizedDescription)")
+                              return
+                            }
+                            self.interstitial = ad
+                            self.interstitial?.fullScreenContentDelegate = self
+                          })
     }
     func exitTableEvent(event: [String: Any]) {
         DispatchQueue.main.async {

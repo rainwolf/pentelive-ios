@@ -98,8 +98,9 @@ InvitationsViewController *invitationVC;
         }
     }];
     if (showAds) {
-        CGPoint origin = CGPointMake(0.0, self.view.frame.size.height - self.navigationController.navigationBar.frame.size.height - kGADAdSizeBanner.size.height);
-        bannerView = [[GADBannerView alloc] initWithAdSize:kGADAdSizeSmartBannerPortrait origin:origin];
+        GADAdSize adSize = GADPortraitAnchoredAdaptiveBannerAdSizeWithWidth(self.view.bounds.size.width);
+        CGPoint origin = CGPointMake(0.0, self.view.frame.size.height - self.navigationController.navigationBar.frame.size.height - adSize.size.height);
+        bannerView = [[GADBannerView alloc] initWithAdSize:adSize origin:origin];
         bannerView.rootViewController = self;
         [bannerView setDelegate: self];
         CGFloat screenHeight = UIScreen.mainScreen.bounds.size.height;

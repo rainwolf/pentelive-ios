@@ -14,6 +14,7 @@
 #import "penteLive-Swift.h"
 #import "MMAIViewController.h"
 @import TSMessages;
+@import InAppSettingsKit.IASKSpecifier;
 
 
 #define usernameKey @"username"

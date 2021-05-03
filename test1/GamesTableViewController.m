@@ -164,11 +164,10 @@ CGFloat bottomOffset = 0;
 
 
 
-- (void)interstitialDidDismissScreen:(GADInterstitial *)interstitial {
+
+- (void)adDidDismissFullScreenContent:(nonnull id<GADFullScreenPresentingAd>)ad {
     self.interstitial = nil;
     if (player.showAds) {
-        self.interstitial = [[GADInterstitial alloc] initWithAdUnitID:@"ca-app-pub-3326997956703582/7746770806"];
-        [self.interstitial setDelegate:self];
         GADRequest *request = [GADRequest request];
         PentePlayer *player = ((PenteNavigationViewController *)self.navigationController).player;
         if (!player.personalizeAds) {
@@ -176,7 +175,16 @@ CGFloat bottomOffset = 0;
             extras.additionalParameters = @{@"npa": @"1"};
             [request registerAdNetworkExtras:extras];
         }
-        [self.interstitial loadRequest:request];
+        [GADInterstitialAd loadWithAdUnitID:@"ca-app-pub-3326997956703582/7746770806"
+                                    request:request
+                          completionHandler:^(GADInterstitialAd *ad, NSError *error) {
+          if (error) {
+            NSLog(@"Failed to load interstitial ad with error: %@", [error localizedDescription]);
+            return;
+          }
+          self.interstitial = ad;
+          self.interstitial.fullScreenContentDelegate = self;
+        }];
     }
 }
 
@@ -1836,7 +1844,7 @@ CGFloat bottomOffset = 0;
 
     
     if (player.showAds) {
-        if ([self.interstitial isReady]) {
+        if (self.interstitial) {
             [self.interstitial presentFromRootViewController:self];
         }
     }
@@ -2048,7 +2056,7 @@ CGFloat bottomOffset = 0;
     [defaults setObject:toHistory forKey:@"invitedHistory"];
 
     if (player.showAds) {
-        if ([self.interstitial isReady]) {
+        if (self.interstitial) {
             [self.interstitial presentFromRootViewController:self];
         }
         [CATransaction begin];
@@ -2558,8 +2566,9 @@ CGFloat bottomOffset = 0;
             }
     //        showAds = ([dashboardString rangeOfString:@"No Ads"].location == NSNotFound) || ([dashboardString rangeOfString:@"No Ads"].location > 30);
             if (player.showAds && bannerView == nil) {
-                CGPoint origin = CGPointMake(0.0, self.view.frame.size.height - self.navigationController.navigationBar.frame.size.height - kGADAdSizeBanner.size.height);
-                bannerView = [[GADBannerView alloc] initWithAdSize:kGADAdSizeSmartBannerPortrait origin:origin];
+                GADAdSize adSize = GADPortraitAnchoredAdaptiveBannerAdSizeWithWidth(self.view.bounds.size.width);
+                CGPoint origin = CGPointMake(0.0, self.view.frame.size.height - self.navigationController.navigationBar.frame.size.height - adSize.size.height);
+                bannerView = [[GADBannerView alloc] initWithAdSize:adSize origin:origin];
                 bannerView.rootViewController = self;
                 [bannerView setDelegate: self];
                 CGFloat screenHeight = UIScreen.mainScreen.bounds.size.height;
@@ -2580,15 +2589,23 @@ CGFloat bottomOffset = 0;
                 }
                 [bannerView loadRequest:request];
                 
-                self.interstitial = [[GADInterstitial alloc] initWithAdUnitID:@"ca-app-pub-3326997956703582/7746770806"];
-                [self.interstitial setDelegate:self];
                 request = [GADRequest request];
                 if (player.personalizeAds) {
                     GADExtras *extras = [[GADExtras alloc] init];
                     extras.additionalParameters = @{@"npa": @"1"};
                     [request registerAdNetworkExtras:extras];
                 }
-                [self.interstitial loadRequest: request];
+                [GADInterstitialAd loadWithAdUnitID:@"ca-app-pub-3326997956703582/7746770806"
+                                            request:request
+                                  completionHandler:^(GADInterstitialAd *ad, NSError *error) {
+                  if (error) {
+                    NSLog(@"Failed to load interstitial ad with error: %@", [error localizedDescription]);
+                    return;
+                  }
+                  self.interstitial = ad;
+                  self.interstitial.fullScreenContentDelegate = self;
+                }];
+
             }
     //        [self.player setShowAds: showAds];
     //        [self.player setSubscriber: ([dashboardString rangeOfString:@"tb GamesLimit"].location == NSNotFound) || ([dashboardString rangeOfString:@"tb GamesLimit"].location > 30)];
@@ -3609,7 +3626,7 @@ CGFloat bottomOffset = 0;
 }
 -(void) toMMAI {
     if (player.showAds && ![player.playerName containsString:@"guest"]) {
-        if ([self.interstitial isReady]) {
+        if (self.interstitial) {
             [self.interstitial presentFromRootViewController:self];
         }
     }
@@ -3618,7 +3635,7 @@ CGFloat bottomOffset = 0;
 }
 -(void) toAIInvitations {
     if (player.showAds) {
-        if ([self.interstitial isReady]) {
+        if (self.interstitial) {
             [self.interstitial presentFromRootViewController:self];
         }
     }
@@ -3776,7 +3793,7 @@ CGFloat bottomOffset = 0;
     [defaults setObject:toHistory forKey:@"invitedHistory"];
     
     if (player.showAds) {
-        if ([self.interstitial isReady]) {
+        if (self.interstitial) {
             [self.interstitial presentFromRootViewController:self];
         }
         [CATransaction begin];

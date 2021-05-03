@@ -271,16 +271,16 @@
 
 
 -(BOOL) showAds {
-//    if (development) {
-//        return YES;
-//    }
+    if (development) {
+        return YES;
+    }
     return showAds;
 }
 -(BOOL) subscriber {
 //    return NO;
-//    if (development) {
-//        return NO;
-//    }
+    if (development) {
+        return NO;
+    }
     return subscriber;
 }
 -(void) setShowAds:(BOOL)showAdss {

@@ -27,7 +27,7 @@
 @end
 
 @interface GamesTableViewController : UIPullToReloadTableViewController <UIGestureRecognizerDelegate,
-                GADBannerViewDelegate, GADInterstitialDelegate, NSURLConnectionDelegate,
+                GADBannerViewDelegate, GADFullScreenContentDelegate, NSURLConnectionDelegate,
                 PopoverViewDelegate> {
     PentePlayer *player;
     Game *selectedGame;
@@ -42,7 +42,7 @@
     sentInvitationsCollapsed, nonActiveGamesCollapsed, tournamentsCollapsed, kothCollapsed;
     GameTableViewCell *selectedInvitationCell, *selectedPublicInvitationCell;
     BOOL alreadyAskedAboutInvitations;
-    GADInterstitial *interstitial;
+    GADInterstitialAd *interstitial;
     int gamesLimit;
     PopoverView *actionPopoverView;
     ICDMaterialActivityIndicatorView *progressView;
@@ -64,7 +64,7 @@
 sentInvitationsCollapsed, nonActiveGamesCollapsed, alreadyAskedAboutInvitations, tournamentsCollapsed, kothCollapsed;
 @property(atomic) int gamesLimit;
 @property(nonatomic,retain) GameTableViewCell *selectedInvitationCell, *selectedPublicInvitationCell;
-@property(nonatomic, strong) GADInterstitial *interstitial;
+@property(nonatomic, strong) GADInterstitialAd *interstitial;
 @property(nonatomic, retain, readwrite) PopoverView *actionPopoverView;
 @property (strong,nonatomic) ICDMaterialActivityIndicatorView *progressView;
 @property(nonatomic, retain) SettingsViewController *settingsViewController;

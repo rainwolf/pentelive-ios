@@ -252,15 +252,15 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
     }
     CGFloat screenHeight = UIScreen.mainScreen.bounds.size.height;
     CGFloat newOriginY = screenHeight - self.navigationController.navigationBar.frame.size.height - [UIApplication sharedApplication].statusBarFrame.size.height;
+    GADAdSize adSize = GADPortraitAnchoredAdaptiveBannerAdSizeWithWidth(self.view.bounds.size.width);
     if (showAds) {
-        playerStats.frame = CGRectMake(2, submitButton.frame.origin.y + 3 + submitButton.frame.size.height, self.view.bounds.size.width - 4,  newOriginY - submitButton.frame.origin.y - GAD_SIZE_320x50.height -5 -  submitButton.frame.size.height - bottomOffset);
+        playerStats.frame = CGRectMake(2, submitButton.frame.origin.y + 3 + submitButton.frame.size.height, self.view.bounds.size.width - 4,  newOriginY - submitButton.frame.origin.y - adSize.size.height -5 -  submitButton.frame.size.height - bottomOffset);
     } else {
         playerStats.frame = CGRectMake(2, submitButton.frame.origin.y +  3 + submitButton.frame.size.height, self.view.bounds.size.width - 4, newOriginY - submitButton.frame.origin.y - 5 -  submitButton.frame.size.height - bottomOffset);
     }
     if (showAds) {
-//        NSLog(@"showAds");
-        CGPoint origin = CGPointMake(0.0, self.view.frame.size.height - self.navigationController.navigationBar.frame.size.height - kGADAdSizeBanner.size.height - bottomOffset);
-        bannerView = [[GADBannerView alloc] initWithAdSize:kGADAdSizeSmartBannerPortrait origin:origin];
+        CGPoint origin = CGPointMake(0.0, self.view.frame.size.height - self.navigationController.navigationBar.frame.size.height - adSize.size.height - bottomOffset);
+        bannerView = [[GADBannerView alloc] initWithAdSize:adSize origin:origin];
         bannerView.rootViewController = self;
         [bannerView setDelegate: self];
         newOriginY = screenHeight - self.navigationController.navigationBar.frame.size.height - [UIApplication sharedApplication].statusBarFrame.size.height - bannerView.frame.size.height - bottomOffset;

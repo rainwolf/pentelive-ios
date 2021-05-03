@@ -15,14 +15,14 @@ import UIKit
 //    }
 //}
 
-class SocialViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, GADBannerViewDelegate, GADInterstitialDelegate, UIPickerViewDelegate, UIPickerViewDataSource {
+class SocialViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, GADBannerViewDelegate, GADFullScreenContentDelegate, UIPickerViewDelegate, UIPickerViewDataSource {
     
     let segmentControl = UISegmentedControl(items: [NSLocalizedString("following", comment: ""), NSLocalizedString("followers", comment: "")])
     var refreshControl = UIRefreshControl()
     var tableView: UITableView = UITableView()
     var showAds = true
     var bannerView: GADBannerView?
-    var interstitial: GADInterstitial?
+    var interstitial: GADInterstitialAd?
     var pentePlayer: PentePlayer!
     var wantsToSeeAvatars = UserDefaults.standard.bool(forKey: "wantToSeeAvatars")
     
@@ -104,7 +104,7 @@ class SocialViewController: UIViewController, UITableViewDelegate, UITableViewDa
             if UIDevice.current.userInterfaceIdiom == .phone && Int(UIScreen.main.nativeBounds.size.height) == 2436 {
                 bottomOffset = 34.0
             }
-            bannerView = GADBannerView(adSize: kGADAdSizeSmartBannerPortrait)
+            bannerView = GADBannerView(adSize: GADPortraitAnchoredAdaptiveBannerAdSizeWithWidth(self.view.bounds.width))
             bannerView!.rootViewController = self
             bannerView!.delegate = self
             var frame = tableView.frame
