@@ -24,8 +24,10 @@
 @synthesize sndID, broadcastSndID;
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
-    // Override point for customization after application launch.
-
+    if (@available(iOS 15.0, *)) {
+        [UITableView appearance].sectionHeaderTopPadding = 0.0f;
+    }
+    
     if (![[NSUserDefaults standardUserDefaults] objectForKey:@"installationDate"]) {
         [[NSUserDefaults standardUserDefaults] setObject:[NSDate date] forKey:@"installationDate"];
     }

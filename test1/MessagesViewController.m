@@ -173,7 +173,8 @@ InvitationsViewController *invitationVC;
         CGRect textFrame = [receivedText boundingRectWithSize:CGSizeMake(receivedMessageView.contentSize.width + receivedMessageView.contentOffset.x - receivedMessageView.contentInset.left - receivedMessageView.contentInset.right, halfScreenSize) options:NSStringDrawingUsesLineFragmentOrigin attributes:fontAttributes context:nil];
         [receivedMessageView setText: receivedText];
         CGFloat fontLineHeight = [[receivedMessageView font] lineHeight];
-        
+
+        [toField removeFromSuperview];
 
         [UIView animateWithDuration:0.3f animations:^ {
             CGRect frame = subjectField.frame;

@@ -1288,9 +1288,9 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = penteLive/penteLive.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution: Walied Othman (CT6S5R75J5)";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "Apple Distribution: Walied Othman (CT6S5R75J5)";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 2.6.23;
+				CURRENT_PROJECT_VERSION = 2.6.24;
 				DEVELOPMENT_TEAM = CT6S5R75J5;
 				ENABLE_BITCODE = YES;
 				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
@@ -1300,7 +1300,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
-				MARKETING_VERSION = 2.6.23;
+				MARKETING_VERSION = 2.6.24;
 				OTHER_LDFLAGS = (
 					"-ObjC",
 					"$(inherited)",
@@ -1328,9 +1328,10 @@
 				CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES = NO;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = penteLive/penteLive.entitlements;
-				CODE_SIGN_IDENTITY = "iPhone Distribution: Walied Othman (CT6S5R75J5)";
+				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution: Walied Othman (CT6S5R75J5)";
-				CURRENT_PROJECT_VERSION = 2.6.23;
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 2.6.24;
 				DEVELOPMENT_TEAM = CT6S5R75J5;
 				ENABLE_BITCODE = YES;
 				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
@@ -1340,7 +1341,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
-				MARKETING_VERSION = 2.6.23;
+				MARKETING_VERSION = 2.6.24;
 				OTHER_LDFLAGS = (
 					"-ObjC",
 					"$(inherited)",

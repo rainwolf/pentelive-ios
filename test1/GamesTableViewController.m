@@ -415,10 +415,12 @@ CGFloat bottomOffset = 0;
 //    NSDate *dateOfLastPing = [defaults objectForKey:@"lastPing"];
 //    NSLog(@"kitty date: %@", [NSDateFormatter localizedStringFromDate:dateOfLastPing dateStyle:NSDateFormatterShortStyle timeStyle:NSDateFormatterFullStyle]);
     if (storedTokenString) {
+        NSLog(@"got token string %@", storedTokenString);
         NSDate *dateOfLastPing = [defaults objectForKey:@"lastPing"];
         if (dateOfLastPing) {
             double daysPassed = [dateOfLastPing timeIntervalSinceNow] / -86400.0;
 //            NSLog(@"daysPassed : %f", daysPassed);
+            NSLog(@"days passed %f", daysPassed);
             if (daysPassed < 1) {
                 return;
             }
@@ -435,12 +437,12 @@ CGFloat bottomOffset = 0;
         NSURLResponse *response;
         NSError *error;
         NSData *responseData = [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
-//        if (error) {
-//            NSLog(@"wth \n %@", error.localizedDescription);
-//        }
+        if (error) {
+            NSLog(@"wth \n %@", error.localizedDescription);
+        }
         NSString *replyString = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
 
-//        NSLog(@"wth \n %@", replyString);
+        NSLog(@"wth \n %@", replyString);
         if ([replyString containsString:@"It seems to have worked"]) {
             [defaults setObject:[NSDate date] forKey:@"lastPing"];
         }

@@ -72,8 +72,16 @@
 //    request.testDevices = [NSArray arrayWithObjects:kGADSimulatorID, nil];
 //    [bannerView loadRequest:request];
     
-    self.navigationBar.tintColor = [UIColor grayColor];
-    
+    if (@available(iOS 13.0, *)) {
+        UINavigationBarAppearance *appearance = [[UINavigationBarAppearance alloc] init];
+        [appearance configureWithOpaqueBackground];
+        [appearance setBackgroundColor: [UIColor grayColor]];
+        [self.navigationBar setStandardAppearance: appearance];
+        [self.navigationBar setScrollEdgeAppearance: self.navigationBar.standardAppearance];
+    } else {
+        // Fallback on earlier versions
+        self.navigationBar.tintColor = [UIColor grayColor];
+    }
     [self.navigationBar setTranslucent:NO];
 }
 
