@@ -1,6 +1,13 @@
 post_install do |installer|
   require 'fileutils'
   FileUtils.cp_r('Pods/Target Support Files/Pods-penteLive/Pods-penteLive-Acknowledgements.plist', 'test1/Settings.bundle/Acknowledgements.plist', :remove_destination => true)
+  installer.generated_projects.each do |project|
+      project.targets.each do |target|
+          target.build_configurations.each do |config|
+              config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0'
+           end
+      end
+  end
 end
 
 source 'https://github.com/CocoaPods/Specs.git'
@@ -8,7 +15,7 @@ use_frameworks!
 use_modular_headers!
 
 target "penteLive" do
-platform :ios, '12.0'
+platform :ios, '13.0'
 #   use_frameworks!
 #   pod 'Firebase/Core'
 #   pod 'Firebase/AdMob'
@@ -27,3 +34,4 @@ platform :ios, '12.0'
     pod 'AFWebViewController', '~> 1.0'
     pod 'PersonalizedAdConsent'
 end
+

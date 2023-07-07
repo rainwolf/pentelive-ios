@@ -50,6 +50,7 @@
 		635B13CB189A540000B07A9B /* CoreTelephony.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 635B13CA189A540000B07A9B /* CoreTelephony.framework */; };
 		635E3B6A17008AF5007E470E /* unread.png in Resources */ = {isa = PBXBuildFile; fileRef = 635E3B6917008AF5007E470E /* unread.png */; };
 		636163A72019E5AA00D5E176 /* PenteGame.m in Sources */ = {isa = PBXBuildFile; fileRef = 636163A62019E5AA00D5E176 /* PenteGame.m */; };
+		63670881297FABB800DD66CF /* Pods_penteLive.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FEAB9DAD17D481D8D59FE453 /* Pods_penteLive.framework */; };
 		63674A5A18897A1C00C21C48 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 63674A5918897A1C00C21C48 /* StoreKit.framework */; };
 		636A99E21E40DE2500D08C5D /* SocialViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636A99E11E40DE2500D08C5D /* SocialViewController.swift */; };
 		636A99E51E4136C800D08C5D /* footprint.png in Resources */ = {isa = PBXBuildFile; fileRef = 636A99E31E4136C800D08C5D /* footprint.png */; };
@@ -202,7 +203,6 @@
 		63FEFD7216931A970070E9AA /* StringInputTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 63FEFD7016931A960070E9AA /* StringInputTableViewCell.m */; };
 		63FEFD751693200C0070E9AA /* SimplePickerInputTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 63FEFD741693200B0070E9AA /* SimplePickerInputTableViewCell.m */; };
 		63FEFD78169320AB0070E9AA /* PickerInputTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 63FEFD77169320AA0070E9AA /* PickerInputTableViewCell.m */; };
-		AFF2367C15A7A30E7357F2BF /* Pods_penteLive.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FEAB9DAD17D481D8D59FE453 /* Pods_penteLive.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -465,11 +465,11 @@
 				63A6C22116C5142200718708 /* QuartzCore.framework in Frameworks */,
 				63FA912516A0C77100ED66D1 /* AdSupport.framework in Frameworks */,
 				63FA911A16A0C6A700ED66D1 /* AudioToolbox.framework in Frameworks */,
+				63670881297FABB800DD66CF /* Pods_penteLive.framework in Frameworks */,
 				637F43FA167F49CF00D5BF83 /* Security.framework in Frameworks */,
 				633C9D1D15BD5B98009AD00A /* UIKit.framework in Frameworks */,
 				633C9D1F15BD5B98009AD00A /* Foundation.framework in Frameworks */,
 				633C9D2115BD5B98009AD00A /* CoreGraphics.framework in Frameworks */,
-				AFF2367C15A7A30E7357F2BF /* Pods_penteLive.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1195,7 +1195,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution: Walied Othman (CT6S5R75J5)";
 				COPY_PHASE_STRIP = NO;
 				DEFINES_MODULE = YES;
 				ENABLE_BITCODE = YES;
@@ -1281,35 +1281,36 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 6FFDDFE4BFE3714BE2BCC000 /* Pods-penteLive.debug.xcconfig */;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = NO;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES = NO;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = penteLive/penteLive.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "Apple Distribution: Walied Othman (CT6S5R75J5)";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 2.6.24;
-				DEVELOPMENT_TEAM = CT6S5R75J5;
-				ENABLE_BITCODE = YES;
+				CURRENT_PROJECT_VERSION = 2.6.25;
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = CT6S5R75J5;
+				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "test1/penteLive-Prefix.pch";
 				INFOPLIST_FILE = "test1/penteLive-Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.board-games";
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
-				MARKETING_VERSION = 2.6.24;
+				MARKETING_VERSION = 2.6.25;
 				OTHER_LDFLAGS = (
 					"-ObjC",
 					"$(inherited)",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "be.submanifold.${PRODUCT_NAME:rfc1034identifier}";
 				PRODUCT_NAME = penteLive;
-				PROVISIONING_PROFILE = "68031c35-b3dd-4290-996a-2b47a197e3ac";
-				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
-				PROVISIONING_PROFILE_SPECIFIER = "BeSubmanifoldPenteLive Ad Hoc";
+				PROVISIONING_PROFILE = "";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "BeSubmanifoldPenteLive AdHoc 2023";
 				SWIFT_OBJC_BRIDGING_HEADER = "test1/penteLive-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -1322,35 +1323,36 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = EC2523E9488B160980129A1F /* Pods-penteLive.release.xcconfig */;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = NO;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES = NO;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = penteLive/penteLive.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution: Walied Othman (CT6S5R75J5)";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 2.6.24;
-				DEVELOPMENT_TEAM = CT6S5R75J5;
-				ENABLE_BITCODE = YES;
+				CURRENT_PROJECT_VERSION = 2.6.25;
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = CT6S5R75J5;
+				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "test1/penteLive-Prefix.pch";
 				INFOPLIST_FILE = "test1/penteLive-Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.board-games";
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
-				MARKETING_VERSION = 2.6.24;
+				MARKETING_VERSION = 2.6.25;
 				OTHER_LDFLAGS = (
 					"-ObjC",
 					"$(inherited)",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "be.submanifold.${PRODUCT_NAME:rfc1034identifier}";
 				PRODUCT_NAME = penteLive;
-				PROVISIONING_PROFILE = "53f6c537-8b89-418b-9f10-9dd83831ad0d";
-				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
-				PROVISIONING_PROFILE_SPECIFIER = "BeSubmanifoldPenteLive AppStore";
+				PROVISIONING_PROFILE = "";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "BeSubmanifoldPenteLive AdHoc 2023";
 				SWIFT_OBJC_BRIDGING_HEADER = "test1/penteLive-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";

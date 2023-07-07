@@ -86,6 +86,8 @@ int finalMove = -1, connect6Move1 = -1, connect6Move2 = -1, dPenteMove1 = -1, dP
 whiteCaptures, blackCaptures, lastMove;
 BOOL dPenteOpening = NO;
 BOOL dPenteChoice = NO;
+BOOL swap2Pass = NO;
+BOOL isSwap2 = NO;
 BOOL poofed = NO;
 BOOL canHide = NO;
 BOOL canUnHide = NO;
@@ -319,8 +321,7 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
 //}
 
 
-- (void)viewDidUnload
-{
+- (void)viewDidUnload {
     [self setBoard:nil];
     [self setZoomedBoard:nil];
     [self setStone:nil];
