@@ -71,7 +71,7 @@
     // self.navigationItem.rightBarButtonItem = self.editButtonItem;
     [self setTitle:NSLocalizedString(@"Send invitation",nil)];
 
-    games = [[NSArray alloc] initWithObjects:@"Pente",@"Keryo-Pente",@"Gomoku",@"D-Pente",@"G-Pente",@"Poof-Pente",@"Connect6",@"Boat-Pente",@"DK-Pente", @"Go", @"Go (9x9)", @"Go (13x13)", @"O-Pente", nil];
+    games = [[NSArray alloc] initWithObjects:@"Pente",@"Keryo-Pente",@"Gomoku",@"D-Pente",@"G-Pente",@"Poof-Pente",@"Connect6",@"Boat-Pente",@"DK-Pente", @"Go", @"Go (9x9)", @"Go (13x13)", @"O-Pente", @"Swap2-Pente", nil];
     colors = [[NSArray alloc] initWithObjects:NSLocalizedString(@"white",nil),NSLocalizedString(@"black",nil), nil];
     restrictions = [[NSArray alloc] initWithObjects:NSLocalizedString(@"beginners",nil),NSLocalizedString(@"of any rating",nil),NSLocalizedString(@"not already playing",nil),NSLocalizedString(@"of lower rating",nil),NSLocalizedString(@"of higher rating",nil),NSLocalizedString(@"of similar rating",nil),NSLocalizedString(@"in the same rating class",nil), nil];
     moveDurations = [[NSMutableArray alloc] init];
@@ -481,6 +481,9 @@
     }
     if ([gameCell.detailTextLabel.text isEqualToString:@"O-Pente"]) {
         gameString = @"75";
+    }
+    if ([gameCell.detailTextLabel.text isEqualToString:@"Swap2-Pente"]) {
+        gameString = @"77";
     }
 
     NSString *restrictString = @"A";
