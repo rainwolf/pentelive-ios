@@ -50,6 +50,7 @@
 @property (weak, nonatomic) IBOutlet UIButton *submitButton;
 @property (weak, nonatomic) IBOutlet UIButton *player2Button;
 @property (weak, nonatomic) IBOutlet UIButton *player1Button;
+@property (weak, nonatomic) IBOutlet UIButton *passButton;
 @property (weak, nonatomic) IBOutlet UILabel *dPenteChoiceLabel;
 @property (weak, nonatomic) IBOutlet UILabel *whiteCapturesCountLabel;
 @property (weak, nonatomic) IBOutlet UILabel *blackCapturesCountLabel;

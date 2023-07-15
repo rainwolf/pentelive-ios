@@ -252,19 +252,6 @@
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 @implementation StoneView
 @synthesize stoneColor;
 @synthesize fill;

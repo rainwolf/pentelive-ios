@@ -50,6 +50,7 @@
 @synthesize submitButton;
 @synthesize player1Button;
 @synthesize player2Button;
+@synthesize passButton;
 @synthesize dPenteChoiceLabel;
 //@synthesize gamesTable;
 @synthesize whiteCapturesCountLabel;
@@ -83,11 +84,15 @@
 int abstractBoard[19][19];
 int abstractGoBoard[19][19];
 int finalMove = -1, connect6Move1 = -1, connect6Move2 = -1, dPenteMove1 = -1, dPenteMove2 = -1, dPenteMove3 = -1, dPenteMove4 = -1,
-whiteCaptures, blackCaptures, lastMove;
+whiteCaptures, blackCaptures, lastMove, swap2Move1 = -1, swap2Move2 = -1, swap2Move3 = -1;
 BOOL dPenteOpening = NO;
 BOOL dPenteChoice = NO;
+BOOL swap2Opening = NO;
+BOOL swap2Choice = NO;
 BOOL swap2Pass = NO;
+BOOL swap2WillPass = NO;
 BOOL isSwap2 = NO;
+BOOL swap2PlayP1 = NO;
 BOOL poofed = NO;
 BOOL canHide = NO;
 BOOL canUnHide = NO;
@@ -109,7 +114,21 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    
+
+    finalMove = -1; connect6Move1 = -1; connect6Move2 = -1; dPenteMove1 = -1; dPenteMove2 = -1; dPenteMove3 = -1; dPenteMove4 = -1;
+    whiteCaptures; blackCaptures; lastMove; swap2Move1 = -1; swap2Move2 = -1; swap2Move3 = -1;
+    dPenteOpening = NO;
+    dPenteChoice = NO;
+    swap2Opening = NO;
+    swap2Choice = NO;
+    swap2Pass = NO;
+    swap2WillPass = NO;
+    isSwap2 = NO;
+    swap2PlayP1 = NO;
+    poofed = NO;
+    canHide = NO;
+    canUnHide = NO;
+
 	// Do any additional setup after loading the view, typically from a nib.
     showedAd = NO;
     cancelMsg = @"";
@@ -168,15 +187,24 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
     blackStoneCaptures.frame = rect;
 
     rect = player1Button.frame;
-    rect.origin.y = board.frame.size.height + 2 ;
-    //    rect.origin.x = (board.frame.size.width - submitButton.frame.size.width)/2;
+    rect.origin.y = board.frame.size.height + 2;
+    float x = self.view.bounds.size.width / 4;
+    rect.size.width = x;
+    rect.origin.x = x;
     player1Button.frame = rect;
     [player1Button setTitle:NSLocalizedString(@"white",nil) forState:UIControlStateNormal];
     rect = player2Button.frame;
     rect.origin.y = board.frame.size.height + 2;
+    rect.origin.x = 2*x;
+    rect.size.width = x;
     //    rect.origin.x = (board.frame.size.width - submitButton.frame.size.width)/2;
     player2Button.frame = rect;
     [player2Button setTitle:NSLocalizedString(@"black",nil) forState:UIControlStateNormal];
+    rect = passButton.frame;
+    rect.origin.x = 3*x;
+    rect.origin.y = board.frame.size.height + 2;
+    rect.size.width = x;
+    passButton.frame = rect;
     rect = dPenteChoiceLabel.frame;
     rect.origin.y = (player1Button.frame.origin.y +3);
     dPenteChoiceLabel.frame = rect;
@@ -200,9 +228,6 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
     [submitButton setAlpha:0.5];
     [board setAbstractBoard: abstractBoard];
     [zoomedBoard setAbstractBoard: abstractBoard];
-    
-
-
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -365,29 +390,70 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
 //}
 
 - (IBAction)dPentePlayer1:(id)sender {
+    if ([game.gameType isEqualToString:@"Swap2-Pente"]) {
+        dPenteChoice = NO;
+        finalMove = 0;
+        swap2PlayP1 = YES;
+        spinner.center = stone.center;
+        [spinner setHidden:NO];
+        [spinner startAnimating];
+        [NSThread detachNewThreadSelector:@selector(submitMoveToServer) toTarget:self withObject:nil];
+    } else {
+        [player1Button setHidden:YES];
+        [player2Button setHidden:YES];
+        [dPenteChoiceLabel setHidden:YES];
+        [submitButton setAlpha:1];
+        [submitButton setHidden:NO];
+        [stone setStoneColor: WHITE];
+        [stone setNeedsDisplay];
+        [zoomedStone setStoneColor: WHITE];
+        [zoomedStone setNeedsDisplay];
+        activeGame = YES;
+    }
+    [passButton setHidden:YES];
+}
+
+- (IBAction)dPentePlayer2:(id)sender {
+    if ([game.gameType isEqualToString:@"Swap2-Pente"]) {
+        [player1Button setHidden:YES];
+        [player2Button setHidden:YES];
+        [dPenteChoiceLabel setHidden:YES];
+        [submitButton setAlpha:1];
+        [submitButton setHidden:NO];
+        [stone setStoneColor: BLACK];
+        [stone setNeedsDisplay];
+        [zoomedStone setStoneColor: BLACK];
+        [zoomedStone setNeedsDisplay];
+        activeGame = YES;
+        swap2PlayP1 = NO;
+    } else {
+        dPenteChoice = NO;
+        finalMove = 0;
+        spinner.center = stone.center;
+        [spinner setHidden:NO];
+        [spinner startAnimating];
+        [NSThread detachNewThreadSelector:@selector(submitMoveToServer) toTarget:self withObject:nil];
+    }
+    [passButton setHidden:YES];
+}
+
+- (IBAction)swap2Pass:(id)sender {
+    [passButton setHidden:YES];
+    swap2WillPass = YES;
     [player1Button setHidden:YES];
     [player2Button setHidden:YES];
     [dPenteChoiceLabel setHidden:YES];
     [submitButton setAlpha:1];
     [submitButton setHidden:NO];
-    [stone setStoneColor: WHITE];
+    [stone setStoneColor: BLACK];
     [stone setNeedsDisplay];
-    [zoomedStone setStoneColor: WHITE];
+    [zoomedStone setStoneColor: BLACK];
     [zoomedStone setNeedsDisplay];
     activeGame = YES;
 }
 
-- (IBAction)dPentePlayer2:(id)sender {
-    dPenteChoice = NO;
-    finalMove = 0;
-    spinner.center = stone.center;
-    [spinner setHidden:NO];
-    [spinner startAnimating];
-    [NSThread detachNewThreadSelector:@selector(submitMoveToServer) toTarget:self withObject:nil];
-}
-
 - (IBAction)goForwardOneMoveSwipe:(UISwipeGestureRecognizer *)sender {
-    if (dPenteChoice || goMarkStones) {
+    if (swap2Choice || dPenteChoice || goMarkStones) {
         return;
     }
 //    NSLog(@"SwipeRight %i", lastMove);
@@ -408,7 +474,7 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
 }
 
 - (IBAction)goBackOneMoveSwipe:(UISwipeGestureRecognizer *)sender {
-    if (dPenteChoice || goMarkStones) {
+    if (swap2Choice || dPenteChoice || goMarkStones) {
         return;
     }
     [board setBlackTerritory:nil];
@@ -455,6 +521,24 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
             [board setNeedsDisplay];
             [zoomedBoard setNeedsDisplay];
         }
+    } else if (swap2Opening) {
+        swap2Move3 = -1;
+        if (swap2Move2 != -1) {
+            abstractBoard[swap2Move2 / 19][swap2Move2 % 19] = 0;
+            [board setAbstractBoard: abstractBoard];
+            [zoomedBoard setAbstractBoard: abstractBoard];
+            swap2Move2 = -1;
+            [board setNeedsDisplay];
+            [zoomedBoard setNeedsDisplay];
+            [submitButton setTitle: [NSString stringWithFormat:NSLocalizedString(@"submit: %c%d",nil), coordinateLetters[swap2Move1 % 19], 19 - (swap2Move1 / 19)] forState:UIControlStateDisabled];
+        } else if (swap2Move1 != -1) {
+            abstractBoard[swap2Move1 / 19][swap2Move1 % 19] = 0;
+            [board setAbstractBoard: abstractBoard];
+            [zoomedBoard setAbstractBoard: abstractBoard];
+            swap2Move1 = -1;
+            [board setNeedsDisplay];
+            [zoomedBoard setNeedsDisplay];
+        }
     } else if (lastMove > 1) {
         whiteCaptures = 0;
         blackCaptures = 0;
@@ -492,6 +576,29 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
         }
         [stone setNeedsDisplay];
         [zoomedStone setNeedsDisplay];
+    } else if (swap2Opening) {
+        if (swap2Move1 == -1) {
+            [stone setStoneColor: WHITE];
+            [zoomedStone setStoneColor: WHITE];
+        } else if (swap2Move2 == -1) {
+            [stone setStoneColor: BLACK];
+            [zoomedStone setStoneColor: BLACK];
+        } else if (swap2Move3 == -1) {
+            [stone setStoneColor: WHITE];
+            [zoomedStone setStoneColor: WHITE];
+        }
+        [stone setNeedsDisplay];
+        [zoomedStone setNeedsDisplay];
+    } else if (swap2WillPass || (swap2Choice && swap2Pass)) {
+        if (swap2Move1 == -1) {
+            [stone setStoneColor: BLACK];
+            [zoomedStone setStoneColor: BLACK];
+        } else if (swap2Move2 == -1) {
+            [stone setStoneColor: WHITE];
+            [zoomedStone setStoneColor: WHITE];
+        }
+        [stone setNeedsDisplay];
+        [zoomedStone setNeedsDisplay];
     } else {
 //        NSLog(@"kitty no");
     }
@@ -509,7 +616,7 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
             [zoomedStone setBounds:CGRectMake(0, 0, 1.2*1.5*2*self.board.bounds.size.width/gridSize,1.2*1.5*2*self.board.bounds.size.width/gridSize)];
             [stone setNeedsDisplay]; [zoomedStone setNeedsDisplay];
 //            NSLog(@"hi start %i %i \n %@", lastMove, [movesList count], movesList);
-            if (!goMarkStones &&  lastMove != [movesList count] && activeGame ) {
+            if (!goMarkStones &&  lastMove != [movesList count] && activeGame) {
                 whiteCaptures = 0;
                 blackCaptures = 0;
                 isLastMove = YES;
@@ -519,9 +626,29 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
                 [receivedMessageView setFont:[UIFont fontWithName:@"HelveticaNeue-Bold" size:15.f]];
             }
             if (!goMarkStones && [captures count] != 0) {
-                [self undoCaptures];
-                [self updateCaptures];
-                [board setNeedsDisplay];
+                if (!swap2WillPass) {
+                    [self undoCaptures];
+                    [self updateCaptures];
+                    [board setNeedsDisplay];
+                } else {
+                    lastMove = (int) [movesList count];
+                    [self replayGame:lastMove];
+                    int move;
+//                    if (connect6Move1 != -1) {
+//                        move = connect6Move1;
+//                        if ([[self.game myColor] isEqualToString:@"white"]) {
+//                            abstractBoard[move/19][move%19] = 1;
+//                        } else {
+//                            abstractBoard[move/19][move%19] = 2;
+//                        }
+//                    }
+                    if (swap2Move1 != -1) {
+                        move = swap2Move1;
+                        abstractBoard[move/19][move%19] = 2;
+                        [self detectCaptureOfOpponent:1 atPosition:move];
+                    }
+                    [board setNeedsDisplay];
+                }
             }
             finalMove = -1;
             [zoomedBoard setHidden: NO];
@@ -553,6 +680,24 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
             if (goMarkStones && activeGame && (abstractBoard[i][j] != 0 || [deadBlackStones containsObject:finaMoveNumber] || [deadWhiteStones containsObject:finaMoveNumber])) {
                 
                 [self processDeadStone: finalMove];
+                
+            } else if (!go && abstractBoard[i][j] > 0) {
+                connect6Move1 = -1;
+                connect6Move2 = -1;
+                dPenteMove1 = -1;
+                dPenteMove2 = -1;
+                dPenteMove3 = -1;
+                dPenteMove4 = -1;
+                swap2Move1 = -1;
+                swap2Move2 = -1;
+                swap2Move3 = -1;
+                finalMove = -1;
+                [self replayGame: (int) [movesList count]];
+                [submitButton setEnabled:NO];
+                [submitButton setTitle: @"submit" forState: UIControlStateDisabled];
+                [board setNeedsDisplay];
+                [zoomedBoard setNeedsDisplay];
+                break;
                 
             } else if (((go && abstractGoBoard[i][j]==0) || (!goMarkStones && abstractBoard[i][j] == 0)) && activeGame) {
                 stone.center = CGPointMake(cellSize*j + cellSize/2, cellSize*i + cellSize/2);
@@ -603,7 +748,44 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
                         [submitButton setAlpha:0.5];
                     } else {
                         dPenteMove4 = finalMove;
+                        [submitButton setTitle: [NSString stringWithFormat:NSLocalizedString(@"submit: %c%d-%c%d-%c%d-%c%d",nil), coordinateLetters[dPenteMove1 % 19], 19 - (dPenteMove1 / 19), coordinateLetters[dPenteMove2 % 19], 19 - (dPenteMove2 / 19),coordinateLetters[dPenteMove3 % 19], 19 - (dPenteMove3 / 19),
+                             coordinateLetters[finalMove % 19], 19 - (finalMove / 19)] forState:UIControlStateDisabled];
                         [self detectCaptureOfOpponent:1 atPosition:finalMove];
+                    }
+                }
+                if (swap2Opening && [[self.game gameType] isEqualToString:@"Swap2-Pente"]) {
+                    if (swap2Move1 == -1) {
+                        swap2Move1 = finalMove;
+                        abstractBoard[i][j] = 1;
+                        [submitButton setTitle: [NSString stringWithFormat:NSLocalizedString(@"submit: %c%d",nil), coordinateLetters[finalMove % 19], 19 - (finalMove / 19)] forState:UIControlStateDisabled];
+                        [submitButton setEnabled:NO];
+                        [submitButton setAlpha:0.5];
+                    } else if (swap2Move2 == -1) {
+                        swap2Move2 = finalMove;
+                        abstractBoard[i][j] = 2;
+                        [submitButton setTitle: [NSString stringWithFormat:NSLocalizedString(@"submit: %c%d-%c%d",nil), coordinateLetters[swap2Move1 % 19], 19 - (swap2Move1 / 19), coordinateLetters[finalMove % 19], 19 - (finalMove / 19)] forState:UIControlStateDisabled];
+                        [submitButton setEnabled:NO];
+                        [submitButton setAlpha:0.5];
+                    } else {
+                        swap2Move3 = finalMove;
+                        [submitButton setTitle: [NSString stringWithFormat:NSLocalizedString(@"submit: %c%d-%c%d-%c%d",nil), coordinateLetters[swap2Move1 % 19], 19 - (swap2Move1 / 19),                                                 coordinateLetters[swap2Move2 % 19], 19 - (swap2Move2 / 19),
+                             coordinateLetters[finalMove % 19], 19 - (finalMove / 19)] forState:UIControlStateNormal];
+                    }
+                }
+                if (swap2WillPass && [[self.game gameType] isEqualToString:@"Swap2-Pente"] && [movesList count] == 3) {
+                    if (swap2Move1 == -1) {
+                        swap2Move1 = finalMove;
+                        abstractBoard[i][j] = 2;
+                        [self detectCaptureOfOpponent:1 atPosition:finalMove];
+                        [submitButton setTitle: [NSString stringWithFormat:NSLocalizedString(@"submit: %c%d",nil), coordinateLetters[finalMove % 19], 19 - (finalMove / 19)] forState:UIControlStateDisabled];
+                        [submitButton setEnabled:NO];
+                        [submitButton setAlpha:0.5];
+                    } else {
+                        swap2Move2 = finalMove;
+                        [submitButton setTitle: [NSString stringWithFormat:NSLocalizedString(@"submit: %c%d-%c%d",nil), coordinateLetters[swap2Move1 % 19], 19 - (swap2Move1 / 19), coordinateLetters[finalMove % 19], 19 - (finalMove / 19)] forState:UIControlStateNormal];
+                        abstractBoard[swap2Move1/19][swap2Move1%19] = 2;
+                        [self detectCaptureOfOpponent:1 atPosition:swap2Move1];
+                        [self detectCaptureOfOpponent:2 atPosition:finalMove];
                     }
                 }
                 if (isGoGame) {
@@ -718,7 +900,6 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
             } else {
                 --blackCaptures;
             }
-            
         }
 //        if (poof) {
 //            if (myColor == 1) {
@@ -763,6 +944,18 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
         moveString = [NSString stringWithFormat:@"%i,%i,%i,%i,", dPenteMove1, dPenteMove2, dPenteMove3, dPenteMove4];
     } else if (([[self.game gameType] isEqualToString:@"D-Pente"] || [[self.game gameType] isEqualToString:@"DK-Pente"]) && (finalMove != -1) && dPenteChoice) {
         moveString = [NSString stringWithFormat:@"1,%i", finalMove];
+    } else if ([[self.game gameType] isEqualToString:@"Swap2-Pente"] && (swap2Opening || swap2WillPass || swap2Choice)) {
+        if (swap2Opening && swap2Move1 != -1 && swap2Move2 != -1 && swap2Move3 != -1) {
+            moveString = [NSString stringWithFormat:@"%i,%i,%i,", swap2Move1, swap2Move2, swap2Move3];
+        } else if (swap2WillPass && swap2Move1 != -1 && swap2Move2 != -1) {
+            moveString = [NSString stringWithFormat:@"2,%i,%i,", swap2Move1, swap2Move2];
+        } else if (swap2Choice) {
+            if (swap2PlayP1) {
+                moveString = @"0";
+            } else if (finalMove != -1) {
+                moveString = [NSString stringWithFormat:@"1,%i,", finalMove];
+            }
+        }
     } else if (finalMove != -1) {
         moveString = [NSString stringWithFormat:@"%i", finalMove];
     }
@@ -1124,7 +1317,6 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
         if ([movesList count] == 4) {
 //            NSLog(@"kitty %@", htmlString);
             if ([htmlString rangeOfString:@"dPenteState=2"].location != NSNotFound && activeGame) {
-//                            NSLog(@"kitty what");
                 dPenteChoice = YES;
                 [submitButton setHidden:YES];
                 [player2Button setHidden:NO];
@@ -1141,6 +1333,45 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
                 [player2Button setHidden:YES];
                 [dPenteChoiceLabel setHidden:YES];
             }
+        }
+        
+    }
+    if ([self.game.gameType isEqualToString: @"Swap2-Pente"] || [self.game.gameType isEqualToString: @"Speed Swap2-Pente"]) {
+        swap2Opening = [movesList count] == 0;
+        swap2Choice = [htmlString rangeOfString:@"dPenteState=2"].location != NSNotFound &&
+            ([movesList count] == 3 || [movesList count] == 5);
+        [self replaySwap2PenteGame: (int) [movesList count]];
+        
+        if (swap2Choice) {
+            if ([movesList count] == 3) {
+                dPenteChoice = YES;
+                [submitButton setHidden:YES];
+                [player2Button setHidden:NO];
+                [player1Button setHidden:NO];
+                [self.view bringSubviewToFront:player1Button];
+                [dPenteChoiceLabel setHidden:NO];
+                [whiteStoneCaptures setHidden:YES];
+                [whiteCapturesCountLabel setHidden:YES];
+                [blackStoneCaptures setHidden:YES];
+                [blackCapturesCountLabel setHidden:YES];
+                [lockButton setHidden: YES];
+                [passButton setHidden: NO];
+                
+            } else if ([movesList count] == 5) {
+                dPenteChoice = YES;
+                [submitButton setHidden:YES];
+                [player2Button setHidden:NO];
+                [player1Button setHidden:NO];
+                [self.view bringSubviewToFront:player1Button];
+                [dPenteChoiceLabel setHidden:NO];
+                [whiteStoneCaptures setHidden:YES];
+                [whiteCapturesCountLabel setHidden:YES];
+                [blackStoneCaptures setHidden:YES];
+                [blackCapturesCountLabel setHidden:YES];
+                [lockButton setHidden: YES];
+            }
+        } else {
+            
         }
         
     }
@@ -1536,6 +1767,9 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
     if ([[self.game gameType] isEqualToString:@"O-Pente"] || [[self.game gameType] isEqualToString:@"Speed O-Pente"]) {
         [self replayOPenteGame: untilMove];
     }
+    if ([[self.game gameType] isEqualToString:@"Swap2-Pente"] || [[self.game gameType] isEqualToString:@"Speed Swap2-Pente"]) {
+        [self replaySwap2PenteGame: untilMove];
+    }
 
     if (isGoGame) {
         [self replayGoGame: untilMove];
@@ -1884,6 +2118,40 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
     
     [board setBackgroundColor:[UIColor colorWithRed:0.584 green:0.753 blue:0.98 alpha:1]];
     [zoomedBoard setBackgroundColor:[UIColor colorWithRed:0.584 green:0.753 blue:0.98 alpha:1]];
+    
+    if (dPenteOpening) {
+        [whiteStoneCaptures setHidden:YES];
+        [whiteCapturesCountLabel setHidden:YES];
+        [blackStoneCaptures setHidden:YES];
+        [blackCapturesCountLabel setHidden:YES];
+    }
+    [board setAbstractBoard: abstractBoard];
+    if ([movesList count] > 0) {
+        [board setLastMove:[self parseMove:[movesList objectAtIndex:untilMove - 1]]];
+        if (lastMove == [movesList count]) {
+            [zoomedBoard setAbstractBoard: abstractBoard];
+            [zoomedBoard setLastMove:[self parseMove:[movesList objectAtIndex:untilMove - 1]]];
+        }
+    }
+}
+
+
+-(void) replaySwap2PenteGame: (int) untilMove {
+    if ([movesList count] == 0 || ([movesList count] == 3 && swap2Pass)) {
+        swap2Opening = YES;
+    } else {
+        swap2Opening = NO;
+    }
+    for (int i = 0; i < untilMove; ++i) {
+        int rowCol = [self parseMove:[movesList objectAtIndex:i]];
+        int color = (i % 2) + 1, opponentColor = (color == 2) ? 1 : 2;
+        abstractBoard[rowCol / 19][rowCol % 19] = color;
+        [self detectCaptureOfOpponent:opponentColor atPosition:rowCol];
+    }
+    [captures removeAllObjects];
+    
+    [board setBackgroundColor:[UIColor colorWithRed: 0.90 green: 0.67 blue: 0.44 alpha: 1.00]];
+    [zoomedBoard setBackgroundColor:[UIColor colorWithRed: 0.90 green: 0.67 blue: 0.44 alpha: 1.00]];
     
     if (dPenteOpening) {
         [whiteStoneCaptures setHidden:YES];
@@ -3627,5 +3895,29 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
     decisionHandler(WKNavigationActionPolicyAllow);
 }
 
+- (void) printAbstractBoard {
+    for (int i = 0; i < 19; i++) {
+        NSLog([NSString stringWithFormat:NSLocalizedString(@"%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d ",nil), abstractBoard[i][0]
+               , abstractBoard[i][1]
+               , abstractBoard[i][2]
+               , abstractBoard[i][3]
+               , abstractBoard[i][4]
+               , abstractBoard[i][5]
+               , abstractBoard[i][6]
+               , abstractBoard[i][7]
+               , abstractBoard[i][8]
+               , abstractBoard[i][9]
+               , abstractBoard[i][10]
+              , abstractBoard[i][11]
+              , abstractBoard[i][12]
+              , abstractBoard[i][13]
+              , abstractBoard[i][14]
+              , abstractBoard[i][15]
+              , abstractBoard[i][16]
+              , abstractBoard[i][17]
+              , abstractBoard[i][18]
+              ]);
+    }
+}
 
 @end

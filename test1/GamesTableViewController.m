@@ -442,7 +442,7 @@ CGFloat bottomOffset = 0;
         }
         NSString *replyString = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
 
-        NSLog(@"wth \n %@", replyString);
+//        NSLog(@"wth \n %@", replyString);
         if ([replyString containsString:@"It seems to have worked"]) {
             [defaults setObject:[NSDate date] forKey:@"lastPing"];
         }
@@ -2436,11 +2436,14 @@ CGFloat bottomOffset = 0;
 
 
 -(void) parseDashboard {
+    NSLog(@"kitten");
 
     UIColor *blackColor = UIColorFromRGB(0);
     
-    [self.pullToReloadHeaderView setStatusString:@"Loading Games..." animated:YES];
-    [self.pullToReloadHeaderView layoutSubviews];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self.pullToReloadHeaderView setStatusString:@"Loading Games..." animated:YES];
+        [self.pullToReloadHeaderView layoutSubviews];
+    });
     
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
     username = [defaults objectForKey:usernameKey];
@@ -2481,10 +2484,9 @@ CGFloat bottomOffset = 0;
 
 //    NSString *dashboardString = [NSString stringWithContentsOfURL:[NSURL URLWithString:url] encoding:NSUTF8StringEncoding error:&error];
     if (error) {
-
-            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error",nil) message:[NSString stringWithFormat:NSLocalizedString(@"Reason: %@",nil), error.localizedDescription] delegate:nil cancelButtonTitle:NSLocalizedString(@"OK",nil) otherButtonTitles:nil];
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error",nil) message:[NSString stringWithFormat:NSLocalizedString(@"Reason: %@",nil), error.localizedDescription] delegate:nil cancelButtonTitle:NSLocalizedString(@"OK",nil) otherButtonTitles:nil];
 //            [alert show];
-                    [alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:YES];
+        [alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:YES];
         dispatch_async(dispatch_get_main_queue(), ^{
             [self performSelector:@selector(pullDownToReloadActionFinished) withObject:nil];
             self.tableView.layer.borderWidth = 0.0;
@@ -2497,7 +2499,6 @@ CGFloat bottomOffset = 0;
     NSString *dashboardString = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
 
 //    printf("%s", [dashboardString UTF8String]);
-//    NSLog(dashboardString);
 
     dispatch_async(dispatch_get_main_queue(), ^{
         [CATransaction begin];
@@ -2527,23 +2528,10 @@ CGFloat bottomOffset = 0;
         NSArray *splitDash = [dashboardString componentsSeparatedByString:@"\n"];
         NSString *dashLine;
         NSArray *splitLine;
-    //            NSLog(@"result: %@",dashboardString);
         
-            NSMutableArray *sectionItems;
-            NSMutableArray *indexSet;
+        NSMutableArray *sectionItems;
+        NSMutableArray *indexSet;
         int dashIDX = 0;
-    //    while ((dashIDX < [splitDash count]) && (![[splitDash objectAtIndex:dashIDX] isEqualToString: @"EndOfSettingsParameters"])) {
-    //        if ([[splitDash objectAtIndex:dashIDX] rangeOfString:@"tbGamesLimit"].location != NSNotFound) {
-    //            dashLine = [splitDash objectAtIndex:dashIDX];
-    //            splitLine = [dashLine componentsSeparatedByString:@";"];
-    //            gamesLimit = [[splitLine objectAtIndex:1] intValue];
-    //            if (gamesLimit == 0) {
-    //                gamesLimit = 200;
-    //            }
-    ////            NSLog(@"kitty");
-    //        }
-    //        dashIDX++;
-    //    }
 
             while ((dashIDX < [splitDash count]) && ([[splitDash objectAtIndex:dashIDX] rangeOfString: [username lowercaseString]].location != 0)) {
                 dashIDX++;
@@ -2609,16 +2597,9 @@ CGFloat bottomOffset = 0;
                 }];
 
             }
-    //        [self.player setShowAds: showAds];
-    //        [self.player setSubscriber: ([dashboardString rangeOfString:@"tb GamesLimit"].location == NSNotFound) || ([dashboardString rangeOfString:@"tb GamesLimit"].location > 30)];
             if ([self.player subscriber]) {
                 [[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"shouldSendReceipt"];
             }
-//            if (([dashboardString rangeOfString:@"Unlimited Games"].location != NSNotFound) && ([dashboardString rangeOfString:@"Unlimited Games"].location < 30)) {
-//                gamesLimit = INT_MAX;
-//            } else {
-//                gamesLimit = 200;
-//            }
             if (!player.showAds) {
                 [bannerView removeFromSuperview];
                 [self.tableView setTableFooterView:nil];
@@ -2672,8 +2653,10 @@ CGFloat bottomOffset = 0;
                         gameStr = @"Go (9x9)";
                     } else if (gameInt < 25) {
                         gameStr = @"Go (13x13)";
-                    } else {
+                    } else if (gameInt < 27) {
                         gameStr = @"O-Pente";
+                    } else {
+                        gameStr = @"Swap2-Pente";
                     }
                     if (hill.gameId > 50) {
                         [hill setGame: [@"tb-" stringByAppendingString:gameStr]];
@@ -2761,8 +2744,10 @@ CGFloat bottomOffset = 0;
                         gameStr = @"Go (9x9)";
                     } else if (gameInt < 25) {
                         gameStr = @"Go (13x13)";
-                    } else {
+                    } else if (gameInt < 27) {
                         gameStr = @"O-Pente";
+                    } else {
+                        gameStr = @"Swap2-Pente";
                     }
                     if (ratingStat.gameId > 50) {
                         [ratingStat setGame: [@"tb-" stringByAppendingString:gameStr]];
@@ -2819,8 +2804,6 @@ CGFloat bottomOffset = 0;
             } else {
                 [self.player setInvitations:sectionItems];
             }
-            //        [self.tableView reloadData];
-
         
             sectionItems = [[NSMutableArray alloc] init];
             if ((dashIDX+1 < [splitDash count]) && [[splitDash objectAtIndex:dashIDX] isEqualToString: @"Invitations sent"]) {
