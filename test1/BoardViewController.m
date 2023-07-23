@@ -450,6 +450,21 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
     [zoomedStone setStoneColor: BLACK];
     [zoomedStone setNeedsDisplay];
     activeGame = YES;
+    dispatch_async(dispatch_get_main_queue(), ^{
+      [TSMessage showNotificationInViewController:self.navigationController
+                                            title: NSLocalizedString(@"Swap2 PASS",nil)
+                                         subtitle: NSLocalizedString(@"Place 2 stones and let player 1 decide",nil)
+                                            image:nil
+                                             type: TSMessageNotificationTypeMessage
+                                         duration:TSMessageNotificationDurationAutomatic
+                                         callback: ^{
+                                             [TSMessage dismissActiveNotification];
+                                         }
+                                      buttonTitle: nil
+                                   buttonCallback:nil
+                                       atPosition:TSMessageNotificationPositionBottom
+                             canBeDismissedByUser:YES];
+    });
 }
 
 - (IBAction)goForwardOneMoveSwipe:(UISwipeGestureRecognizer *)sender {
