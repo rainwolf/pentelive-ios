@@ -155,6 +155,8 @@ import UIKit
             room.inviteResponseTableEvent(event: content as! [String:Any])
         } else if let content = event?["dsgRejectGoStateEvent"] {
             room.rejectGoDeadStonesTableEvent(event: content as! [String:Any])
+        } else if let content = event?["dsgSwap2PassTableEvent"] {
+            room.swap2PassTableEvent(event: content as! [String:Any])
         }
     }
     

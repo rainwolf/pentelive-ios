@@ -8,7 +8,7 @@
 
 import UIKit
 
-let development = false
+let development = true
 
 @objc class LobbyViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, UIPickerViewDelegate, UIPickerViewDataSource {
     

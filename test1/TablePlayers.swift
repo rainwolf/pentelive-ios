@@ -40,7 +40,4 @@ class TablePlayers: UITableView, UITableViewDelegate, UITableViewDataSource {
         }
         return cell
     }
-
-    
-    
 }

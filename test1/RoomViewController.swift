@@ -702,6 +702,16 @@ class PlayerTableCell: UITableViewCell {
             }
         }
     }
+    func swap2PassTableEvent(event: [String: Any]) {
+        DispatchQueue.main.async {
+            let tableId = event["table"] as! Int
+            let silent = event["silent"] as! Bool
+            self.playersAndTables.swap2Pass(tableId: tableId, silent: silent)
+            if tableId == self.tableViewController?.table.table {
+                self.tableViewController?.stateChanged()
+            }
+        }
+    }
     func rejectGoDeadStonesTableEvent(event: [String: Any]) {
         DispatchQueue.main.async {
             let tableId = event["table"] as! Int

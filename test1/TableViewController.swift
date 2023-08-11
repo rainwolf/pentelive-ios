@@ -244,7 +244,7 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
             return
         }
         print("leaving table")
-        let eventDictionary = ["dsgExitTableEvent":["forced":false,"table":table.table,"booted":false, "time":0]]
+        let eventDictionary = ["dsgExitTableEvent":["forced":false,"table":table.table,"booted":false, "time":0] as [String : Any]]
         socket.sendEvent(eventDictionary: eventDictionary)
     }
     func disconnected() {
@@ -353,18 +353,18 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
             }
             if table.currentPlayerName() != me || (table.state.goState == .markStones && table.currentPlayerName() == me) {
                 let undoAction = UIAlertAction(title: NSLocalizedString("request undo", comment: ""), style: .default) { (action) in
-                    let event = ["dsgUndoRequestTableEvent":["player":self.me,"table":self.table.table,"time":0]]
+                    let event = ["dsgUndoRequestTableEvent":["player":self.me,"table":self.table.table,"time":0] as [String : Any]]
                     self.socket.sendEvent(eventDictionary: event)
                 }
                 alertController.addAction(undoAction)
             }
             let cancelAction = UIAlertAction(title: NSLocalizedString("request game/set cancellation", comment: ""), style: .default) { (action) in
-                let event = ["dsgCancelRequestTableEvent":["player":self.me,"table":self.table.table,"time":0]]
+                let event = ["dsgCancelRequestTableEvent":["player":self.me,"table":self.table.table,"time":0] as [String : Any]]
                 self.socket.sendEvent(eventDictionary: event)
             }
             alertController.addAction(cancelAction)
             let resignAction = UIAlertAction(title: NSLocalizedString("resign game", comment: ""), style: .destructive) { (action) in
-                let event = ["dsgResignTableEvent":["player":self.me,"table":self.table.table,"time":0]]
+                let event = ["dsgResignTableEvent":["player":self.me,"table":self.table.table,"time":0] as [String : Any]]
                 self.socket.sendEvent(eventDictionary: event)
             }
             alertController.addAction(resignAction)
@@ -440,7 +440,7 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
                 textField.placeholder = NSLocalizedString("player", comment: "")
                 let playerPicker = UIPickerView()
                 let pickerToolbar = UIToolbar(frame: CGRect(x: 0, y: 0, width: self.view.frame.size.width, height: 44))
-                pickerToolbar.barStyle = .blackTranslucent
+                pickerToolbar.isTranslucent = true
                 let extraSpace = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target:nil, action:nil)
                 let doneButton = UIBarButtonItem(title: NSLocalizedString("Done", comment: ""), style: .done, target: textField, action: #selector(textField.resignFirstResponder)) // method
                 pickerToolbar.setItems([extraSpace, doneButton], animated: true)
@@ -456,7 +456,7 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
                 let player = (self.inviteAlertController!.textFields![1] as UITextField).text!
                 let message = (self.inviteAlertController!.textFields![0] as UITextField).text!
                 if player != "" {
-                    let event = ["dsgInviteTableEvent":["toInvite":player,"inviteText":message,"player":self.me,"table":self.table.table,"time":0]]
+                    let event = ["dsgInviteTableEvent":["toInvite":player,"inviteText":message,"player":self.me,"table":self.table.table,"time":0] as [String : Any]]
                     self.socket.sendEvent(eventDictionary: event)
                 }
             }
@@ -483,7 +483,7 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
                 textField.placeholder = NSLocalizedString("player", comment: "")
                 let playerPicker = UIPickerView()
                 let pickerToolbar = UIToolbar(frame: CGRect(x: 0, y: 0, width: self.view.frame.size.width, height: 44))
-                pickerToolbar.barStyle = .blackTranslucent
+                pickerToolbar.isTranslucent = true
                 let extraSpace = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target:nil, action:nil)
                 let doneButton = UIBarButtonItem(title: NSLocalizedString("Done", comment: ""), style: .done, target: textField, action: #selector(textField.resignFirstResponder)) // method
                 pickerToolbar.setItems([extraSpace, doneButton], animated: true)
@@ -498,7 +498,7 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
             let bootAction = UIAlertAction(title: NSLocalizedString("boot player", comment: ""), style: .destructive) { (action) in
                 let player = (self.inviteAlertController!.textFields![0] as UITextField).text!
                 if player != "" {
-                    let event = ["dsgBootTableEvent":["toBoot":player,"player":self.me,"table":self.table.table,"time":0]]
+                    let event = ["dsgBootTableEvent":["toBoot":player,"player":self.me,"table":self.table.table,"time":0] as [String : Any]]
                     self.socket.sendEvent(eventDictionary: event)
                 }
             }
@@ -514,7 +514,7 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
     }
 
     func sendMove(move: Int) {
-        let event = ["dsgMoveTableEvent":["move":move,"moves":[move],"player":me,"table":table.table,"time":0]]
+        let event = ["dsgMoveTableEvent":["move":move,"moves":[move],"player":me,"table":table.table,"time":0] as [String : Any]]
         socket.sendEvent(eventDictionary: event)
     }
 
@@ -560,14 +560,53 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
         if table.isDPente() {
             if table.seats[2] != nil && me == table.seats[2]?.name && table.moves.count == 4 && table.state.dPenteState == .noChoice {
                 let alertController = UIAlertController(title: NSLocalizedString("Continue play as", comment: ""), message: nil, preferredStyle: .actionSheet)
-                
                 let p1Action = UIAlertAction(title: NSLocalizedString("Player 1 (white)", comment: ""), style: .default) { (action) in
-                    let event = ["dsgSwapSeatsTableEvent":["swap":true,"silent":false,"player":self.me,"table":self.table.table,"time":0]]
+                    let event = ["dsgSwapSeatsTableEvent":["swap":true,"silent":false,"player":self.me,"table":self.table.table,"time":0] as [String : Any]]
                     self.socket.sendEvent(eventDictionary: event)
                 }
                 alertController.addAction(p1Action)
                 let p2Action = UIAlertAction(title: NSLocalizedString("Player 2 (black)", comment: ""), style: .default) { (action) in
-                    let event = ["dsgSwapSeatsTableEvent":["swap":false,"silent":false,"player":self.me,"table":self.table.table,"time":0]]
+                    let event = ["dsgSwapSeatsTableEvent":["swap":false,"silent":false,"player":self.me,"table":self.table.table,"time":0] as [String : Any]]
+                    self.socket.sendEvent(eventDictionary: event)
+                }
+                alertController.addAction(p2Action)
+                if let popoverController = alertController.popoverPresentationController {
+                    popoverController.barButtonItem = self.navigationItem.rightBarButtonItems?[1]
+                }
+                self.present(alertController, animated: true)
+            }
+        }
+        if table.isSwap2() {
+            if table.isSwap2ChoiceWithPassOption() && table.seats[2] != nil && me == table.seats[2]?.name {
+                let alertController = UIAlertController(title: NSLocalizedString("Continue play as", comment: ""), message: nil, preferredStyle: .actionSheet)
+                let p1Action = UIAlertAction(title: NSLocalizedString("Player 1 (white)", comment: ""), style: .default) { (action) in
+                    let event = ["dsgSwapSeatsTableEvent":["swap":true,"silent":false,"player":self.me,"table":self.table.table,"time":0] as [String : Any]]
+                    self.socket.sendEvent(eventDictionary: event)
+                }
+                alertController.addAction(p1Action)
+                let p2Action = UIAlertAction(title: NSLocalizedString("Player 2 (black)", comment: ""), style: .default) { (action) in
+                    let event = ["dsgSwapSeatsTableEvent":["swap":false,"silent":false,"player":self.me,"table":self.table.table,"time":0] as [String : Any] as [String : Any]]
+                    self.socket.sendEvent(eventDictionary: event)
+                }
+                alertController.addAction(p2Action)
+                let passAction = UIAlertAction(title: NSLocalizedString("Pass Decision", comment: ""), style: .default) { (action) in
+                    let event = ["dsgSwap2PassTableEvent":["silent":false,"player":self.me,"table":self.table.table,"time":0] as [String : Any]]
+                    self.socket.sendEvent(eventDictionary: event)
+                }
+                alertController.addAction(passAction)
+                if let popoverController = alertController.popoverPresentationController {
+                    popoverController.barButtonItem = self.navigationItem.rightBarButtonItems?[1]
+                }
+                self.present(alertController, animated: true)
+            } else if table.isSwap2ChoiceWithoutPassOption() && table.seats[1] != nil && me == table.seats[1]?.name{
+                let alertController = UIAlertController(title: NSLocalizedString("Continue play as", comment: ""), message: nil, preferredStyle: .actionSheet)
+                let p1Action = UIAlertAction(title: NSLocalizedString("Player 1 (white)", comment: ""), style: .default) { (action) in
+                    let event = ["dsgSwapSeatsTableEvent":["swap":false,"silent":false,"player":self.me,"table":self.table.table,"time":0] as [String : Any] as [String : Any]]
+                    self.socket.sendEvent(eventDictionary: event)
+                }
+                alertController.addAction(p1Action)
+                let p2Action = UIAlertAction(title: NSLocalizedString("Player 2 (black)", comment: ""), style: .default) { (action) in
+                    let event = ["dsgSwapSeatsTableEvent":["swap":true,"silent":false,"player":self.me,"table":self.table.table,"time":0] as [String : Any]]
                     self.socket.sendEvent(eventDictionary: event)
                 }
                 alertController.addAction(p2Action)
@@ -616,7 +655,7 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
                 waitAlertController = UIAlertController(title: NSLocalizedString("Opponent disconnected", comment: ""), message: NSLocalizedString("You can resign the game now or choose to wait. If your opponent does not return in 7 minutes, you can choose to cancel the game, or force resign your opponent", comment: ""), preferredStyle: .actionSheet)
 
                 let resignAction = UIAlertAction(title: NSLocalizedString("resign game", comment: ""), style: .destructive) { (action) in
-                    let event = ["dsgResignTableEvent":["player":self.me,"table":self.table.table,"time":0]]
+                    let event = ["dsgResignTableEvent":["player":self.me,"table":self.table.table,"time":0] as [String : Any]]
                     self.socket.sendEvent(eventDictionary: event)
                 }
                 waitAlertController?.addAction(resignAction)
@@ -655,17 +694,17 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
         waitAlertController = UIAlertController(title: NSLocalizedString("Opponent unavailable", comment: ""), message: NSLocalizedString("You now can choose to resign, cancel the game, or force resign your opponent", comment: ""), preferredStyle: .actionSheet)
         
         let resignAction = UIAlertAction(title: NSLocalizedString("resign game", comment: ""), style: .destructive) { (action) in
-            let event = ["dsgResignTableEvent":["player":self.me,"table":self.table.table,"time":0]]
+            let event = ["dsgResignTableEvent":["player":self.me,"table":self.table.table,"time":0] as [String : Any]]
             self.socket.sendEvent(eventDictionary: event)
         }
         waitAlertController?.addAction(resignAction)
         let cancelAction = UIAlertAction(title: NSLocalizedString("cancel game", comment: ""), style: .default) { (action) in
-            let event = ["dsgForceCancelResignTableEvent":["action":1,"player":self.me,"table":self.table.table,"time":0]]
+            let event = ["dsgForceCancelResignTableEvent":["action":1,"player":self.me,"table":self.table.table,"time":0] as [String : Any]]
             self.socket.sendEvent(eventDictionary: event)
         }
         waitAlertController?.addAction(cancelAction)
         let forceResignAction = UIAlertAction(title: NSLocalizedString("force resign opponent", comment: ""), style: .destructive) { (action) in
-            let event = ["dsgForceCancelResignTableEvent":["action":2,"player":self.me,"table":self.table.table,"time":0]]
+            let event = ["dsgForceCancelResignTableEvent":["action":2,"player":self.me,"table":self.table.table,"time":0] as [String : Any]]
             self.socket.sendEvent(eventDictionary: event)
         }
         waitAlertController?.addAction(forceResignAction)
@@ -759,7 +798,7 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
                 self.sendMove(move: (self.table.gridSize*self.table.gridSize))
             }
             let rejectAction = UIAlertAction(title: NSLocalizedString("continue play", comment: ""), style: .destructive) { (action) in
-                let event = ["dsgRejectGoStateEvent":["player":self.me,"table":self.table.table,"time":0]]
+                let event = ["dsgRejectGoStateEvent":["player":self.me,"table":self.table.table,"time":0] as [String : Any]]
                 self.socket.sendEvent(eventDictionary: event)
             }
             alertController.addAction(acceptAction)
@@ -776,12 +815,12 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
             let alertController = UIAlertController(title: NSLocalizedString("\(player) requested to undo his last move", comment: ""), message: nil, preferredStyle: .alert)
             
             let p1Action = UIAlertAction(title: NSLocalizedString("accept undo", comment: ""), style: .default) { (action) in
-                let event = ["dsgUndoReplyTableEvent":["accepted":true,"player":self.me,"table":self.table.table,"time":0]]
+                let event = ["dsgUndoReplyTableEvent":["accepted":true,"player":self.me,"table":self.table.table,"time":0] as [String : Any]]
                 self.socket.sendEvent(eventDictionary: event)
             }
             alertController.addAction(p1Action)
             let p2Action = UIAlertAction(title: NSLocalizedString("deny undo", comment: ""), style: .destructive) { (action) in
-                let event = ["dsgUndoReplyTableEvent":["accepted":false,"player":self.me,"table":self.table.table,"time":0]]
+                let event = ["dsgUndoReplyTableEvent":["accepted":false,"player":self.me,"table":self.table.table,"time":0] as [String : Any]]
                 self.socket.sendEvent(eventDictionary: event)
             }
             alertController.addAction(p2Action)
@@ -812,12 +851,12 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
             let alertController = UIAlertController(title: NSLocalizedString("\(player) is requesting to cancel the game", comment: ""), message: nil, preferredStyle: .actionSheet)
             
             let acceptAction = UIAlertAction(title: NSLocalizedString("accept", comment: ""), style: .default) { (action) in
-                let event = ["dsgCancelReplyTableEvent":["accepted":true,"player":self.me,"table":self.table.table,"time":0]]
+                let event = ["dsgCancelReplyTableEvent":["accepted":true,"player":self.me,"table":self.table.table,"time":0] as [String : Any]]
                 self.socket.sendEvent(eventDictionary: event)
             }
             alertController.addAction(acceptAction)
             let declineAction = UIAlertAction(title: NSLocalizedString("decline", comment: ""), style: .destructive) { (action) in
-                let event = ["dsgCancelReplyTableEvent":["accepted":false,"player":self.me,"table":self.table.table,"time":0]]
+                let event = ["dsgCancelReplyTableEvent":["accepted":false,"player":self.me,"table":self.table.table,"time":0] as [String : Any]]
                 self.socket.sendEvent(eventDictionary: event)
             }
             alertController.addAction(declineAction)
@@ -900,7 +939,7 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         textField.resignFirstResponder()
         if textField.text! != "" {
-            let eventDictionary = ["dsgTextTableEvent":["text":textField.text!,"table":table.table, "time":0]]
+            let eventDictionary = ["dsgTextTableEvent":["text":textField.text!,"table":table.table, "time":0] as [String : Any]]
             socket.sendEvent(eventDictionary: eventDictionary)
         }
         return false

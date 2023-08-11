@@ -50,7 +50,7 @@ class TableSetupView: UITableView, UITableViewDelegate, UITableViewDataSource, U
 
             let gamePicker = UIPickerView()
             let pickerToolbar = UIToolbar(frame: CGRect(x: 0, y: 0, width: self.frame.size.width, height: 44))
-            pickerToolbar.barStyle = .blackTranslucent
+            pickerToolbar.isTranslucent = true
             let extraSpace = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target:nil, action:nil)
             let doneButton = UIBarButtonItem(title: NSLocalizedString("Done", comment: ""), style: .done, target: self, action: #selector(dismissPickers)) // method
             pickerToolbar.setItems([extraSpace, doneButton], animated: true)
@@ -129,7 +129,7 @@ class TableSetupView: UITableView, UITableViewDelegate, UITableViewDataSource, U
             
             let minutesPicker = UIPickerView()
             let pickerToolbar = UIToolbar(frame: CGRect(x: 0, y: 0, width: self.frame.size.width, height: 44))
-            pickerToolbar.barStyle = .blackTranslucent
+            pickerToolbar.isTranslucent = true
             let extraSpace = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target:nil, action:nil)
             let doneButton = UIBarButtonItem(title: NSLocalizedString("Done", comment: ""), style: .done, target: self, action: #selector(dismissPickers)) // method
             pickerToolbar.setItems([extraSpace, doneButton], animated: true)
@@ -155,7 +155,7 @@ class TableSetupView: UITableView, UITableViewDelegate, UITableViewDataSource, U
             
             let secondsPicker = UIPickerView()
             let pickerToolbar = UIToolbar(frame: CGRect(x: 0, y: 0, width: self.frame.size.width, height: 44))
-            pickerToolbar.barStyle = .blackTranslucent
+            pickerToolbar.isTranslucent = true
             let extraSpace = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target:nil, action:nil)
             let doneButton = UIBarButtonItem(title: NSLocalizedString("Done", comment: ""), style: .done, target: self, action: #selector(dismissPickers)) // method
             pickerToolbar.setItems([extraSpace, doneButton], animated: true)
@@ -273,7 +273,7 @@ class TableSetupView: UITableView, UITableViewDelegate, UITableViewDataSource, U
                                                  "initialMinutes":table.timer["initialMinutes"]!,
                                                  "incrementalSeconds":table.timer["incrementalSeconds"]!,
                                                  "rated":table.rated,"game":table.game,"tableType":tableType,
-                                                 "player":me,"table":table.table,"time":0]]
+                                                 "player":me,"table":table.table,"time":0] as [String : Any]]
         socket.sendEvent(eventDictionary: event)
     }
 }

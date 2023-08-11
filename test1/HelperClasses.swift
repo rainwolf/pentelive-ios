@@ -106,7 +106,7 @@ class Table: NSObject {
                      7: "D-Pente", 8: "Speed D-Pente", 9: "G-Pente", 10: "Speed G-Pente", 11: "Poof-Pente", 12: "Speed Poof-Pente",
                      13: "Connect6", 14: "Speed Connect6", 15: "Boat-Pente", 16: "Speed Boat-Pente", 17: "DK-Pente", 18: "Speed DK-Pente",
                      19: "Go", 20: "Speed Go", 21: "Go (9x9)", 22: "Speed Go (9x9)", 23: "Go (13x13)", 24: "Speed Go (13x13)",
-                     25: "O-Pente", 26: "Speed O-Pente"]
+                     25: "O-Pente", 26: "Speed O-Pente", 27: "Swap2-Pente", 28: "Speed Swap2-Pente"]
     
     init(table: Int) {
         self.table = table
@@ -117,6 +117,16 @@ class Table: NSObject {
         return game == 7 || game == 8 || game == 17 || game == 18
     }
     
+    func isSwap2() -> Bool {
+        return game == 27 || game == 28
+    }
+    func isSwap2ChoiceWithPassOption() -> Bool {
+        return isSwap2() && moves.count == 3 && state.swap2State == .noChoice
+    }
+    func isSwap2ChoiceWithoutPassOption() -> Bool {
+        return isSwap2() && moves.count == 5 && (state.swap2State == .swap2Pass || state.swap2State == .noChoice)
+    }
+
     func addPlayer(player: LivePlayer) {
         if players.count == 0 {
             owner = player.name
@@ -169,7 +179,8 @@ class Table: NSObject {
         goStoneGroupsByPlayerAndID.removeAll(); goStoneGroupsByPlayerAndID[1] = [Int:[Int]](); goStoneGroupsByPlayerAndID[2] = [Int:[Int]]()
         goDeadStonesByPlayer.removeAll(); goDeadStonesByPlayer[1] = [Int](); goDeadStonesByPlayer[2] = [Int]()
         goTerritoryByPlayer.removeAll(); goTerritoryByPlayer[1] = [Int](); goTerritoryByPlayer[2] = [Int]()
-        state.dPenteState = .noChoice
+//        state.dPenteState = .noChoice
+//        state.swap2State = .noChoice
         state.goState = .play
         blackCaptures = 0
         whiteCaptures = 0
@@ -225,7 +236,8 @@ class Table: NSObject {
                 detectKeryoCapture(move: move, color: color)
             }
         }
-        if game != 5 && game != 6 && game != 13 && game != 14 && game != 7 && game != 8 && game != 17 && game != 18 && (rated || game == 9 || game == 10) {
+        if game != 5 && game != 6 && game != 13 && game != 14 && game != 7 && game != 8 && game != 17 && game != 18
+            && game != 27 && game != 28 && (rated || game == 9 || game == 10) {
             if moves.count == 2 {
                 for i in 7..<12 {
                     for j in 7..<12 {
@@ -337,6 +349,7 @@ class Table: NSObject {
         goDeadStonesByPlayer.removeAll(); goDeadStonesByPlayer[1] = [Int](); goDeadStonesByPlayer[2] = [Int]()
         goTerritoryByPlayer.removeAll(); goTerritoryByPlayer[1] = [Int](); goTerritoryByPlayer[2] = [Int]()
         state.dPenteState = .noChoice
+        state.swap2State = .noChoice
         state.goState = .play
     }
     func resetTimers() {
@@ -381,9 +394,14 @@ class Table: NSObject {
                 }
             }
             state.dPenteState = .swapped
+            state.swap2State = .swapped
         } else {
             state.dPenteState = .notSwapped
+            state.swap2State = .notSwapped
         }
+    }
+    func swap2Pass(silent: Bool) {
+        state.swap2State = .swap2Pass
     }
     func undoLastMove() {
         let newMoves = moves[0..<(moves.count-1)]
@@ -443,6 +461,13 @@ class Table: NSObject {
         if (game == 7 || game == 8 || game == 17 || game == 18) && moves.count < 4 {
             seat = 1
         }
+        if isSwap2() {
+            if moves.count < 3 {
+                seat = 1
+            } else if (state.swap2State == .swap2Pass || state.swap2State == .noChoice) && moves.count < 5 {
+                seat = 2
+            }
+        }
 
         if let player = seats[seat] {
             return player.name
@@ -473,8 +498,10 @@ class Table: NSObject {
             return UIColor(red:1, green:165.0/255.0, blue:0, alpha:1)
         } else if game < 25 {
             return UIColor(red:250.0/255, green:200.0/255.0, blue:50.0/255.0, alpha:1)
-        } else {
+        } else if game < 27 {
             return UIColor(red:0.32, green:0.75, blue:0.50, alpha:1.0);
+        } else {
+            return UIColor(red: 0.90, green: 0.67, blue: 0.44, alpha: 1.00);
         }
     }
     func isGo() -> Bool {
@@ -1420,6 +1447,12 @@ class GameState: NSObject {
         case swapped
         case notSwapped
     }
+    enum Swap2State: Int {
+        case noChoice = 0
+        case swap2Pass
+        case swapped
+        case notSwapped
+    }
     enum GoState: Int {
         case play = 0
         case markStones
@@ -1427,6 +1460,7 @@ class GameState: NSObject {
     }
     var state = State.notStarted
     var dPenteState = DPenteState.noChoice
+    var swap2State = Swap2State.noChoice
     var goState = GoState.play
     var timers = [1: ["minutes":0, "seconds":0], 2: ["minutes":0, "seconds":0]]
     
@@ -1520,6 +1554,13 @@ class TablesAndPlayer: NSObject {
         let table = self.tables[tableId]!
         table.swapSeats(swap: swap, silent: silent)
     }
+    func swap2Pass(tableId: Int, silent: Bool) {
+        if self.tables[tableId] == nil {
+            return
+        }
+        let table = self.tables[tableId]!
+        table.swap2Pass(silent: silent)
+    }
     
     func invitablePlayersFor(tableId: Int) -> [String] {
         if self.tables[tableId] == nil {
@@ -1549,25 +1590,4 @@ class TablesAndPlayer: NSObject {
         bootablePlayers = bootablePlayers.filter {$0 != table.owner}
         return bootablePlayers
     }
-    
-    
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
