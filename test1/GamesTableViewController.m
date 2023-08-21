@@ -2436,8 +2436,6 @@ CGFloat bottomOffset = 0;
 
 
 -(void) parseDashboard {
-    NSLog(@"kitten");
-
     UIColor *blackColor = UIColorFromRGB(0);
     
     dispatch_async(dispatch_get_main_queue(), ^{

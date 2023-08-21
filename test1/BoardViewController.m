@@ -390,7 +390,7 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
 //}
 
 - (IBAction)dPentePlayer1:(id)sender {
-    if ([game.gameType isEqualToString:@"Swap2-Pente"]) {
+    if ([game.gameType hasPrefix: @"Swap2-"]) {
         dPenteChoice = NO;
         finalMove = 0;
         swap2PlayP1 = YES;
@@ -414,7 +414,7 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
 }
 
 - (IBAction)dPentePlayer2:(id)sender {
-    if ([game.gameType isEqualToString:@"Swap2-Pente"]) {
+    if ([game.gameType hasPrefix: @"Swap2-"]) {
         [player1Button setHidden:YES];
         [player2Button setHidden:YES];
         [dPenteChoiceLabel setHidden:YES];
@@ -768,7 +768,7 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
                         [self detectCaptureOfOpponent:1 atPosition:finalMove];
                     }
                 }
-                if (swap2Opening && [[self.game gameType] isEqualToString:@"Swap2-Pente"]) {
+                if (swap2Opening && [[self.game gameType] hasPrefix: @"Swap2-"]) {
                     if (swap2Move1 == -1) {
                         swap2Move1 = finalMove;
                         abstractBoard[i][j] = 1;
@@ -787,7 +787,7 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
                              coordinateLetters[finalMove % 19], 19 - (finalMove / 19)] forState:UIControlStateNormal];
                     }
                 }
-                if (swap2WillPass && [[self.game gameType] isEqualToString:@"Swap2-Pente"] && [movesList count] == 3) {
+                if (swap2WillPass && [[self.game gameType] hasPrefix: @"Swap2-"] && [movesList count] == 3) {
                     if (swap2Move1 == -1) {
                         swap2Move1 = finalMove;
                         abstractBoard[i][j] = 2;
@@ -959,7 +959,7 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
         moveString = [NSString stringWithFormat:@"%i,%i,%i,%i,", dPenteMove1, dPenteMove2, dPenteMove3, dPenteMove4];
     } else if (([[self.game gameType] isEqualToString:@"D-Pente"] || [[self.game gameType] isEqualToString:@"DK-Pente"]) && (finalMove != -1) && dPenteChoice) {
         moveString = [NSString stringWithFormat:@"1,%i", finalMove];
-    } else if ([[self.game gameType] isEqualToString:@"Swap2-Pente"] && (swap2Opening || swap2WillPass || swap2Choice)) {
+    } else if ([[self.game gameType] hasPrefix: @"Swap2-"] && (swap2Opening || swap2WillPass || swap2Choice)) {
         if (swap2Opening && swap2Move1 != -1 && swap2Move2 != -1 && swap2Move3 != -1) {
             moveString = [NSString stringWithFormat:@"%i,%i,%i,", swap2Move1, swap2Move2, swap2Move3];
         } else if (swap2WillPass && swap2Move1 != -1 && swap2Move2 != -1) {
@@ -1351,11 +1351,15 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
         }
         
     }
-    if ([self.game.gameType isEqualToString: @"Swap2-Pente"] || [self.game.gameType isEqualToString: @"Speed Swap2-Pente"]) {
+    if ([self.game.gameType containsString: @"Swap2-"]) {
         swap2Opening = [movesList count] == 0;
         swap2Choice = [htmlString rangeOfString:@"dPenteState=2"].location != NSNotFound &&
             ([movesList count] == 3 || [movesList count] == 5);
-        [self replaySwap2PenteGame: (int) [movesList count]];
+        if ([self.game.gameType containsString: @"Swap2-Pente"]) {
+            [self replaySwap2PenteGame: (int) [movesList count]];
+        } else if ([self.game.gameType containsString: @"Swap2-Keryo"]) {
+            [self replaySwap2KeryoGame: (int) [movesList count]];
+        }
         
         if (swap2Choice) {
             if ([movesList count] == 3) {
@@ -1390,7 +1394,7 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
         }
         
     }
-    if ([[self.game gameType] isEqualToString:@"Poof-Pente"] || [[self.game gameType] isEqualToString:@"Speed Poof-Pente"]) {
+    if ([[self.game gameType] containsString: @"Poof-Pente"]) {
         [self replayPoofPenteGame: (int) [movesList count]];
     }
     go = NO; goMarkStones = NO; goEvaluateDeadStones = NO;
@@ -1415,12 +1419,12 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
             [self evaluateDeadStones];
         }
     }
-    if ([[self.game gameType] isEqualToString:@"Connect6"] || [[self.game gameType] isEqualToString:@"Speed Connect6"]) {
+    if ([[self.game gameType] containsString: @"Connect6"]) {
         [self replayConnect6Game: (int) [movesList count]];
     }
     [self updateCaptures];
     
-    if ([[self.game gameType] isEqualToString:@"Gomoku"] || [[self.game gameType] isEqualToString:@"Speed Gomoku"]) {
+    if ([[self.game gameType] containsString: @"Gomoku"]) {
         [self replayGomokuGame: (int) [movesList count]];
     }
 
@@ -1441,7 +1445,7 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
         int rowCol = [self parseMove:[movesList objectAtIndex:i]];
         if (i == 0) {
             [moveStatsString appendString: @"<b>1.</b> "];
-        } else if ([[self.game gameType] isEqualToString:@"Connect6"] || [[self.game gameType] isEqualToString:@"Speed Connect6"]) {
+        } else if ([[self.game gameType] containsString: @"Connect6"]) {
             if (((i-3)%4) == 0) {
                 [moveStatsString appendString: [NSString stringWithFormat:@"&nbsp; <b>%i.</b> ", (i >> 2) + 2]];
             } else if (((i-3)%4) == 2 || i == 1) {
@@ -1764,26 +1768,29 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
     if ([[self.game gameType] isEqualToString:@"Pente"] || [[self.game gameType] isEqualToString:@"Boat-Pente"] || [[self.game gameType] isEqualToString:@"Speed Pente"] || [[self.game gameType] isEqualToString:@"Speed Boat-Pente"]) {
         [self replayPenteGame: untilMove];
     }
-    if ([[self.game gameType] isEqualToString:@"Keryo-Pente"] || [[self.game gameType] isEqualToString:@"Speed Keryo-Pente"]) {
+    if ([[self.game gameType] containsString:@"Keryo-Pente"]) {
         [self replayKeryoPenteGame: untilMove];
     }
-    if ([[self.game gameType] isEqualToString:@"G-Pente"] || [[self.game gameType] isEqualToString:@"Speed G-Pente"]) {
+    if ([[self.game gameType] containsString:@"G-Pente"]) {
         [self replayGPenteGame: untilMove];
     }
-    if ([[self.game gameType] isEqualToString:@"D-Pente"] || [[self.game gameType] isEqualToString:@"Speed D-Pente"]) {
+    if ([[self.game gameType] containsString:@"D-Pente"]) {
         [self replayDPenteGame: untilMove];
     }
-    if ([[self.game gameType] isEqualToString:@"DK-Pente"] || [[self.game gameType] isEqualToString:@"Speed DK-Pente"]) {
+    if ([[self.game gameType] containsString:@"DK-Pente"]) {
         [self replayDKPenteGame: untilMove];
     }
-    if ([[self.game gameType] isEqualToString:@"Poof-Pente"] || [[self.game gameType] isEqualToString:@"Speed Poof-Pente"]) {
+    if ([[self.game gameType] containsString:@"Poof-Pente"]) {
         [self replayPoofPenteGame: untilMove];
     }
-    if ([[self.game gameType] isEqualToString:@"O-Pente"] || [[self.game gameType] isEqualToString:@"Speed O-Pente"]) {
+    if ([[self.game gameType] containsString:@"O-Pente"]) {
         [self replayOPenteGame: untilMove];
     }
-    if ([[self.game gameType] isEqualToString:@"Swap2-Pente"] || [[self.game gameType] isEqualToString:@"Speed Swap2-Pente"]) {
+    if ([[self.game gameType] containsString: @"Swap2-Pente"]) {
         [self replaySwap2PenteGame: untilMove];
+    }
+    if ([[self.game gameType] containsString: @"Swap2-Keryo"]) {
+        [self replaySwap2KeryoGame: untilMove];
     }
 
     if (isGoGame) {
@@ -1794,10 +1801,10 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
     
     [self updateCaptures];
     
-    if ([[self.game gameType] isEqualToString:@"Connect6"] || [[self.game gameType] isEqualToString:@"Speed Connect6"]) {
+    if ([[self.game gameType] containsString:@"Connect6"]) {
         [self replayConnect6Game: untilMove];
     }
-    if ([[self.game gameType] isEqualToString:@"Gomoku"] || [[self.game gameType] isEqualToString:@"Speed Gomoku"]) {
+    if ([[self.game gameType] containsString:@"Gomoku"]) {
         [self replayGomokuGame: untilMove];
     }
     
@@ -2167,6 +2174,40 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
     
     [board setBackgroundColor:[UIColor colorWithRed: 0.90 green: 0.67 blue: 0.44 alpha: 1.00]];
     [zoomedBoard setBackgroundColor:[UIColor colorWithRed: 0.90 green: 0.67 blue: 0.44 alpha: 1.00]];
+    
+    if (dPenteOpening) {
+        [whiteStoneCaptures setHidden:YES];
+        [whiteCapturesCountLabel setHidden:YES];
+        [blackStoneCaptures setHidden:YES];
+        [blackCapturesCountLabel setHidden:YES];
+    }
+    [board setAbstractBoard: abstractBoard];
+    if ([movesList count] > 0) {
+        [board setLastMove:[self parseMove:[movesList objectAtIndex:untilMove - 1]]];
+        if (lastMove == [movesList count]) {
+            [zoomedBoard setAbstractBoard: abstractBoard];
+            [zoomedBoard setLastMove:[self parseMove:[movesList objectAtIndex:untilMove - 1]]];
+        }
+    }
+}
+
+-(void) replaySwap2KeryoGame: (int) untilMove {
+    if ([movesList count] == 0 || ([movesList count] == 3 && swap2Pass)) {
+        swap2Opening = YES;
+    } else {
+        swap2Opening = NO;
+    }
+    for (int i = 0; i < untilMove; ++i) {
+        int rowCol = [self parseMove:[movesList objectAtIndex:i]];
+        int color = (i % 2) + 1, opponentColor = (color == 2) ? 1 : 2;
+        abstractBoard[rowCol / 19][rowCol % 19] = color;
+        [self detectCaptureOfOpponent:opponentColor atPosition:rowCol];
+        [self detectKeryoCaptureOfOpponent:opponentColor atPosition:rowCol];
+    }
+    [captures removeAllObjects];
+    
+    [board setBackgroundColor:[UIColor colorWithRed: 0.31 green: 0.78 blue: 0.47 alpha: 1.00]];
+    [zoomedBoard setBackgroundColor:[UIColor colorWithRed: 0.31 green: 0.78 blue: 0.47 alpha: 1.00]];
     
     if (dPenteOpening) {
         [whiteStoneCaptures setHidden:YES];

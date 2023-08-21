@@ -821,7 +821,6 @@ class PlayerTableCell: UITableViewCell {
         let moves = event["moves"] as! [Int]
         DispatchQueue.main.async {
             if tableId == self.tableViewController?.table.table {
-                self.tableViewController?.stateChanged()
                 if move != 0 {
                     if self.playSounds {
                         AudioServicesPlaySystemSound(self.newMoveSndID)
@@ -830,6 +829,7 @@ class PlayerTableCell: UITableViewCell {
                 } else {
                     self.tableViewController?.addMoves(moves: moves)
                 }
+                self.tableViewController?.stateChanged()
             }
         }
     }

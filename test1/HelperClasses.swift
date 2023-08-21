@@ -106,7 +106,8 @@ class Table: NSObject {
                      7: "D-Pente", 8: "Speed D-Pente", 9: "G-Pente", 10: "Speed G-Pente", 11: "Poof-Pente", 12: "Speed Poof-Pente",
                      13: "Connect6", 14: "Speed Connect6", 15: "Boat-Pente", 16: "Speed Boat-Pente", 17: "DK-Pente", 18: "Speed DK-Pente",
                      19: "Go", 20: "Speed Go", 21: "Go (9x9)", 22: "Speed Go (9x9)", 23: "Go (13x13)", 24: "Speed Go (13x13)",
-                     25: "O-Pente", 26: "Speed O-Pente", 27: "Swap2-Pente", 28: "Speed Swap2-Pente"]
+                     25: "O-Pente", 26: "Speed O-Pente", 27: "Swap2-Pente", 28: "Speed Swap2-Pente", 29: "Swap2-Keryo",
+                     30: "Speed Swap2-Keryo"]
     
     init(table: Int) {
         self.table = table
@@ -118,7 +119,7 @@ class Table: NSObject {
     }
     
     func isSwap2() -> Bool {
-        return game == 27 || game == 28
+        return game == 27 || game == 28 || game == 29 || game == 30
     }
     func isSwap2ChoiceWithPassOption() -> Bool {
         return isSwap2() && moves.count == 3 && state.swap2State == .noChoice
@@ -232,12 +233,12 @@ class Table: NSObject {
                 detectKeryoPoof(move: move, color: color)
             }
             detectCapture(move: move, color: color)
-            if game == 3 || game == 4 || game == 17 || game == 18 || game == 25 || game == 26 {
+            if game == 3 || game == 4 || game == 17 || game == 18 || game == 25 || game == 26 || game == 29 || game == 30 {
                 detectKeryoCapture(move: move, color: color)
             }
         }
         if game != 5 && game != 6 && game != 13 && game != 14 && game != 7 && game != 8 && game != 17 && game != 18
-            && game != 27 && game != 28 && (rated || game == 9 || game == 10) {
+            && game != 27 && game != 28 && game != 29 && game != 30 && (rated || game == 9 || game == 10) {
             if moves.count == 2 {
                 for i in 7..<12 {
                     for j in 7..<12 {
@@ -500,8 +501,10 @@ class Table: NSObject {
             return UIColor(red:250.0/255, green:200.0/255.0, blue:50.0/255.0, alpha:1)
         } else if game < 27 {
             return UIColor(red:0.32, green:0.75, blue:0.50, alpha:1.0);
-        } else {
+        } else if game < 29 {
             return UIColor(red: 0.90, green: 0.67, blue: 0.44, alpha: 1.00);
+        } else {
+            return UIColor(red: 0.31, green: 0.78, blue: 0.47, alpha: 1.00);
         }
     }
     func isGo() -> Bool {
