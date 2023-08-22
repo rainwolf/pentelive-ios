@@ -2653,8 +2653,10 @@ CGFloat bottomOffset = 0;
                         gameStr = @"Go (13x13)";
                     } else if (gameInt < 27) {
                         gameStr = @"O-Pente";
-                    } else {
+                    } else if (gameInt < 29) {
                         gameStr = @"Swap2-Pente";
+                    } else {
+                        gameStr = @"Swap2-Keryo";
                     }
                     if (hill.gameId > 50) {
                         [hill setGame: [@"tb-" stringByAppendingString:gameStr]];

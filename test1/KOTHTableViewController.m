@@ -597,10 +597,10 @@ CGFloat bottomOffst = 0;
                         [step addObject:kothPlayer];
                     }
                 }
-//                if ([step count] > 0) {
-//                    [[hill steps] insertObject:step atIndex:0];
-//                }
-                [[hill steps] insertObject:step atIndex:0];
+                if ([step count] > 0) {
+                    [[hill steps] insertObject:step atIndex:0];
+                }
+//                [[hill steps] insertObject:step atIndex:0];
                 dashIDX++;
             }
 //        }
