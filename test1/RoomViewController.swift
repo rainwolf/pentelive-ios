@@ -353,7 +353,7 @@ class PlayerTableCell: UITableViewCell {
         var myCrown = 0
         var myKotHCrown = 0
         for singleGame in gameData {
-            if (singleGame["computer"] as! String) == "N" {
+            if (singleGame["computer"] as? String) == "N" {
                 player.ratings.updateValue(Int(singleGame["rating"] as! Double), forKey: singleGame["game"] as! Int)
                 let tourneyWinner = singleGame["tourneyWinner"] as! Int
                 if tourneyWinner != 0 {
