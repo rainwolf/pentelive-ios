@@ -189,7 +189,6 @@ CGFloat bottomOffst = 0;
 
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
-    [self scrollViewDidScroll: self.tableView];
 }
 
 -(void) viewWillDisappear:(BOOL)animated {
