@@ -472,7 +472,7 @@
     UILabel *subscribeText = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width*9/10, CGFLOAT_MAX)];
     [subscribeText setLineBreakMode:NSLineBreakByWordWrapping];
     [subscribeText setNumberOfLines:0];
-    NSString *subscribeString = NSLocalizedString(@"\u2022 remove play limits\n\u2022 request undo in turn-based games\n\u2022 see no more ads\n\u2022 change your name color or avatar\n\u2022 access the database!", nil);
+    NSString *subscribeString = NSLocalizedString(@"\u2022 remove play limits\n\u2022 request undo in turn-based games\n\u2022 change your name color or avatar\n\u2022 access the database!", nil);
     [subscribeText setText:subscribeString];
     [subscribeText setTextColor:[UIColor blackColor]];
     [subscribeText sizeToFit];
@@ -1000,7 +1000,6 @@
                                                           handler:^(UIAlertAction * action) {
                                                               UIStoryboard *sb = [UIStoryboard storyboardWithName:@"MainStoryboard" bundle:nil];
                                                               MMAIViewController * vc = (MMAIViewController *)[sb instantiateViewControllerWithIdentifier:@"mmaiViewController"];
-                                                              [vc setShowAds: YES];
                                                               [self.navigationController pushViewController:vc animated:YES];
                                                           }];
     [alert addAction:dismissAction];

@@ -22,7 +22,7 @@ class TableNavigationBar: UINavigationBar {
 }
 
 
-class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewDelegate, GADFullScreenContentDelegate, UIGestureRecognizerDelegate, PopoverViewDelegate, UIPickerViewDelegate, UIPickerViewDataSource {
+class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizerDelegate, PopoverViewDelegate, UIPickerViewDelegate, UIPickerViewDataSource {
     
     var socket: PenteLiveSocket!
     var table: Table!
@@ -31,8 +31,6 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
     var textView: UITextView = UITextView()
     var textField = UITextField()
     var me: String
-    var showAds = true
-    var bannerView: GADBannerView?
     var seatsView: SeatsView!
     let playButton = UIButton()
     var timer, waitTimer: Timer?
@@ -275,36 +273,6 @@ class TableViewController: UIViewController, UITextFieldDelegate, GADBannerViewD
         frame.origin.y = self.view.frame.size.height
         frame.size.height = 40
         textField.frame = frame
-        showAds = pentePlayer.showAds
-//        showAds = true
-        if showAds {
-            if bannerView == nil {
-                bannerView = GADBannerView(adSize: GADPortraitAnchoredAdaptiveBannerAdSizeWithWidth(self.view.bounds.width))
-                bannerView!.rootViewController = self
-                bannerView!.delegate = self
-                bannerView!.adUnitID = "ca-app-pub-3326997956703582/2339127047"
-                let request = GADRequest()
-                if (pentePlayer?.personalizeAds == false) {
-                    let extras = GADExtras()
-                    extras.additionalParameters = ["npa": "1"]
-                    request.register(extras)
-                }
-                bannerView!.load(request)
-                self.view.addSubview(bannerView!)
-            }
-            frame = textView.frame
-            frame.size.height = frame.size.height - bannerView!.frame.size.height
-            textView.frame = frame
-            frame = bannerView!.frame
-            frame.origin.y = textView.frame.origin.y + textView.frame.size.height
-            bannerView!.frame = frame
-            
-//            interstitial = GADInterstitial(adUnitID: "ca-app-pub-3326997956703582/8025733844")
-//            interstitial!.delegate = self
-//            request = GADRequest()
-//            request.testDevices = [ kGADSimulatorID ]
-//            interstitial!.load(request)
-        }
         let backBtn = UIBarButtonItem(title: NSLocalizedString("Exit", comment: ""), style: UIBarButtonItem.Style.plain, target: self, action: #selector(backToMainRoom))
         self.navigationItem.leftBarButtonItem = backBtn
     }

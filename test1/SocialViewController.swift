@@ -15,14 +15,11 @@ import UIKit
 //    }
 //}
 
-class SocialViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, GADBannerViewDelegate, GADFullScreenContentDelegate, UIPickerViewDelegate, UIPickerViewDataSource {
+class SocialViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, UIPickerViewDelegate, UIPickerViewDataSource {
     
     let segmentControl = UISegmentedControl(items: [NSLocalizedString("following", comment: ""), NSLocalizedString("followers", comment: "")])
     var refreshControl = UIRefreshControl()
     var tableView: UITableView = UITableView()
-    var showAds = true
-    var bannerView: GADBannerView?
-    var interstitial: GADInterstitialAd?
     var pentePlayer: PentePlayer!
     var wantsToSeeAvatars = UserDefaults.standard.bool(forKey: "wantToSeeAvatars")
     
@@ -97,33 +94,6 @@ class SocialViewController: UIViewController, UITableViewDelegate, UITableViewDa
     }
     
     override func viewDidAppear(_ animated: Bool) {
-        showAds = pentePlayer.showAds
-
-        if showAds && bannerView == nil {
-            var bottomOffset: CGFloat = 0.0
-            if UIDevice.current.userInterfaceIdiom == .phone && Int(UIScreen.main.nativeBounds.size.height) == 2436 {
-                bottomOffset = 34.0
-            }
-            bannerView = GADBannerView(adSize: GADPortraitAnchoredAdaptiveBannerAdSizeWithWidth(self.view.bounds.width))
-            bannerView!.rootViewController = self
-            bannerView!.delegate = self
-            var frame = tableView.frame
-            frame.size.height = tableView.frame.size.height - (bannerView?.frame.size.height)! - bottomOffset
-            tableView.frame = frame
-            frame = (bannerView?.frame)!
-            frame.origin.y = tableView.frame.origin.y + tableView.frame.size.height
-            bannerView!.frame = frame
-            bannerView!.adUnitID = "ca-app-pub-3326997956703582/3285001842"
-            let request = GADRequest()
-            if (pentePlayer?.personalizeAds == false) {
-                let extras = GADExtras()
-                extras.additionalParameters = ["npa": "1"]
-                request.register(extras)
-            }
-            bannerView!.load(request)
-            self.view.addSubview(bannerView!)
-        }
-        
         self.view.addSubview(textField)
     }
     override func viewDidDisappear(_ animated: Bool) {

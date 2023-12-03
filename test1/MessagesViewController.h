@@ -9,14 +9,11 @@
 #import <UIKit/UIKit.h>
 #import "HTAutocompleteTextField.h"
 #import "PenteNavigationViewController.h"
-#import <GoogleMobileAds/GoogleMobileAds.h>
 #import "PentePlayer.h"
 #import "BoardViewController.h"
-//#import "GADBannerView.h"
-//#import "GADBannerViewDelegate.h"
 
 
-@interface MessagesViewController : UIViewController <GADBannerViewDelegate, UITextViewDelegate, UITextFieldDelegate,HTAutocompleteDataSource, UINavigationControllerDelegate> {
+@interface MessagesViewController : UIViewController <UITextViewDelegate, UITextFieldDelegate,HTAutocompleteDataSource, UINavigationControllerDelegate> {
     NSString *messageID, *subject, *author;
     UITextField *subjectField;
     HTAutocompleteTextField *toField;
@@ -24,16 +21,13 @@
     UIButton *sendButton;
     UIActivityIndicatorView *spinner;
     NSMutableArray *toHistory;
-    GADBannerView *bannerView;
     PentePlayer *player;
     int gamesLimit;
-    BOOL showAds;
 
     BoardViewController *boardController;
 }
 
 @property(nonatomic,retain) PentePlayer *player;
-@property(nonatomic,retain) GADBannerView *bannerView;
 @property(nonatomic, retain) NSString *messageID, *subject, *author;
 @property(nonatomic, retain) UITextView *receivedMessageView, *replyMessageView;
 @property(nonatomic, retain) UIButton *sendButton;
@@ -42,7 +36,6 @@
 @property(nonatomic, retain) UIActivityIndicatorView *spinner;
 @property(nonatomic, retain) NSMutableArray *toHistory;
 @property(atomic) int gamesLimit;
-@property(atomic) BOOL showAds;
 @property(nonatomic,retain) BoardViewController *boardController;
 
 

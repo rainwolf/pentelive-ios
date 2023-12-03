@@ -23,8 +23,6 @@
 
 #import "MMAIViewController.h"
 #import "BoardView.h"
-#import <GoogleMobileAds/GoogleMobileAds.h>
-//#import "GADBannerView.h"
 #import <QuartzCore/QuartzCore.h>
 #import "PopoverView.h"
 #import "TSMessage.h"
@@ -53,15 +51,12 @@
 @synthesize blackCapturesCountLabel;
 @synthesize blackStoneCaptures;
 @synthesize spinner;
-@synthesize bannerView;
-@synthesize showedAd;
 @synthesize horizontalLine;
 @synthesize verticalLine;
 @synthesize movesList;
 @synthesize messagePopover;
 @synthesize activeGame;
 @synthesize playerStats;
-@synthesize showAds;
 @synthesize moveStatsString;
 @synthesize playerStatsBaseString;
 @synthesize setupView;
@@ -72,8 +67,7 @@
 {
     [super viewDidLoad];
 	// Do any additional setup after loading the view, typically from a nib.
-    showedAd = NO;
-    
+   
     aiThinking = NO;
     
     
@@ -181,38 +175,16 @@
 - (void)viewWillAppear:(BOOL)animated {
     //    NSLog(@"kittyAppear %i", finalMove);
     [super viewWillAppear:animated];
-    if (!showedAd) {
-        [zoomedBoard setHidden:YES];
-        [zoomedStone setHidden:YES];
-        [stone setHidden:YES];
-        [stone setBounds:CGRectMake(0, 0, 1.2*self.board.bounds.size.width/19,1.2*self.board.bounds.size.width/19)];
-        [zoomedStone setBounds:CGRectMake(0, 0, 1.2*1.5*2*self.board.bounds.size.width/19,1.2*1.5*2*self.board.bounds.size.width/19)];
-        finalMove = -1;
-        [whiteStoneCaptures setStoneColor:WHITE];
-        [blackStoneCaptures setStoneColor:BLACK];
-        [horizontalLine setHidden:YES];
-        [verticalLine setHidden:YES];
-    } else {
-        showedAd = NO;
-    }
-    
-    GADAdSize adSize = GADPortraitAnchoredAdaptiveBannerAdSizeWithWidth(self.view.bounds.size.width);
-    if (showAds && bannerView == nil) {
-        CGPoint origin = CGPointMake(0.0, self.view.frame.size.height - self.navigationController.navigationBar.frame.size.height - adSize.size.height);
-        bannerView = [[GADBannerView alloc] initWithAdSize:adSize origin:origin];
-        bannerView.rootViewController = self;
-        [bannerView setDelegate: self];
-        bannerView.adUnitID = @"ca-app-pub-3326997956703582/6122026245";
-        GADRequest *request = [GADRequest request];
-        PentePlayer *player = ((PenteNavigationViewController *)self.navigationController).player;
-        if (!player.personalizeAds) {
-            GADExtras *extras = [[GADExtras alloc] init];
-            extras.additionalParameters = @{@"npa": @"1"};
-            [request registerAdNetworkExtras:extras];
-        }
-        [bannerView loadRequest:request];
-        [self.view addSubview:bannerView];
-    }
+    [zoomedBoard setHidden:YES];
+    [zoomedStone setHidden:YES];
+    [stone setHidden:YES];
+    [stone setBounds:CGRectMake(0, 0, 1.2*self.board.bounds.size.width/19,1.2*self.board.bounds.size.width/19)];
+    [zoomedStone setBounds:CGRectMake(0, 0, 1.2*1.5*2*self.board.bounds.size.width/19,1.2*1.5*2*self.board.bounds.size.width/19)];
+    finalMove = -1;
+    [whiteStoneCaptures setStoneColor:WHITE];
+    [blackStoneCaptures setStoneColor:BLACK];
+    [horizontalLine setHidden:YES];
+    [verticalLine setHidden:YES];
 
     CGFloat bottomOffset = 0;
     
@@ -224,17 +196,8 @@
 
     CGFloat screenHeight = UIScreen.mainScreen.bounds.size.height;
     CGFloat newOriginY = screenHeight - self.navigationController.navigationBar.frame.size.height - [UIApplication sharedApplication].statusBarFrame.size.height;
-    if (showAds) {
-        playerStats.frame = CGRectMake(2, blackStoneCaptures.frame.origin.y + 3 + blackStoneCaptures.frame.size.height, self.view.bounds.size.width - 4,  newOriginY - blackStoneCaptures.frame.origin.y - adSize.size.height -5 -  blackStoneCaptures.frame.size.height - bottomOffset);
-    } else {
-        playerStats.frame = CGRectMake(2, blackStoneCaptures.frame.origin.y +  3 + blackStoneCaptures.frame.size.height, self.view.bounds.size.width - 4, newOriginY - blackStoneCaptures.frame.origin.y - 5 -  blackStoneCaptures.frame.size.height -bottomOffset);
-    }
+    playerStats.frame = CGRectMake(2, blackStoneCaptures.frame.origin.y +  3 + blackStoneCaptures.frame.size.height, self.view.bounds.size.width - 4, newOriginY - blackStoneCaptures.frame.origin.y - 5 -  blackStoneCaptures.frame.size.height -bottomOffset);
     [self.view addSubview: playerStats];
-    if (showAds) {
-        CGFloat newOriginY = playerStats.frame.origin.y + playerStats.frame.size.height + 3;
-        CGRect newBannerViewFrame = CGRectMake(bannerView.frame.origin.x, newOriginY, bannerView.frame.size.width, bannerView.frame.size.height);
-        bannerView.frame = newBannerViewFrame;
-    }
 }
 
 
@@ -244,16 +207,8 @@
 }
 
 - (void)viewWillDisappear:(BOOL)animated {
-    [bannerView removeFromSuperview];
     [super viewWillDisappear:animated];
 }
-
-- (void)adViewWillPresentScreen:(GADBannerView *)bannerView {
-    showedAd = YES;
-}
-
-//- (void)adViewWillDismissScreen:(GADBannerView *)bannerView {
-//}
 
 
 - (void)viewDidUnload

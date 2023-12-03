@@ -17,9 +17,6 @@ use_modular_headers!
 target "penteLive" do
 platform :ios, '13.0'
 #   use_frameworks!
-#   pod 'Firebase/Core'
-#   pod 'Firebase/AdMob'
-    pod 'Google-Mobile-Ads-SDK'
     pod 'TSMessages', :git => 'https://github.com/rainwolf/TSMessages.git'
     pod 'PopoverView', :git => 'https://github.com/runway20/PopoverView.git'
 #   pod 'SVWebViewController', :git => 'https://github.com/TransitApp/SVWebViewController.git'
@@ -32,6 +29,5 @@ platform :ios, '13.0'
     pod 'CocoaAsyncSocket'
     pod 'UIBarButtonItem-Badge', :git => 'https://github.com/mikeMTOL/UIBarButtonItem-Badge.git'
     pod 'AFWebViewController', '~> 1.0'
-    pod 'PersonalizedAdConsent'
 end
 

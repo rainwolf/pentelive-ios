@@ -36,7 +36,7 @@ class PlayerTableCell: UITableViewCell {
     }
 }
 
-@objc class RoomViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, UITextFieldDelegate, GADBannerViewDelegate, GADFullScreenContentDelegate {
+@objc class RoomViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, UITextFieldDelegate {
     
     @objc var room: GameRoom
     var socket: PenteLiveSocket!
@@ -48,9 +48,6 @@ class PlayerTableCell: UITableViewCell {
     var textView: UITextView = UITextView()
     var textField = UITextField()
     var me = ""
-    var showAds = true
-    var bannerView: GADBannerView?
-    var interstitial: GADInterstitialAd?
     var tableViewController: TableViewController?
     var invitationAlertController: UIAlertController?
     var newplayerSndID:SystemSoundID!
@@ -129,9 +126,6 @@ class PlayerTableCell: UITableViewCell {
         if UIDevice.current.userInterfaceIdiom == .phone && Int(UIScreen.main.nativeBounds.size.height) == 2436 {
             bottomOffset = 34.0
         }
-        if showAds {
-            bottomOffset = bottomOffset + 50
-        }
         // Do any additional setup after loading the view.
         var frame = self.view.frame
         frame.size.height = (frame.size.height - bottomOffset) * 2 / 3
@@ -180,53 +174,8 @@ class PlayerTableCell: UITableViewCell {
 //        } else {
 //            print("oh no")
 //        }
-        showAds = pentePlayer!.showAds
-//        showAds = false
         
         self.tableViewController = nil
-        if showAds && bannerView == nil {
-
-            var bottomOffset: CGFloat = 0
-            if UIDevice.current.userInterfaceIdiom == .phone && Int(UIScreen.main.nativeBounds.size.height) == 2436 {
-                bottomOffset = 34.0
-            }
-
-            bannerView = GADBannerView(adSize: GADPortraitAnchoredAdaptiveBannerAdSizeWithWidth(self.view.bounds.width))
-            bannerView!.rootViewController = self
-            bannerView!.delegate = self
-            var frame = textView.frame
-            frame.size.height = self.view.frame.size.height - bannerView!.frame.size.height - tableView.frame.size.height - bottomOffset
-            textView.frame = frame
-            frame = bannerView!.frame
-            frame.origin.y = textView.frame.origin.y + textView.frame.size.height
-            bannerView!.frame = frame
-            bannerView!.adUnitID = "ca-app-pub-3326997956703582/5072267445"
-            var request = GADRequest()
-            if (pentePlayer?.personalizeAds == false) {
-                let extras = GADExtras()
-                extras.additionalParameters = ["npa": "1"]
-                request.register(extras)
-            }
-            bannerView!.load(request)
-            self.view.addSubview(bannerView!)
-
-            request = GADRequest()
-            if (pentePlayer?.personalizeAds == false) {
-                let extras = GADExtras()
-                extras.additionalParameters = ["npa": "1"]
-                request.register(extras)
-            }
-            GADInterstitialAd.load(withAdUnitID:"ca-app-pub-3326997956703582/7746770806",
-                                        request: request,
-                              completionHandler: { [self] ad, error in
-                                if let error = error {
-                                  print("Failed to load interstitial ad with error: \(error.localizedDescription)")
-                                  return
-                                }
-                                interstitial = ad
-                                interstitial?.fullScreenContentDelegate = self
-                              })
-        }
     }
     override func viewDidDisappear(_ animated: Bool) {
         NotificationCenter.default.removeObserver(self)
@@ -367,6 +316,7 @@ class PlayerTableCell: UITableViewCell {
                 }
             }
         }
+        
         if myCrown > 0 {
             player.crown = myCrown
         } else if myKotHCrown > 0 {
@@ -573,33 +523,12 @@ class PlayerTableCell: UITableViewCell {
                 self.tableViewController = TableViewController(table: table!, socket: self.socket, tablesAndPlayers: self.playersAndTables, pente_player: self.pentePlayer!, me: self.me)
 //                self.tableViewController?.pentePlayer = self.pentePlayer
                 self.navigationController?.pushViewController(self.tableViewController!, animated: true)
-                if self.showAds && self.interstitial != nil && !playerName.contains("guest") {
-                    self.interstitial?.present(fromRootViewController: self.tableViewController!)
-                }
             } else {
                 if tableId == self.tableViewController?.table.table {
                     self.tableViewController?.tableJoinEvent(event: event)
                 }
             }
         }
-    }
-    func interstitialDidDismissScreen(_ ad: GADInterstitialAd) {
-        let request = GADRequest()
-        if (pentePlayer?.personalizeAds == false) {
-            let extras = GADExtras()
-            extras.additionalParameters = ["npa": "1"]
-            request.register(extras)
-        }
-        GADInterstitialAd.load(withAdUnitID:"ca-app-pub-3326997956703582/7746770806",
-                                    request: request,
-                          completionHandler: { [self] ad, error in
-                            if let error = error {
-                              print("Failed to load interstitial ad with error: \(error.localizedDescription)")
-                              return
-                            }
-                            self.interstitial = ad
-                            self.interstitial?.fullScreenContentDelegate = self
-                          })
     }
     func exitTableEvent(event: [String: Any]) {
         DispatchQueue.main.async {
@@ -923,9 +852,6 @@ class PlayerTableCell: UITableViewCell {
             frame.origin.y = tableView.frame.origin.y + tableView.frame.size.height
         } else {
             frame.origin.y = tableView.frame.origin.y + tableView.frame.size.height - keyboardHeight - textField.frame.height + bottomOffset
-            if showAds {
-                frame.origin.y = frame.origin.y + bannerView!.frame.size.height
-            }
         }
         textView.frame = frame
         frame = textField.frame

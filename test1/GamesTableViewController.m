@@ -54,11 +54,9 @@
 @synthesize acceptButton;
 @synthesize rejectButton;
 @synthesize cancelButton;
-@synthesize bannerView;
 @synthesize messagesCollapsed, invitationsReceivedCollapsed, activeGamesCollapsed, publicInvitationsCollapsed, sentInvitationsCollapsed, nonActiveGamesCollapsed,
             alreadyAskedAboutInvitations, tournamentsCollapsed, kothCollapsed;
 @synthesize selectedInvitationCell, selectedPublicInvitationCell;
-@synthesize interstitial;
 @synthesize gamesLimit;
 @synthesize actionPopoverView;
 @synthesize progressView;
@@ -134,8 +132,6 @@ CGFloat bottomOffset = 0;
     
     alreadyAskedAboutInvitations = NO;
     
-    self.interstitial = nil;
-    
     gamesLimit = 200;
     
     long openInvitationsLimit = [[NSUserDefaults standardUserDefaults] integerForKey:@"openInvitationsLimit"];
@@ -162,45 +158,6 @@ CGFloat bottomOffset = 0;
 //    [self.navigationController pushViewController:vc animated:YES];
 //}
 
-
-
-
-- (void)adDidDismissFullScreenContent:(nonnull id<GADFullScreenPresentingAd>)ad {
-    self.interstitial = nil;
-    if (player.showAds) {
-        GADRequest *request = [GADRequest request];
-        PentePlayer *player = ((PenteNavigationViewController *)self.navigationController).player;
-        if (!player.personalizeAds) {
-            GADExtras *extras = [[GADExtras alloc] init];
-            extras.additionalParameters = @{@"npa": @"1"};
-            [request registerAdNetworkExtras:extras];
-        }
-        [GADInterstitialAd loadWithAdUnitID:@"ca-app-pub-3326997956703582/7746770806"
-                                    request:request
-                          completionHandler:^(GADInterstitialAd *ad, NSError *error) {
-          if (error) {
-            NSLog(@"Failed to load interstitial ad with error: %@", [error localizedDescription]);
-            return;
-          }
-          self.interstitial = ad;
-          self.interstitial.fullScreenContentDelegate = self;
-        }];
-    }
-}
-
-
--(void)scrollViewDidScroll:(UIScrollView *)scrollView{
-    [super scrollViewDidScroll:scrollView];
-    if (player.showAds) {
-        if (bannerView) {
-            CGFloat newOriginY = self.tableView.contentOffset.y + self.tableView.frame.size.height - bannerView.frame.size.height - bottomOffset;
-            CGRect newBannerViewFrame = CGRectMake(bannerView.frame.origin.x, newOriginY, bannerView.frame.size.width, bannerView.frame.size.height);
-            bannerView.frame = newBannerViewFrame;
-        }
-    } else if (bannerView) {
-        [bannerView removeFromSuperview];
-    }
-}
 
 - (void)viewDidAppear:(BOOL)animated {
     PenteNavigationViewController *navController = (PenteNavigationViewController *) self.navigationController;
@@ -451,105 +408,105 @@ CGFloat bottomOffset = 0;
     }
 }
 
--(void) handleGDPR {
-    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-    if (![defaults boolForKey:GDPRTERMSKEY]) {
-        NSString *message =
-        NSLocalizedString(@"This app delivers ads to non-subscribers, delivered by Google's Adsense network, you may opt for personalized or non-personalized ads, and can change your choice at any time in the settings. Please check our privacy policy for an overview of the data that is collected and what we do with it, you can find a link in the settings of this app. By proceeding to use this app, you consent to our privacy policy. You must be at least 16 years old to consent to this, otherwise consent from a parent or guardian is required.",nil);
-        UIAlertController *gdprController = [UIAlertController
-                                           alertControllerWithTitle:NSLocalizedString(@"GDPR", nil)
-                                           message: message
-                                           preferredStyle:UIAlertControllerStyleActionSheet];
-        UIAlertAction *viewPolicyAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"privacy policy", nil) style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {
-          PenteWebViewController *webViewController = [[PenteWebViewController alloc] initWithAddress: @"https://www.pente.org/help/helpWindow.jsp?file=privacyPolicy"];
-          [(PenteNavigationViewController *)self.navigationController pushViewController:webViewController animated:YES];
-        }];
-        UIAlertAction *personalizeAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"Personalise ads", nil) style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
-            [defaults setBool:YES forKey:PERSONALIZEADSKEY];
-            [defaults setBool:YES forKey:GDPRTERMSKEY];
-            NSString *url = @"https://www.pente.org/gameServer/changeAdsPreference";
-            if (development) {
-                url = @"https://development.pente.org/gameServer/changeAdsPreference";
-            }
-            [((PenteNavigationViewController *)self.navigationController).player setPersonalizeAds: [[NSUserDefaults standardUserDefaults] boolForKey:PERSONALIZEADSKEY]];
-            NSString *postString = @"personalizeAds=Y";
-            
-            NSData *postData = [postString dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
-            NSString *postLength = [NSString stringWithFormat:@"%lu", (unsigned long)[postData length]];
-            
-            NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
-            [request setURL:[NSURL URLWithString:url]];
-            [request setHTTPMethod:@"POST"];
-            [request setValue:postLength forHTTPHeaderField:@"Content-Length"];
-            [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
-            [request setHTTPBody:postData];
-            [request setTimeoutInterval:7.0];
-            
-            [request setHTTPShouldUsePipelining: YES];
-            
-            NSURLResponse *response;
-            NSError *error;
-            [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
-            
-            if (error) {
-                UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error", nil) message:[NSString stringWithFormat:@"Reason: %@", error.localizedDescription] delegate:nil cancelButtonTitle:NSLocalizedString(@"OK",nil) otherButtonTitles:nil];
-                [alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:YES];
-                return;
-            }
-        }];
-        UIAlertAction *anonymizeAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"Anonymise ads", nil) style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
-            [defaults setBool:NO forKey:PERSONALIZEADSKEY];
-            [defaults setBool:YES forKey:GDPRTERMSKEY];
-            NSString *url = @"https://www.pente.org/gameServer/changeAdsPreference";
-            if (development) {
-                url = @"https://development.pente.org/gameServer/changeAdsPreference";
-            }
-            [((PenteNavigationViewController *)self.navigationController).player setPersonalizeAds: [[NSUserDefaults standardUserDefaults] boolForKey:PERSONALIZEADSKEY]];
-            NSString *postString = @"personalizeAds=N";
-            
-            NSData *postData = [postString dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
-            NSString *postLength = [NSString stringWithFormat:@"%lu", (unsigned long)[postData length]];
-            
-            NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
-            [request setURL:[NSURL URLWithString:url]];
-            [request setHTTPMethod:@"POST"];
-            [request setValue:postLength forHTTPHeaderField:@"Content-Length"];
-            [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
-            [request setHTTPBody:postData];
-            [request setTimeoutInterval:7.0];
-            
-            [request setHTTPShouldUsePipelining: YES];
-            
-            NSURLResponse *response;
-            NSError *error;
-            [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
-            
-            if (error) {
-                UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error", nil) message:[NSString stringWithFormat:@"Reason: %@", error.localizedDescription] delegate:nil cancelButtonTitle:NSLocalizedString(@"OK",nil) otherButtonTitles:nil];
-                [alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:YES];
-                return;
-            }
-        }];
-        UIAlertAction *acceptAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"Anonymise ads", nil) style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
-            [defaults setBool:YES forKey:GDPRTERMSKEY];
-        }];
-        if (player.subscriber) {
-            [gdprController addAction:acceptAction];
-        } else {
-            [gdprController addAction:anonymizeAction];
-            [gdprController addAction:personalizeAction];
-        }
-        [gdprController addAction:viewPolicyAction];
-
-        
-        dispatch_async(dispatch_get_main_queue(), ^{
-            if (gdprController.popoverPresentationController != nil) {
-                gdprController.popoverPresentationController.barButtonItem = self.navigationItem.rightBarButtonItems[1];
-            }
-            [self presentViewController:gdprController animated:NO completion:nil];
-        });
-    }
-}
+//-(void) handleGDPR {
+//    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+//    if (![defaults boolForKey:GDPRTERMSKEY]) {
+//        NSString *message =
+//        NSLocalizedString(@"This app delivers ads to non-subscribers, delivered by Google's Adsense network, you may opt for personalized or non-personalized ads, and can change your choice at any time in the settings. Please check our privacy policy for an overview of the data that is collected and what we do with it, you can find a link in the settings of this app. By proceeding to use this app, you consent to our privacy policy. You must be at least 16 years old to consent to this, otherwise consent from a parent or guardian is required.",nil);
+//        UIAlertController *gdprController = [UIAlertController
+//                                           alertControllerWithTitle:NSLocalizedString(@"GDPR", nil)
+//                                           message: message
+//                                           preferredStyle:UIAlertControllerStyleActionSheet];
+//        UIAlertAction *viewPolicyAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"privacy policy", nil) style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {
+//          PenteWebViewController *webViewController = [[PenteWebViewController alloc] initWithAddress: @"https://www.pente.org/help/helpWindow.jsp?file=privacyPolicy"];
+//          [(PenteNavigationViewController *)self.navigationController pushViewController:webViewController animated:YES];
+//        }];
+//        UIAlertAction *personalizeAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"Personalise ads", nil) style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+//            [defaults setBool:YES forKey:PERSONALIZEADSKEY];
+//            [defaults setBool:YES forKey:GDPRTERMSKEY];
+//            NSString *url = @"https://www.pente.org/gameServer/changeAdsPreference";
+//            if (development) {
+//                url = @"https://development.pente.org/gameServer/changeAdsPreference";
+//            }
+//            [((PenteNavigationViewController *)self.navigationController).player setPersonalizeAds: [[NSUserDefaults standardUserDefaults] boolForKey:PERSONALIZEADSKEY]];
+//            NSString *postString = @"personalizeAds=Y";
+//            
+//            NSData *postData = [postString dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
+//            NSString *postLength = [NSString stringWithFormat:@"%lu", (unsigned long)[postData length]];
+//            
+//            NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
+//            [request setURL:[NSURL URLWithString:url]];
+//            [request setHTTPMethod:@"POST"];
+//            [request setValue:postLength forHTTPHeaderField:@"Content-Length"];
+//            [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
+//            [request setHTTPBody:postData];
+//            [request setTimeoutInterval:7.0];
+//            
+//            [request setHTTPShouldUsePipelining: YES];
+//            
+//            NSURLResponse *response;
+//            NSError *error;
+//            [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
+//            
+//            if (error) {
+//                UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error", nil) message:[NSString stringWithFormat:@"Reason: %@", error.localizedDescription] delegate:nil cancelButtonTitle:NSLocalizedString(@"OK",nil) otherButtonTitles:nil];
+//                [alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:YES];
+//                return;
+//            }
+//        }];
+//        UIAlertAction *anonymizeAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"Anonymise ads", nil) style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+//            [defaults setBool:NO forKey:PERSONALIZEADSKEY];
+//            [defaults setBool:YES forKey:GDPRTERMSKEY];
+//            NSString *url = @"https://www.pente.org/gameServer/changeAdsPreference";
+//            if (development) {
+//                url = @"https://development.pente.org/gameServer/changeAdsPreference";
+//            }
+//            [((PenteNavigationViewController *)self.navigationController).player setPersonalizeAds: [[NSUserDefaults standardUserDefaults] boolForKey:PERSONALIZEADSKEY]];
+//            NSString *postString = @"personalizeAds=N";
+//            
+//            NSData *postData = [postString dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
+//            NSString *postLength = [NSString stringWithFormat:@"%lu", (unsigned long)[postData length]];
+//            
+//            NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
+//            [request setURL:[NSURL URLWithString:url]];
+//            [request setHTTPMethod:@"POST"];
+//            [request setValue:postLength forHTTPHeaderField:@"Content-Length"];
+//            [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
+//            [request setHTTPBody:postData];
+//            [request setTimeoutInterval:7.0];
+//            
+//            [request setHTTPShouldUsePipelining: YES];
+//            
+//            NSURLResponse *response;
+//            NSError *error;
+//            [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
+//            
+//            if (error) {
+//                UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error", nil) message:[NSString stringWithFormat:@"Reason: %@", error.localizedDescription] delegate:nil cancelButtonTitle:NSLocalizedString(@"OK",nil) otherButtonTitles:nil];
+//                [alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:YES];
+//                return;
+//            }
+//        }];
+//        UIAlertAction *acceptAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"Anonymise ads", nil) style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+//            [defaults setBool:YES forKey:GDPRTERMSKEY];
+//        }];
+//        if (player.subscriber) {
+//            [gdprController addAction:acceptAction];
+//        } else {
+//            [gdprController addAction:anonymizeAction];
+//            [gdprController addAction:personalizeAction];
+//        }
+//        [gdprController addAction:viewPolicyAction];
+//
+//        
+//        dispatch_async(dispatch_get_main_queue(), ^{
+//            if (gdprController.popoverPresentationController != nil) {
+//                gdprController.popoverPresentationController.barButtonItem = self.navigationItem.rightBarButtonItems[1];
+//            }
+//            [self presentViewController:gdprController animated:NO completion:nil];
+//        });
+//    }
+//}
 
 
 
@@ -1461,11 +1418,9 @@ CGFloat bottomOffset = 0;
     }
     if([segue.identifier isEqualToString:@"gameTap"]){
         boardController = (BoardViewController *)segue.destinationViewController;
-        [boardController setShowAds: player.showAds];
     }
     if([segue.identifier isEqualToString:@"messagesTap"]){
         messagesViewController = (MessagesViewController *)segue.destinationViewController;
-        [messagesViewController setShowAds:player.showAds];
     }
     if([segue.identifier isEqualToString:@"settingsTap"]){
         settingsViewController = (SettingsViewController *)segue.destinationViewController;
@@ -1489,12 +1444,6 @@ CGFloat bottomOffset = 0;
 //            [invitationsViewController setOpenInvitationOnly: NO];
 //        }
 //    }
-    if([segue.identifier isEqualToString:@"MMAItap"]){
-        [(MMAIViewController *)segue.destinationViewController setShowAds:player.showAds];
-    }
-    if ([segue.destinationViewController isKindOfClass:[DatabaseViewController class]]) {
-        [((DatabaseViewController*)segue.destinationViewController) setShowAds:!player.subscriber];
-    }
 //    if([segue.identifier isEqualToString:@"settingsTap"]){
 //        [(SettingsViewController *)segue.destinationViewController setNavC:(PenteNavigationViewController *)self.navigationController];
 //    }
@@ -1637,7 +1586,6 @@ CGFloat bottomOffset = 0;
         [CATransaction commit];
         selectedGame = [[self.player activeGames] objectAtIndex: indexPath.row];
         [self performSegueWithIdentifier:@"gameTap" sender:self];
-        [boardController setShowAds: player.showAds];
         [boardController setGame:selectedGame];
         [boardController setActiveGame:YES];
         [boardController replayGame];
@@ -1724,7 +1672,6 @@ CGFloat bottomOffset = 0;
         [self performSegueWithIdentifier:@"gameTap" sender:self];
         
         selectedGame = [[self.player nonActiveGames] objectAtIndex: indexPath.row];
-        [boardController setShowAds: player.showAds];
         [boardController setActiveGame:NO];
         [boardController setGame:selectedGame];
         [boardController replayGame];
@@ -1844,12 +1791,6 @@ CGFloat bottomOffset = 0;
     }
     [defaults setObject:toHistory forKey:@"invitedHistory"];
 
-    
-    if (player.showAds) {
-        if (self.interstitial) {
-            [self.interstitial presentFromRootViewController:self];
-        }
-    }
     [UIView animateWithDuration:0.3 animations:^{
         [self removeButtonsFromCell];
         [self.tableView beginUpdates];
@@ -2057,42 +1998,22 @@ CGFloat bottomOffset = 0;
     }
     [defaults setObject:toHistory forKey:@"invitedHistory"];
 
-    if (player.showAds) {
-        if (self.interstitial) {
-            [self.interstitial presentFromRootViewController:self];
-        }
-        [CATransaction begin];
+    NSIndexPath *tmpPath = selectedPublicInvitationIndexPath;
+    [UIView animateWithDuration:0.3 animations:^{
+        [self removeButtonsFromPublicInvitationsCell];
         [self.tableView beginUpdates];
-        [CATransaction setCompletionBlock: ^{
-            [self performSelector:@selector(scrollViewDidScroll:) withObject: self.tableView afterDelay:0.01];
-        }];
-            [self removeButtonsFromPublicInvitationsCell];
-    //        [self.tableView beginUpdates];
-            selectedPublicInvitationIndexPath = nil;
-    //        [self.tableView endUpdates];
-            selectedPublicInvitationCell = nil;
+        selectedPublicInvitationIndexPath = nil;
         [self.tableView endUpdates];
-        [CATransaction commit];
+        selectedPublicInvitationCell = nil;
+    } completion:^(BOOL finished){
+            [self performSelector:@selector(scrollViewDidScroll:) withObject: self.tableView afterDelay:0.01];
+    }];
+
+    [self.player.publicInvitations removeObjectAtIndex:tmpPath.row];
+    [UIView animateWithDuration:0.3 animations:^{[self.tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject: tmpPath] withRowAnimation:UITableViewRowAnimationFade];} completion:^(BOOL finished){
         [self dashboardParse];
-    } else {
-    
-        NSIndexPath *tmpPath = selectedPublicInvitationIndexPath;
-        [UIView animateWithDuration:0.3 animations:^{
-            [self removeButtonsFromPublicInvitationsCell];
-            [self.tableView beginUpdates];
-            selectedPublicInvitationIndexPath = nil;
-            [self.tableView endUpdates];
-            selectedPublicInvitationCell = nil;
-        } completion:^(BOOL finished){
-                [self performSelector:@selector(scrollViewDidScroll:) withObject: self.tableView afterDelay:0.01];
-        }];
-    
-        [self.player.publicInvitations removeObjectAtIndex:tmpPath.row];
-        [UIView animateWithDuration:0.3 animations:^{[self.tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject: tmpPath] withRowAnimation:UITableViewRowAnimationFade];} completion:^(BOOL finished){
-            [self dashboardParse];
-            //        [self performSelector:@selector(scrollViewDidScroll:) withObject: self.tableView afterDelay:0.4];
-        }];
-    }
+        //        [self performSelector:@selector(scrollViewDidScroll:) withObject: self.tableView afterDelay:0.4];
+    }];
     //    [self.tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject:tmpPath] withRowAnimation:UITableViewRowAnimationFade];
     //    [self performSelector:@selector(parseDashboard) withObject: nil afterDelay:0.7];
     //    [self.tableView performSelector:@selector(reloadData) withObject: nil afterDelay:0.7];
@@ -2552,55 +2473,8 @@ CGFloat bottomOffset = 0;
                 [self.player setPersonalizeAds: [[splitLine objectAtIndex:8] isEqualToString:PERSONALIZEADSKEY]];
                 [[NSUserDefaults standardUserDefaults] setBool:player.personalizeAds forKey:PERSONALIZEADSKEY];
             }
-    //        showAds = ([dashboardString rangeOfString:@"No Ads"].location == NSNotFound) || ([dashboardString rangeOfString:@"No Ads"].location > 30);
-            if (player.showAds && bannerView == nil) {
-                GADAdSize adSize = GADPortraitAnchoredAdaptiveBannerAdSizeWithWidth(self.view.bounds.size.width);
-                CGPoint origin = CGPointMake(0.0, self.view.frame.size.height - self.navigationController.navigationBar.frame.size.height - adSize.size.height);
-                bannerView = [[GADBannerView alloc] initWithAdSize:adSize origin:origin];
-                bannerView.rootViewController = self;
-                [bannerView setDelegate: self];
-                CGFloat screenHeight = UIScreen.mainScreen.bounds.size.height;
-                CGFloat newOriginY = screenHeight - self.navigationController.navigationBar.frame.size.height - [UIApplication sharedApplication].statusBarFrame.size.height - bannerView.frame.size.height;
-                CGRect newBannerViewFrame = CGRectMake(bannerView.frame.origin.x, newOriginY, bannerView.frame.size.width, bannerView.frame.size.height);
-                bannerView.frame = newBannerViewFrame;
-                [self.tableView setTableFooterView:bannerView];
-                [self.tableView bringSubviewToFront:bannerView];
-                [self scrollViewDidScroll: self.tableView];
-                //    bannerView.adUnitID = @"567b72e8189a488c";
-                bannerView.adUnitID = @"ca-app-pub-3326997956703582/8641559446";
-                GADRequest *request = [GADRequest request];
-                PentePlayer *player = ((PenteNavigationViewController *)self.navigationController).player;
-                if (!player.personalizeAds) {
-                    GADExtras *extras = [[GADExtras alloc] init];
-                    extras.additionalParameters = @{@"npa": @"1"};
-                    [request registerAdNetworkExtras:extras];
-                }
-                [bannerView loadRequest:request];
-                
-                request = [GADRequest request];
-                if (player.personalizeAds) {
-                    GADExtras *extras = [[GADExtras alloc] init];
-                    extras.additionalParameters = @{@"npa": @"1"};
-                    [request registerAdNetworkExtras:extras];
-                }
-                [GADInterstitialAd loadWithAdUnitID:@"ca-app-pub-3326997956703582/7746770806"
-                                            request:request
-                                  completionHandler:^(GADInterstitialAd *ad, NSError *error) {
-                  if (error) {
-                    NSLog(@"Failed to load interstitial ad with error: %@", [error localizedDescription]);
-                    return;
-                  }
-                  self.interstitial = ad;
-                  self.interstitial.fullScreenContentDelegate = self;
-                }];
-
-            }
             if ([self.player subscriber]) {
                 [[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"shouldSendReceipt"];
-            }
-            if (!player.showAds) {
-                [bannerView removeFromSuperview];
-                [self.tableView setTableFooterView:nil];
             }
 
             sectionItems = [[NSMutableArray alloc] init];
@@ -3164,7 +3038,6 @@ CGFloat bottomOffset = 0;
             }
             if ([[notificationGame gameID] isEqualToString:[[navController receivedNotification] objectForKey:@"gameID"]]) {
                     [self performSegueWithIdentifier:@"gameTap" sender:self];
-                    [boardController setShowAds: player.showAds];
                     [boardController setGame:notificationGame];
                     [boardController setActiveGame:YES];
                     [boardController replayGame];
@@ -3610,20 +3483,10 @@ CGFloat bottomOffset = 0;
     }
 }
 -(void) toMMAI {
-    if (player.showAds && ![player.playerName containsString:@"guest"]) {
-        if (self.interstitial) {
-            [self.interstitial presentFromRootViewController:self];
-        }
-    }
     [actionPopoverView dismiss];
     [self performSegueWithIdentifier:@"MMAItap" sender:self];
 }
 -(void) toAIInvitations {
-    if (player.showAds) {
-        if (self.interstitial) {
-            [self.interstitial presentFromRootViewController:self];
-        }
-    }
     [actionPopoverView dismiss];
     [self performSegueWithIdentifier:@"inviteAItap" sender:self];
 }
@@ -3777,39 +3640,21 @@ CGFloat bottomOffset = 0;
     }
     [defaults setObject:toHistory forKey:@"invitedHistory"];
     
-    if (player.showAds) {
-        if (self.interstitial) {
-            [self.interstitial presentFromRootViewController:self];
-        }
-        [CATransaction begin];
-        [self.tableView beginUpdates];
-        [CATransaction setCompletionBlock: ^{
-            [self performSelector:@selector(scrollViewDidScroll:) withObject: self.tableView afterDelay:0.01];
-        }];
+    NSIndexPath *tmpPath = selectedPublicInvitationIndexPath;
+    [UIView animateWithDuration:0.3 animations:^{
         [self removeButtonsFromPublicInvitationsCell];
+        [self.tableView beginUpdates];
         selectedPublicInvitationIndexPath = nil;
-        selectedPublicInvitationCell = nil;
         [self.tableView endUpdates];
-        [CATransaction commit];
+        self->selectedPublicInvitationCell = nil;
+    } completion:^(BOOL finished){
+        [self performSelector:@selector(scrollViewDidScroll:) withObject: self.tableView afterDelay:0.01];
+    }];
+    
+    [self.player.publicInvitations removeObjectAtIndex:tmpPath.row];
+    [UIView animateWithDuration:0.3 animations:^{[self.tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject: tmpPath] withRowAnimation:UITableViewRowAnimationFade];} completion:^(BOOL finished){
         [self dashboardParse];
-    } else {
-        
-        NSIndexPath *tmpPath = selectedPublicInvitationIndexPath;
-        [UIView animateWithDuration:0.3 animations:^{
-            [self removeButtonsFromPublicInvitationsCell];
-            [self.tableView beginUpdates];
-            selectedPublicInvitationIndexPath = nil;
-            [self.tableView endUpdates];
-            self->selectedPublicInvitationCell = nil;
-        } completion:^(BOOL finished){
-            [self performSelector:@selector(scrollViewDidScroll:) withObject: self.tableView afterDelay:0.01];
-        }];
-        
-        [self.player.publicInvitations removeObjectAtIndex:tmpPath.row];
-        [UIView animateWithDuration:0.3 animations:^{[self.tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject: tmpPath] withRowAnimation:UITableViewRowAnimationFade];} completion:^(BOOL finished){
-            [self dashboardParse];
-        }];
-    }
+    }];
 }
 
 

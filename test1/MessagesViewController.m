@@ -30,10 +30,8 @@
 @synthesize toField;
 @synthesize spinner;
 @synthesize toHistory;
-@synthesize bannerView;
 @synthesize player;
 @synthesize gamesLimit;
-@synthesize showAds;
 @synthesize boardController;
 
 InvitationsViewController *invitationVC;
@@ -83,9 +81,6 @@ InvitationsViewController *invitationVC;
         } else {
             [subjectField setText: [@"Re: " stringByAppendingString:subject]];
         }
-        if (showAds) {
-            [self.view addSubview:bannerView];
-        }
         return;
     }
 
@@ -97,35 +92,8 @@ InvitationsViewController *invitationVC;
             [self.navigationItem setRightBarButtonItems:nil];
         }
     }];
-    if (showAds) {
-        GADAdSize adSize = GADPortraitAnchoredAdaptiveBannerAdSizeWithWidth(self.view.bounds.size.width);
-        CGPoint origin = CGPointMake(0.0, self.view.frame.size.height - self.navigationController.navigationBar.frame.size.height - adSize.size.height);
-        bannerView = [[GADBannerView alloc] initWithAdSize:adSize origin:origin];
-        bannerView.rootViewController = self;
-        [bannerView setDelegate: self];
-        CGFloat screenHeight = UIScreen.mainScreen.bounds.size.height;
-        CGFloat newOriginY = screenHeight - self.navigationController.navigationBar.frame.size.height - [UIApplication sharedApplication].statusBarFrame.size.height - bannerView.frame.size.height - bottomOffset;
-        CGRect newBannerViewFrame = CGRectMake(bannerView.frame.origin.x, newOriginY, bannerView.frame.size.width, bannerView.frame.size.height);
-//        NSLog(@"kitty %f", newOriginY);
-        bannerView.frame = newBannerViewFrame;
-        bannerView.adUnitID = @"ca-app-pub-3326997956703582/4645293043";
-        GADRequest *request = [GADRequest request];
-        PentePlayer *player = ((PenteNavigationViewController *)self.navigationController).player;
-        if (!player.personalizeAds) {
-            GADExtras *extras = [[GADExtras alloc] init];
-            extras.additionalParameters = @{@"npa": @"1"};
-            [request registerAdNetworkExtras:extras];
-        }
-        [bannerView loadRequest:request];
-        [self.view addSubview:bannerView];
-    }
-    
 
-    if (showAds) {
-        [sendButton setFrame:CGRectMake(4, self.view.bounds.size.height - 47 - bannerView.frame.size.height - bottomOffset, self.view.bounds.size.width - 8, 44)];
-    } else {
-        [sendButton setFrame:CGRectMake(4, self.view.bounds.size.height - 47 - bottomOffset, self.view.bounds.size.width - 8, 44)];
-    }
+    [sendButton setFrame:CGRectMake(4, self.view.bounds.size.height - 47 - bottomOffset, self.view.bounds.size.width - 8, 44)];
 
     [spinner setHidden:YES];
     [sendButton addSubview:spinner];
@@ -517,7 +485,6 @@ InvitationsViewController *invitationVC;
     if([segue.identifier isEqualToString:@"viewGameTap"]){
         [navController setUnchallengedMessageID:messageID];
         boardController = (BoardViewController *)segue.destinationViewController;
-        [boardController setShowAds: showAds];
         return;
     } else if ([segue.identifier isEqualToString:@"challengeSegue"]) {
         invitationVC = (InvitationsViewController *) segue.destinationViewController;
@@ -665,9 +632,6 @@ InvitationsViewController *invitationVC;
             CGRect frame = CGRectMake(3, subjectField.frame.origin.y + subjectField.frame.size.height + 3, self.view.bounds.size.width - 6, screenSize);
             [replyMessageView setFrame:frame];
         }
-        if (showAds) {
-            [bannerView removeFromSuperview];
-        }
     }];
 }
 
@@ -697,9 +661,6 @@ InvitationsViewController *invitationVC;
             [replyMessageView setFrame:frame];
         } else {
             [replyMessageView setFrame:CGRectMake(3, subjectField.frame.origin.y + subjectField.frame.size.height + 3, self.view.bounds.size.width - 6, sendButton.frame.origin.y - subjectField.frame.origin.y - subjectField.frame.size.height - 6)];
-        }
-        if (showAds) {
-            [self.view addSubview:bannerView];
         }
     }];
 }
@@ -845,7 +806,6 @@ InvitationsViewController *invitationVC;
 //        [game setRatedNot:[splitLine objectAtIndex:6]];
 //        [game setNameColor: UIColorFromRGB([[splitLine objectAtIndex:7] intValue])];
 
-        [boardController setShowAds: showAds];
         [boardController setActiveGame:NO];
         [boardController setGame:game];
         [boardController replayGame];

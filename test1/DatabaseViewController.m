@@ -23,8 +23,6 @@
 
 #import "DatabaseViewController.h"
 #import "DBBoardView.h"
-#import <GoogleMobileAds/GoogleMobileAds.h>
-//#import "GADBannerView.h"
 #import <QuartzCore/QuartzCore.h>
 #import "PopoverView.h"
 #import "TSMessage.h"
@@ -34,9 +32,6 @@
 #import "penteLive-Swift.h"
 
 
-
-
-//GADBannerView *bannerView_;
 
 @implementation DatabaseViewController {
     int abstractBoard[19][19];
@@ -54,15 +49,12 @@
 @synthesize blackCapturesCountLabel;
 @synthesize blackStoneCaptures;
 @synthesize spinner;
-@synthesize bannerView;
-@synthesize showedAd;
 @synthesize horizontalLine;
 @synthesize verticalLine;
 @synthesize movesList, captures;
 @synthesize messagePopover;
 @synthesize activeGame;
 @synthesize playerStats;
-@synthesize showAds;
 @synthesize moveStatsString;
 @synthesize playerStatsBaseString,game;
 @synthesize setupView;
@@ -82,8 +74,6 @@ struct Capture {
 {
     [super viewDidLoad];
 	// Do any additional setup after loading the view, typically from a nib.
-    showedAd = NO;
-
     aiThinking = NO;
     
     
@@ -192,37 +182,8 @@ struct Capture {
     //    playerStats.contentInset = UIEdgeInsetsMake(-5.0,0.0,0,0.0);
     CGFloat screenHeight = UIScreen.mainScreen.bounds.size.height;
     CGFloat newOriginY = screenHeight - self.navigationController.navigationBar.frame.size.height - [UIApplication sharedApplication].statusBarFrame.size.height;
-    GADAdSize adSize = GADPortraitAnchoredAdaptiveBannerAdSizeWithWidth(self.view.bounds.size.width);
-    if (showAds) {
-        //        playerStats = [[UIWebView alloc] initWithFrame:CGRectMake(2, submitButton.frame.origin.y + submitButton.frame.size.height + 3, self.view.bounds.size.width - 4, 84)];
-        playerStats.frame = CGRectMake(2, blackStoneCaptures.frame.origin.y + 3 + blackStoneCaptures.frame.size.height, self.view.bounds.size.width - 4,  newOriginY - blackStoneCaptures.frame.origin.y - adSize.size.height -5 -  blackStoneCaptures.frame.size.height - bottomOffset);
-    } else {
-        playerStats.frame = CGRectMake(2, blackStoneCaptures.frame.origin.y +  3 + blackStoneCaptures.frame.size.height, self.view.bounds.size.width - 4, newOriginY - blackStoneCaptures.frame.origin.y - 5 -  blackStoneCaptures.frame.size.height - bottomOffset);
-//        playerStats = [[UIWebView alloc] initWithFrame:CGRectMake(2, submitButton.frame.origin.y + 3, self.view.bounds.size.width - 4, 135)];
-    }
+    playerStats.frame = CGRectMake(2, blackStoneCaptures.frame.origin.y +  3 + blackStoneCaptures.frame.size.height, self.view.bounds.size.width - 4, newOriginY - blackStoneCaptures.frame.origin.y - 5 -  blackStoneCaptures.frame.size.height - bottomOffset);
     [self.view addSubview: playerStats];
-    if (showAds) {
-        CGPoint origin = CGPointMake(0.0, self.view.frame.size.height - self.navigationController.navigationBar.frame.size.height - adSize.size.height);
-        bannerView = [[GADBannerView alloc] initWithAdSize:adSize origin:origin];
-        bannerView.rootViewController = self;
-        [bannerView setDelegate: self];
-        CGFloat screenHeight = UIScreen.mainScreen.bounds.size.height;
-        CGFloat newOriginY = screenHeight - self.navigationController.navigationBar.frame.size.height - [UIApplication sharedApplication].statusBarFrame.size.height - bannerView.frame.size.height - bottomOffset;
-        CGRect newBannerViewFrame = CGRectMake(bannerView.frame.origin.x, newOriginY, bannerView.frame.size.width, bannerView.frame.size.height);
-//        CGRect newBannerViewFrame = CGRectMake(bannerView.frame.origin.x, newOriginY, self.view.frame.size.width, bannerView.frame.size.height);
-        //        NSLog(@"kitty %f", newOriginY);
-        bannerView.frame = newBannerViewFrame;
-        bannerView.adUnitID = @"ca-app-pub-3326997956703582/1435237030";
-        GADRequest *request = [GADRequest request];
-        PentePlayer *player = ((PenteNavigationViewController *)self.navigationController).player;
-        if (!player.personalizeAds) {
-            GADExtras *extras = [[GADExtras alloc] init];
-            extras.additionalParameters = @{@"npa": @"1"};
-            [request registerAdNetworkExtras:extras];
-        }
-        [bannerView loadRequest:request];
-        [self.view addSubview:bannerView];
-    }
 
     setupView = [[DBSetupView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width*7/8, 44*7 + 22)];
     setupView.layer.cornerRadius = 5.0f;
@@ -245,21 +206,16 @@ struct Capture {
 - (void)viewWillAppear:(BOOL)animated {
     //    NSLog(@"kittyAppear %i", finalMove);
     [super viewWillAppear:animated];
-    if (!showedAd) {
-        [zoomedBoard setHidden:YES];
-        [zoomedStone setHidden:YES];
-        [stone setHidden:YES];
-        [stone setBounds:CGRectMake(0, 0, 1.2*self.board.bounds.size.width/19,1.2*self.board.bounds.size.width/19)];
-        [zoomedStone setBounds:CGRectMake(0, 0, 1.2*1.5*2*self.board.bounds.size.width/19,1.2*1.5*2*self.board.bounds.size.width/19)];
-        finalMove = -1;
-        [whiteStoneCaptures setStoneColor:WHITE];
-        [blackStoneCaptures setStoneColor:BLACK];
-        [horizontalLine setHidden:YES];
-        [verticalLine setHidden:YES];
-    } else {
-        showedAd = NO;
-    }
-    
+    [zoomedBoard setHidden:YES];
+    [zoomedStone setHidden:YES];
+    [stone setHidden:YES];
+    [stone setBounds:CGRectMake(0, 0, 1.2*self.board.bounds.size.width/19,1.2*self.board.bounds.size.width/19)];
+    [zoomedStone setBounds:CGRectMake(0, 0, 1.2*1.5*2*self.board.bounds.size.width/19,1.2*1.5*2*self.board.bounds.size.width/19)];
+    finalMove = -1;
+    [whiteStoneCaptures setStoneColor:WHITE];
+    [blackStoneCaptures setStoneColor:BLACK];
+    [horizontalLine setHidden:YES];
+    [verticalLine setHidden:YES];
 }
 
 
@@ -281,12 +237,6 @@ struct Capture {
     [super viewWillDisappear:animated];
 }
 
-- (void)adViewWillPresentScreen:(GADBannerView *)bannerView {
-    showedAd = YES;
-}
-
-//- (void)adViewWillDismissScreen:(GADBannerView *)bannerView {
-//}
 -(void) setBoardColor {
     
     if ([game containsString:@"Keryo-Pente"]) {
@@ -857,7 +807,6 @@ struct Capture {
             [gameObj setGameID: gameStr];
             [gameObj setRemainingTime:@"0 days"];
 
-            [boardController setShowAds: showAds];
             [boardController setActiveGame:NO];
             [boardController setGame:gameObj];
             [boardController replayGame];

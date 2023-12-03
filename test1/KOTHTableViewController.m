@@ -148,7 +148,6 @@
 @synthesize hill;
 @synthesize hillSummary;
 @synthesize player;
-@synthesize bannerView;
 @synthesize actionPopoverView;
 @synthesize challengeView;
 
@@ -186,46 +185,6 @@ CGFloat bottomOffst = 0;
     }
     hill = [[Hill alloc] init];
     [self loadKoth];
-    
-    if ([player showAds]) {
-//        NSLog(@"kitty");
-        GADAdSize adSize = GADPortraitAnchoredAdaptiveBannerAdSizeWithWidth(self.view.bounds.size.width);
-        CGPoint origin = CGPointMake(0.0, self.view.frame.size.height - self.navigationController.navigationBar.frame.size.height - adSize.size.height);
-        bannerView = [[GADBannerView alloc] initWithAdSize:adSize origin:origin];
-        bannerView.rootViewController = self;
-        [bannerView setDelegate: self];
-        CGFloat screenHeight = UIScreen.mainScreen.bounds.size.height;
-        CGFloat newOriginY = screenHeight - self.navigationController.navigationBar.frame.size.height - [UIApplication sharedApplication].statusBarFrame.size.height - bannerView.frame.size.height;
-        CGRect newBannerViewFrame = CGRectMake(bannerView.frame.origin.x, newOriginY, bannerView.frame.size.width, bannerView.frame.size.height);
-        bannerView.frame = newBannerViewFrame;
-        bannerView.adUnitID = @"ca-app-pub-3326997956703582/7598759449";
-        GADRequest *request = [GADRequest request];
-        PentePlayer *player = ((PenteNavigationViewController *)self.navigationController).player;
-        if (!player.personalizeAds) {
-            GADExtras *extras = [[GADExtras alloc] init];
-            extras.additionalParameters = @{@"npa": @"1"};
-            [request registerAdNetworkExtras:extras];
-        }
-        [bannerView loadRequest:request];
-        [self.view addSubview:bannerView];
-        [self.tableView setTableFooterView:bannerView];
-        [self.tableView bringSubviewToFront:bannerView];
-        [self scrollViewDidScroll: self.tableView];
-    }
-    
-}
-
--(void)scrollViewDidScroll:(UIScrollView *)scrollView{
-//    [super scrollViewDidScroll:scrollView];
-    if ([player showAds]) {
-        if (bannerView) {
-            CGFloat newOriginY = self.tableView.contentOffset.y + self.tableView.frame.size.height - bannerView.frame.size.height - bottomOffst;
-            CGRect newBannerViewFrame = CGRectMake(bannerView.frame.origin.x, newOriginY, bannerView.frame.size.width, bannerView.frame.size.height);
-            bannerView.frame = newBannerViewFrame;
-        }
-    } else if (bannerView) {
-        [bannerView removeFromSuperview];
-    }
 }
 
 - (void)viewDidAppear:(BOOL)animated {
@@ -717,26 +676,3 @@ CGFloat bottomOffst = 0;
 }
 
 @end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

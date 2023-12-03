@@ -10,15 +10,12 @@
 #import <WebKit/WebKit.h>
 #import "BoardView.h"
 #import "PenteNavigationViewController.h"
-#import <GoogleMobileAds/GoogleMobileAds.h>
 @import PopoverView;
 
 //#define IS_IPHONE_5 ( fabs( ( double )[ [ UIScreen mainScreen ] bounds ].size.height - ( double )568 ) < DBL_EPSILON )
 
-@interface BoardViewController : UIViewController <GADBannerViewDelegate, UITextViewDelegate, PopoverViewDelegate, WKNavigationDelegate, UIAlertViewDelegate> {
+@interface BoardViewController : UIViewController <UITextViewDelegate, PopoverViewDelegate, WKNavigationDelegate, UIAlertViewDelegate> {
     Game *game;
-    GADBannerView *bannerView;
-    BOOL showedAd;
     NSMutableArray *movesList, *captures, *receivedMessages;
     NSString *receivedMessage, *replyMessage, *playerStatsBaseString;
     NSMutableString *moveStatsString;
@@ -27,15 +24,12 @@
     WKWebView *playerStats;
     PopoverView *messagePopover;
     NSMutableDictionary *messagesHistory;
-    BOOL activeGame, isLastMove, showAds;
+    BOOL activeGame, isLastMove;
     UIButton *lockButton;
 }
 @property(nonatomic, retain, readwrite) UIButton *lockButton;
-@property(atomic) BOOL showedAd;
 @property(atomic) BOOL activeGame, isLastMove;
-@property(atomic) BOOL showAds;
 @property(nonatomic,retain) Game *game;
-@property(nonatomic,retain) GADBannerView *bannerView;
 @property(nonatomic,retain) NSMutableArray *movesList, *captures, *receivedMessages;
 @property(nonatomic, retain) NSString *receivedMessage, *replyMessage, *playerStatsBaseString;
 @property(nonatomic, retain) NSMutableString *moveStatsString;
@@ -86,7 +80,6 @@
 //-(void) detectCaptureOfOpponent: (int) opponentColor atPosition: (int) rowCol;
 //-(void) detectKeryoCaptureOfOpponent: (int) opponentColor atPosition: (int) rowCol;
 //-(BOOL) detectPoof: (int) myColor atPosition: (int) rowCol;
-- (void)adViewWillPresentScreen:(GADBannerView *)bannerView;
 
 @property (weak, nonatomic) IBOutlet UIButton *messageButton;
 @end

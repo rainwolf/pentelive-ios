@@ -5,59 +5,11 @@ PODS:
   - ARChromeActivity (1.0.6)
   - CocoaAsyncSocket (7.6.5)
   - Color-Picker-for-iOS (2.0.2)
-  - Google-Mobile-Ads-SDK (10.6.0):
-    - GoogleAppMeasurement (< 11.0, >= 7.0)
-    - GoogleUserMessagingPlatform (>= 1.1)
-  - GoogleAppMeasurement (10.10.0):
-    - GoogleAppMeasurement/AdIdSupport (= 10.10.0)
-    - GoogleUtilities/AppDelegateSwizzler (~> 7.11)
-    - GoogleUtilities/MethodSwizzler (~> 7.11)
-    - GoogleUtilities/Network (~> 7.11)
-    - "GoogleUtilities/NSData+zlib (~> 7.11)"
-    - nanopb (< 2.30910.0, >= 2.30908.0)
-  - GoogleAppMeasurement/AdIdSupport (10.10.0):
-    - GoogleAppMeasurement/WithoutAdIdSupport (= 10.10.0)
-    - GoogleUtilities/AppDelegateSwizzler (~> 7.11)
-    - GoogleUtilities/MethodSwizzler (~> 7.11)
-    - GoogleUtilities/Network (~> 7.11)
-    - "GoogleUtilities/NSData+zlib (~> 7.11)"
-    - nanopb (< 2.30910.0, >= 2.30908.0)
-  - GoogleAppMeasurement/WithoutAdIdSupport (10.10.0):
-    - GoogleUtilities/AppDelegateSwizzler (~> 7.11)
-    - GoogleUtilities/MethodSwizzler (~> 7.11)
-    - GoogleUtilities/Network (~> 7.11)
-    - "GoogleUtilities/NSData+zlib (~> 7.11)"
-    - nanopb (< 2.30910.0, >= 2.30908.0)
-  - GoogleUserMessagingPlatform (2.0.1)
-  - GoogleUtilities/AppDelegateSwizzler (7.11.1):
-    - GoogleUtilities/Environment
-    - GoogleUtilities/Logger
-    - GoogleUtilities/Network
-  - GoogleUtilities/Environment (7.11.1):
-    - PromisesObjC (< 3.0, >= 1.2)
-  - GoogleUtilities/Logger (7.11.1):
-    - GoogleUtilities/Environment
-  - GoogleUtilities/MethodSwizzler (7.11.1):
-    - GoogleUtilities/Logger
-  - GoogleUtilities/Network (7.11.1):
-    - GoogleUtilities/Logger
-    - "GoogleUtilities/NSData+zlib"
-    - GoogleUtilities/Reachability
-  - "GoogleUtilities/NSData+zlib (7.11.1)"
-  - GoogleUtilities/Reachability (7.11.1):
-    - GoogleUtilities/Logger
   - HexColors (2.3.0)
   - ICDMaterialActivityIndicatorView (0.1.3)
   - InAppSettingsKit (3.3.6)
-  - nanopb (2.30909.0):
-    - nanopb/decode (= 2.30909.0)
-    - nanopb/encode (= 2.30909.0)
-  - nanopb/decode (2.30909.0)
-  - nanopb/encode (2.30909.0)
   - NSHash (1.1.0)
-  - PersonalizedAdConsent (1.0.5)
   - PopoverView (0.0.2)
-  - PromisesObjC (2.2.0)
   - RMStore (0.7.1):
     - RMStore/Core (= 0.7.1)
   - RMStore/Core (0.7.1)
@@ -74,11 +26,9 @@ DEPENDENCIES:
   - AFWebViewController (~> 1.0)
   - CocoaAsyncSocket
   - Color-Picker-for-iOS (~> 2.0)
-  - Google-Mobile-Ads-SDK
   - ICDMaterialActivityIndicatorView
   - InAppSettingsKit
   - NSHash (~> 1.1.0)
-  - PersonalizedAdConsent
   - PopoverView (from `https://github.com/runway20/PopoverView.git`)
   - RMStore (~> 0.7)
   - TSMessages (from `https://github.com/rainwolf/TSMessages.git`)
@@ -91,17 +41,10 @@ SPEC REPOS:
     - ARChromeActivity
     - CocoaAsyncSocket
     - Color-Picker-for-iOS
-    - Google-Mobile-Ads-SDK
-    - GoogleAppMeasurement
-    - GoogleUserMessagingPlatform
-    - GoogleUtilities
     - HexColors
     - ICDMaterialActivityIndicatorView
     - InAppSettingsKit
-    - nanopb
     - NSHash
-    - PersonalizedAdConsent
-    - PromisesObjC
     - RMStore
     - TUSafariActivity
     - "UIColor+Hex"
@@ -130,24 +73,17 @@ SPEC CHECKSUMS:
   ARChromeActivity: 5dcf9b9f09323761f992aff3525cdd777f83609d
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
   Color-Picker-for-iOS: 1fe5c2bdad770aff88150393bb920e6718d03535
-  Google-Mobile-Ads-SDK: 07599a44221fb3f00d111d5c2f4e27549f8dbf21
-  GoogleAppMeasurement: bbbfd4bcb2b40ae9b772c3b0823a58c1e3d618f9
-  GoogleUserMessagingPlatform: 5f8b30daf181805317b6b985bb51c1ff3beca054
-  GoogleUtilities: 9aa0ad5a7bc171f8bae016300bfcfa3fb8425749
   HexColors: 6ad3947c3447a055a3aa8efa859def096351fe5f
   ICDMaterialActivityIndicatorView: 52e3f11f27ebf0b53a7bc7725f416b1a182367b6
   InAppSettingsKit: 37df0b44132380d4c7db6fc7cded92997e29873a
-  nanopb: b552cce312b6c8484180ef47159bc0f65a1f0431
   NSHash: 61d598c6d48957c5557f1eef0aeafd6ef5ec5fb7
-  PersonalizedAdConsent: dbecabb3467df967c16d9cebc2ef4a8890e4bbd8
   PopoverView: 51d31a7f2398afbff710dc7933a357bf2c3cbe72
-  PromisesObjC: 09985d6d70fbe7878040aa746d78236e6946d2ef
   RMStore: 64ba13a9c040e3b7572765d169f77175cd3243e5
   TSMessages: 6e403b790139636c15ab4f51946537095e03e79c
   TUSafariActivity: afc55a00965377939107ce4fdc7f951f62454546
   UIBarButtonItem-Badge: 8f5ed4d32d32dbb03034d4f273d02c8da680236b
   "UIColor+Hex": 9fee91bb8e19f17dd40a79ae1e98949a6a84489d
 
-PODFILE CHECKSUM: dda9a02bee238dc12e97b11d54a8a81ebed9d3c5
+PODFILE CHECKSUM: dd9391606e72d4d39aa8b123fa10e673438f7eb2
 
 COCOAPODS: 1.12.1

@@ -23,7 +23,6 @@
 
 #import "BoardViewController.h"
 #import "BoardView.h"
-#import <GoogleMobileAds/GoogleMobileAds.h>
 #import <QuartzCore/QuartzCore.h>
 #import "PopoverView.h"
 #import "DatabaseViewController.h"
@@ -58,8 +57,6 @@
 @synthesize blackCapturesCountLabel;
 @synthesize blackStoneCaptures;
 @synthesize spinner;
-@synthesize bannerView;
-@synthesize showedAd;
 @synthesize horizontalLine;
 @synthesize verticalLine;
 @synthesize movesList;
@@ -76,7 +73,6 @@
 @synthesize activeGame;
 @synthesize isLastMove;
 @synthesize playerStats;
-@synthesize showAds;
 @synthesize moveStatsString;
 @synthesize playerStatsBaseString;
 
@@ -130,7 +126,6 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
     canUnHide = NO;
 
 	// Do any additional setup after loading the view, typically from a nib.
-    showedAd = NO;
     cancelMsg = @"";
     hideString = @"";
     messageButtonImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"messageBubble0.png"]];
@@ -232,30 +227,26 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
-    if (!showedAd) {
-        [zoomedBoard setHidden:YES];
-        [zoomedStone setHidden:YES];
-        [stone setHidden:YES];
-        finalMove = -1;
-        connect6Move1 = -1;
-        connect6Move2 = -1;
-        dPenteMove1 = -1;
-        dPenteMove2 = -1;
-        dPenteMove3 = -1;
-        dPenteMove4 = -1;
+    [zoomedBoard setHidden:YES];
+    [zoomedStone setHidden:YES];
+    [stone setHidden:YES];
+    finalMove = -1;
+    connect6Move1 = -1;
+    connect6Move2 = -1;
+    dPenteMove1 = -1;
+    dPenteMove2 = -1;
+    dPenteMove3 = -1;
+    dPenteMove4 = -1;
 //        dPenteChoice = NO;
 //        dPenteOpening = NO;
-        poofed = NO;
-        [whiteStoneCaptures setStoneColor:WHITE];
-        [blackStoneCaptures setStoneColor:BLACK];
-        [horizontalLine setHidden:YES];
-        [verticalLine setHidden:YES];
-        captures = [[NSMutableArray alloc] init];
-        replyMessage = @"";
-    } else {
-        showedAd = NO;
-    }
-    
+    poofed = NO;
+    [whiteStoneCaptures setStoneColor:WHITE];
+    [blackStoneCaptures setStoneColor:BLACK];
+    [horizontalLine setHidden:YES];
+    [verticalLine setHidden:YES];
+    captures = [[NSMutableArray alloc] init];
+    replyMessage = @"";
+
     UIBarButtonItem *negativeSpacer = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFixedSpace target:nil action:nil];
     negativeSpacer.width = -16.0;// it was -6 in iOS 6
     UIBarButtonItem *positiveSpacer = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFixedSpace target:nil action:nil];
@@ -279,46 +270,7 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
     }
     CGFloat screenHeight = UIScreen.mainScreen.bounds.size.height;
     CGFloat newOriginY = screenHeight - self.navigationController.navigationBar.frame.size.height - [UIApplication sharedApplication].statusBarFrame.size.height;
-    GADAdSize adSize = GADPortraitAnchoredAdaptiveBannerAdSizeWithWidth(self.view.bounds.size.width);
-    if (showAds) {
-        playerStats.frame = CGRectMake(2, submitButton.frame.origin.y + 3 + submitButton.frame.size.height, self.view.bounds.size.width - 4,  newOriginY - submitButton.frame.origin.y - adSize.size.height -5 -  submitButton.frame.size.height - bottomOffset);
-    } else {
-        playerStats.frame = CGRectMake(2, submitButton.frame.origin.y +  3 + submitButton.frame.size.height, self.view.bounds.size.width - 4, newOriginY - submitButton.frame.origin.y - 5 -  submitButton.frame.size.height - bottomOffset);
-    }
-    if (showAds) {
-        CGPoint origin = CGPointMake(0.0, self.view.frame.size.height - self.navigationController.navigationBar.frame.size.height - adSize.size.height - bottomOffset);
-        bannerView = [[GADBannerView alloc] initWithAdSize:adSize origin:origin];
-        bannerView.rootViewController = self;
-        [bannerView setDelegate: self];
-        newOriginY = screenHeight - self.navigationController.navigationBar.frame.size.height - [UIApplication sharedApplication].statusBarFrame.size.height - bannerView.frame.size.height - bottomOffset;
-        CGRect newBannerViewFrame = CGRectMake(bannerView.frame.origin.x, newOriginY, bannerView.frame.size.width, bannerView.frame.size.height);
-        bannerView.frame = newBannerViewFrame;
-        bannerView.adUnitID = @"ca-app-pub-3326997956703582/5064095440";
-//        bannerView.adUnitID = @"ca-app-pub-3326997956703582/8641559446";
-//        bannerView.adUnitID = @"ca-app-pub-3940256099942544/2934735716";
-        GADRequest *request = [GADRequest request];
-        PentePlayer *player = ((PenteNavigationViewController *)self.navigationController).player;
-        if (!player.personalizeAds) {
-            GADExtras *extras = [[GADExtras alloc] init];
-            extras.additionalParameters = @{@"npa": @"1"};
-            [request registerAdNetworkExtras:extras];
-        }
-        [self.view addSubview:bannerView];
-        [bannerView loadRequest:request];
-
-        [self.view bringSubviewToFront:bannerView];
-//                NSLog(@"%f", bannerView.frame.origin.y);
-//                NSLog(@"%f", playerStats.frame.origin.y + playerStats.frame.size.height);
-        //        [self.view addConstraints:@[
-        //                                    [NSLayoutConstraint constraintWithItem:bannerView
-        //                                                                 attribute:NSLayoutAttributeCenterX
-        //                                                                 relatedBy:NSLayoutRelationEqual
-        //                                                                    toItem:self.view
-        //                                                                 attribute:NSLayoutAttributeCenterX
-        //                                                                multiplier:1
-        //                                                                  constant:0]
-        //                                    ]];
-    }
+    playerStats.frame = CGRectMake(2, submitButton.frame.origin.y +  3 + submitButton.frame.size.height, self.view.bounds.size.width - 4, newOriginY - submitButton.frame.origin.y - 5 -  submitButton.frame.size.height - bottomOffset);
 }
 
 
@@ -337,13 +289,6 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
 //    [playerStats setText:@""];
     [super viewWillDisappear:animated];
 }
-
-- (void)adViewWillPresentScreen:(GADBannerView *)bannerView {
-    showedAd = YES;
-}
-
-//- (void)adViewWillDismissScreen:(GADBannerView *)bannerView {
-//}
 
 
 - (void)viewDidUnload {
@@ -1751,7 +1696,6 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
     DatabaseViewController * vc = (DatabaseViewController *)[sb instantiateViewControllerWithIdentifier:@"databaseViewController"];
     [vc setMovesList: [[movesList subarrayWithRange:NSMakeRange(0, lastMove)] mutableCopy]];
     [vc setGame:[self.game gameType]];
-    [vc setShowAds: !navController.player.subscriber];
     [self.navigationController pushViewController:vc animated:YES];
 }
 
@@ -3914,10 +3858,6 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
 
 - (void)popoverViewDidDismiss:(PopoverView *)popoverView {
     replyMessage = replyMessageView.text;
-    if (showAds) {
-        [self.view bringSubviewToFront:bannerView];
-    }
-//    NSLog(@"kitty Dismiss");
 }
 
 - (void)webView:(WKWebView *)webView didFinishNavigation:(WKNavigation *)navigation {

@@ -77,7 +77,6 @@ class PenteWebViewController: AFWebViewController, WKNavigationDelegate {
         //            boardVC.viewDidLoad()
                     boardVC.activeGame = false
                     boardVC.game = game
-                    boardVC.showAds = (self.navigationController as! PenteNavigationViewController).player.showAds
                     boardVC.boardTapRecognizer.isEnabled = false
                     boardVC.replayGame()
         

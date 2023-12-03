@@ -10,7 +10,6 @@
 #import "DBBoardView.h"
 #import "BoardView.h"
 #import "PenteNavigationViewController.h"
-#import <GoogleMobileAds/GoogleMobileAds.h>
 #import "PopoverView.h"
 #import "DBSetupView.h"
 #import "DBAISetupView.h"
@@ -19,15 +18,13 @@
 
 //#define IS_IPHONE_5 ( fabs( ( double )[ [ UIScreen mainScreen ] bounds ].size.height - ( double )568 ) < DBL_EPSILON )
 
-@interface DatabaseViewController : UIViewController <GADBannerViewDelegate, PopoverViewDelegate, UIAlertViewDelegate, WKNavigationDelegate> {
-    GADBannerView *bannerView;
-    BOOL showedAd;
+@interface DatabaseViewController : UIViewController <PopoverViewDelegate, UIAlertViewDelegate, WKNavigationDelegate> {
     NSMutableArray *movesList, *captures;
     NSString *playerStatsBaseString, *game;
     NSMutableString *moveStatsString;
     WKWebView *playerStats;
     PopoverView *messagePopover;
-    BOOL activeGame, showAds;
+    BOOL activeGame;
     MMAI *aiPlayer;
     DBSetupView *setupView;
     DBAISetupView *aiSetupView;
@@ -35,10 +32,7 @@
     UIButton *aiButton;
     
 }
-@property(atomic) BOOL showedAd;
 @property(atomic) BOOL activeGame;
-@property(atomic) BOOL showAds;
-@property(nonatomic,retain) GADBannerView *bannerView;
 @property(nonatomic,retain) NSMutableArray *movesList, *captures;
 @property(nonatomic, retain) NSString *playerStatsBaseString, *game;
 @property(nonatomic, retain) NSMutableString *moveStatsString;
@@ -60,7 +54,6 @@
 @property (strong, nonatomic) IBOutlet UILongPressGestureRecognizer *boardTapRecognizer;
 
 - (IBAction)boardTap:(UILongPressGestureRecognizer *)recognizer;
-- (void)adViewWillPresentScreen:(GADBannerView *)bannerView;
 
 @property(nonatomic, retain, readwrite) MMAI *aiPlayer;
 @property(nonatomic, retain, readwrite) DBSetupView *setupView;

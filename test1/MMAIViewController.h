@@ -9,30 +9,24 @@
 #import <UIKit/UIKit.h>
 #import "BoardView.h"
 #import "PenteNavigationViewController.h"
-#import <GoogleMobileAds/GoogleMobileAds.h>
 #import "PopoverView.h"
 #import "AISetupView.h"
 @class MMAI;
 
 //#define IS_IPHONE_5 ( fabs( ( double )[ [ UIScreen mainScreen ] bounds ].size.height - ( double )568 ) < DBL_EPSILON )
 
-@interface MMAIViewController : UIViewController <GADBannerViewDelegate, PopoverViewDelegate, UIAlertViewDelegate, WKNavigationDelegate> {
-    GADBannerView *bannerView;
-    BOOL showedAd;
+@interface MMAIViewController : UIViewController <PopoverViewDelegate, UIAlertViewDelegate, WKNavigationDelegate> {
     NSMutableArray *movesList;
     NSString *playerStatsBaseString;
     NSMutableString *moveStatsString;
     WKWebView *playerStats;
     PopoverView *messagePopover;
-    BOOL activeGame, showAds;
+    BOOL activeGame;
     MMAI *aiPlayer;
     AISetupView *setupView;
     
 }
-@property(atomic) BOOL showedAd;
 @property(atomic) BOOL activeGame;
-@property(atomic) BOOL showAds;
-@property(nonatomic,retain) GADBannerView *bannerView;
 @property(nonatomic,retain) NSMutableArray *movesList;
 @property(nonatomic, retain) NSString *playerStatsBaseString;
 @property(nonatomic, retain) NSMutableString *moveStatsString;
@@ -54,7 +48,6 @@
 @property (strong, nonatomic) IBOutlet UILongPressGestureRecognizer *boardTapRecognizer;
 
 - (IBAction)boardTap:(UILongPressGestureRecognizer *)recognizer;
-- (void)adViewWillPresentScreen:(GADBannerView *)bannerView;
 
 @property(nonatomic, retain, readwrite) MMAI *aiPlayer;
 @property(nonatomic, retain, readwrite) AISetupView *setupView;
