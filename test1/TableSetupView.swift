@@ -137,7 +137,7 @@ class TableSetupView: UITableView, UITableViewDelegate, UITableViewDataSource, U
             minutesPicker.dataSource = self
             minutesPicker.tag = 2
             cell.textField.text = "\(table.timer["initialMinutes"]!)"
-            minutesPicker.selectRow(table.timer["initialMinutes"]! - 1, inComponent: 0, animated: true)
+            minutesPicker.selectRow(table.timer["initialMinutes"]!, inComponent: 0, animated: true)
             cell.textField.inputView = minutesPicker
             cell.textField.tag = 1;
             cell.textField.delegate = self
@@ -242,7 +242,7 @@ class TableSetupView: UITableView, UITableViewDelegate, UITableViewDataSource, U
             return table.gameNames[row*2 + 1]
         }
         if pickerView.tag == 2 {
-            return "\(row+1)"
+            return "\(row)"
         }
         if pickerView.tag == 3 {
             return "\(row)"
@@ -255,8 +255,8 @@ class TableSetupView: UITableView, UITableViewDelegate, UITableViewDataSource, U
             table.game = row*2+1
         }
         if pickerView.tag == 2 {
-            initialMinutesCell?.textField.text = "\(row+1)"
-            table.timer.updateValue(row+1, forKey: "initialMinutes")
+            initialMinutesCell?.textField.text = "\(row)"
+            table.timer.updateValue(row, forKey: "initialMinutes")
         }
         if pickerView.tag == 3 {
             incrementalSecondsCell?.textField.text = "\(row)"
