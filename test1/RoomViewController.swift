@@ -93,7 +93,7 @@ class PlayerTableCell: UITableViewCell {
         textField.backgroundColor = UIColor.white
         self.view.addSubview(textField)
         self.navigationItem.title = room.name
-        
+
         self.navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.add, target: self, action: #selector(createTable))
         var sndPath = Bundle.main.path(forResource: "newplayer", ofType: "caf")
         var url = URL.init(fileURLWithPath: sndPath!)
@@ -140,7 +140,8 @@ class PlayerTableCell: UITableViewCell {
 //        self.pentePlayer = (self.navigationController as! PenteNavigationViewController).player
 //                print("jitty \(self.pentePlayer?.playerName)")
         if development {
-            socket = PenteLiveSocket(server: "development.pente.org", port: room.port, room: self)
+            socket = PenteLiveSocket(server: "localhost", port: room.port, room: self)
+//            socket = PenteLiveSocket(server: "development.pente.org", port: room.port, room: self)
         } else {
             socket = PenteLiveSocket(server: "pente.org", port: room.port, room: self)
         }

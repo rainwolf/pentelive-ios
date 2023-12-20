@@ -73,7 +73,7 @@ let development = false
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let vc = RoomViewController(room: servers[indexPath.row])
         vc.pentePlayer = self.pentePlayer
-
+        
         self.navigationController?.pushViewController(vc, animated: true)
     }
     
@@ -81,7 +81,8 @@ let development = false
         do {
             var activeServers: String;
             if development {
-                activeServers = try String(contentsOf: URL(string: "https://development.pente.org/gameServer/mobile/liveServers.jsp?iPhone")!, encoding: String.Encoding.utf8)
+                activeServers = "16000 Main Room (0)\n16001 Beginners (0)\n16002 King of the Hill (0)\n16003 Go (0)"
+//                activeServers = try String(contentsOf: URL(string: "https://development.pente.org/gameServer/mobile/liveServers.jsp?iPhone")!, encoding: String.Encoding.utf8)
             } else {
                 activeServers = try String(contentsOf: URL(string: "https://www.pente.org/gameServer/mobile/liveServers.jsp?iPhone")!, encoding: String.Encoding.utf8)
             }

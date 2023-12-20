@@ -55,16 +55,25 @@ import UIKit
 //
 //        }
         let session = URLSession.shared
-        _ = session.dataTask(with: url!, completionHandler: { (data: Data?, response: URLResponse?, error: Error?) in
+        session.dataTask(with: url!, completionHandler: { (data: Data?, response: URLResponse?, error: Error?) in
         }).resume()
 
         print("connected")
         var tlsSettings: [String:NSObject] = [:]
         tlsSettings.updateValue(server as NSObject, forKey: String(kCFStreamSSLPeerName))
+        if (development) {
+            tlsSettings.updateValue(Bool(booleanLiteral: true) as NSObject, forKey: GCDAsyncSocketManuallyEvaluateTrust)
+        }
         self.socket.startTLS(tlsSettings)
-        login()
+        let seconds = 0.3
+        DispatchQueue.main.asyncAfter(deadline: .now() + seconds) {
+            self.login()
+        }
     }
     
+    func socket(_ sock: GCDAsyncSocket, didReceive trust: SecTrust, completionHandler: @escaping (Bool) -> Void) {
+        completionHandler(true)
+    }
     
     func socketDidDisconnect(_ sock: GCDAsyncSocket, withError err: Error?) {
         if err != nil {
