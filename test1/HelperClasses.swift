@@ -355,10 +355,14 @@ class Table: NSObject {
     }
     func resetTimers() {
         let minutes = timer["initialMinutes"]!
+        var seconds = 0
+        if (minutes == 0) {
+            seconds = timer["incrementalSeconds"]!
+        }
         state.timers[1]!.updateValue(minutes, forKey: "minutes")
         state.timers[2]!.updateValue(minutes, forKey: "minutes")
-        state.timers[1]!.updateValue(0, forKey: "seconds")
-        state.timers[2]!.updateValue(0, forKey: "seconds")
+        state.timers[1]!.updateValue(seconds, forKey: "seconds")
+        state.timers[2]!.updateValue(seconds, forKey: "seconds")
     }
     func updateTimer(playerName: String, minutes:Int, seconds: Int) {
         var seat = 0
