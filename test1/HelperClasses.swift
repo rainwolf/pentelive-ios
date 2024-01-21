@@ -114,6 +114,20 @@ class Table: NSObject {
         super.init()
     }
     
+    func shouldTimerRun() -> Bool {
+        if timed {
+            if moves.isEmpty {
+                let gameName = gameNames[game]!
+                if gameName.contains("D-") || gameName.contains("DK-") || gameName.contains("Go") || gameName.contains("Swap2") {
+                    return true
+                }
+                return false
+            }
+            return true
+        }
+        return false
+    }
+    
     func isDPente() -> Bool {
         return game == 7 || game == 8 || game == 17 || game == 18
     }
@@ -359,12 +373,11 @@ class Table: NSObject {
         if (minutes == 0) {
             seconds = timer["incrementalSeconds"]!
         }
-        state.timers[1]!.updateValue(minutes, forKey: "minutes")
-        state.timers[2]!.updateValue(minutes, forKey: "minutes")
-        state.timers[1]!.updateValue(seconds, forKey: "seconds")
-        state.timers[2]!.updateValue(seconds, forKey: "seconds")
+        let millis = (minutes * 60 + seconds) * 1000
+        state.timers[1]!.updateValue(millis, forKey: "millis")
+        state.timers[2]!.updateValue(millis, forKey: "millis")
     }
-    func updateTimer(playerName: String, minutes:Int, seconds: Int) {
+    func updateTimer(playerName: String, millis:Int) {
         var seat = 0
         if let player = seats[1] {
             if player.name == playerName {
@@ -377,8 +390,8 @@ class Table: NSObject {
             }
         }
         if seat > 0 {
-            state.timers[seat]!.updateValue(minutes, forKey: "minutes")
-            state.timers[seat]!.updateValue(seconds, forKey: "seconds")
+            state.timers[seat]!.updateValue(millis, forKey: "millis")
+            state.timers[seat]!.updateValue(0, forKey: "startTime")
         }
     }
     
@@ -390,12 +403,10 @@ class Table: NSObject {
                 seats.updateValue(player1!, forKey: 2)
                 seats.updateValue(player2!, forKey: 1)
                 if timed {
-                    let minutes1 = state.timers[1]!["minutes"], seconds1 = state.timers[1]!["seconds"]
-                    let minutes2 = state.timers[2]!["minutes"], seconds2 = state.timers[2]!["seconds"]
-                    state.timers[1]!.updateValue(minutes2!, forKey: "minutes")
-                    state.timers[2]!.updateValue(minutes1!, forKey: "minutes")
-                    state.timers[1]!.updateValue(seconds2!, forKey: "seconds")
-                    state.timers[2]!.updateValue(seconds1!, forKey: "seconds")
+                    let millis1 = state.timers[1]!["millis"]
+                    let millis2 = state.timers[2]!["millis"]
+                    state.timers[1]!.updateValue(millis2!, forKey: "millis")
+                    state.timers[2]!.updateValue(millis1!, forKey: "millis")
                 }
             }
             state.dPenteState = .swapped
@@ -1469,7 +1480,7 @@ class GameState: NSObject {
     var dPenteState = DPenteState.noChoice
     var swap2State = Swap2State.noChoice
     var goState = GoState.play
-    var timers = [1: ["minutes":0, "seconds":0], 2: ["minutes":0, "seconds":0]]
+    var timers = [1: ["millis":0], 2: ["millis":0]]
     
 }
 
@@ -1537,12 +1548,12 @@ class TablesAndPlayer: NSObject {
         let table = self.tables[tableId]!
         table.owner = player
     }
-    func updateTimerTable(tableId: Int, player: String, minutes: Int, seconds: Int) {
+    func updateTimerTable(tableId: Int, player: String, millis: Int) {
         if self.tables[tableId] == nil {
             return
         }
         let table = self.tables[tableId]!
-        table.updateTimer(playerName: player, minutes: minutes, seconds: seconds)
+        table.updateTimer(playerName: player, millis: millis)
     }
     func gameStateChange(tableId: Int, state: GameState.State) {
         if self.tables[tableId] == nil {

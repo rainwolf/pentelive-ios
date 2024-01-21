@@ -590,10 +590,16 @@ class PlayerTableCell: UITableViewCell {
     func timerChangeTableEvent(event: [String: Any]) {
         DispatchQueue.main.async {
             let tableId = event["table"] as! Int
-            let minutes = event["minutes"] as! Int
-            let seconds = event["seconds"] as! Int
+            var minutes = event["minutes"] as! Int
+            var seconds = event["seconds"] as! Int
+            var millis = 0;
+            if (event["millis"] as? Int == nil) {
+                millis = (60*minutes + seconds) * 1000
+            } else {
+                millis = event["millis"] as! Int
+            }
             let playerName = event["player"] as! String
-            self.playersAndTables.updateTimerTable(tableId: tableId, player: playerName, minutes: minutes, seconds: seconds)
+            self.playersAndTables.updateTimerTable(tableId: tableId, player: playerName, millis: millis)
             if tableId == self.tableViewController?.table.table {
                 self.tableViewController?.stateChanged()
             }

@@ -609,7 +609,7 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
             }
             zoomedStone.setNeedsDisplay();  board.setNeedsDisplay(); zoomedBoard.setNeedsDisplay()
             if table.timed {
-                timer = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(countDownTimer), userInfo: nil, repeats: true)
+                timer = Timer.scheduledTimer(timeInterval: 0.01, target: self, selector: #selector(countDownTimer), userInfo: nil, repeats: true)
             }
             if waitTimer != nil {
                 waitTimer?.invalidate()
@@ -836,6 +836,9 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
     }
 
     @objc func countDownTimer() {
+        if !table.shouldTimerRun() {
+            return
+        }
         var seat = table.currentPlayer()
         if (table.game == 7 || table.game == 8 || table.game == 17 || table.game == 18) {
             if table.moves.count < 4 {
@@ -845,21 +848,25 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
             }
         }
 
-        let minutes = table.state.timers[seat]!["minutes"]
-        let seconds = table.state.timers[seat]!["seconds"]
-        if seconds == 0 {
-            if minutes == 0 {
-                timer?.invalidate()
-            } else {
-                table.state.timers[seat]!.updateValue(59, forKey: "seconds")
-                table.state.timers[seat]!.updateValue(minutes! - 1, forKey: "minutes")
-            }
-        } else {
-            table.state.timers[seat]!.updateValue(seconds! - 1, forKey: "seconds")
+        var timers = table.state.timers
+        let seatTimer = timers[seat]!
+        let millis = seatTimer["millis"]
+        var startTime = seatTimer["startTime"] ?? 0
+        if startTime == 0 {
+            startTime = Int(Date().timeIntervalSince1970 * 1000)
+            table.state.timers[seat]!.updateValue(startTime, forKey: "startTime")
         }
-        seatsView.setTimers(timers: table.state.timers)
-        
+        let millisElapsed = Int(Date().timeIntervalSince1970 * 1000) - startTime
+        var millisLeft = millis! - millisElapsed
+        if millisLeft <= 0 {
+            millisLeft = 0
+            timer?.invalidate()
+            table.state.timers[seat]!.updateValue(0, forKey: "startTime")
+        }
+        timers[seat]!.updateValue(millisLeft, forKey: "millis")
+        seatsView.setTimers(timers: timers)
     }
+
     @objc func sitStand(sender: UITapGestureRecognizer) {
         let seat = sender.view!.tag
         var event: [String:Any]

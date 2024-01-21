@@ -97,9 +97,23 @@ class SeatsView: UIView {
         }
         ratedTimerLabel.text = NSLocalizedString(ratedStr, comment: "") + "\n" + timerStr
     }
+    func getTimerText(timer: [String: Int]) -> String {
+        let millis = timer["millis"]!
+        let minutes = millis / 60000
+        let secs = (millis % 60000) / 1000
+        var seconds = "\(secs)"
+        if secs < 10 {
+            seconds = "0\(secs)"
+        }
+        if (millis / 1000 < 12) {
+            let tenths = ((millis % 60000) / 100) % 10
+            return "\(minutes):\(seconds).\(tenths)"
+        }
+        return "\(minutes):\(seconds)"
+    }
     func setTimers(timers: [Int:[String:Int]]) {
-        seat1TimeLabel.text = "\(timers[1]!["minutes"]!):\(timers[1]!["seconds"]!)"
-        seat2TimeLabel.text = "\(timers[2]!["minutes"]!):\(timers[2]!["seconds"]!)"
+        seat1TimeLabel.text = getTimerText(timer: timers[1]!)
+        seat2TimeLabel.text = getTimerText(timer: timers[2]!)
     }
     
 }
