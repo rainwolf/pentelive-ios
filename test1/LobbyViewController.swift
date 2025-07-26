@@ -82,7 +82,7 @@ let development = false
             var activeServers: String;
             if development {
                 activeServers = "16000 Main Room (0)\n16001 Beginners (0)\n16002 King of the Hill (0)\n16003 Go (0)"
-//                activeServers = try String(contentsOf: URL(string: "https://development.pente.org/gameServer/mobile/liveServers.jsp?iPhone")!, encoding: String.Encoding.utf8)
+//                activeServers = try String(contentsOf: URL(string: "https://localhost/gameServer/mobile/liveServers.jsp?iPhone")!, encoding: String.Encoding.utf8)
             } else {
                 activeServers = try String(contentsOf: URL(string: "https://www.pente.org/gameServer/mobile/liveServers.jsp?iPhone")!, encoding: String.Encoding.utf8)
             }

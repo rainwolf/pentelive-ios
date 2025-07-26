@@ -333,7 +333,7 @@ CGFloat bottomOffst = 0;
             NSString *password = [[NSUserDefaults standardUserDefaults] objectForKey:@"password"];
             NSString *url = [NSString stringWithFormat:@"https://www.pente.org/gameServer/profile?viewName=%@&name2=%@&password2=%@", playr.name, username, password];
             if (development) {
-                url = [NSString stringWithFormat:@"https://development.pente.org/gameServer/profile?viewName=%@&name2=%@&password2=%@", playr.name, username, password];
+                url = [NSString stringWithFormat:@"https://localhost/gameServer/profile?viewName=%@&name2=%@&password2=%@", playr.name, username, password];
             }
             PenteWebViewController *webVC = [[PenteWebViewController alloc] initWithAddress:url];
             [self.navigationController pushViewController:webVC animated:YES];
@@ -428,7 +428,7 @@ CGFloat bottomOffst = 0;
     // connect to the game server
     url =  @"https://www.pente.org/gameServer/koth";
     if (development) {
-        url =  @"https://development.pente.org/gameServer/koth";
+        url =  @"https://localhost/gameServer/koth";
     }
 
     NSString *postString = [NSString stringWithFormat:@"%@&game=%i",[hillSummary member]?@"leave=":@"join=", hillSummary.gameId];
@@ -478,7 +478,7 @@ CGFloat bottomOffst = 0;
     url =  [NSString stringWithFormat:@"https://www.pente.org/gameServer/mobile/koth.jsp?name=%@&game=%i&name2=%@&password2=%@",username, gameId, username, password];
     if (development) {
         username = @"iostest";
-        url =  [NSString stringWithFormat:@"https://development.pente.org/gameServer/mobile/koth.jsp?name=%@&game=%i&name2=%@&password2=%@",username, gameId, username, password];
+        url =  [NSString stringWithFormat:@"https://localhost/gameServer/mobile/koth.jsp?name=%@&game=%i&name2=%@&password2=%@",username, gameId, username, password];
     }
     [request setURL:[NSURL URLWithString:url]];
     [request setHTTPMethod:@"GET"];
@@ -668,7 +668,7 @@ CGFloat bottomOffst = 0;
 -(void) loadWebsiteHill {
     NSString *urlString = [NSString stringWithFormat:@"https://www.pente.org/gameServer/stairs.jsp?game=%i", hillSummary.gameId];
     if (development) {
-        urlString = [NSString stringWithFormat:@"https://development.pente.org/gameServer/stairs.jsp?game=%i", hillSummary.gameId];
+        urlString = [NSString stringWithFormat:@"https://localhost/gameServer/stairs.jsp?game=%i", hillSummary.gameId];
     }
     PenteWebViewController *webViewController = [[PenteWebViewController alloc] initWithAddress: urlString];
     [self.navigationController pushViewController:webViewController animated:YES];

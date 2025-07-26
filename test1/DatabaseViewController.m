@@ -633,7 +633,7 @@ struct Capture {
         NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
         NSString *url = [NSString stringWithFormat:@"https://www.pente.org/gameServer/mobileController/search?format_name=org.pente.gameDatabase.SimpleGameStorerSearchRequestFormat&format_data=%@", [self URLEncodedString_ch:getStr]];
         if (development) {
-            url = [NSString stringWithFormat:@"https://development.pente.org/gameServer/mobileController/search?format_name=org.pente.gameDatabase.SimpleGameStorerSearchRequestFormat&format_data=%@", [self URLEncodedString_ch:getStr]];
+            url = [NSString stringWithFormat:@"https://localhost/gameServer/mobileController/search?format_name=org.pente.gameDatabase.SimpleGameStorerSearchRequestFormat&format_data=%@", [self URLEncodedString_ch:getStr]];
         }
         [request setURL:[NSURL URLWithString:url]];
         [request setHTTPMethod:@"GET"];

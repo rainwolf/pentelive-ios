@@ -252,7 +252,7 @@ CGFloat bottomOffset = 0;
         NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
         NSString *url = @"https://www.pente.org/gameServer/logout";
         if (development) {
-            url = @"https://development.pente.org/gameServer/logout";
+            url = @"https://localhost/gameServer/logout";
         }
         [request setURL:[NSURL URLWithString:url]];
         [request setHTTPMethod:@"GET"];
@@ -265,7 +265,7 @@ CGFloat bottomOffset = 0;
         request = [[NSMutableURLRequest alloc] init];
         url = [NSString stringWithFormat:@"https://www.pente.org/gameServer/login.jsp?mobile=&name2=%@&password2=%@",username,password];
         if (development) {
-            url = [NSString stringWithFormat:@"https://development.pente.org/gameServer/login.jsp?mobile=&name2=%@&password2=%@",username,password];
+            url = [NSString stringWithFormat:@"https://localhost/gameServer/login.jsp?mobile=&name2=%@&password2=%@",username,password];
         }
         [request setURL:[NSURL URLWithString:url]];
         [request setHTTPMethod:@"POST"];
@@ -386,7 +386,7 @@ CGFloat bottomOffset = 0;
         NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
         NSString *url = [NSString stringWithFormat:@"https://www.pente.org/gameServer/notification?device=iOS&token=%@",storedTokenString];
         if (development) {
-            url = [NSString stringWithFormat:@"https://development.pente.org/gameServer/notification?device=iOS&token=%@",storedTokenString];
+            url = [NSString stringWithFormat:@"https://localhost/gameServer/notification?device=iOS&token=%@",storedTokenString];
         }
         [request setURL:[NSURL URLWithString:url]];
         [request setHTTPMethod:@"GET"];
@@ -426,7 +426,7 @@ CGFloat bottomOffset = 0;
 //            [defaults setBool:YES forKey:GDPRTERMSKEY];
 //            NSString *url = @"https://www.pente.org/gameServer/changeAdsPreference";
 //            if (development) {
-//                url = @"https://development.pente.org/gameServer/changeAdsPreference";
+//                url = @"https://localhost/gameServer/changeAdsPreference";
 //            }
 //            [((PenteNavigationViewController *)self.navigationController).player setPersonalizeAds: [[NSUserDefaults standardUserDefaults] boolForKey:PERSONALIZEADSKEY]];
 //            NSString *postString = @"personalizeAds=Y";
@@ -459,7 +459,7 @@ CGFloat bottomOffset = 0;
 //            [defaults setBool:YES forKey:GDPRTERMSKEY];
 //            NSString *url = @"https://www.pente.org/gameServer/changeAdsPreference";
 //            if (development) {
-//                url = @"https://development.pente.org/gameServer/changeAdsPreference";
+//                url = @"https://localhost/gameServer/changeAdsPreference";
 //            }
 //            [((PenteNavigationViewController *)self.navigationController).player setPersonalizeAds: [[NSUserDefaults standardUserDefaults] boolForKey:PERSONALIZEADSKEY]];
 //            NSString *postString = @"personalizeAds=N";
@@ -1684,17 +1684,17 @@ CGFloat bottomOffset = 0;
         if ([[[[self.player tournaments] objectAtIndex: indexPath.row] tournamentState] isEqualToString:@"2"]) {
             url = [NSString stringWithFormat:@"https://www.pente.org/gameServer/tournaments/status.jsp?eid=%@&name2=%@&password2=%@", [[[self.player tournaments] objectAtIndex: indexPath.row] tournamentID], username, password];
             if (development) {
-                url = [NSString stringWithFormat:@"https://development.pente.org/gameServer/tournaments/status.jsp?eid=%@&name2=%@&password2=%@", [[[self.player tournaments] objectAtIndex: indexPath.row] tournamentID], username, password];
+                url = [NSString stringWithFormat:@"https://localhost/gameServer/tournaments/status.jsp?eid=%@&name2=%@&password2=%@", [[[self.player tournaments] objectAtIndex: indexPath.row] tournamentID], username, password];
             }
         } else if ([[[[self.player tournaments] objectAtIndex: indexPath.row] tournamentState] isEqualToString:@"1"]) {
             url = [NSString stringWithFormat:@"https://www.pente.org/gameServer/tournaments/tournamentConfirm.jsp?eid=%@&name2=%@&password2=%@", [[[self.player tournaments] objectAtIndex: indexPath.row] tournamentID], username, password];
             if (development) {
-                url = [NSString stringWithFormat:@"https://development.pente.org/gameServer/tournaments/tournamentConfirm.jsp?eid=%@&name2=%@&password2=%@", [[[self.player tournaments] objectAtIndex: indexPath.row] tournamentID], username, password];
+                url = [NSString stringWithFormat:@"https://localhost/gameServer/tournaments/tournamentConfirm.jsp?eid=%@&name2=%@&password2=%@", [[[self.player tournaments] objectAtIndex: indexPath.row] tournamentID], username, password];
             }
         } else {
             url = [NSString stringWithFormat:@"https://www.pente.org/gameServer/tournaments/statusRound.jsp?eid=%@&round=%@&name2=%@&password2=%@", [[[self.player tournaments] objectAtIndex: indexPath.row] tournamentID], [[[self.player tournaments] objectAtIndex: indexPath.row] round], username, password];
                 if (development) {
-                    url = [NSString stringWithFormat:@"https://development.pente.org/gameServer/tournaments/statusRound.jsp?eid=%@&round=%@&name2=%@&password2=%@", [[[self.player tournaments] objectAtIndex: indexPath.row] tournamentID], [[[self.player tournaments] objectAtIndex: indexPath.row] round], username, password];
+                    url = [NSString stringWithFormat:@"https://localhost/gameServer/tournaments/statusRound.jsp?eid=%@&round=%@&name2=%@&password2=%@", [[[self.player tournaments] objectAtIndex: indexPath.row] tournamentID], [[[self.player tournaments] objectAtIndex: indexPath.row] round], username, password];
                 }
         }
         PenteWebViewController *webViewController = [[PenteWebViewController alloc] initWithAddress: url];
@@ -1768,7 +1768,7 @@ CGFloat bottomOffset = 0;
     
     NSString *url = @"https://www.pente.org/gameServer/tb/replyInvitation";
     if (development) {
-        url = @"https://development.pente.org/gameServer/tb/replyInvitation";
+        url = @"https://localhost/gameServer/tb/replyInvitation";
     }
     NSString *postString = [NSString stringWithFormat:@"sid=%@&inviteeMessage=&command=Accept&mobile=",[[self.player.invitations objectAtIndex:tmpPath.row] gameID]];
     NSDictionary *urlAndPostString = [NSDictionary dictionaryWithObjects:[NSArray arrayWithObjects:url,postString,nil] forKeys: [NSArray arrayWithObjects:@"url",@"postString",nil]];
@@ -1821,7 +1821,7 @@ CGFloat bottomOffset = 0;
     NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
     NSURL *url = [NSURL URLWithString:@"https://www.pente.org/gameServer/tb/replyInvitation"];
     if (development) {
-        url = [NSURL URLWithString:@"https://development.pente.org/gameServer/tb/replyInvitation"];
+        url = [NSURL URLWithString:@"https://localhost/gameServer/tb/replyInvitation"];
     }
     [request setURL:url];
     [request setHTTPMethod:@"POST"];
@@ -1975,7 +1975,7 @@ CGFloat bottomOffset = 0;
 
     NSString *url = @"https://www.pente.org/gameServer/tb/replyInvitation";
     if (development) {
-        url = @"https://development.pente.org/gameServer/tb/replyInvitation";
+        url = @"https://localhost/gameServer/tb/replyInvitation";
     }
     NSString *postString = [NSString stringWithFormat:@"sid=%@&inviteeMessage=&command=Accept&mobile=",[game gameID]];
     NSDictionary *urlAndPostString = [NSDictionary dictionaryWithObjects:[NSArray arrayWithObjects:url,postString,nil] forKeys: [NSArray arrayWithObjects:@"url",@"postString",nil]];
@@ -2155,7 +2155,7 @@ CGFloat bottomOffset = 0;
         
         NSURL *url = [NSURL URLWithString:@"https://www.pente.org/gameServer/mymessages"];
         if (development) {
-            url = [NSURL URLWithString: @"https://development.pente.org/gameServer/mymessages" ];
+            url = [NSURL URLWithString: @"https://localhost/gameServer/mymessages" ];
         }
         [request setURL:url];
         [request setHTTPMethod:@"POST"];
@@ -2205,7 +2205,7 @@ CGFloat bottomOffset = 0;
         
         NSURL *url = [NSURL URLWithString:@"https://www.pente.org/gameServer/tb/resign"];
         if (development) {
-            url = [NSURL URLWithString: @"https://development.pente.org/gameServer/tb/resign" ];
+            url = [NSURL URLWithString: @"https://localhost/gameServer/tb/resign" ];
         }
         [request setURL:url];
         [request setHTTPMethod:@"POST"];
@@ -2250,7 +2250,7 @@ CGFloat bottomOffset = 0;
         
         NSURL *url = [NSURL URLWithString:@"https://www.pente.org/gameServer/tb/cancelInvitation"];
         if (development) {
-            url = [NSURL URLWithString: @"https://development.pente.org/gameServer/tb/cancelInvitation" ];
+            url = [NSURL URLWithString: @"https://localhost/gameServer/tb/cancelInvitation" ];
         }
         [request setURL:url];
         [request setHTTPMethod:@"POST"];
@@ -2289,7 +2289,7 @@ CGFloat bottomOffset = 0;
 
         NSString *tmpStr = [NSString stringWithFormat:@"https://www.pente.org/gameServer/tb/game?gid=%@&command=load",[[self.player.nonActiveGames objectAtIndex:indexPath.row] gameID]];
         if (development) {
-            tmpStr = [NSString stringWithFormat:@"https://development.pente.org/gameServer/tb/game?gid=%@&command=load",[[self.player.nonActiveGames objectAtIndex:indexPath.row] gameID]];
+            tmpStr = [NSString stringWithFormat:@"https://localhost/gameServer/tb/game?gid=%@&command=load",[[self.player.nonActiveGames objectAtIndex:indexPath.row] gameID]];
         }
         NSURL *url = [NSURL URLWithString: tmpStr];
         NSError *error;
@@ -2310,7 +2310,7 @@ CGFloat bottomOffset = 0;
 
         url = [NSURL URLWithString:@"https://www.pente.org/gameServer/tb/cancel"];
         if (development) {
-            url = [NSURL URLWithString:@"https://development.pente.org/gameServer/tb/cancel"];
+            url = [NSURL URLWithString:@"https://localhost/gameServer/tb/cancel"];
         }
         [request setURL:url];
         [request setHTTPMethod:@"POST"];
@@ -2387,10 +2387,10 @@ CGFloat bottomOffset = 0;
 //    url =  [NSString stringWithFormat:@"https://www.pente.org/gameServer/mobile/index.jsp?name=%@&password=%@&checkname=padler66",username,password];
 //    username = @"padler66";
     if (development) {
-        url =  [NSString stringWithFormat:@"https://development.pente.org/gameServer/mobile/index.jsp?name=%@&password=%@",username,password];
-//        url =  [NSString stringWithFormat:@"https://development.pente.org/gameServer/mobile/index.jsp?name=harveyjoe&password=tsetsoi"];
-//        url =  [NSString stringWithFormat:@"https://development.pente.org/gameServer/mobile/index.jsp?name=%@&password=%@&checkname=harveyjoe",username,password];
-//        url =  [NSString stringWithFormat:@"https://development.pente.org/gameServer/mobile/index.jsp?name=%@&password=%@&checkname=iostest",username,password];
+        url =  [NSString stringWithFormat:@"https://localhost/gameServer/mobile/index.jsp?name=%@&password=%@",username,password];
+//        url =  [NSString stringWithFormat:@"https://localhost/gameServer/mobile/index.jsp?name=harveyjoe&password=tsetsoi"];
+//        url =  [NSString stringWithFormat:@"https://localhost/gameServer/mobile/index.jsp?name=%@&password=%@&checkname=harveyjoe",username,password];
+//        url =  [NSString stringWithFormat:@"https://localhost/gameServer/mobile/index.jsp?name=%@&password=%@&checkname=iostest",username,password];
 //        username = @"harveyjoe";
     }
     
@@ -3008,8 +3008,9 @@ CGFloat bottomOffset = 0;
             }
         }
 
-            [self.tableView endUpdates];
-            [CATransaction commit];
+        [self.tableView endUpdates];
+        [CATransaction commit];
+        [self.tableView setUserInteractionEnabled:YES];
 
     });
 }
@@ -3305,7 +3306,7 @@ CGFloat bottomOffset = 0;
         NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
         NSString *url = [NSString stringWithFormat:@"https://www.pente.org/gameServer/mobile/whosonlineandlive.jsp"];
         if (development) {
-            url =  [NSString stringWithFormat:@"https://development.pente.org/gameServer/mobile/whosonlineandlive.jsp"];
+            url =  [NSString stringWithFormat:@"https://localhost/gameServer/mobile/whosonlineandlive.jsp"];
         }
 
         [request setURL:[NSURL URLWithString:url]];
@@ -3617,7 +3618,7 @@ CGFloat bottomOffset = 0;
     
     NSString *url = @"https://www.pente.org/gameServer/tb/replyInvitation";
     if (development) {
-        url = @"https://development.pente.org/gameServer/tb/replyInvitation";
+        url = @"https://localhost/gameServer/tb/replyInvitation";
     }
     NSString *postString = [NSString stringWithFormat:@"sid=%@&inviteeMessage=&command=Accept&mobile=",[[self.player.publicInvitations objectAtIndex:selectedPublicInvitationIndexPath.row] gameID]];
     NSDictionary *urlAndPostString = [NSDictionary dictionaryWithObjects:[NSArray arrayWithObjects:url,postString,nil] forKeys: [NSArray arrayWithObjects:@"url",@"postString",nil]];

@@ -941,12 +941,12 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
     if ([replyMessage isEqualToString:@""]) {
         url = [NSString stringWithFormat:@"https://www.pente.org/gameServer/tb/game?command=move%@&mobile=&gid=%@&moves=%@&message=",hideString,[self.game gameID],moveString];
         if (development) {
-            url = [NSString stringWithFormat:@"https://development.pente.org/gameServer/tb/game?command=move%@&mobile=&gid=%@&moves=%@&message=",hideString,[self.game gameID],moveString];
+            url = [NSString stringWithFormat:@"https://localhost/gameServer/tb/game?command=move%@&mobile=&gid=%@&moves=%@&message=",hideString,[self.game gameID],moveString];
         }
     } else {
         url = [NSString stringWithFormat:@"https://www.pente.org/gameServer/tb/game?command=move%@&mobile=&gid=%@&moves=%@&message=%@",hideString,[self.game gameID],moveString,[self URLEncodedString_ch:replyMessage]];
         if (development) {
-            url = [NSString stringWithFormat:@"https://development.pente.org/gameServer/tb/game?command=move%@&mobile=&gid=%@&moves=%@&message=%@",hideString,[self.game gameID],moveString,[self URLEncodedString_ch:replyMessage]];
+            url = [NSString stringWithFormat:@"https://localhost/gameServer/tb/game?command=move%@&mobile=&gid=%@&moves=%@&message=%@",hideString,[self.game gameID],moveString,[self URLEncodedString_ch:replyMessage]];
         }
     }
     //    NSLog(@"kitty %@", url);
@@ -1029,9 +1029,9 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
 //    NSString *tmpStr = [NSString stringWithFormat:@"https://www.pente.org/gameServer/tb/game?gid=%@&command=load",[self.game gameID]];
     NSString *tmpStr = [NSString stringWithFormat:@"https://www.pente.org/gameServer/mobile/game.jsp?gid=%@",[self.game gameID]];
     if (development) {
-        tmpStr = [NSString stringWithFormat:@"https://development.pente.org/gameServer/mobile/game.jsp?gid=%@",[self.game gameID]];
+        tmpStr = [NSString stringWithFormat:@"https://localhost/gameServer/mobile/game.jsp?gid=%@",[self.game gameID]];
     }
-//    tmpStr = [NSString stringWithFormat:@"https://development.pente.org/gameServer/mobile/game.jsp?gid=%@",[self.game gameID]];
+//    tmpStr = [NSString stringWithFormat:@"https://localhost/gameServer/mobile/game.jsp?gid=%@",[self.game gameID]];
     NSURL *url = [NSURL URLWithString: tmpStr];
     NSError *error;
     NSString *htmlString = [NSString stringWithContentsOfURL:url encoding:NSUTF8StringEncoding error:&error];
@@ -1550,7 +1550,7 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
             
             NSURL *url = [NSURL URLWithString:@"https://www.pente.org/gameServer/tb/game"];
             if (development) {
-                url = [NSURL URLWithString:@"https://development.pente.org/gameServer/tb/game"];
+                url = [NSURL URLWithString:@"https://localhost/gameServer/tb/game"];
             }
             [request setURL:url];
             [request setHTTPMethod:@"POST"];
@@ -1621,7 +1621,7 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
                                                              
                                                              NSURL *url = [NSURL URLWithString:@"https://www.pente.org/gameServer/tb/game"];
                                                              if (development) {
-                                                                 url = [NSURL URLWithString:@"https://development.pente.org/gameServer/tb/game"];
+                                                                 url = [NSURL URLWithString:@"https://localhost/gameServer/tb/game"];
                                                              }
                                                              [request setURL:url];
                                                              [request setHTTPMethod:@"POST"];
@@ -1656,7 +1656,7 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
                                                              
                                                              NSURL *url = [NSURL URLWithString:@"https://www.pente.org/gameServer/tb/game"];
                                                              if (development) {
-                                                                 url = [NSURL URLWithString:@"https://development.pente.org/gameServer/tb/game"];
+                                                                 url = [NSURL URLWithString:@"https://localhost/gameServer/tb/game"];
                                                              }
                                                              [request setURL:url];
                                                              [request setHTTPMethod:@"POST"];
@@ -3628,7 +3628,7 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
                                                                      
                                                                      NSURL *url = [NSURL URLWithString:@"https://www.pente.org/gameServer/tb/cancel"];
                                                                      if (development) {
-                                                                         url = [NSURL URLWithString:@"https://development.pente.org/gameServer/tb/cancel"];
+                                                                         url = [NSURL URLWithString:@"https://localhost/gameServer/tb/cancel"];
                                                                      }
                                                                      [request setURL:url];
                                                                      [request setHTTPMethod:@"POST"];
@@ -3675,7 +3675,7 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
                                                                       
                                                                       NSURL *url = [NSURL URLWithString:@"https://www.pente.org/gameServer/tb/resign"];
                                                                       if (development) {
-                                                                          url = [NSURL URLWithString:@"https://development.pente.org/gameServer/tb/resign"];
+                                                                          url = [NSURL URLWithString:@"https://localhost/gameServer/tb/resign"];
                                                                       }
                                                                       [request setURL:url];
                                                                       [request setHTTPMethod:@"POST"];
@@ -3780,7 +3780,7 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
     
     NSURL *url = [NSURL URLWithString:@"https://www.pente.org/gameServer/tb/cancel"];
     if (development) {
-        url = [NSURL URLWithString:@"https://development.pente.org/gameServer/tb/cancel"];
+        url = [NSURL URLWithString:@"https://localhost/gameServer/tb/cancel"];
     }
     [request setURL:url];
     [request setHTTPMethod:@"POST"];

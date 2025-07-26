@@ -233,7 +233,7 @@
                 request = [[NSMutableURLRequest alloc] init];
                 url = [NSString stringWithFormat:@"https://www.pente.org/gameServer/index.jsp?name2=%@&password2=%@",username,password];
                 if (development) {
-                    url = [NSString stringWithFormat:@"https://development.pente.org/gameServer/index.jsp?name2=%@&password2=%@",username,password];
+                    url = [NSString stringWithFormat:@"https://localhost/gameServer/index.jsp?name2=%@&password2=%@",username,password];
                 }
                 [request setURL:[NSURL URLWithString:url]];
                 [request setHTTPMethod:@"POST"];
@@ -301,7 +301,7 @@
 
         NSString *url = @"https://www.pente.org/join";
         if (development) {
-            url = @"https://development.pente.org/join";
+            url = @"https://localhost/join";
         }
         NSString *postString = [NSString stringWithFormat:@"name=%@&registerPassword=%@&registerPasswordConfirm=%@&registerEmail=%@&agreePolicy=Y",username, password, passwordVerification, [self URLEncodedString_ch:emailAddress]];
         
@@ -809,7 +809,7 @@
 
             NSString *urlString = @"https://www.pente.org/gameServer/changeAvatar";
             if (development) {
-                urlString = @"https://development.pente.org/gameServer/changeAvatar";
+                urlString = @"https://localhost/gameServer/changeAvatar";
             }
             NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
             [request setURL:[NSURL URLWithString:urlString]];
@@ -902,7 +902,7 @@
     if (self.navC.player && self.navC.player.emailMe != [[NSUserDefaults standardUserDefaults] boolForKey:@"emailMe"]) {
         NSString *url = @"https://www.pente.org/gameServer/changeEmailPreference";
         if (development) {
-            url = @"https://development.pente.org/gameServer/changeEmailPreference";
+            url = @"https://localhost/gameServer/changeEmailPreference";
         }
         [self.navC.player setEmailMe: [[NSUserDefaults standardUserDefaults] boolForKey:@"emailMe"]];
         NSString *postString = [NSString stringWithFormat:@"emailMe=%@",(self.navC.player.emailMe?@"Y":@"N")];
@@ -932,7 +932,7 @@
     if (self.navC.player && self.navC.player.personalizeAds != [[NSUserDefaults standardUserDefaults] boolForKey:PERSONALIZEADSKEY]) {
         NSString *url = @"https://www.pente.org/gameServer/changeAdsPreference";
         if (development) {
-            url = @"https://development.pente.org/gameServer/changeAdsPreference";
+            url = @"https://localhost/gameServer/changeAdsPreference";
         }
         [self.navC.player setPersonalizeAds: [[NSUserDefaults standardUserDefaults] boolForKey:PERSONALIZEADSKEY]];
         NSString *postString = [NSString stringWithFormat:@"personalizeAds=%@",(self.navC.player.personalizeAds?@"Y":@"N")];

@@ -141,7 +141,7 @@ class PlayerTableCell: UITableViewCell {
 //                print("jitty \(self.pentePlayer?.playerName)")
         if development {
             socket = PenteLiveSocket(server: "localhost", port: room.port, room: self)
-//            socket = PenteLiveSocket(server: "development.pente.org", port: room.port, room: self)
+//            socket = PenteLiveSocket(server: "localhost", port: room.port, room: self)
         } else {
             socket = PenteLiveSocket(server: "pente.org", port: room.port, room: self)
         }

@@ -309,7 +309,7 @@
     
     NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
     if (development) {
-        [request setURL:[NSURL URLWithString:@"https://development.pente.org/gameServer/tb/newGame"]];
+        [request setURL:[NSURL URLWithString:@"https://localhost/gameServer/tb/newGame"]];
     } else {
         [request setURL:[NSURL URLWithString:@"https://www.pente.org/gameServer/tb/newGame"]];
     }

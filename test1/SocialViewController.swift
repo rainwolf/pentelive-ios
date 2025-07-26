@@ -234,7 +234,7 @@ class SocialViewController: UIViewController, UITableViewDelegate, UITableViewDa
             followers.removeAll()
             following.removeAll()
             let followersing = try String(contentsOf: URL(string: "https://www.pente.org/gameServer/mobile/followers.jsp?game=\(game)")!, encoding: String.Encoding.utf8)
-            //            let activeServers = try String(contentsOf: URL(string: "https://development.pente.org/gameServer/activeServers")!, encoding: String.Encoding.utf8)
+            //            let activeServers = try String(contentsOf: URL(string: "https://localhost/gameServer/activeServers")!, encoding: String.Encoding.utf8)
 //                        print(followersing)
             let followerLines = followersing.components(separatedBy: "\n")
             for line in followerLines {

@@ -200,7 +200,7 @@ NSArray<NSString *> *restrictions;
         NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
         [request setURL:[NSURL URLWithString:@"https://www.pente.org/gameServer/tb/newGame"]];
         if (development) {
-            [request setURL:[NSURL URLWithString:@"https://development.pente.org/gameServer/tb/newGame"]];
+            [request setURL:[NSURL URLWithString:@"https://localhost/gameServer/tb/newGame"]];
         }
         [request setHTTPMethod:@"POST"];
         [request setValue:postLength forHTTPHeaderField:@"Content-Length"];

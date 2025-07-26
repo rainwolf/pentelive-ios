@@ -119,7 +119,7 @@ InvitationsViewController *invitationVC;
         // load the message
         url = [NSString stringWithFormat:@"https://www.pente.org/gameServer/mymessages?command=view&mid=%@", messageID];
         if (development) {
-            url = [NSString stringWithFormat:@"https://development.pente.org/gameServer/mymessages?command=view&mid=%@", messageID];
+            url = [NSString stringWithFormat:@"https://localhost/gameServer/mymessages?command=view&mid=%@", messageID];
         }
         [request setURL:[NSURL URLWithString:url]];
         [request setHTTPMethod:@"GET"];
@@ -339,10 +339,10 @@ InvitationsViewController *invitationVC;
     NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
     NSURL *url = [NSURL URLWithString:@"https://www.pente.org/gameServer/mymessages"];
     if (development) {
-        url = [NSURL URLWithString:@"https://development.pente.org/gameServer/mymessages"];
+        url = [NSURL URLWithString:@"https://localhost/gameServer/mymessages"];
     }
     [request setURL:url];
-//    [request setURL:[NSURL URLWithString:@"https://development.pente.org/gameServer/mymessages"]];
+//    [request setURL:[NSURL URLWithString:@"https://localhost/gameServer/mymessages"]];
     [request setHTTPMethod:@"POST"];
     [request setValue:postLength forHTTPHeaderField:@"Content-Length"];
     [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
@@ -415,7 +415,7 @@ InvitationsViewController *invitationVC;
     
     NSURL *url = [NSURL URLWithString:@"https://www.pente.org/gameServer/mymessages"];
     if (development) {
-        url = [NSURL URLWithString:@"https://development.pente.org/gameServer/mymessages"];
+        url = [NSURL URLWithString:@"https://localhost/gameServer/mymessages"];
     }
     [request setURL:url];
     [request setHTTPMethod:@"POST"];
