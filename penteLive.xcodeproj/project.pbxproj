@@ -1277,7 +1277,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 2.9.3;
+				CURRENT_PROJECT_VERSION = 2.9.6;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = CT6S5R75J5;
 				ENABLE_BITCODE = NO;
@@ -1289,7 +1289,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
-				MARKETING_VERSION = 2.9.3;
+				MARKETING_VERSION = 2.9.5;
 				OTHER_LDFLAGS = (
 					"-ObjC",
 					"$(inherited)",
@@ -1298,7 +1298,7 @@
 				PRODUCT_NAME = penteLive;
 				PROVISIONING_PROFILE = "";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "BeSubmanifoldPenteLive AdHoc 2023";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "BeSubmanifoldPenteLive AdHoc 2025";
 				SWIFT_OBJC_BRIDGING_HEADER = "test1/penteLive-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -1319,7 +1319,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 2.9.3;
+				CURRENT_PROJECT_VERSION = 2.9.6;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = CT6S5R75J5;
 				ENABLE_BITCODE = NO;
@@ -1331,7 +1331,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
-				MARKETING_VERSION = 2.9.3;
+				MARKETING_VERSION = 2.9.5;
 				OTHER_LDFLAGS = (
 					"-ObjC",
 					"$(inherited)",
@@ -1340,7 +1340,7 @@
 				PRODUCT_NAME = penteLive;
 				PROVISIONING_PROFILE = "";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "BeSubmanifoldPenteLive AdHoc 2023";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "BeSubmanifoldPenteLive AdHoc 2025";
 				SWIFT_OBJC_BRIDGING_HEADER = "test1/penteLive-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";

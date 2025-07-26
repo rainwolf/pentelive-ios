@@ -765,7 +765,7 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
                         }
                     }
                     [self detectCaptureOfOpponent:(stone.stoneColor == BLACK ? 1 : 2) atPosition: finalMove];
-                    if ([[self.game gameType] isEqualToString:@"Keryo-Pente"] || [[self.game gameType] isEqualToString:@"DK-Pente"] || [[self.game gameType] isEqualToString:@"O-Pente"]) {
+                    if ([[self.game gameType] containsString:@"Keryo-Pente"] || [[self.game gameType] isEqualToString:@"DK-Pente"] || [[self.game gameType] isEqualToString:@"O-Pente"]) {
                         [self detectKeryoCaptureOfOpponent:(stone.stoneColor == BLACK ? 1 : 2) atPosition: finalMove];
                     }
                     if ([captures count] != 0) {
