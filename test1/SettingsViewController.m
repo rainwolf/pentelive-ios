@@ -222,6 +222,9 @@
             if (!((username == nil) || (password == nil) || [username isEqualToString:@""] || [password isEqualToString:@""])) {
                 NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
                 NSString *url = @"https://www.pente.org/gameServer/logout";
+                if (development) {
+                    url = @"https://localhost/gameServer/logout";
+                }
                 [request setURL:[NSURL URLWithString:url]];
                 [request setHTTPMethod:@"GET"];
                 [request setTimeoutInterval:7.0];

@@ -3496,7 +3496,7 @@ CGFloat bottomOffset = 0;
     if (player && !player.dbAccess) {
         UIAlertController *subscribersOnlyController = [UIAlertController
                                              alertControllerWithTitle:NSLocalizedString(@"Level up your game", nil)
-                                             message: NSLocalizedString(@"The database allows you to search games in the pente.org database by position. This powerful tool enables you to study and analyze games and opponents, practice opening moves, sort the results by most played or highest win percentage, and filter by player name and winner. More features will be added in the future.\n\nThe database is open to subscribers only.", nil)
+                                             message: NSLocalizedString(@"The database allows you to search games in the pente.org database by position. This powerful tool enables you to study and analyze games and opponents, practice opening moves, sort the results by most played or highest win percentage, and filter by player name and winner. More features will be added in the future.\n\nThe database is open to subscribers or new users after their first rated game in their first two months only.", nil)
                                              preferredStyle:UIAlertControllerStyleActionSheet];
         UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"dismiss", nil) style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {
             //            NSLog(@"Cancel action");
