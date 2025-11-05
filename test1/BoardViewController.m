@@ -227,6 +227,11 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
+    
+    if (@available(iOS 26.0, *)) {
+        self.navigationController.interactiveContentPopGestureRecognizer.enabled = NO;
+    }
+    
     [zoomedBoard setHidden:YES];
     [zoomedStone setHidden:YES];
     [stone setHidden:YES];
@@ -276,17 +281,17 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
 
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
-//    if (bannerView) {
-//        [bannerView loadRequest:[GADRequest request]];
-//    }
 }
 
 - (void)viewWillDisappear:(BOOL)animated {
 //    [bannerView removeFromSuperview];
     PenteNavigationViewController *navController = (PenteNavigationViewController *) self.navigationController;
     [navController setChallengeCancelled:YES];
-    
-//    [playerStats setText:@""];
+
+    if (@available(iOS 26.0, *)) {
+        navController.interactiveContentPopGestureRecognizer.enabled = YES;
+    }
+
     [super viewWillDisappear:animated];
 }
 
