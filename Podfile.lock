@@ -7,7 +7,7 @@ PODS:
   - Color-Picker-for-iOS (2.0.2)
   - HexColors (2.3.0)
   - ICDMaterialActivityIndicatorView (0.1.3)
-  - InAppSettingsKit (3.3.6)
+  - InAppSettingsKit (3.9.2)
   - NSHash (1.1.0)
   - PopoverView (0.0.2)
   - RMStore (0.7.1):
@@ -62,7 +62,7 @@ CHECKOUT OPTIONS:
     :commit: b542c8660bd448923cfd05e677577238f91d91e4
     :git: https://github.com/runway20/PopoverView.git
   TSMessages:
-    :commit: 6ecb24ffdaf4b3019e2818e95075315cf40d2bf1
+    :commit: c638015178dcb81fc2b9147e777fbf37cc09c909
     :git: https://github.com/rainwolf/TSMessages.git
   UIBarButtonItem-Badge:
     :commit: 991d994a8219b4b78bca58586b239bef33c1e392
@@ -75,11 +75,11 @@ SPEC CHECKSUMS:
   Color-Picker-for-iOS: 1fe5c2bdad770aff88150393bb920e6718d03535
   HexColors: 6ad3947c3447a055a3aa8efa859def096351fe5f
   ICDMaterialActivityIndicatorView: 52e3f11f27ebf0b53a7bc7725f416b1a182367b6
-  InAppSettingsKit: 37df0b44132380d4c7db6fc7cded92997e29873a
+  InAppSettingsKit: 960d91fde94cae12a007c2272e34700a171df600
   NSHash: 61d598c6d48957c5557f1eef0aeafd6ef5ec5fb7
   PopoverView: 51d31a7f2398afbff710dc7933a357bf2c3cbe72
   RMStore: 64ba13a9c040e3b7572765d169f77175cd3243e5
-  TSMessages: 6e403b790139636c15ab4f51946537095e03e79c
+  TSMessages: eb3cf27b6900684a21bad4fe9ea426e287b8c839
   TUSafariActivity: afc55a00965377939107ce4fdc7f951f62454546
   UIBarButtonItem-Badge: 8f5ed4d32d32dbb03034d4f273d02c8da680236b
   "UIColor+Hex": 9fee91bb8e19f17dd40a79ae1e98949a6a84489d

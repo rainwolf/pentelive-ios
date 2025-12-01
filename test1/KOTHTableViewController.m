@@ -309,7 +309,7 @@ CGFloat bottomOffst = 0;
                                          buttonCallback:^{
                                              [TSMessage dismissActiveNotification];
                                          }
-                                             atPosition:TSMessageNotificationPositionTop
+                                             atPosition:TSMessageNotificationPositionNavBarOverlay
                                    canBeDismissedByUser:YES];
             
         });
