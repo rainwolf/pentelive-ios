@@ -32,7 +32,7 @@ DEPENDENCIES:
   - PopoverView (from `https://github.com/runway20/PopoverView.git`)
   - RMStore (~> 0.7)
   - TSMessages (from `https://github.com/rainwolf/TSMessages.git`)
-  - UIBarButtonItem-Badge (from `https://github.com/mikeMTOL/UIBarButtonItem-Badge.git`)
+  - UIBarButtonItem-Badge (from `https://github.com/rainwolf/UIBarButtonItem-Badge.git`)
   - "UIColor+Hex"
 
 SPEC REPOS:
@@ -55,7 +55,7 @@ EXTERNAL SOURCES:
   TSMessages:
     :git: https://github.com/rainwolf/TSMessages.git
   UIBarButtonItem-Badge:
-    :git: https://github.com/mikeMTOL/UIBarButtonItem-Badge.git
+    :git: https://github.com/rainwolf/UIBarButtonItem-Badge.git
 
 CHECKOUT OPTIONS:
   PopoverView:
@@ -65,8 +65,8 @@ CHECKOUT OPTIONS:
     :commit: c638015178dcb81fc2b9147e777fbf37cc09c909
     :git: https://github.com/rainwolf/TSMessages.git
   UIBarButtonItem-Badge:
-    :commit: 991d994a8219b4b78bca58586b239bef33c1e392
-    :git: https://github.com/mikeMTOL/UIBarButtonItem-Badge.git
+    :commit: 8ec19330e7bec195a6dc0cf10024340959cc972b
+    :git: https://github.com/rainwolf/UIBarButtonItem-Badge.git
 
 SPEC CHECKSUMS:
   AFWebViewController: 3cee572a8e043f3ca7c5b5906dac149cb740ed1f
@@ -84,6 +84,6 @@ SPEC CHECKSUMS:
   UIBarButtonItem-Badge: 8f5ed4d32d32dbb03034d4f273d02c8da680236b
   "UIColor+Hex": 9fee91bb8e19f17dd40a79ae1e98949a6a84489d
 
-PODFILE CHECKSUM: dd9391606e72d4d39aa8b123fa10e673438f7eb2
+PODFILE CHECKSUM: 815ddc1a78a23412fbf79cb4b2cd54b3807aec21
 
 COCOAPODS: 1.12.1

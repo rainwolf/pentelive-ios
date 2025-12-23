@@ -2463,13 +2463,33 @@ CGFloat bottomOffset = 0;
                 [self.player setShowAds: showAds];
                 [self.player setSubscriber: [[splitLine objectAtIndex:3] isEqualToString:@"subscriber"]];
                 livePlayers = [splitLine objectAtIndex:4];
-                inviteButton.badgeValue = livePlayers;
+                if (@available(iOS 26.0, *)) {
+                    if (![livePlayers isEqualToString: @"0"]) {
+                        [inviteButton setBadge:[UIBarButtonItemBadge badgeWithString:livePlayers]];
+                        [inviteButton.badge setBackgroundColor:[UIColor colorWithRed:(8.0/255) green:(52.0/255) blue:(29.0/255) alpha:1.0]];
+                    } else {
+                        [inviteButton setBadge:nil];
+                    }
+                } else {
+                    inviteButton.badgeValue = livePlayers;
+                    [inviteButton setBadgeBGColor:[UIColor colorWithRed:(8.0/255) green:(52.0/255) blue:(29.0/255) alpha:1.0]];
+                }
                 [self.player setDbAccess: [[splitLine objectAtIndex:5] isEqualToString:@"dbAccessGranted"]];
                 [self.player setEmailMe: [[splitLine objectAtIndex:6] isEqualToString:@"emailMe"]];
                 [[NSUserDefaults standardUserDefaults] setBool:player.emailMe forKey:@"emailMe"];
                 onlineFollowing = [splitLine objectAtIndex:7];
-                moreButton.badgeValue = onlineFollowing;
-                [moreButton setBadgeBGColor:[UIColor colorWithRed:(8.0/255) green:(52.0/255) blue:(29.0/255) alpha:1.0]];
+                if (@available(iOS 26.0, *)) {
+                    if (![onlineFollowing isEqualToString: @"0"]) {
+                        UIBarButtonItemBadge *badge = [UIBarButtonItemBadge badgeWithString:onlineFollowing];
+                        badge.backgroundColor = [UIColor colorWithRed:(8.0/255) green:(52.0/255) blue:(29.0/255) alpha:1.0];
+                        [moreButton setBadge:badge];
+                    } else {
+                        moreButton.badge = nil;
+                    }
+                } else {
+                    moreButton.badgeValue = onlineFollowing;
+                    [moreButton setBadgeBGColor:[UIColor colorWithRed:(8.0/255) green:(52.0/255) blue:(29.0/255) alpha:1.0]];
+                }
                 [self.player setPersonalizeAds: [[splitLine objectAtIndex:8] isEqualToString:PERSONALIZEADSKEY]];
                 [[NSUserDefaults standardUserDefaults] setBool:player.personalizeAds forKey:PERSONALIZEADSKEY];
             }
