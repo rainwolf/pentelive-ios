@@ -184,6 +184,29 @@
     }
     return txtStr;
 }
+
++(NSString *) replaceSmileys: (NSString *) message {
+    NSString *tmpStrComma = [message stringByReplacingOccurrencesOfString:@"\\1" withString: @","];
+    NSString *tmpStrQuote = [tmpStrComma stringByReplacingOccurrencesOfString:@"\\2" withString: @"\""];
+    NSString *tmpStrAmp = [tmpStrQuote stringByReplacingOccurrencesOfString:@"&amp;#38;" withString: @"&"];
+    NSString *tmpStrSmiley = [tmpStrAmp stringByReplacingOccurrencesOfString:@"<img border='0' src='http://[host]/gameServer/forums/images/emoticons/happy.gif' alt=''>" withString: @":)"];
+    NSString *tmpStrWink = [tmpStrSmiley stringByReplacingOccurrencesOfString:@"<img border='0' src='http://[host]/gameServer/forums/images/emoticons/wink.gif' alt=''>" withString: @";)"];
+    NSString *tmpStrTongue = [tmpStrWink stringByReplacingOccurrencesOfString:@"<img border='0' src='http://[host]/gameServer/forums/images/emoticons/silly.gif' alt=''>" withString: @":p"];
+    NSString *tmpStrGrin = [tmpStrTongue stringByReplacingOccurrencesOfString:@"<img border='0' src='http://[host]/gameServer/forums/images/emoticons/grin.gif' alt=''>" withString: @":D"];
+    NSString *tmpStrSad = [tmpStrGrin stringByReplacingOccurrencesOfString:@"<img border='0' src='http://[host]/gameServer/forums/images/emoticons/sad.gif' alt=''>" withString: @":("];
+    NSString *tmpStrLove = [tmpStrSad stringByReplacingOccurrencesOfString:@"<img border='0' src='http://[host]/gameServer/forums/images/emoticons/love.gif' alt=''>" withString: @"<3"];
+    NSString *tmpStrMischief = [tmpStrLove stringByReplacingOccurrencesOfString:@"<img border='0' src='http://[host]/gameServer/forums/images/emoticons/mischief.gif' alt=''>" withString: @";\\"];
+    NSString *tmpStrCool = [tmpStrMischief stringByReplacingOccurrencesOfString:@"<img border='0' src='http://[host]/gameServer/forums/images/emoticons/cool.gif' alt=''>" withString: @"B)"];
+    NSString *tmpStrDevil = [tmpStrCool stringByReplacingOccurrencesOfString:@"<img border='0' src='http://[host]/gameServer/forums/images/emoticons/devil.gif' alt=''>" withString: @">:)"];
+    NSString *tmpStrAngry = [tmpStrDevil stringByReplacingOccurrencesOfString:@"<img border='0' src='http://[host]/gameServer/forums/images/emoticons/angry.gif' alt=''>" withString: @"X("];
+    NSString *tmpStrLaugh = [tmpStrAngry stringByReplacingOccurrencesOfString:@"<img border='0' src='http://[host]/gameServer/forums/images/emoticons/laugh.gif' alt=''>" withString: @":^O"];
+    NSString *tmpStrBlush = [tmpStrLaugh stringByReplacingOccurrencesOfString:@"<img border='0' src='http://[host]/gameServer/forums/images/emoticons/blush.gif' alt=''>" withString: @":8)"];
+    NSString *tmpStrCry = [tmpStrBlush stringByReplacingOccurrencesOfString:@"<img border='0' src='http://[host]/gameServer/forums/images/emoticons/cry.gif' alt=''>" withString: @":'("];
+    NSString *tmpStrConfused = [tmpStrCry stringByReplacingOccurrencesOfString:@"<img border='0' src='http://[host]/gameServer/forums/images/emoticons/confused.gif' alt=''>" withString: @"?:|"];
+    NSString *tmpStrShocked = [tmpStrConfused stringByReplacingOccurrencesOfString:@"<img border='0' src='http://[host]/gameServer/forums/images/emoticons/shocked.gif' alt=''>" withString: @":O"];
+    NSString *tmpStrPlain = [tmpStrShocked stringByReplacingOccurrencesOfString:@"<img border='0' src='http://[host]/gameServer/forums/images/emoticons/plain.gif' alt=''>" withString: @":|"];
+    return [tmpStrPlain stringByReplacingOccurrencesOfString:@"\\1" withString: @","];
+}
 @end
 
 @implementation RatingStat

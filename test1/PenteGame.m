@@ -25,6 +25,41 @@ struct Capture {
 
 
 
++(NSString *) getGameName: (int) gameInt {
+    NSString *gameStr = @"Pente";
+    if (gameInt < 3) {
+        gameStr = @"Pente";
+    } else if (gameInt < 5) {
+        gameStr = @"Keryo-Pente";
+    } else if (gameInt < 7) {
+        gameStr = @"Gomoku";
+    } else if (gameInt < 9) {
+        gameStr = @"D-Pente";
+    } else if (gameInt < 11) {
+        gameStr = @"G-Pente";
+    } else if (gameInt < 13) {
+        gameStr = @"Poof-Pente";
+    } else if (gameInt < 15) {
+        gameStr = @"Connect6";
+    } else if (gameInt < 17) {
+        gameStr = @"Boat-Pente";
+    } else if (gameInt < 19) {
+        gameStr = @"DK-Pente";
+    } else if (gameInt < 21) {
+        gameStr = @"Go";
+    } else if (gameInt < 23) {
+        gameStr = @"Go (9x9)";
+    } else if (gameInt < 25) {
+        gameStr = @"Go (13x13)";
+    } else if (gameInt < 27) {
+        gameStr = @"O-Pente";
+    } else if (gameInt < 29) {
+        gameStr = @"Swap2-Pente";
+    } else {
+        gameStr = @"Swap2-Keryo";
+    }
+    return gameStr;
+}
 
 
 

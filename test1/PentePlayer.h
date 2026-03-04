@@ -58,6 +58,7 @@ alpha:1.0]
 @property(nonatomic,retain) UIColor *nameColor;
 @property(atomic, assign) int crown;
 -(NSAttributedString *) attributedName;
++(NSString *) replaceSmileys: (NSString *) message;
 @end
 
 @interface RatingStat : NSObject {

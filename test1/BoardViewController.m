@@ -585,7 +585,7 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
                 whiteCaptures = 0;
                 blackCaptures = 0;
                 isLastMove = YES;
-                lastMove = (int) [movesList count];
+                lastMove = lastMove;
                 [self replayGame:lastMove];
                 [board setNeedsDisplay];
                 [receivedMessageView setFont:[UIFont fontWithName:@"HelveticaNeue-Bold" size:15.f]];
@@ -596,7 +596,7 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
                     [self updateCaptures];
                     [board setNeedsDisplay];
                 } else {
-                    lastMove = (int) [movesList count];
+                    lastMove = lastMove;
                     [self replayGame:lastMove];
                     int move;
 //                    if (connect6Move1 != -1) {
@@ -657,7 +657,7 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
                 swap2Move2 = -1;
                 swap2Move3 = -1;
                 finalMove = -1;
-                [self replayGame: (int) [movesList count]];
+                [self replayGame: lastMove];
                 [submitButton setEnabled:NO];
                 [submitButton setTitle: @"submit" forState: UIControlStateDisabled];
                 [board setNeedsDisplay];
@@ -1005,7 +1005,11 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
 
 
 
-
+-(void) showAlertWithMessage: (NSString *)message {
+    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error",nil) message:[NSString stringWithFormat:NSLocalizedString(@"Reason: %@",nil), message] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+    //        [alert show];
+    [alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:YES];
+}
 
 
 
@@ -1032,138 +1036,79 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
     
     //    NSString *tmpStr = [NSString stringWithFormat:@"https://www.pente.org/gameServer/tbpgn.jsp?g=%@",[self.game gameID]];
 //    NSString *tmpStr = [NSString stringWithFormat:@"https://www.pente.org/gameServer/tb/game?gid=%@&command=load",[self.game gameID]];
-    NSString *tmpStr = [NSString stringWithFormat:@"https://www.pente.org/gameServer/mobile/game.jsp?gid=%@",[self.game gameID]];
+    NSString *tmpStr = [NSString stringWithFormat:@"https://www.pente.org/gameServer/mobile/json/game.jsp?gid=%@",[self.game gameID]];
     if (development) {
-        tmpStr = [NSString stringWithFormat:@"https://localhost/gameServer/mobile/game.jsp?gid=%@",[self.game gameID]];
+        tmpStr = [NSString stringWithFormat:@"https://localhost/gameServer/mobile/json/game.jsp?gid=%@",[self.game gameID]];
     }
 //    tmpStr = [NSString stringWithFormat:@"https://localhost/gameServer/mobile/game.jsp?gid=%@",[self.game gameID]];
-    NSURL *url = [NSURL URLWithString: tmpStr];
     NSError *error;
-    NSString *htmlString = [NSString stringWithContentsOfURL:url encoding:NSUTF8StringEncoding error:&error];
+    NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
+    NSURLResponse *response;
+    [request setURL:[NSURL URLWithString: tmpStr]];
+    [request setHTTPMethod:@"GET"];
+    [request setTimeoutInterval:7.0];
+//    NSString *htmlString = [NSString stringWithContentsOfURL:url encoding:NSUTF8StringEncoding error:&error];
+    NSData *responseData = [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
 
     if (error) {
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error",nil) message:[NSString stringWithFormat:NSLocalizedString(@"Reason: %@",nil), error.localizedDescription] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
-        //        [alert show];
-        [alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:YES];
+        [self showAlertWithMessage:error.localizedDescription];
+        return;
+    }
+    
+    NSDictionary *jsonResponse = [NSJSONSerialization JSONObjectWithData:responseData
+                                                                 options:NSJSONReadingMutableContainers
+                                                                   error:&error];
+    if (error) {
+        [self showAlertWithMessage: error.localizedDescription];
         return;
     }
 
+
 //    NSLog(@"kitty %@", htmlString);
-//    NSLog(@"kitty %@", url);
+//    NSLog(@"kitty %@", jsonResponse);
     
-    canHide = [htmlString containsString:@"can_hide=yes"];
-    canUnHide = [htmlString containsString:@"can_unhide=yes"];
+    canHide = [jsonResponse[@"canHide"] boolValue];
+    canUnHide = [jsonResponse[@"canUnHide"] boolValue];
     
-    NSArray *splitDash = [htmlString componentsSeparatedByString:@"\n"];
-    NSString *dashLine;
-//    NSArray *splitLine;
     NSMutableArray *messages, *atMoves;
-    BOOL cancelRequest = NO, undoRequest = NO;
+    BOOL cancelRequest = NO;
     
-    int dashIDX = 0;
-    NSString *myUsername = [[[NSUserDefaults standardUserDefaults] objectForKey:@"username"] lowercaseString], *p1Name, *p2Name;
-//    myUsername = @"thomrr25"
-    if (development) {
-//        myUsername = @"iostest";
+    NSString *myUsername = [[[NSUserDefaults standardUserDefaults] objectForKey:@"username"] lowercaseString];
+    NSString *p1Name = jsonResponse[@"player1"][@"name"], *p2Name = jsonResponse[@"player2"][@"name"];
+    NSString *currentPlayer = jsonResponse[@"currentPlayer"];
+    BOOL undoRequest = [jsonResponse[@"undoRequested"] boolValue];
+    [self.game setSetID:[jsonResponse[@"sid"] stringValue]];
+    movesList  = [NSMutableArray arrayWithArray:[jsonResponse[@"moves"] componentsSeparatedByString:@","]];
+    [self.game setRatedNot: jsonResponse[@"rated"]];
+    [self.game setPrivateGame:jsonResponse[@"privateGame"]];
+    iAmP1 = [myUsername isEqualToString: p1Name];
+    [self.game setGameType:jsonResponse[@"gameName"]];
+    isGoGame = ([self.game.gameType hasPrefix:@"Go"] && ![self.game.gameType hasPrefix:@"Gomoku"]) || ([self.game.gameType hasPrefix:@"Speed Go"] && ![self.game.gameType hasPrefix:@"Speed Gomoku"]);
+    [self setTitle:[self.game gameType]];
+    if (iAmP1) {
+        [self.game setOpponentName:p2Name];
+        [self.game setOpponentRating:[jsonResponse[@"player2"][@"rating"] stringValue]];
+        [self.game setMyColor:isGoGame ? @"black" : @"white"];
+    } else {
+        [self.game setOpponentName:p1Name];
+        [self.game setOpponentRating:[jsonResponse[@"player1"][@"rating"] stringValue]];
+        [self.game setMyColor:isGoGame ? @"white" : @"black"];
     }
-    NSString *currentPlayer = @"";
-    while (dashIDX < [splitDash count]) {
-        dashLine = [splitDash objectAtIndex:dashIDX];
-        @try {
-            if ([dashLine hasPrefix:@"current_player="]) {
-                currentPlayer = [[dashLine stringByReplacingOccurrencesOfString:@"current_player=" withString:@""] lowercaseString];
-            } else if ([dashLine hasPrefix:@"sid="]) {
-                [self.game setSetID:[dashLine substringFromIndex:4]];
-            } else if ([dashLine containsString:@"undo=requested"]) {
-                undoRequest = YES;
-            } else if ([dashLine hasPrefix:@"gameName="]) {
-                [self.game setGameType:[dashLine substringFromIndex:9]];
-                isGoGame = ([self.game.gameType hasPrefix:@"Go"] && ![self.game.gameType hasPrefix:@"Gomoku"]) || ([self.game.gameType hasPrefix:@"Speed Go"] && ![self.game.gameType hasPrefix:@"Speed Gomoku"]);
-            } else if ([dashLine hasPrefix:@"moves="]) {
-//                NSLog(dashLine);
-                if (dashLine.length > 6) {
-                    movesList  = [NSMutableArray arrayWithArray:[[dashLine substringFromIndex:6] componentsSeparatedByString:@","]];
-                } else {
-                    movesList = [[NSMutableArray alloc] init];
-                }
-                lastMove = (int) [movesList count];
-            } else if ([dashLine hasPrefix:@"messages="]) {
-                messages = [NSMutableArray arrayWithArray:[[dashLine substringFromIndex:9] componentsSeparatedByString:@","]];
-            } else if ([dashLine hasPrefix:@"private="]) {
-                [self.game setPrivateGame:[dashLine substringFromIndex:8]];
-            } else if ([dashLine hasPrefix:@"rated="]) {
-                [self.game setRatedNot:[dashLine substringFromIndex:6]];
-            } else if ([dashLine hasPrefix:@"cancel="]) {
-                NSArray *playerRating = [NSArray arrayWithArray:[[dashLine substringFromIndex:7] componentsSeparatedByString:@","]];
-                if (![[playerRating objectAtIndex:0] isEqualToString:myUsername]) {
-                    cancelRequest = YES;
-                    if ([[playerRating objectAtIndex:1] isEqualToString:@""]) {
-                        cancelMsg = @"";
-                    } else {
-                        cancelMsg = [NSString stringWithFormat:@"/n and writes: %@",[playerRating objectAtIndex:1]];
-                    }
-                }
-            } else if ([dashLine hasPrefix:@"player1="]) {
-                NSArray *playerRating = [NSArray arrayWithArray:[[dashLine substringFromIndex:8] componentsSeparatedByString:@","]];
-                p1Name = [playerRating objectAtIndex:0];
-                if (![p1Name isEqualToString:myUsername]) {
-                    iAmP1 = NO;
-                    [self.game setOpponentName: [playerRating objectAtIndex:0]];
-                    [self.game setOpponentRating: [playerRating objectAtIndex:1]];
-                } else {
-                    if (isGoGame) {
-                        [self.game setMyColor:@"black"];
-                    } else {
-                        [self.game setMyColor:@"white"];
-                    }
-                }
-            } else if ([dashLine hasPrefix:@"player2="]) {
-                NSArray *playerRating = [NSArray arrayWithArray:[[dashLine substringFromIndex:8] componentsSeparatedByString:@","]];
-                p2Name = [playerRating objectAtIndex:0];
-                if (![p2Name isEqualToString:myUsername]) {
-                    iAmP1 = YES;
-                    [self.game setOpponentName: [playerRating objectAtIndex:0]];
-                    [self.game setOpponentRating: [playerRating objectAtIndex:1]];
-                } else {
-                    if (!isGoGame) {
-                        [self.game setMyColor:@"black"];
-                    } else {
-                        [self.game setMyColor:@"white"];
-                    }
-                }
-            } else if ([dashLine hasPrefix:@"messageNums="]) {
-                atMoves = [NSMutableArray arrayWithArray:[[dashLine substringFromIndex:12] componentsSeparatedByString:@","]];
-            }
-        } @catch (NSException *exception) {
-            
-        } @finally {
-            dashIDX++;
+
+    atMoves = [NSMutableArray arrayWithArray:[jsonResponse[@"messageNums"] componentsSeparatedByString:@","]];
+    messages = [NSMutableArray arrayWithArray:[jsonResponse[@"messages"] componentsSeparatedByString:@","]];
+
+    cancelMsg = @"";
+    if (jsonResponse[@"cancelInfo"]) {
+        if ([myUsername isEqualToString: jsonResponse[@"cancelInfo"][@"name"]]) {
+            cancelRequest = YES;
+            cancelMsg = [NSString stringWithFormat:@"/n and writes: %@", jsonResponse[@"cancelInfo"][@"message"]];
         }
     }
-    [self setTitle:[self.game gameType]];
-
 
     for (int i = 0; i < [messages count]; ++i) {
-        NSString *tmpStrComma = [[messages objectAtIndex:i] stringByReplacingOccurrencesOfString:@"\\1" withString: @","];
-        NSString *tmpStrQuote = [tmpStrComma stringByReplacingOccurrencesOfString:@"\\2" withString: @"\""];
-        NSString *tmpStrAmp = [tmpStrQuote stringByReplacingOccurrencesOfString:@"&amp;#38;" withString: @"&"];
-        NSString *tmpStrSmiley = [tmpStrAmp stringByReplacingOccurrencesOfString:@"<img border='0' src='http://[host]/gameServer/forums/images/emoticons/happy.gif' alt=''>" withString: @":)"];
-        NSString *tmpStrWink = [tmpStrSmiley stringByReplacingOccurrencesOfString:@"<img border='0' src='http://[host]/gameServer/forums/images/emoticons/wink.gif' alt=''>" withString: @";)"];
-        NSString *tmpStrTongue = [tmpStrWink stringByReplacingOccurrencesOfString:@"<img border='0' src='http://[host]/gameServer/forums/images/emoticons/silly.gif' alt=''>" withString: @":p"];
-        NSString *tmpStrGrin = [tmpStrTongue stringByReplacingOccurrencesOfString:@"<img border='0' src='http://[host]/gameServer/forums/images/emoticons/grin.gif' alt=''>" withString: @":D"];
-        NSString *tmpStrSad = [tmpStrGrin stringByReplacingOccurrencesOfString:@"<img border='0' src='http://[host]/gameServer/forums/images/emoticons/sad.gif' alt=''>" withString: @":("];
-        NSString *tmpStrLove = [tmpStrSad stringByReplacingOccurrencesOfString:@"<img border='0' src='http://[host]/gameServer/forums/images/emoticons/love.gif' alt=''>" withString: @"<3"];
-        NSString *tmpStrMischief = [tmpStrLove stringByReplacingOccurrencesOfString:@"<img border='0' src='http://[host]/gameServer/forums/images/emoticons/mischief.gif' alt=''>" withString: @";\\"];
-        NSString *tmpStrCool = [tmpStrMischief stringByReplacingOccurrencesOfString:@"<img border='0' src='http://[host]/gameServer/forums/images/emoticons/cool.gif' alt=''>" withString: @"B)"];
-        NSString *tmpStrDevil = [tmpStrCool stringByReplacingOccurrencesOfString:@"<img border='0' src='http://[host]/gameServer/forums/images/emoticons/devil.gif' alt=''>" withString: @">:)"];
-        NSString *tmpStrAngry = [tmpStrDevil stringByReplacingOccurrencesOfString:@"<img border='0' src='http://[host]/gameServer/forums/images/emoticons/angry.gif' alt=''>" withString: @"X("];
-        NSString *tmpStrLaugh = [tmpStrAngry stringByReplacingOccurrencesOfString:@"<img border='0' src='http://[host]/gameServer/forums/images/emoticons/laugh.gif' alt=''>" withString: @":^O"];
-        NSString *tmpStrBlush = [tmpStrLaugh stringByReplacingOccurrencesOfString:@"<img border='0' src='http://[host]/gameServer/forums/images/emoticons/blush.gif' alt=''>" withString: @":8)"];
-        NSString *tmpStrCry = [tmpStrBlush stringByReplacingOccurrencesOfString:@"<img border='0' src='http://[host]/gameServer/forums/images/emoticons/cry.gif' alt=''>" withString: @":'("];
-        NSString *tmpStrConfused = [tmpStrCry stringByReplacingOccurrencesOfString:@"<img border='0' src='http://[host]/gameServer/forums/images/emoticons/confused.gif' alt=''>" withString: @"?:|"];
-        NSString *tmpStrShocked = [tmpStrConfused stringByReplacingOccurrencesOfString:@"<img border='0' src='http://[host]/gameServer/forums/images/emoticons/shocked.gif' alt=''>" withString: @":O"];
-        NSString *tmpStrPlain = [tmpStrShocked stringByReplacingOccurrencesOfString:@"<img border='0' src='http://[host]/gameServer/forums/images/emoticons/plain.gif' alt=''>" withString: @":|"];
-        [messagesHistory setObject:[tmpStrPlain stringByReplacingOccurrencesOfString:@"\\1" withString: @","] forKey: [atMoves objectAtIndex:i]];
+        NSString *tmpStr = [Message replaceSmileys: [messages objectAtIndex:i]];
+        [messagesHistory setObject: tmpStr forKey: [atMoves objectAtIndex:i]];
     }
     
     
@@ -1252,36 +1197,39 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
         playerStatsBaseString = [NSString stringWithFormat:@"<font size=\"3.5\">Opponent: <a href=\"https://www.pente.org/gameServer/profile?viewName=%@\">%@</a>, %@ %@ <br> %@ %@ <br> %@</font><hr>",[self.game opponentName],[self.game opponentName],locRating,[self.game opponentRating],remTime,[self.game remainingTime],ratedPrivate];
     }
 
-    
-//    NSLog(@"kitty message %@", message);
+    int dPenteState = jsonResponse[@"dPenteState"] != nil ? [jsonResponse[@"dPenteState"] intValue] : 0;
+
+    //    NSLog(@"kitty message %@", message);
     dPenteOpening = NO;
     whiteCaptures = 0;
     blackCaptures = 0;
     [self resetBoard];
+    
+    lastMove = (int) [movesList count];
 
     if ([[self.game gameType] isEqualToString:@"Pente"] || [[self.game gameType] isEqualToString:@"Boat-Pente"] || [[self.game gameType] isEqualToString:@"Speed Pente"] || [[self.game gameType] isEqualToString:@"Speed Boat-Pente"]) {
-        [self replayPenteGame: (int) [movesList count]];
+        [self replayPenteGame: lastMove];
     }
     if ([[self.game gameType] isEqualToString:@"Keryo-Pente"] || [[self.game gameType] isEqualToString:@"Speed Keryo-Pente"]) {
-        [self replayKeryoPenteGame: (int) [movesList count]];
+        [self replayKeryoPenteGame: lastMove];
     }
     if ([[self.game gameType] isEqualToString:@"O-Pente"] || [[self.game gameType] isEqualToString:@"Speed O-Pente"]) {
-        [self replayOPenteGame: (int) [movesList count]];
+        [self replayOPenteGame: lastMove];
     }
     if ([[self.game gameType] isEqualToString:@"G-Pente"] || [[self.game gameType] isEqualToString:@"Speed G-Pente"]) {
-        [self replayGPenteGame: (int) [movesList count]];
+        [self replayGPenteGame: lastMove];
     }
     if ([[self.game gameType] isEqualToString:@"D-Pente"] || [[self.game gameType] isEqualToString:@"Speed D-Pente"] || [[self.game gameType] isEqualToString:@"DK-Pente"] || [[self.game gameType] isEqualToString:@"Speed DK-Pente"]) {
         if ([[self.game gameType] isEqualToString:@"DK-Pente"] || [[self.game gameType] isEqualToString:@"Speed DK-Pente"]) {
-            [self replayDKPenteGame: (int) [movesList count]];
+            [self replayDKPenteGame: lastMove];
         } else {
-            [self replayDPenteGame: (int) [movesList count]];
+            [self replayDPenteGame: lastMove];
         }
 
         dPenteChoice = NO;
         if ([movesList count] == 4) {
 //            NSLog(@"kitty %@", htmlString);
-            if ([htmlString rangeOfString:@"dPenteState=2"].location != NSNotFound && activeGame) {
+            if (dPenteState == 2  && activeGame) {
                 dPenteChoice = YES;
                 [submitButton setHidden:YES];
                 [player2Button setHidden:NO];
@@ -1303,12 +1251,12 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
     }
     if ([self.game.gameType containsString: @"Swap2-"]) {
         swap2Opening = [movesList count] == 0;
-        swap2Choice = [htmlString rangeOfString:@"dPenteState=2"].location != NSNotFound &&
+        swap2Choice = dPenteState == 2 &&
             ([movesList count] == 3 || [movesList count] == 5);
         if ([self.game.gameType containsString: @"Swap2-Pente"]) {
-            [self replaySwap2PenteGame: (int) [movesList count]];
+            [self replaySwap2PenteGame: lastMove];
         } else if ([self.game.gameType containsString: @"Swap2-Keryo"]) {
-            [self replaySwap2KeryoGame: (int) [movesList count]];
+            [self replaySwap2KeryoGame: lastMove];
         }
         
         if (swap2Choice) {
@@ -1345,7 +1293,7 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
         
     }
     if ([[self.game gameType] containsString: @"Poof-Pente"]) {
-        [self replayPoofPenteGame: (int) [movesList count]];
+        [self replayPoofPenteGame: lastMove];
     }
     go = NO; goMarkStones = NO; goEvaluateDeadStones = NO;
     if (isGoGame) {
@@ -1354,9 +1302,9 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
         } else if ([self.game.gameType containsString:@"(13x13)"]) {
             gridSize = 13;
         }
-        goMarkStones = [htmlString containsString:@"Go=MARK_DEAD_STONES"];
-        goEvaluateDeadStones = [htmlString containsString:@"Go=EVALUATE_DEAD_STONES"];
-        [self replayGoGame: (int) [movesList count]];
+        goMarkStones = [jsonResponse[@"goState"] isEqualToString:@"MARK_DEAD_STONES"];
+        goEvaluateDeadStones = [jsonResponse[@"goState"] isEqualToString:@"EVALUATE_DEAD_STONES"];
+        [self replayGoGame: lastMove];
         [board setGo:YES];
         [zoomedBoard setGo:YES];
         if (!goMarkStones && !goEvaluateDeadStones) {
@@ -1370,12 +1318,12 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
         }
     }
     if ([[self.game gameType] containsString: @"Connect6"]) {
-        [self replayConnect6Game: (int) [movesList count]];
+        [self replayConnect6Game: lastMove];
     }
     [self updateCaptures];
     
     if ([[self.game gameType] containsString: @"Gomoku"]) {
-        [self replayGomokuGame: (int) [movesList count]];
+        [self replayGomokuGame: lastMove];
     }
 
     // Find out your color
@@ -1471,7 +1419,7 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
                                    canBeDismissedByUser:YES];
         }
     }
-    if (![htmlString containsString:@"state=active"]) {
+    if ([jsonResponse[@"state"] isEqualToString: @"inactive"]) {
         activeGame = NO;
         PenteNavigationViewController *navC = (PenteNavigationViewController *) self.navigationController;
         if (navC.player.dbAccess) {
@@ -1492,7 +1440,7 @@ NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*> *goStoneGroups;
         [self presentDoublePass];
     }
     if (([myUsername isEqualToString:p1Name] || [myUsername isEqualToString:p2Name]) && !activeGame
-        && [htmlString containsString:@"state=active"] && ![htmlString containsString:@"dPenteState=2"] && ([movesList count] > 1 || ([movesList count]>0 && (isGoGame || [[self.game gameType] isEqualToString:@"D-Pente"] || [[self.game gameType] isEqualToString:@"DK-Pente"])))) {
+        && [jsonResponse[@"state"] isEqualToString: @"active"] && dPenteState != 2 && ([movesList count] > 1 || ([movesList count]>0 && (isGoGame || [[self.game gameType] isEqualToString:@"D-Pente"] || [[self.game gameType] isEqualToString:@"DK-Pente"])))) {
         [submitButton removeTarget:nil action:NULL forControlEvents:UIControlEventAllEvents];
         if (undoRequest) {
             [submitButton setTitle: NSLocalizedString(@"undo requested",nil) forState:UIControlStateDisabled];

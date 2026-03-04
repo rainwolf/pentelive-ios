@@ -28,4 +28,6 @@ typedef int AbstractBoard[19];
 @property(nonatomic, retain) NSMutableDictionary<NSNumber*, NSMutableDictionary<NSNumber*, NSNumber*>*> *goStoneGroupIDsByPlayer;
 @property(nonatomic, retain) NSMutableDictionary<NSNumber*, NSMutableDictionary<NSNumber*, NSMutableArray<NSNumber*>*>*> *goStoneGroupsByPlayerAndID;
 
++(NSString *) getGameName: (int) gameInt;
+
 @end
