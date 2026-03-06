@@ -6,14 +6,16 @@
 //  Copyright (c) 2013 Triade. All rights reserved.
 //
 
-#import <UIKit/UIKit.h>
+#import "BoardViewController.h"
 #import "HTAutocompleteTextField.h"
 #import "PenteNavigationViewController.h"
 #import "PentePlayer.h"
-#import "BoardViewController.h"
+#import <UIKit/UIKit.h>
 
-
-@interface MessagesViewController : UIViewController <UITextViewDelegate, UITextFieldDelegate,HTAutocompleteDataSource, UINavigationControllerDelegate> {
+@interface MessagesViewController
+    : UIViewController <UITextViewDelegate, UITextFieldDelegate,
+                        HTAutocompleteDataSource,
+                        UINavigationControllerDelegate> {
     NSString *messageID, *subject, *author;
     UITextField *subjectField;
     HTAutocompleteTextField *toField;
@@ -27,7 +29,7 @@
     BoardViewController *boardController;
 }
 
-@property(nonatomic,retain) PentePlayer *player;
+@property(nonatomic, retain) PentePlayer *player;
 @property(nonatomic, retain) NSString *messageID, *subject, *author;
 @property(nonatomic, retain) UITextView *receivedMessageView, *replyMessageView;
 @property(nonatomic, retain) UIButton *sendButton;
@@ -36,7 +38,6 @@
 @property(nonatomic, retain) UIActivityIndicatorView *spinner;
 @property(nonatomic, retain) NSMutableArray *toHistory;
 @property(atomic) int gamesLimit;
-@property(nonatomic,retain) BoardViewController *boardController;
-
+@property(nonatomic, retain) BoardViewController *boardController;
 
 @end

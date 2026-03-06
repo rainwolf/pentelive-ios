@@ -6,23 +6,21 @@
 //
 //
 
-#import <UIKit/UIKit.h>
 #import "PentePlayer.h"
+#import <UIKit/UIKit.h>
 typedef int AbstractBoard[19];
 
 @interface DBBoardView : UIView {
-    AbstractBoard* abstractBoard;
+    AbstractBoard *abstractBoard;
     int lastMove;
     NSDictionary<NSNumber *, UIColor *> *dbOptions;
 }
 
 @property int lastMove;
 @property(retain, nonatomic) NSDictionary<NSNumber *, UIColor *> *dbOptions;
--(instancetype) init;
+- (instancetype)init;
 - (id)initWithFrame:(CGRect)frame;
--(void) setAbstractBoard: (AbstractBoard*) board;
+- (void)setAbstractBoard:(AbstractBoard *)board;
 - (void)drawRect:(CGRect)rect;
 
 @end
-
-

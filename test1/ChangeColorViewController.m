@@ -7,9 +7,9 @@
 //
 
 #import "ChangeColorViewController.h"
-#import "HRColorPickerView.h"
-#import "HRColorMapView.h"
 #import "HRBrightnessSlider.h"
+#import "HRColorMapView.h"
+#import "HRColorPickerView.h"
 @import UIColor_Hex;
 #import "PenteNavigationViewController.h"
 
@@ -26,24 +26,24 @@
     return self;
 }
 
--(void)viewDidLoad {
+- (void)viewDidLoad {
     [super viewDidLoad];
-//    self.view = [[UIView alloc] init];
+    //    self.view = [[UIView alloc] init];
     self.view.autoresizingMask = UIViewAutoresizingFlexibleHeight;
     self.edgesForExtendedLayout = UIRectEdgeNone;
     self.view.backgroundColor = [UIColor whiteColor];
-    
+
     colorPickerView = [[HRColorPickerView alloc] init];
     colorPickerView.frame = self.view.frame;
     colorPickerView.autoresizingMask = UIViewAutoresizingFlexibleHeight;
     colorPickerView.color = _color;
-    
+
     HRColorMapView *colorMapView = [[HRColorMapView alloc] init];
     colorMapView.saturationUpperLimit = @1;
     colorMapView.tileSize = @1;
     [colorPickerView addSubview:colorMapView];
     colorPickerView.colorMapView = colorMapView;
-    
+
     HRBrightnessSlider *slider = [[HRBrightnessSlider alloc] init];
     slider.brightnessLowerLimit = @0;
     [colorPickerView addSubview:slider];
@@ -52,34 +52,56 @@
     //    [colorPickerView addTarget:self
     //                        action:@selector(colorWasChanged:)
     //              forControlEvents:UIControlEventValueChanged];
-    
+
     [self.view addSubview:colorPickerView];
     [self.navigationController.navigationBar setTranslucent:YES];
 }
 
--(void)viewWillDisappear:(BOOL)animated {
-    NSString *post = [NSString stringWithFormat:@"changeNameColor=%@", [[colorPickerView.color cssString] substringFromIndex:1]];
-    NSData *postData = [post dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
-    NSString *postLength = [NSString stringWithFormat:@"%lu", (unsigned long)[postData length]];
-    
+- (void)viewWillDisappear:(BOOL)animated {
+    NSString *post =
+        [NSString stringWithFormat:@"changeNameColor=%@",
+                                   [[colorPickerView.color cssString]
+                                       substringFromIndex:1]];
+    NSData *postData = [post dataUsingEncoding:NSASCIIStringEncoding
+                          allowLossyConversion:YES];
+    NSString *postLength =
+        [NSString stringWithFormat:@"%lu", (unsigned long)[postData length]];
+
     NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
-    [request setURL:[NSURL URLWithString:@"https://www.pente.org/gameServer/changeColor"]];
-    //        [request setURL:[NSURL URLWithString:@"https://localhost/gameServer/tb/newGame"]];
+    [request
+        setURL:[NSURL URLWithString:
+                          @"https://www.pente.org/gameServer/changeColor"]];
+    //        [request setURL:[NSURL
+    //        URLWithString:@"https://localhost/gameServer/tb/newGame"]];
     [request setHTTPMethod:@"POST"];
     [request setValue:postLength forHTTPHeaderField:@"Content-Length"];
-    [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
+    [request setValue:@"application/x-www-form-urlencoded"
+        forHTTPHeaderField:@"Content-Type"];
     [request setHTTPBody:postData];
     [request setTimeoutInterval:7.0];
     NSURLResponse *response;
     NSError *error;
-    [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
+    [NSURLConnection sendSynchronousRequest:request
+                          returningResponse:&response
+                                      error:&error];
     if (error == nil) {
-        ((PenteNavigationViewController *) self.navigationController).player.myColor = colorPickerView.color;
+        ((PenteNavigationViewController *)self.navigationController)
+            .player.myColor = colorPickerView.color;
     }
     if (error) {
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error",nil) message:[NSString stringWithFormat:NSLocalizedString(@"Reason: %@",nil), error.localizedDescription] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+        UIAlertView *alert = [[UIAlertView alloc]
+                initWithTitle:NSLocalizedString(@"Error", nil)
+                      message:[NSString
+                                  stringWithFormat:NSLocalizedString(
+                                                       @"Reason: %@", nil),
+                                                   error.localizedDescription]
+                     delegate:nil
+            cancelButtonTitle:@"OK"
+            otherButtonTitles:nil];
         //        [alert show];
-        [alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:YES];
+        [alert performSelectorOnMainThread:@selector(show)
+                                withObject:nil
+                             waitUntilDone:YES];
         return;
     }
     [super viewWillDisappear:animated];

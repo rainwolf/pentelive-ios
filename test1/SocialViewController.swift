@@ -8,24 +8,23 @@
 
 import UIKit
 
-//class PlayerTableCell: UITableViewCell {
+// class PlayerTableCell: UITableViewCell {
 //    override func layoutSubviews() {
 //        super.layoutSubviews()
 //        frame.size.height = 44
 //    }
-//}
+// }
 
 class SocialViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, UIPickerViewDelegate, UIPickerViewDataSource {
-    
     let segmentControl = UISegmentedControl(items: [NSLocalizedString("following", comment: ""), NSLocalizedString("followers", comment: "")])
     var refreshControl = UIRefreshControl()
-    var tableView: UITableView = UITableView()
+    var tableView: UITableView = .init()
     var pentePlayer: PentePlayer!
     var wantsToSeeAvatars = UserDefaults.standard.bool(forKey: "wantToSeeAvatars")
-    
+
     var followers = [LivePlayer]()
     var following = [LivePlayer]()
-    
+
     let gameNames = ["Pente": 1, "Keryo-Pente": 3, "Gomoku": 5, "D-Pente": 7, "G-Pente": 9, "Poof-Pente": 11, "Connect6": 13,
                      "Boat-Pente": 15, "DK-Pente": 17, "Go": 19, "Go (9x9)": 21, "Go (13x13)": 23, "O-Pente": 25,
                      "Speed Pente": 2, "Speed Keryo-Pente": 4, "Speed Gomoku": 6, "Speed D-Pente": 8,
@@ -44,36 +43,35 @@ class SocialViewController: UIViewController, UITableViewDelegate, UITableViewDa
                           "Speed Go", "Speed Go (9x9)", "Speed Go (13x13)", "Speed O-Pente"]
     let textField = UITextField()
 
-    
     var gameString: String?
-    
+
     @objc init(player: PentePlayer) {
-        self.pentePlayer = player
+        pentePlayer = player
         super.init(nibName: nil, bundle: nil)
         tableView.delegate = self
         tableView.dataSource = self
         tableView.tableHeaderView = segmentControl
         segmentControl.selectedSegmentIndex = 0
         segmentControl.addTarget(tableView, action: #selector(tableView.reloadData), for: UIControl.Event.valueChanged)
-        self.view.addSubview(tableView)
-        self.navigationItem.title = NSLocalizedString("Social", comment: "")
-        
-        self.refreshControl.attributedTitle = NSAttributedString(string: NSLocalizedString("Pull to refresh", comment: ""))
-        self.refreshControl.addTarget(self, action: #selector(refresh), for: UIControl.Event.valueChanged)
-        self.tableView.addSubview(refreshControl)
-        
+        view.addSubview(tableView)
+        navigationItem.title = NSLocalizedString("Social", comment: "")
+
+        refreshControl.attributedTitle = NSAttributedString(string: NSLocalizedString("Pull to refresh", comment: ""))
+        refreshControl.addTarget(self, action: #selector(refresh), for: UIControl.Event.valueChanged)
+        tableView.addSubview(refreshControl)
+
         let addButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.add, target: self, action: #selector(addFollowing))
         let settingsItem = UIBarButtonItem(image: UIImage(named: "gamesettings"), style: .plain, target: self, action: #selector(selectGame))
-        self.navigationItem.rightBarButtonItems = [addButton, settingsItem]
-        
+        navigationItem.rightBarButtonItems = [addButton, settingsItem]
     }
+
     required init(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)!
     }
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+
         // Do any additional setup after loading the view.
         gameString = UserDefaults.standard.string(forKey: "socialGame")
         if gameString == nil {
@@ -81,34 +79,36 @@ class SocialViewController: UIViewController, UITableViewDelegate, UITableViewDa
         }
         loadFollowersing()
     }
-    
-    @objc func refresh(sender:AnyObject) {
+
+    @objc func refresh(sender _: AnyObject) {
         loadFollowersing()
     }
-    
+
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        var frame = self.view.frame
+        var frame = view.frame
         frame.origin = CGPoint(x: 0, y: 0)
         tableView.frame = frame
     }
-    
-    override func viewDidAppear(_ animated: Bool) {
-        self.view.addSubview(textField)
+
+    override func viewDidAppear(_: Bool) {
+        view.addSubview(textField)
     }
-    override func viewDidDisappear(_ animated: Bool) {
+
+    override func viewDidDisappear(_: Bool) {
         NotificationCenter.default.removeObserver(self)
     }
-    
+
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
-    
-    func numberOfSections(in tableView: UITableView) -> Int {
+
+    func numberOfSections(in _: UITableView) -> Int {
         return 1
     }
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+
+    func tableView(_: UITableView, numberOfRowsInSection _: Int) -> Int {
         segmentControl.setTitle("\(NSLocalizedString("following", comment: "")) (\(following.count))", forSegmentAt: 0)
         segmentControl.setTitle("\(NSLocalizedString("followers", comment: "")) (\(followers.count))", forSegmentAt: 1)
         if segmentControl.selectedSegmentIndex == 1 {
@@ -117,7 +117,7 @@ class SocialViewController: UIViewController, UITableViewDelegate, UITableViewDa
             return following.count
         }
     }
-    
+
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "playerCell") ?? PlayerTableCell(style: .value1, reuseIdentifier: "playerCell")
         let player: LivePlayer
@@ -146,8 +146,8 @@ class SocialViewController: UIViewController, UITableViewDelegate, UITableViewDa
         }
         return cell
     }
-    
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+
+    func tableView(_: UITableView, didSelectRowAt indexPath: IndexPath) {
         var playerName: String
         if segmentControl.selectedSegmentIndex == 1 {
             playerName = followers[indexPath.row].name
@@ -155,31 +155,29 @@ class SocialViewController: UIViewController, UITableViewDelegate, UITableViewDa
             playerName = following[indexPath.row].name
         }
         let vc = PenteWebViewController(address: "https://www.pente.org/gameServer/profile?viewName=\(playerName)")
-        self.navigationController?.pushViewController(vc, animated: true)
+        navigationController?.pushViewController(vc, animated: true)
     }
-    
-    
-    func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
+
+    func tableView(_: UITableView, canEditRowAt _: IndexPath) -> Bool {
         if segmentControl.selectedSegmentIndex == 0 {
             return true
         }
         return false
     }
-    
-    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+
+    func tableView(_: UITableView, commit _: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         do {
-            let _ = try String(contentsOf: URL(string: "https://www.pente.org/gameServer/social?unfollow=\(following[indexPath.row].name)")!, encoding: String.Encoding.utf8)
-        } catch let error {
-            self.showErrorAlert(alertMessage: NSLocalizedString("There was an error unfollowing. Reason: \(error.localizedDescription)", comment: ""))
+            _ = try String(contentsOf: URL(string: "https://www.pente.org/gameServer/social?unfollow=\(following[indexPath.row].name)")!, encoding: String.Encoding.utf8)
+        } catch {
+            showErrorAlert(alertMessage: NSLocalizedString("There was an error unfollowing. Reason: \(error.localizedDescription)", comment: ""))
         }
         loadFollowersing()
     }
-    
-    func tableView(_ tableView: UITableView, titleForDeleteConfirmationButtonForRowAt indexPath: IndexPath) -> String? {
+
+    func tableView(_: UITableView, titleForDeleteConfirmationButtonForRowAt _: IndexPath) -> String? {
         return NSLocalizedString("unfollow", comment: "")
     }
-    
-    
+
     func UIColorFromRGB(rgbValue: Int) -> UIColor {
         return UIColor(
             red: CGFloat((rgbValue & 0xFF0000) >> 16) / 255.0,
@@ -188,15 +186,13 @@ class SocialViewController: UIViewController, UITableViewDelegate, UITableViewDa
             alpha: CGFloat(1.0)
         )
     }
-    
-    
-    
+
     @objc func addFollowing() {
         let alertController = UIAlertController(title: NSLocalizedString("follow player", comment: ""), message: nil, preferredStyle: .alert)
-        alertController.addTextField { (textField : UITextField!) -> Void in
+        alertController.addTextField { (textField: UITextField!) in
             textField.placeholder = NSLocalizedString("player name", comment: "")
         }
-        let addAction = UIAlertAction(title: NSLocalizedString("add player", comment: ""), style: .default) { (action) in
+        let addAction = UIAlertAction(title: NSLocalizedString("add player", comment: ""), style: .default) { _ in
             let player = (alertController.textFields![0] as UITextField).text!
             do {
                 let htmlString = try String(contentsOf: URL(string: "https://www.pente.org/gameServer/social?follow=\(player)&mobile=")!, encoding: String.Encoding.utf8)
@@ -210,24 +206,23 @@ class SocialViewController: UIViewController, UITableViewDelegate, UITableViewDa
                     self.loadFollowersing()
                 }
 //                print(htmlString)
-            } catch let error {
+            } catch {
                 self.showErrorAlert(alertMessage: NSLocalizedString("There was an error following. Reason: \(error.localizedDescription)", comment: ""))
             }
         }
         alertController.addAction(addAction)
-        let cancelAction = UIAlertAction(title: NSLocalizedString("cancel", comment: ""), style: .cancel) { (action) in
+        let cancelAction = UIAlertAction(title: NSLocalizedString("cancel", comment: ""), style: .cancel) { _ in
         }
         alertController.addAction(cancelAction)
-        self.present(alertController, animated: true)
-        
+        present(alertController, animated: true)
     }
-    
+
     func showErrorAlert(alertMessage: String) {
         let alertController = UIAlertController(title: NSLocalizedString("Error", comment: ""), message: alertMessage, preferredStyle: .alert)
         alertController.addAction(UIAlertAction(title: NSLocalizedString("Dismiss", comment: ""), style: .default, handler: nil))
-        self.present(alertController, animated: true, completion: nil)
+        present(alertController, animated: true, completion: nil)
     }
-    
+
     func loadFollowersing() {
         do {
             let game = gameNames[gameString!]!
@@ -250,31 +245,31 @@ class SocialViewController: UIViewController, UITableViewDelegate, UITableViewDa
                     } else {
                         followers.append(player)
                     }
-                    if wantsToSeeAvatars && player.subscriber {
+                    if wantsToSeeAvatars, player.subscriber {
                         pentePlayer.addUser(player.name)
                     }
                 }
             }
-            followers.sort { (p1, p2) -> Bool in
+            followers.sort { p1, p2 -> Bool in
                 return p1.ratings[game]! > p2.ratings[game]!
             }
-            following.sort { (p1, p2) -> Bool in
+            following.sort { p1, p2 -> Bool in
                 return p1.ratings[game]! > p2.ratings[game]!
             }
-        } catch let error {
-            self.showErrorAlert(alertMessage: NSLocalizedString("There was an error loading followers. Reason: \(error.localizedDescription)", comment: ""))
+        } catch {
+            showErrorAlert(alertMessage: NSLocalizedString("There was an error loading followers. Reason: \(error.localizedDescription)", comment: ""))
         }
         tableView.reloadData()
-        if self.refreshControl.isRefreshing {
-            self.refreshControl.endRefreshing()
+        if refreshControl.isRefreshing {
+            refreshControl.endRefreshing()
         }
     }
-    
+
     @objc func selectGame() {
         let gamePicker = UIPickerView()
-        let pickerToolbar = UIToolbar(frame: CGRect(x: 0, y: 0, width: self.view.frame.size.width, height: 44))
+        let pickerToolbar = UIToolbar(frame: CGRect(x: 0, y: 0, width: view.frame.size.width, height: 44))
         pickerToolbar.barStyle = .blackTranslucent
-        let extraSpace = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target:nil, action:nil)
+        let extraSpace = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
         let doneButton = UIBarButtonItem(title: NSLocalizedString("Done", comment: ""), style: .done, target: self, action: #selector(dismissPicker)) // method
         pickerToolbar.setItems([extraSpace, doneButton], animated: true)
         gamePicker.delegate = self
@@ -285,56 +280,34 @@ class SocialViewController: UIViewController, UITableViewDelegate, UITableViewDa
 //            game = game - 1
 //        }
         gamePicker.selectRow(gameNamesArray.firstIndex(of: gameString!)!, inComponent: 0, animated: true)
-        
+
         textField.inputView = gamePicker
-        textField.tag = 1;
+        textField.tag = 1
 //        textField.delegate = self
         textField.inputAccessoryView = pickerToolbar
-        
+
         textField.becomeFirstResponder()
     }
+
     @objc func dismissPicker() {
         textField.resignFirstResponder()
         loadFollowersing()
     }
-    
-    func numberOfComponents(in pickerView: UIPickerView) -> Int {
+
+    func numberOfComponents(in _: UIPickerView) -> Int {
         return 1
     }
-    func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
-        return self.gameNamesArray.count
+
+    func pickerView(_: UIPickerView, numberOfRowsInComponent _: Int) -> Int {
+        return gameNamesArray.count
     }
-    func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
-        return self.gameNamesArray[row]
+
+    func pickerView(_: UIPickerView, titleForRow row: Int, forComponent _: Int) -> String? {
+        return gameNamesArray[row]
     }
-    func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
-        gameString = self.gameNamesArray[row]
+
+    func pickerView(_: UIPickerView, didSelectRow row: Int, inComponent _: Int) {
+        gameString = gameNamesArray[row]
         UserDefaults.standard.set(gameString, forKey: "socialGame")
     }
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -23,44 +23,78 @@
 @synthesize nameColor;
 @synthesize crown;
 
--(NSString *) localizedTimeString {
+- (NSString *)localizedTimeString {
     if (!localizedTime) {
         if ([remainingTime containsString:@"minutes"]) {
-            NSArray<NSString *>* splitTime = [remainingTime componentsSeparatedByString:@" "];
-            NSString *hour = [splitTime objectAtIndex:0], *minutes = [splitTime objectAtIndex: 2];
+            NSArray<NSString *> *splitTime =
+                [remainingTime componentsSeparatedByString:@" "];
+            NSString *hour = [splitTime objectAtIndex:0],
+                     *minutes = [splitTime objectAtIndex:2];
             if ([hour isEqualToString:@"1"] && [minutes isEqualToString:@"1"]) {
-                localizedTime = [NSString stringWithFormat: NSLocalizedString(@"%@ hour, %@ minute", nil), hour, minutes];
+                localizedTime = [NSString
+                    stringWithFormat:NSLocalizedString(@"%@ hour, %@ minute",
+                                                       nil),
+                                     hour, minutes];
             } else if ([hour isEqualToString:@"1"]) {
-                localizedTime = [NSString stringWithFormat: NSLocalizedString(@"%@ hour, %@ minutes", nil), hour, minutes];
+                localizedTime = [NSString
+                    stringWithFormat:NSLocalizedString(@"%@ hour, %@ minutes",
+                                                       nil),
+                                     hour, minutes];
             } else if ([minutes isEqualToString:@"1"]) {
-                localizedTime = [NSString stringWithFormat: NSLocalizedString(@"%@ hours, %@ minute", nil), hour, minutes];
+                localizedTime = [NSString
+                    stringWithFormat:NSLocalizedString(@"%@ hours, %@ minute",
+                                                       nil),
+                                     hour, minutes];
             } else {
-                localizedTime = [NSString stringWithFormat: NSLocalizedString(@"%@ hours, %@ minutes", nil), hour, minutes];
+                localizedTime = [NSString
+                    stringWithFormat:NSLocalizedString(@"%@ hours, %@ minutes",
+                                                       nil),
+                                     hour, minutes];
             }
         } else if ([remainingTime containsString:@"hours"]) {
-            NSArray<NSString *>* splitTime = [remainingTime componentsSeparatedByString:@" "];
-            NSString *hour = [splitTime objectAtIndex:2], *days = [splitTime objectAtIndex: 0];
+            NSArray<NSString *> *splitTime =
+                [remainingTime componentsSeparatedByString:@" "];
+            NSString *hour = [splitTime objectAtIndex:2],
+                     *days = [splitTime objectAtIndex:0];
             if ([hour isEqualToString:@"1"] && [days isEqualToString:@"1"]) {
-                localizedTime = [NSString stringWithFormat: NSLocalizedString(@"%@ day, %@ hour", nil), days, hour];
+                localizedTime = [NSString
+                    stringWithFormat:NSLocalizedString(@"%@ day, %@ hour", nil),
+                                     days, hour];
             } else if ([hour isEqualToString:@"1"]) {
-                localizedTime = [NSString stringWithFormat: NSLocalizedString(@"%@ days, %@ hour", nil), days, hour];
+                localizedTime = [NSString
+                    stringWithFormat:NSLocalizedString(@"%@ days, %@ hour",
+                                                       nil),
+                                     days, hour];
             } else if ([days isEqualToString:@"1"]) {
-                localizedTime = [NSString stringWithFormat: NSLocalizedString(@"%@ day, %@ hours", nil), days, hour];
+                localizedTime = [NSString
+                    stringWithFormat:NSLocalizedString(@"%@ day, %@ hours",
+                                                       nil),
+                                     days, hour];
             } else {
-                localizedTime = [NSString stringWithFormat: NSLocalizedString(@"%@ days, %@ hours", nil), days, hour];
+                localizedTime = [NSString
+                    stringWithFormat:NSLocalizedString(@"%@ days, %@ hours",
+                                                       nil),
+                                     days, hour];
             }
         } else {
-            NSString *days = [remainingTime substringToIndex:[remainingTime rangeOfString:@"days"].location];
+            NSString *days = [remainingTime
+                substringToIndex:[remainingTime rangeOfString:@"days"]
+                                     .location];
             if ([days isEqualToString:@"1"]) {
-                localizedTime = [NSString stringWithFormat: NSLocalizedString(@"%@ day per move", nil), days];
+                localizedTime = [NSString
+                    stringWithFormat:NSLocalizedString(@"%@ day per move", nil),
+                                     days];
             } else {
-                localizedTime = [NSString stringWithFormat: NSLocalizedString(@"%@ days per move", nil), days];
+                localizedTime = [NSString
+                    stringWithFormat:NSLocalizedString(@"%@ days per move",
+                                                       nil),
+                                     days];
             }
         }
     }
     return localizedTime;
 }
--(NSString *) localizedRatedNot {
+- (NSString *)localizedRatedNot {
     if (!localizedRatedNot) {
         if ([ratedNot isEqualToString:@"Rated"]) {
             localizedRatedNot = NSLocalizedString(@"Rated", nil);
@@ -79,65 +113,90 @@
     return localizedRatedNot;
 }
 
--(NSAttributedString *) attributedName {
+- (NSAttributedString *)attributedName {
     NSMutableAttributedString *txtStr;
     if ([opponentName isEqualToString:@"Anyone"]) {
-        txtStr = [[NSMutableAttributedString alloc] initWithString:NSLocalizedString(@"Anyone", nil)];
+        txtStr = [[NSMutableAttributedString alloc]
+            initWithString:NSLocalizedString(@"Anyone", nil)];
     } else {
-        txtStr = [[NSMutableAttributedString alloc] initWithString:opponentName];
+        txtStr =
+            [[NSMutableAttributedString alloc] initWithString:opponentName];
     }
     if (![nameColor isEqual:UIColorFromRGB(0)]) {
-        [txtStr addAttribute:NSFontAttributeName value: [UIFont fontWithName:@"HelveticaNeue-Bold" size:16] range:NSMakeRange(0, [txtStr length])];
-        [txtStr addAttribute:NSForegroundColorAttributeName value:nameColor range:NSMakeRange(0, [txtStr length])];
+        [txtStr addAttribute:NSFontAttributeName
+                       value:[UIFont fontWithName:@"HelveticaNeue-Bold" size:16]
+                       range:NSMakeRange(0, [txtStr length])];
+        [txtStr addAttribute:NSForegroundColorAttributeName
+                       value:nameColor
+                       range:NSMakeRange(0, [txtStr length])];
     } else {
-        [txtStr addAttribute:NSFontAttributeName value: [UIFont fontWithName:@"HelveticaNeue" size:16] range:NSMakeRange(0, [txtStr length])];
+        [txtStr addAttribute:NSFontAttributeName
+                       value:[UIFont fontWithName:@"HelveticaNeue" size:16]
+                       range:NSMakeRange(0, [txtStr length])];
     }
-    [txtStr appendAttributedString:[[NSMutableAttributedString alloc] initWithString:@" "]];
+    [txtStr appendAttributedString:[[NSMutableAttributedString alloc]
+                                       initWithString:@" "]];
     if (crown > 0) {
         NSTextAttachment *textAttachment = [[NSTextAttachment alloc] init];
         switch (crown) {
-            case 1:
-                textAttachment.image = [UIImage imageNamed:@"crown.gif"];
-                break;
-            case 2:
-                textAttachment.image = [UIImage imageNamed:@"scrown.gif"];
-                break;
-            case 3:
-                textAttachment.image = [UIImage imageNamed:@"bcrown.gif"];
-                break;
-            default:
-                if (crown > 3) {
-                    textAttachment.image = [UIImage imageNamed: [NSString stringWithFormat:@"kothcrown%i", crown-3]];
-                }
-                break;
+        case 1:
+            textAttachment.image = [UIImage imageNamed:@"crown.gif"];
+            break;
+        case 2:
+            textAttachment.image = [UIImage imageNamed:@"scrown.gif"];
+            break;
+        case 3:
+            textAttachment.image = [UIImage imageNamed:@"bcrown.gif"];
+            break;
+        default:
+            if (crown > 3) {
+                textAttachment.image = [UIImage
+                    imageNamed:[NSString
+                                   stringWithFormat:@"kothcrown%i", crown - 3]];
+            }
+            break;
         }
-        NSAttributedString *crownStr = [NSAttributedString attributedStringWithAttachment:textAttachment];
+        NSAttributedString *crownStr =
+            [NSAttributedString attributedStringWithAttachment:textAttachment];
         [txtStr appendAttributedString:crownStr];
     }
     return txtStr;
 }
 
--(NSAttributedString *) ratingString {
+- (NSAttributedString *)ratingString {
     int ratingInt = [opponentRating intValue];
     UIColor *ratingColor;
     if (ratingInt >= 1900) {
         ratingColor = [UIColor redColor];
     } else if (ratingInt >= 1700) {
-        ratingColor = [UIColor colorWithRed:0.98 green:0.96 blue:0.03 alpha:1.0];
+        ratingColor = [UIColor colorWithRed:0.98
+                                      green:0.96
+                                       blue:0.03
+                                      alpha:1.0];
     } else if (ratingInt >= 1400) {
         ratingColor = [UIColor blueColor];
     } else if (ratingInt >= 1000) {
-        ratingColor = [UIColor colorWithRed:30.0/255 green: 130.0/255 blue:76.0/255 alpha:1.0];
+        ratingColor = [UIColor colorWithRed:30.0 / 255
+                                      green:130.0 / 255
+                                       blue:76.0 / 255
+                                      alpha:1.0];
     } else {
         ratingColor = [UIColor grayColor];
     }
-    NSMutableAttributedString *txtStr = [[NSMutableAttributedString alloc] initWithString:@"\u25A0 "];
-    [txtStr addAttribute:NSForegroundColorAttributeName value: ratingColor range: NSMakeRange(0, 1)];
-    if ([opponentRating length]<4) {
-        [txtStr appendAttributedString:[[NSAttributedString alloc] initWithString:@"  "]];
+    NSMutableAttributedString *txtStr =
+        [[NSMutableAttributedString alloc] initWithString:@"\u25A0 "];
+    [txtStr addAttribute:NSForegroundColorAttributeName
+                   value:ratingColor
+                   range:NSMakeRange(0, 1)];
+    if ([opponentRating length] < 4) {
+        [txtStr appendAttributedString:[[NSAttributedString alloc]
+                                           initWithString:@"  "]];
     }
-    [txtStr addAttribute:NSFontAttributeName value:[UIFont fontWithName:@"HelveticaNeue-Bold" size:12.f] range: NSMakeRange(0, 1)];
-    [txtStr appendAttributedString:[[NSAttributedString alloc] initWithString:opponentRating]];
+    [txtStr addAttribute:NSFontAttributeName
+                   value:[UIFont fontWithName:@"HelveticaNeue-Bold" size:12.f]
+                   range:NSMakeRange(0, 1)];
+    [txtStr appendAttributedString:[[NSAttributedString alloc]
+                                       initWithString:opponentRating]];
     return txtStr;
 }
 
@@ -151,61 +210,157 @@
 @synthesize unread;
 @synthesize nameColor;
 @synthesize crown;
--(NSAttributedString *) attributedName {
+- (NSAttributedString *)attributedName {
     NSMutableAttributedString *txtStr;
     txtStr = [[NSMutableAttributedString alloc] initWithString:author];
     if (![nameColor isEqual:UIColorFromRGB(0)]) {
-        [txtStr addAttribute:NSFontAttributeName value: [UIFont fontWithName:@"HelveticaNeue-Bold" size:16] range:NSMakeRange(0, [txtStr length])];
-        [txtStr addAttribute:NSForegroundColorAttributeName value:nameColor range:NSMakeRange(0, [txtStr length])];
+        [txtStr addAttribute:NSFontAttributeName
+                       value:[UIFont fontWithName:@"HelveticaNeue-Bold" size:16]
+                       range:NSMakeRange(0, [txtStr length])];
+        [txtStr addAttribute:NSForegroundColorAttributeName
+                       value:nameColor
+                       range:NSMakeRange(0, [txtStr length])];
     } else {
-        [txtStr addAttribute:NSFontAttributeName value: [UIFont fontWithName:@"HelveticaNeue" size:16] range:NSMakeRange(0, [txtStr length])];
+        [txtStr addAttribute:NSFontAttributeName
+                       value:[UIFont fontWithName:@"HelveticaNeue" size:16]
+                       range:NSMakeRange(0, [txtStr length])];
     }
-    [txtStr appendAttributedString:[[NSMutableAttributedString alloc] initWithString:@" "]];
+    [txtStr appendAttributedString:[[NSMutableAttributedString alloc]
+                                       initWithString:@" "]];
     if (crown > 0) {
         NSTextAttachment *textAttachment = [[NSTextAttachment alloc] init];
         switch (crown) {
-            case 1:
-                textAttachment.image = [UIImage imageNamed:@"crown.gif"];
-                break;
-            case 2:
-                textAttachment.image = [UIImage imageNamed:@"scrown.gif"];
-                break;
-            case 3:
-                textAttachment.image = [UIImage imageNamed:@"bcrown.gif"];
-                break;
-            default:
-                if (crown > 3) {
-                    textAttachment.image = [UIImage imageNamed: [NSString stringWithFormat:@"kothcrown%i", crown-3]];
-                }
-                break;
+        case 1:
+            textAttachment.image = [UIImage imageNamed:@"crown.gif"];
+            break;
+        case 2:
+            textAttachment.image = [UIImage imageNamed:@"scrown.gif"];
+            break;
+        case 3:
+            textAttachment.image = [UIImage imageNamed:@"bcrown.gif"];
+            break;
+        default:
+            if (crown > 3) {
+                textAttachment.image = [UIImage
+                    imageNamed:[NSString
+                                   stringWithFormat:@"kothcrown%i", crown - 3]];
+            }
+            break;
         }
-        NSAttributedString *crownStr = [NSAttributedString attributedStringWithAttachment:textAttachment];
+        NSAttributedString *crownStr =
+            [NSAttributedString attributedStringWithAttachment:textAttachment];
         [txtStr appendAttributedString:crownStr];
     }
     return txtStr;
 }
 
-+(NSString *) replaceSmileys: (NSString *) message {
-    NSString *tmpStrComma = [message stringByReplacingOccurrencesOfString:@"\\1" withString: @","];
-    NSString *tmpStrQuote = [tmpStrComma stringByReplacingOccurrencesOfString:@"\\2" withString: @"\""];
-    NSString *tmpStrAmp = [tmpStrQuote stringByReplacingOccurrencesOfString:@"&amp;#38;" withString: @"&"];
-    NSString *tmpStrSmiley = [tmpStrAmp stringByReplacingOccurrencesOfString:@"<img border='0' src='http://[host]/gameServer/forums/images/emoticons/happy.gif' alt=''>" withString: @":)"];
-    NSString *tmpStrWink = [tmpStrSmiley stringByReplacingOccurrencesOfString:@"<img border='0' src='http://[host]/gameServer/forums/images/emoticons/wink.gif' alt=''>" withString: @";)"];
-    NSString *tmpStrTongue = [tmpStrWink stringByReplacingOccurrencesOfString:@"<img border='0' src='http://[host]/gameServer/forums/images/emoticons/silly.gif' alt=''>" withString: @":p"];
-    NSString *tmpStrGrin = [tmpStrTongue stringByReplacingOccurrencesOfString:@"<img border='0' src='http://[host]/gameServer/forums/images/emoticons/grin.gif' alt=''>" withString: @":D"];
-    NSString *tmpStrSad = [tmpStrGrin stringByReplacingOccurrencesOfString:@"<img border='0' src='http://[host]/gameServer/forums/images/emoticons/sad.gif' alt=''>" withString: @":("];
-    NSString *tmpStrLove = [tmpStrSad stringByReplacingOccurrencesOfString:@"<img border='0' src='http://[host]/gameServer/forums/images/emoticons/love.gif' alt=''>" withString: @"<3"];
-    NSString *tmpStrMischief = [tmpStrLove stringByReplacingOccurrencesOfString:@"<img border='0' src='http://[host]/gameServer/forums/images/emoticons/mischief.gif' alt=''>" withString: @";\\"];
-    NSString *tmpStrCool = [tmpStrMischief stringByReplacingOccurrencesOfString:@"<img border='0' src='http://[host]/gameServer/forums/images/emoticons/cool.gif' alt=''>" withString: @"B)"];
-    NSString *tmpStrDevil = [tmpStrCool stringByReplacingOccurrencesOfString:@"<img border='0' src='http://[host]/gameServer/forums/images/emoticons/devil.gif' alt=''>" withString: @">:)"];
-    NSString *tmpStrAngry = [tmpStrDevil stringByReplacingOccurrencesOfString:@"<img border='0' src='http://[host]/gameServer/forums/images/emoticons/angry.gif' alt=''>" withString: @"X("];
-    NSString *tmpStrLaugh = [tmpStrAngry stringByReplacingOccurrencesOfString:@"<img border='0' src='http://[host]/gameServer/forums/images/emoticons/laugh.gif' alt=''>" withString: @":^O"];
-    NSString *tmpStrBlush = [tmpStrLaugh stringByReplacingOccurrencesOfString:@"<img border='0' src='http://[host]/gameServer/forums/images/emoticons/blush.gif' alt=''>" withString: @":8)"];
-    NSString *tmpStrCry = [tmpStrBlush stringByReplacingOccurrencesOfString:@"<img border='0' src='http://[host]/gameServer/forums/images/emoticons/cry.gif' alt=''>" withString: @":'("];
-    NSString *tmpStrConfused = [tmpStrCry stringByReplacingOccurrencesOfString:@"<img border='0' src='http://[host]/gameServer/forums/images/emoticons/confused.gif' alt=''>" withString: @"?:|"];
-    NSString *tmpStrShocked = [tmpStrConfused stringByReplacingOccurrencesOfString:@"<img border='0' src='http://[host]/gameServer/forums/images/emoticons/shocked.gif' alt=''>" withString: @":O"];
-    NSString *tmpStrPlain = [tmpStrShocked stringByReplacingOccurrencesOfString:@"<img border='0' src='http://[host]/gameServer/forums/images/emoticons/plain.gif' alt=''>" withString: @":|"];
-    return [tmpStrPlain stringByReplacingOccurrencesOfString:@"\\1" withString: @","];
++ (NSString *)replaceSmileys:(NSString *)message {
+    NSString *tmpStrComma = [message stringByReplacingOccurrencesOfString:@"\\1"
+                                                               withString:@","];
+    NSString *tmpStrQuote =
+        [tmpStrComma stringByReplacingOccurrencesOfString:@"\\2"
+                                               withString:@"\""];
+    NSString *tmpStrAmp =
+        [tmpStrQuote stringByReplacingOccurrencesOfString:@"&amp;#38;"
+                                               withString:@"&"];
+    NSString *tmpStrSmiley =
+        [tmpStrAmp stringByReplacingOccurrencesOfString:
+                       @"<img border='0' "
+                       @"src='http://[host]/gameServer/forums/images/emoticons/"
+                       @"happy.gif' alt=''>"
+                                             withString:@":)"];
+    NSString *tmpStrWink =
+        [tmpStrSmiley stringByReplacingOccurrencesOfString:
+                          @"<img border='0' "
+                          @"src='http://[host]/gameServer/forums/images/"
+                          @"emoticons/wink.gif' alt=''>"
+                                                withString:@";)"];
+    NSString *tmpStrTongue = [tmpStrWink
+        stringByReplacingOccurrencesOfString:
+            @"<img border='0' "
+            @"src='http://[host]/gameServer/forums/images/emoticons/"
+            @"silly.gif' alt=''>"
+                                  withString:@":p"];
+    NSString *tmpStrGrin =
+        [tmpStrTongue stringByReplacingOccurrencesOfString:
+                          @"<img border='0' "
+                          @"src='http://[host]/gameServer/forums/images/"
+                          @"emoticons/grin.gif' alt=''>"
+                                                withString:@":D"];
+    NSString *tmpStrSad =
+        [tmpStrGrin stringByReplacingOccurrencesOfString:
+                        @"<img border='0' "
+                        @"src='http://[host]/gameServer/forums/"
+                        @"images/emoticons/sad.gif' alt=''>"
+                                              withString:@":("];
+    NSString *tmpStrLove =
+        [tmpStrSad stringByReplacingOccurrencesOfString:
+                       @"<img border='0' "
+                       @"src='http://[host]/gameServer/forums/"
+                       @"images/emoticons/love.gif' alt=''>"
+                                             withString:@"<3"];
+    NSString *tmpStrMischief = [tmpStrLove
+        stringByReplacingOccurrencesOfString:
+            @"<img border='0' "
+            @"src='http://[host]/gameServer/forums/images/emoticons/"
+            @"mischief.gif' alt=''>"
+                                  withString:@";\\"];
+    NSString *tmpStrCool =
+        [tmpStrMischief stringByReplacingOccurrencesOfString:
+                            @"<img border='0' "
+                            @"src='http://[host]/gameServer/forums/images/"
+                            @"emoticons/cool.gif' alt=''>"
+                                                  withString:@"B)"];
+    NSString *tmpStrDevil = [tmpStrCool
+        stringByReplacingOccurrencesOfString:
+            @"<img border='0' "
+            @"src='http://[host]/gameServer/forums/images/emoticons/"
+            @"devil.gif' alt=''>"
+                                  withString:@">:)"];
+    NSString *tmpStrAngry = [tmpStrDevil
+        stringByReplacingOccurrencesOfString:
+            @"<img border='0' "
+            @"src='http://[host]/gameServer/forums/images/emoticons/"
+            @"angry.gif' alt=''>"
+                                  withString:@"X("];
+    NSString *tmpStrLaugh = [tmpStrAngry
+        stringByReplacingOccurrencesOfString:
+            @"<img border='0' "
+            @"src='http://[host]/gameServer/forums/images/emoticons/"
+            @"laugh.gif' alt=''>"
+                                  withString:@":^O"];
+    NSString *tmpStrBlush = [tmpStrLaugh
+        stringByReplacingOccurrencesOfString:
+            @"<img border='0' "
+            @"src='http://[host]/gameServer/forums/images/emoticons/"
+            @"blush.gif' alt=''>"
+                                  withString:@":8)"];
+    NSString *tmpStrCry = [tmpStrBlush
+        stringByReplacingOccurrencesOfString:
+            @"<img border='0' "
+            @"src='http://[host]/gameServer/forums/images/emoticons/"
+            @"cry.gif' alt=''>"
+                                  withString:@":'("];
+    NSString *tmpStrConfused =
+        [tmpStrCry stringByReplacingOccurrencesOfString:
+                       @"<img border='0' "
+                       @"src='http://[host]/gameServer/forums/images/emoticons/"
+                       @"confused.gif' alt=''>"
+                                             withString:@"?:|"];
+    NSString *tmpStrShocked =
+        [tmpStrConfused stringByReplacingOccurrencesOfString:
+                            @"<img border='0' "
+                            @"src='http://[host]/gameServer/forums/images/"
+                            @"emoticons/shocked.gif' alt=''>"
+                                                  withString:@":O"];
+    NSString *tmpStrPlain =
+        [tmpStrShocked stringByReplacingOccurrencesOfString:
+                           @"<img border='0' "
+                           @"src='http://[host]/gameServer/forums/images/"
+                           @"emoticons/plain.gif' alt=''>"
+                                                 withString:@":|"];
+    return [tmpStrPlain stringByReplacingOccurrencesOfString:@"\\1"
+                                                  withString:@","];
 }
 @end
 
@@ -227,7 +382,8 @@
 
 @implementation PentePlayer
 @synthesize playerName;
-@synthesize invitations, sentInvitations, activeGames, nonActiveGames, publicInvitations, messages, ratingStats, tournaments, hills;
+@synthesize invitations, sentInvitations, activeGames, nonActiveGames,
+    publicInvitations, messages, ratingStats, tournaments, hills;
 //@synthesize showAds, subscriber;
 @synthesize dbAccess, emailMe, personalizeAds;
 @synthesize avatars;
@@ -236,7 +392,7 @@
 @synthesize tbHills, tbRatings;
 @synthesize onlinePlayers;
 
--(id) init {
+- (id)init {
     self = [super init];
     if (self) {
         invitations = [[NSMutableArray alloc] init];
@@ -254,62 +410,77 @@
         dbAccess = NO;
         emailMe = YES;
         playerName = @"guest";
-        
+
         pendingAvatarChecks = [[NSMutableArray alloc] init];
-        
+
         onlinePlayers = [[NSDictionary alloc] init];
     }
     return self;
 }
 
--(void) addUser: (NSString *) username {
-    if ([pendingAvatarChecks containsObject: username]) {
+- (void)addUser:(NSString *)username {
+    if ([pendingAvatarChecks containsObject:username]) {
         return;
     }
     [pendingAvatarChecks addObject:username];
-    
-    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-        NSURL *url = [NSURL URLWithString: [NSString stringWithFormat:@"https://www.pente.org/gameServer/avatar?name=%@", username]];
-        NSURLSessionDownloadTask *downloadPhotoTask = [[NSURLSession sharedSession]
-                                                       downloadTaskWithURL:url completionHandler:^(NSURL *location, NSURLResponse *response, NSError *error) {
-                                                           UIImage *downloadedImage = [UIImage imageWithData: [NSData dataWithContentsOfURL:location]];
-//                                                           UIImageView *imgV = [[UIImageView alloc] initWithImage: downloadedImage];
-                                                           if (downloadedImage) {
-                                                               [avatars setObject: downloadedImage forKey:username];
-                                                           }
-                                                       }];
-        [downloadPhotoTask resume];
-    });
+
+    dispatch_async(
+        dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+            NSURL *url = [NSURL
+                URLWithString:[NSString
+                                  stringWithFormat:@"https://www.pente.org/"
+                                                   @"gameServer/avatar?name=%@",
+                                                   username]];
+            NSURLSessionDownloadTask *downloadPhotoTask = [[NSURLSession
+                sharedSession]
+                downloadTaskWithURL:url
+                  completionHandler:^(NSURL *location, NSURLResponse *response,
+                                      NSError *error) {
+                      UIImage *downloadedImage = [UIImage
+                          imageWithData:[NSData
+                                            dataWithContentsOfURL:location]];
+                      //                                                           UIImageView *imgV = [[UIImageView alloc] initWithImage: downloadedImage];
+                      if (downloadedImage) {
+                          [avatars setObject:downloadedImage forKey:username];
+                      }
+                  }];
+            [downloadPhotoTask resume];
+        });
 }
 
--(NSAttributedString *) markIfOnline: (NSString *) name andAttributedName: (NSAttributedString *) attributedString {
+- (NSAttributedString *)markIfOnline:(NSString *)name
+                   andAttributedName:(NSAttributedString *)attributedString {
     if ([onlinePlayers objectForKey:name]) {
-        NSMutableAttributedString *tmpStr = [[NSMutableAttributedString alloc] initWithAttributedString:attributedString];
-        [tmpStr appendAttributedString:[[NSMutableAttributedString alloc] initWithString: [NSString stringWithFormat:@" \u25CF"]]];
-        [tmpStr addAttribute:NSForegroundColorAttributeName value:[UIColor greenColor] range:NSMakeRange([tmpStr length] - 1, 1)];
+        NSMutableAttributedString *tmpStr = [[NSMutableAttributedString alloc]
+            initWithAttributedString:attributedString];
+        [tmpStr appendAttributedString:
+                    [[NSMutableAttributedString alloc]
+                        initWithString:[NSString stringWithFormat:@" \u25CF"]]];
+        [tmpStr addAttribute:NSForegroundColorAttributeName
+                       value:[UIColor greenColor]
+                       range:NSMakeRange([tmpStr length] - 1, 1)];
         return tmpStr;
     }
     return attributedString;
 }
 
-
--(BOOL) showAds {
+- (BOOL)showAds {
     if (development) {
         return YES;
     }
     return showAds;
 }
--(BOOL) subscriber {
-//    return NO;
+- (BOOL)subscriber {
+    //    return NO;
     if (development) {
         return NO;
     }
     return subscriber;
 }
--(void) setShowAds:(BOOL)showAdss {
+- (void)setShowAds:(BOOL)showAdss {
     showAds = showAdss;
 }
--(void) setSubscriber:(BOOL)subscribers {
+- (void)setSubscriber:(BOOL)subscribers {
     subscriber = subscribers;
 }
 

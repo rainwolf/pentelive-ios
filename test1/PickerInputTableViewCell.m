@@ -12,29 +12,29 @@
 @synthesize picker;
 @synthesize resign;
 @synthesize popoverController;
-//BOOL resign = NO;
+// BOOL resign = NO;
 
 //@synthesize picker;
 
 - (void)initalizeInputView {
-	self.picker = [[UIPickerView alloc] initWithFrame:CGRectZero];
-	self.picker.showsSelectionIndicator = YES;
-	self.picker.autoresizingMask = UIViewAutoresizingFlexibleHeight;
-	
-	if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
-		UIViewController *popoverContent = [[UIViewController alloc] init];
-		popoverContent.view = self.picker;
-		popoverController = [[UIPopoverController alloc] initWithContentViewController:popoverContent];
-		popoverController.delegate = self;
-	}
+    self.picker = [[UIPickerView alloc] initWithFrame:CGRectZero];
+    self.picker.showsSelectionIndicator = YES;
+    self.picker.autoresizingMask = UIViewAutoresizingFlexibleHeight;
+
+    if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
+        UIViewController *popoverContent = [[UIViewController alloc] init];
+        popoverContent.view = self.picker;
+        popoverController = [[UIPopoverController alloc]
+            initWithContentViewController:popoverContent];
+        popoverController.delegate = self;
+    }
 }
 
-
-- (id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier
-{
+- (id)initWithStyle:(UITableViewCellStyle)style
+    reuseIdentifier:(NSString *)reuseIdentifier {
     self = [super initWithStyle:style reuseIdentifier:reuseIdentifier];
     if (self) {
-		[self initalizeInputView];
+        [self initalizeInputView];
     }
     return self;
 }
@@ -42,120 +42,139 @@
 - (id)initWithCoder:(NSCoder *)aDecoder {
     self = [super initWithCoder:aDecoder];
     if (self) {
-		[self initalizeInputView];
+        [self initalizeInputView];
     }
     return self;
 }
 
 - (UIView *)inputView {
-	if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
-		return nil;
-	} else {
-		return self.picker;
-	}
+    if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
+        return nil;
+    } else {
+        return self.picker;
+    }
 }
 
 - (UIView *)inputAccessoryView {
-	if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
-		return nil;
-	} else {
-		if (!inputAccessoryView) {
-			inputAccessoryView = [[UIToolbar alloc] init];
-			inputAccessoryView.barStyle = UIBarStyleBlackTranslucent;
-			inputAccessoryView.autoresizingMask = UIViewAutoresizingFlexibleHeight;
-			[inputAccessoryView sizeToFit];
-			CGRect frame = inputAccessoryView.frame;
-			frame.size.height = 44.0f;
-			inputAccessoryView.frame = frame;
-			
-			UIBarButtonItem *doneBtn =[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone target:self action:@selector(done:)];
-			UIBarButtonItem *flexibleSpaceLeft = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:nil];
-			
-			NSArray *array = [NSArray arrayWithObjects:flexibleSpaceLeft, doneBtn, nil];
-			[inputAccessoryView setItems:array];
-		}
-		return inputAccessoryView;
-	}
+    if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
+        return nil;
+    } else {
+        if (!inputAccessoryView) {
+            inputAccessoryView = [[UIToolbar alloc] init];
+            inputAccessoryView.barStyle = UIBarStyleBlackTranslucent;
+            inputAccessoryView.autoresizingMask =
+                UIViewAutoresizingFlexibleHeight;
+            [inputAccessoryView sizeToFit];
+            CGRect frame = inputAccessoryView.frame;
+            frame.size.height = 44.0f;
+            inputAccessoryView.frame = frame;
+
+            UIBarButtonItem *doneBtn = [[UIBarButtonItem alloc]
+                initWithBarButtonSystemItem:UIBarButtonSystemItemDone
+                                     target:self
+                                     action:@selector(done:)];
+            UIBarButtonItem *flexibleSpaceLeft = [[UIBarButtonItem alloc]
+                initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace
+                                     target:nil
+                                     action:nil];
+
+            NSArray *array =
+                [NSArray arrayWithObjects:flexibleSpaceLeft, doneBtn, nil];
+            [inputAccessoryView setItems:array];
+        }
+        return inputAccessoryView;
+    }
 }
 
 - (void)done:(id)sender {
-	id tableView = self;
-    while (![tableView isKindOfClass:[UITableView class]] && [tableView respondsToSelector:@selector(superview)]) {
-        tableView = ((UIView*)tableView).superview;
+    id tableView = self;
+    while (![tableView isKindOfClass:[UITableView class]] &&
+           [tableView respondsToSelector:@selector(superview)]) {
+        tableView = ((UIView *)tableView).superview;
     }
-    CGFloat insetY = - ((UITableView*)tableView).contentInset.top;
-    [tableView scrollRectToVisible:CGRectMake(0,insetY, 1, 1) animated:YES];
-//    [tableView setScrollEnabled:NO];
+    CGFloat insetY = -((UITableView *)tableView).contentInset.top;
+    [tableView scrollRectToVisible:CGRectMake(0, insetY, 1, 1) animated:YES];
+    //    [tableView setScrollEnabled:NO];
     resign = YES;
-	[self resignFirstResponder];
+    [self resignFirstResponder];
 }
 
-- (void) doResign {
+- (void)doResign {
     resign = YES;
-	[self resignFirstResponder];
+    [self resignFirstResponder];
 }
 
 - (BOOL)becomeFirstResponder {
-//	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(deviceDidRotate:) name:UIDeviceOrientationDidChangeNotification object:nil];
-	if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
-		CGSize pickerSize = [self.picker sizeThatFits:CGSizeZero];
-		CGRect frame = self.picker.frame;
-		frame.size = pickerSize;
-		self.picker.frame = frame;
-		popoverController.popoverContentSize = pickerSize;
-        [popoverController presentPopoverFromRect:self.detailTextLabel.frame inView:self permittedArrowDirections:UIPopoverArrowDirectionAny animated:YES];
-		// resign the current first responder
-		for (UIView *subview in self.superview.subviews) {
-			if ([subview isFirstResponder]) {
-				[subview resignFirstResponder];
-			}
-		}
+    //	[[NSNotificationCenter defaultCenter] addObserver:self
+    // selector:@selector(deviceDidRotate:)
+    // name:UIDeviceOrientationDidChangeNotification object:nil];
+    if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
+        CGSize pickerSize = [self.picker sizeThatFits:CGSizeZero];
+        CGRect frame = self.picker.frame;
+        frame.size = pickerSize;
+        self.picker.frame = frame;
+        popoverController.popoverContentSize = pickerSize;
+        [popoverController presentPopoverFromRect:self.detailTextLabel.frame
+                                           inView:self
+                         permittedArrowDirections:UIPopoverArrowDirectionAny
+                                         animated:YES];
+        // resign the current first responder
+        for (UIView *subview in self.superview.subviews) {
+            if ([subview isFirstResponder]) {
+                [subview resignFirstResponder];
+            }
+        }
         return YES;
-	} else {
-//		[self.picker setNeedsLayout];
-	}
+    } else {
+        //		[self.picker setNeedsLayout];
+    }
     resign = NO;
-	return [super becomeFirstResponder];
+    return [super becomeFirstResponder];
 }
 
 - (BOOL)resignFirstResponder {
-	[[NSNotificationCenter defaultCenter] removeObserver:self name:UIDeviceOrientationDidChangeNotification object:nil];
-	if (resign)
+    [[NSNotificationCenter defaultCenter]
+        removeObserver:self
+                  name:UIDeviceOrientationDidChangeNotification
+                object:nil];
+    if (resign)
         return [super resignFirstResponder];
     else
         return YES;
-//    return [super resignFirstResponder];
+    //    return [super resignFirstResponder];
 }
 
-- (void)setSelected:(BOOL)selected animated:(BOOL)animated
-{
+- (void)setSelected:(BOOL)selected animated:(BOOL)animated {
     [super setSelected:selected animated:animated];
-	if (selected) {
-		[self becomeFirstResponder];
-	}
+    if (selected) {
+        [self becomeFirstResponder];
+    }
 }
 
-- (void)deviceDidRotate:(NSNotification*)notification {
-	if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
-		// we should only get this call if the popover is visible
-		[popoverController presentPopoverFromRect:self.detailTextLabel.frame inView:self permittedArrowDirections:UIPopoverArrowDirectionAny animated:YES];
-	} else {
-		[self.picker setNeedsLayout];
-	}
+- (void)deviceDidRotate:(NSNotification *)notification {
+    if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
+        // we should only get this call if the popover is visible
+        [popoverController presentPopoverFromRect:self.detailTextLabel.frame
+                                           inView:self
+                         permittedArrowDirections:UIPopoverArrowDirectionAny
+                                         animated:YES];
+    } else {
+        [self.picker setNeedsLayout];
+    }
 }
 
 #pragma mark -
 #pragma mark Respond to touch and become first responder.
 
 - (BOOL)canBecomeFirstResponder {
-	return YES;
+    return YES;
 }
 
 #pragma mark -
 #pragma mark UIKeyInput Protocol Methods
 
 - (BOOL)hasText {
-	return YES;
+    return YES;
 }
 
 - (void)insertText:(NSString *)theText {
@@ -167,16 +186,17 @@
 #pragma mark -
 #pragma mark UIPopoverControllerDelegate Protocol Methods
 
-- (void)popoverControllerDidDismissPopover:(UIPopoverController *)popoverController {
+- (void)popoverControllerDidDismissPopover:
+    (UIPopoverController *)popoverController {
     id tableView = self;
-    while (![tableView isKindOfClass:[UITableView class]] && [tableView respondsToSelector:@selector(superview)]) {
-        tableView = ((UIView*)tableView).superview;
+    while (![tableView isKindOfClass:[UITableView class]] &&
+           [tableView respondsToSelector:@selector(superview)]) {
+        tableView = ((UIView *)tableView).superview;
     }
-	[tableView deselectRowAtIndexPath:[tableView indexPathForCell:self] animated:YES];
-//    [tableView scrollRectToVisible:CGRectMake(0,0, 1, 1) animated:YES];
-	[self resignFirstResponder];
+    [tableView deselectRowAtIndexPath:[tableView indexPathForCell:self]
+                             animated:YES];
+    //    [tableView scrollRectToVisible:CGRectMake(0,0, 1, 1) animated:YES];
+    [self resignFirstResponder];
 }
-
-
 
 @end

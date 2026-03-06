@@ -9,11 +9,10 @@
 #import <UIKit/UIKit.h>
 @import AudioToolbox;
 
-
 @interface AppDelegate : UIResponder <UIApplicationDelegate>
 
-@property (strong, nonatomic) UIWindow *window;
-@property (retain, nonatomic, readwrite) NSDictionary *notification;
-@property (atomic) SystemSoundID sndID, broadcastSndID;
+@property(strong, nonatomic) UIWindow *window;
+@property(retain, nonatomic, readwrite) NSDictionary *notification;
+@property(atomic) SystemSoundID sndID, broadcastSndID;
 
 @end

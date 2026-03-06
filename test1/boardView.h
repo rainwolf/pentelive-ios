@@ -6,8 +6,8 @@
 //
 //
 
-#import <UIKit/UIKit.h>
 #import "PentePlayer.h"
+#import <UIKit/UIKit.h>
 typedef int AbstractBoard[19];
 
 #define WHITE 0
@@ -18,7 +18,7 @@ typedef int AbstractBoard[19];
     int stoneColor;
     BOOL fill;
 }
-@property(atomic,assign) int stoneColor;
+@property(atomic, assign) int stoneColor;
 @property(atomic, assign) BOOL fill;
 
 - (void)drawRect:(CGRect)rect;
@@ -26,32 +26,30 @@ typedef int AbstractBoard[19];
 @end
 
 @interface BoardView : UIView {
-    AbstractBoard* abstractBoard;
+    AbstractBoard *abstractBoard;
     int lastMove;
     int lastConnect6Move;
-    NSArray<NSNumber*> *whiteDeadStones, *blackDeadStones, *whiteTerritory, *blackTerritory;
+    NSArray<NSNumber *> *whiteDeadStones, *blackDeadStones, *whiteTerritory,
+        *blackTerritory;
     StoneView *whiteStoneView, *blackStoneView;
     UIView *whiteSquare, *blackSquare;
     BOOL go;
     int gridSize;
 }
-@property(nonatomic, retain) NSArray<NSNumber*> *whiteDeadStones, *blackDeadStones, *whiteTerritory, *blackTerritory;
+@property(nonatomic, retain) NSArray<NSNumber *> *whiteDeadStones,
+    *blackDeadStones, *whiteTerritory, *blackTerritory;
 @property(nonatomic, retain) StoneView *whiteStoneView, *blackStoneView;
 @property(nonatomic, retain) UIView *whiteSquare, *blackSquare;
 @property(atomic, assign) BOOL go;
 @property(atomic, assign) int gridSize;
 @property int lastMove;
 @property int lastConnect6Move;
--(instancetype) init;
+- (instancetype)init;
 - (id)initWithFrame:(CGRect)frame;
--(void) setAbstractBoard: (AbstractBoard*) board;
+- (void)setAbstractBoard:(AbstractBoard *)board;
 - (void)drawRect:(CGRect)rect;
 
 @end
-
-
-
-
 
 @interface VerticalLine : UIView {
 }

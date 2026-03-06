@@ -6,27 +6,31 @@
 //  Copyright (c) 2012 Triade. All rights reserved.
 //
 
+#import "ICDMaterialActivityIndicatorView.h"
 #import "InAppSettingsKit/IASKAppSettingsViewController.h"
 #import "PenteNavigationViewController.h"
 #import "PopoverView.h"
-#import "ICDMaterialActivityIndicatorView.h"
 
-@interface SettingsViewController : IASKAppSettingsViewController <IASKSettingsDelegate, MFMailComposeViewControllerDelegate, UIImagePickerControllerDelegate, PopoverViewDelegate> {
+@interface SettingsViewController
+    : IASKAppSettingsViewController <
+          IASKSettingsDelegate, MFMailComposeViewControllerDelegate,
+          UIImagePickerControllerDelegate, PopoverViewDelegate> {
     NSString *username, *password;
     PopoverView *popoverView;
     ICDMaterialActivityIndicatorView *progressView;
     PenteNavigationViewController *navC;
     BOOL showAIOption;
 }
-@property(nonatomic,retain) NSString *username;
-@property(nonatomic,retain) NSString *password;
-@property(nonatomic,retain) PopoverView *popoverView;
-@property(nonatomic,retain) PenteNavigationViewController *navC;
-@property (strong,nonatomic) ICDMaterialActivityIndicatorView *progressView;
+@property(nonatomic, retain) NSString *username;
+@property(nonatomic, retain) NSString *password;
+@property(nonatomic, retain) PopoverView *popoverView;
+@property(nonatomic, retain) PenteNavigationViewController *navC;
+@property(strong, nonatomic) ICDMaterialActivityIndicatorView *progressView;
 @property(atomic, assign) BOOL showAIOption;
 
-//-(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath;
+//-(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath
+//*)indexPath;
 
-- (id)initWithFile:(NSString*)file specifier:(IASKSpecifier*)specifier;
+- (id)initWithFile:(NSString *)file specifier:(IASKSpecifier *)specifier;
 
 @end

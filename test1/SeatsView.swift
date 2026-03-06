@@ -9,13 +9,11 @@
 import UIKit
 
 class SeatsView: UIView {
-
     let seat1Label = UILabel()
     let seat2Label = UILabel()
     let seat1TimeLabel = UILabel()
     let seat2TimeLabel = UILabel()
     let ratedTimerLabel = UILabel()
-    
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -23,24 +21,24 @@ class SeatsView: UIView {
         labelFrame.origin = CGPoint(x: 0, y: 0)
         let labelWidth = frame.width / 3
         labelFrame.size.width = labelWidth
-        labelFrame.size.height = frame.size.height/2
+        labelFrame.size.height = frame.size.height / 2
         seat1Label.frame = labelFrame
         seat1Label.textAlignment = .center
         seat1Label.tag = 1
         addSubview(seat1Label)
         addSubview(ratedTimerLabel)
-        labelFrame.origin.x = 2*labelWidth
+        labelFrame.origin.x = 2 * labelWidth
         seat2Label.frame = labelFrame
         seat2Label.textAlignment = .center
         seat2Label.tag = 2
         addSubview(seat2Label)
         labelFrame = seat1Label.frame
-        labelFrame.size.height = frame.size.height/2
+        labelFrame.size.height = frame.size.height / 2
         labelFrame.origin.y = seat1Label.frame.origin.y + seat1Label.frame.size.height
         seat1TimeLabel.frame = labelFrame
         addSubview(seat1TimeLabel)
         labelFrame = seat1TimeLabel.frame
-        labelFrame.origin.x = labelWidth*2
+        labelFrame.origin.x = labelWidth * 2
         seat2TimeLabel.frame = labelFrame
         addSubview(seat2TimeLabel)
         seat1TimeLabel.font = UIFont.preferredFont(forTextStyle: .subheadline)
@@ -64,6 +62,7 @@ class SeatsView: UIView {
         seat1Label.alpha = 0.6
         seat2Label.alpha = 0.6
     }
+
     required init(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)!
     }
@@ -77,6 +76,7 @@ class SeatsView: UIView {
             seat2Label.alpha = 1
         }
     }
+
     func stand(seat: Int) {
         if seat == 1 {
             seat1Label.attributedText = NSAttributedString(string: NSLocalizedString("Tap to sit", comment: ""))
@@ -86,6 +86,7 @@ class SeatsView: UIView {
             seat2Label.alpha = 0.6
         }
     }
+
     func setRatedTimer(rated: Bool, timed: Bool, initialMinutes: Int, incrementalSeconds: Int) {
         var ratedStr = "Rated"
         if !rated {
@@ -97,6 +98,7 @@ class SeatsView: UIView {
         }
         ratedTimerLabel.text = NSLocalizedString(ratedStr, comment: "") + "\n" + timerStr
     }
+
     func getTimerText(timer: [String: Int]) -> String {
         let millis = timer["millis"]!
         let minutes = millis / 60000
@@ -105,15 +107,15 @@ class SeatsView: UIView {
         if secs < 10 {
             seconds = "0\(secs)"
         }
-        if (millis / 1000 < 12) {
+        if millis / 1000 < 12 {
             let tenths = ((millis % 60000) / 100) % 10
             return "\(minutes):\(seconds).\(tenths)"
         }
         return "\(minutes):\(seconds)"
     }
-    func setTimers(timers: [Int:[String:Int]]) {
+
+    func setTimers(timers: [Int: [String: Int]]) {
         seat1TimeLabel.text = getTimerText(timer: timers[1]!)
         seat2TimeLabel.text = getTimerText(timer: timers[2]!)
     }
-    
 }

@@ -6,10 +6,9 @@
 //  Copyright © 2016 Triade. All rights reserved.
 //
 
-#import <UIKit/UIKit.h>
-#import "PentePlayer.h"
 #import "GamesTableViewController.h"
-
+#import "PentePlayer.h"
+#import <UIKit/UIKit.h>
 
 @interface RatingStatCell : UITableViewCell {
     UILabel *ratingLabel;
@@ -18,8 +17,8 @@
 
 @end
 
-
-@interface RatingStatsView : UITableView <UITableViewDelegate, UITableViewDataSource> {
+@interface RatingStatsView
+    : UITableView <UITableViewDelegate, UITableViewDataSource> {
     NSArray<RatingStat *> *ratingStats;
     GamesTableViewController *vc;
 }

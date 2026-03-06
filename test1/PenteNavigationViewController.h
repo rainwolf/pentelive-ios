@@ -9,27 +9,29 @@
 //@import GoogleMobileAds;
 #import <UIKit/UIKit.h>
 @import StoreKit;
-//#import <GoogleMobileAds/GoogleMobileAds.h>
+// #import <GoogleMobileAds/GoogleMobileAds.h>
 #import "AppDelegate.h"
 #import "PentePlayer.h"
 
-
 @interface PenteNavigationViewController : UINavigationController {
-    BOOL loggedIn, didMove, messageDeleted, challengeCancelled, needHelp, showSubscribe;
+    BOOL loggedIn, didMove, messageDeleted, challengeCancelled, needHelp,
+        showSubscribe;
     int deletedMessageRow;
     NSString *activeGameToRemove, *unchallengedMessageID, *challengedUser;
-//    GADBannerView *bannerView;
+    //    GADBannerView *bannerView;
     NSDictionary *receivedNotification;
     PentePlayer *player;
     SKProduct *subscription;
 }
-@property(nonatomic,retain) NSString *activeGameToRemove, *unchallengedMessageID, *challengedUser;
-@property BOOL loggedIn, didMove, messageDeleted, challengeCancelled, needHelp, showSubscribe;
+@property(nonatomic, retain) NSString *activeGameToRemove,
+    *unchallengedMessageID, *challengedUser;
+@property BOOL loggedIn, didMove, messageDeleted, challengeCancelled, needHelp,
+    showSubscribe;
 @property int deletedMessageRow;
 //@property(nonatomic,retain) GADBannerView *bannerView;
-@property(nonatomic,retain) NSDictionary *receivedNotification;
-@property(nonatomic,retain) PentePlayer *player;
-@property(nonatomic,retain) SKProduct *subscription;
+@property(nonatomic, retain) NSDictionary *receivedNotification;
+@property(nonatomic, retain) PentePlayer *player;
+@property(nonatomic, retain) SKProduct *subscription;
 
 //- (void)adViewWillLeaveApplication:(GADBannerView *)bannerViewl;
 

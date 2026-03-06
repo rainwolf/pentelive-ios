@@ -6,10 +6,10 @@
 //  Copyright © 2016 Triade. All rights reserved.
 //
 
-#import <UIKit/UIKit.h>
+#import "KOTHChallengeView.h"
 #import "PentePlayer.h"
 #import "PopoverView.h"
-#import "KOTHChallengeView.h"
+#import <UIKit/UIKit.h>
 
 @class Hill;
 
@@ -18,15 +18,16 @@
     BOOL canBeChallenged;
     int crown, color;
 }
-@property(retain, nonatomic, readwrite) NSString *name, *rating, *lastGame, *numberOfGames;
+@property(retain, nonatomic, readwrite) NSString *name, *rating, *lastGame,
+    *numberOfGames;
 @property(assign, atomic, readwrite) BOOL canBeChallenged;
 @property(assign, atomic, readwrite) int crown, color;
--(NSAttributedString *) attributedName: (BOOL) dark;
--(NSAttributedString *) ratingString: (BOOL) dark;
+- (NSAttributedString *)attributedName:(BOOL)dark;
+- (NSAttributedString *)ratingString:(BOOL)dark;
 @end
 
-
-@interface KOTHTableViewController : UITableViewController <PopoverViewDelegate, UIScrollViewDelegate> {
+@interface KOTHTableViewController
+    : UITableViewController <PopoverViewDelegate, UIScrollViewDelegate> {
     Hill *hill;
     KingOfTheHill *hillSummary;
     PentePlayer *player;

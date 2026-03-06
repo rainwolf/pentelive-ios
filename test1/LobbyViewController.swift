@@ -11,7 +11,6 @@ import UIKit
 let development = false
 
 @objc class LobbyViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, UIPickerViewDelegate, UIPickerViewDataSource {
-    
     var servers: [GameRoom] = []
     var broadcastAlertController: UIAlertController?
     let gameNames = ["any game", "Pente", "Speed Pente", "Keryo-Pente", "Speed Keryo-Pente", "Gomoku", "Speed Gomoku",
@@ -24,16 +23,16 @@ let development = false
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.navigationItem.title = NSLocalizedString("Lobby", comment: "")
-        let tableView = UITableView(frame: self.view.frame)
+        navigationItem.title = NSLocalizedString("Lobby", comment: "")
+        let tableView = UITableView(frame: view.frame)
         tableView.delegate = self
         tableView.dataSource = self
         tableView.rowHeight = UITableView.automaticDimension
         tableView.estimatedRowHeight = 44.0
-        self.view.addSubview(tableView)
-        
-        self.navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(named: "broadcast"), style: .plain, target: self, action: #selector(broadcast))
-        self.pentePlayer = (self.navigationController as! PenteNavigationViewController).player
+        view.addSubview(tableView)
+
+        navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(named: "broadcast"), style: .plain, target: self, action: #selector(broadcast))
+        pentePlayer = (navigationController as! PenteNavigationViewController).player
 
         loadServers()
 
@@ -44,24 +43,25 @@ let development = false
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
-    
 
     /*
-    // MARK: - Navigation
+     // MARK: - Navigation
 
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destinationViewController.
-        // Pass the selected object to the new view controller.
-    }
-    */
-    
-    func numberOfSections(in tableView: UITableView) -> Int {
+     // In a storyboard-based application, you will often want to do a little preparation before navigation
+     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+         // Get the new view controller using segue.destinationViewController.
+         // Pass the selected object to the new view controller.
+     }
+     */
+
+    func numberOfSections(in _: UITableView) -> Int {
         return 1
     }
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+
+    func tableView(_: UITableView, numberOfRowsInSection _: Int) -> Int {
         return servers.count
     }
+
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell") ?? UITableViewCell(style: .default, reuseIdentifier: "cell")
 //        cell.textLabel?.textAlignment = NSTextAlignment.center
@@ -70,16 +70,17 @@ let development = false
         cell.selectionStyle = .none
         return cell
     }
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+
+    func tableView(_: UITableView, didSelectRowAt indexPath: IndexPath) {
         let vc = RoomViewController(room: servers[indexPath.row])
-        vc.pentePlayer = self.pentePlayer
-        
-        self.navigationController?.pushViewController(vc, animated: true)
+        vc.pentePlayer = pentePlayer
+
+        navigationController?.pushViewController(vc, animated: true)
     }
-    
+
     func loadServers() {
         do {
-            var activeServers: String;
+            var activeServers: String
             if development {
                 activeServers = "16000 Main Room (0)\n16001 Beginners (0)\n16002 King of the Hill (0)\n16003 Go (0)"
 //                activeServers = try String(contentsOf: URL(string: "https://localhost/gameServer/mobile/liveServers.jsp?iPhone")!, encoding: String.Encoding.utf8)
@@ -106,13 +107,12 @@ let development = false
                             player.color = UIColorFromRGB(rgbValue: Int(playerComponents[2])!)
                             player.ratings.updateValue(Int(playerComponents[1])!, forKey: 1)
                             player.subscriber = Int(playerComponents[2])! != 0
-                            if wantsToSeeAvatars && player.color != nil {
+                            if wantsToSeeAvatars, player.color != nil {
                                 pentePlayer?.addUser(player.name)
                             }
                             room.players.append(player)
                         }
                     }
-                    
 
                 } else {
 //                    let result = line.characters.split(separator: " ", maxSplits: 1, omittingEmptySubsequences: false)
@@ -123,108 +123,112 @@ let development = false
                     }
                 }
             }
-        } catch let error {
-            self.showErrorAlert(alertMessage: NSLocalizedString("There was an error getting the game rooms. Reason: \(error.localizedDescription)", comment: ""))
+        } catch {
+            showErrorAlert(alertMessage: NSLocalizedString("There was an error getting the game rooms. Reason: \(error.localizedDescription)", comment: ""))
         }
     }
-    func backHome(action: UIAlertAction) {
-        self.navigationController!.popToRootViewController(animated: true)
+
+    func backHome(action _: UIAlertAction) {
+        navigationController!.popToRootViewController(animated: true)
     }
-    
+
     @objc func broadcast() {
         if (pentePlayer?.subscriber)! {
-            self.broadcastAlertController = UIAlertController(title: NSLocalizedString("broadcast to followers or friends", comment: ""), message: nil, preferredStyle: .alert)
-            self.broadcastAlertController?.addTextField { (textField : UITextField!) -> Void in
+            broadcastAlertController = UIAlertController(title: NSLocalizedString("broadcast to followers or friends", comment: ""), message: nil, preferredStyle: .alert)
+            broadcastAlertController?.addTextField { (textField: UITextField!) in
                 let gamePicker = UIPickerView()
                 let pickerToolbar = UIToolbar(frame: CGRect(x: 0, y: 0, width: self.view.frame.size.width, height: 44))
                 pickerToolbar.barStyle = .blackTranslucent
-                let extraSpace = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target:nil, action:nil)
+                let extraSpace = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
                 let doneButton = UIBarButtonItem(title: NSLocalizedString("Done", comment: ""), style: .done, target: textField, action: #selector(textField.resignFirstResponder)) // method
                 pickerToolbar.setItems([extraSpace, doneButton], animated: true)
                 gamePicker.delegate = self
                 gamePicker.dataSource = self
                 gamePicker.tag = 2
                 textField.inputView = gamePicker
-                textField.tag = 1;
+                textField.tag = 1
                 //            textField.delegate = self
                 textField.inputAccessoryView = pickerToolbar
                 textField.placeholder = NSLocalizedString("select game", comment: "")
             }
-            let broadcastFollowerAction = UIAlertAction(title: NSLocalizedString("broadcast to followers", comment: ""), style: .default) { (action) in
+            let broadcastFollowerAction = UIAlertAction(title: NSLocalizedString("broadcast to followers", comment: ""), style: .default) { _ in
                 var gameName = (self.broadcastAlertController!.textFields![0] as UITextField).text!
                 if gameName == "" {
                     gameName = "any"
                 }
                 self.broadcastNow(to: "followers", game: gameName)
             }
-            self.broadcastAlertController?.addAction(broadcastFollowerAction)
-            let broadcastFriendsAction = UIAlertAction(title: NSLocalizedString("broadcast to friends", comment: ""), style: .default) { (action) in
+            broadcastAlertController?.addAction(broadcastFollowerAction)
+            let broadcastFriendsAction = UIAlertAction(title: NSLocalizedString("broadcast to friends", comment: ""), style: .default) { _ in
                 var gameName = (self.broadcastAlertController!.textFields![0] as UITextField).text!
                 if gameName == "" {
                     gameName = "any"
                 }
                 self.broadcastNow(to: "friends", game: gameName)
             }
-            self.broadcastAlertController?.addAction(broadcastFriendsAction)
-            let cancelAction = UIAlertAction(title: NSLocalizedString("cancel", comment: ""), style: .cancel) { (action) in
+            broadcastAlertController?.addAction(broadcastFriendsAction)
+            let cancelAction = UIAlertAction(title: NSLocalizedString("cancel", comment: ""), style: .cancel) { _ in
             }
-            self.broadcastAlertController?.addAction(cancelAction)
-            self.present(self.broadcastAlertController!, animated: true)
+            broadcastAlertController?.addAction(cancelAction)
+            present(broadcastAlertController!, animated: true)
         } else {
             let alertController = UIAlertController(title: NSLocalizedString("Subscriber feature", comment: ""), message: NSLocalizedString("As a subscriber you will be able to alert your followers or friends (followers you follow) that you're available to play in the live game room. This feature is not available for non-subscribers", comment: ""), preferredStyle: .alert)
-            let cancelAction = UIAlertAction(title: NSLocalizedString("dismiss", comment: ""), style: .cancel) { (action) in
+            let cancelAction = UIAlertAction(title: NSLocalizedString("dismiss", comment: ""), style: .cancel) { _ in
             }
             alertController.addAction(cancelAction)
-            let subscribeAction = UIAlertAction(title: NSLocalizedString("subscription info", comment: ""), style: .default) { (action) in
+            let subscribeAction = UIAlertAction(title: NSLocalizedString("subscription info", comment: ""), style: .default) { _ in
                 (self.navigationController as! PenteNavigationViewController).showSubscribe = true
                 let _ = self.navigationController?.popToRootViewController(animated: true)
             }
             alertController.addAction(subscribeAction)
-            self.present(alertController, animated: true)
+            present(alertController, animated: true)
         }
     }
-    
+
     func broadcastNow(to: String, game: String) {
 //        print("https://www.pente.org/gameServer/broadcast?sendTo=\(to)&game=\(game.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed)!)")
         do {
             let htmlString = try String(contentsOf: URL(string: "https://www.pente.org/gameServer/broadcast?sendTo=\(to)&game=\(game.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed)!)&mobile=")!, encoding: String.Encoding.utf8)
             if htmlString.contains("Broadcasting to followers or friends is only available to subscribers") {
-                self.showErrorAlert(alertMessage: NSLocalizedString("Broadcasting to followers or friends is only available to subscribers", comment: ""))
+                showErrorAlert(alertMessage: NSLocalizedString("Broadcasting to followers or friends is only available to subscribers", comment: ""))
             } else if htmlString.contains("database error, try again later") {
-                self.showErrorAlert(alertMessage: NSLocalizedString("Database error, please try again later.", comment: ""))
+                showErrorAlert(alertMessage: NSLocalizedString("Database error, please try again later.", comment: ""))
             } else if htmlString.contains("You can't broadcast more than once per hour") {
-                self.showErrorAlert(alertMessage: NSLocalizedString("You can't broadcast more than once per hour", comment: ""))
+                showErrorAlert(alertMessage: NSLocalizedString("You can't broadcast more than once per hour", comment: ""))
             }
 //            print(htmlString)
-        } catch let error {
-            self.showErrorAlert(alertMessage: NSLocalizedString("There was an error following. Reason: \(error.localizedDescription)", comment: ""))
+        } catch {
+            showErrorAlert(alertMessage: NSLocalizedString("There was an error following. Reason: \(error.localizedDescription)", comment: ""))
         }
     }
-    func numberOfComponents(in pickerView: UIPickerView) -> Int {
+
+    func numberOfComponents(in _: UIPickerView) -> Int {
         return 1
     }
-    func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
+
+    func pickerView(_: UIPickerView, numberOfRowsInComponent _: Int) -> Int {
         return gameNames.count
     }
-    func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
+
+    func pickerView(_: UIPickerView, titleForRow row: Int, forComponent _: Int) -> String? {
         return gameNames[row]
     }
-    func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
-        if row<(self.gameNames.count) && row >= 0 {
-            let textField = self.broadcastAlertController!.textFields![0] as UITextField?
-            if textField != nil && textField!.tag == 1 {
+
+    func pickerView(_: UIPickerView, didSelectRow row: Int, inComponent _: Int) {
+        if row < (gameNames.count), row >= 0 {
+            let textField = broadcastAlertController!.textFields![0] as UITextField?
+            if textField != nil, textField!.tag == 1 {
                 textField!.text = gameNames[row]
             }
         }
     }
-    
+
     func showErrorAlert(alertMessage: String) {
         let alertController = UIAlertController(title: NSLocalizedString("Error", comment: ""), message: alertMessage, preferredStyle: .alert)
         alertController.addAction(UIAlertAction(title: NSLocalizedString("Dismiss", comment: ""), style: .default, handler: nil))
-        self.present(alertController, animated: true, completion: nil)
+        present(alertController, animated: true, completion: nil)
     }
 
-    
     func UIColorFromRGB(rgbValue: Int) -> UIColor {
         return UIColor(
             red: CGFloat((rgbValue & 0xFF0000) >> 16) / 255.0,
@@ -233,30 +237,28 @@ let development = false
             alpha: CGFloat(1.0)
         )
     }
-
-
 }
 
 @objc class GameRoom: NSObject {
     @objc var name: String
     @objc var port: Int
     var players = [LivePlayer]()
-    
+
     init(name: String, port: Int) {
         self.name = name
         self.port = port
     }
-    
-    required override init() {
-        self.name = ""
-        self.port = 0
+
+    override required init() {
+        name = ""
+        port = 0
         super.init()
     }
 
     func makeAttributedString() -> NSAttributedString {
         let titleAttributes = [NSAttributedString.Key.font: UIFont.preferredFont(forTextStyle: .headline)]
 //        let subtitleAttributes = [NSFontAttributeName: UIFont.preferredFont(forTextStyle: .subheadline)]
-        
+
         let titleString = NSMutableAttributedString(string: "\(name)", attributes: titleAttributes)
         if players.count > 0 {
             titleString.append(NSAttributedString(string: "\n"))
@@ -270,8 +272,7 @@ let development = false
             }
             titleString.append(subtitleString)
         }
-        
+
         return titleString
     }
-
 }

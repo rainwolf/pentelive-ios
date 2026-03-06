@@ -12,5 +12,4 @@
 
 - (id)initWithColor:(UIColor *)defaultColor;
 
-
 @end

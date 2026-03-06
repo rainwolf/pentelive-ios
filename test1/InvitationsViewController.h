@@ -6,39 +6,41 @@
 //  Copyright (c) 2012 Triade. All rights reserved.
 //
 
-#import <UIKit/UIKit.h>
-#import "StringInputTableViewCell.h"
-#import "SimplePickerInputTableViewCell.h"
 #import "PopoverView.h"
+#import "SimplePickerInputTableViewCell.h"
+#import "StringInputTableViewCell.h"
+#import <UIKit/UIKit.h>
 
-@interface InvitationsViewController : UITableViewController <StringInputTableViewCellDelegate, SimplePickerInputTableViewCellDelegate> {
+@interface InvitationsViewController
+    : UITableViewController <StringInputTableViewCellDelegate,
+                             SimplePickerInputTableViewCellDelegate> {
     NSArray *games, *colors, *restrictions;
     NSMutableArray *moveDurations;
     NSString *challengedOpponent, *game;
     BOOL openInvitationOnly;
 }
-@property(nonatomic,retain) NSArray *games;
-@property(nonatomic,retain) NSArray *restrictions;
-@property(nonatomic,retain) NSArray *moveDurations;
-@property(nonatomic,retain) NSArray *colors;
-@property(nonatomic,retain) NSString *challengedOpponent, *game;
+@property(nonatomic, retain) NSArray *games;
+@property(nonatomic, retain) NSArray *restrictions;
+@property(nonatomic, retain) NSArray *moveDurations;
+@property(nonatomic, retain) NSArray *colors;
+@property(nonatomic, retain) NSString *challengedOpponent, *game;
 @property(atomic) BOOL openInvitationOnly;
-@property (weak, nonatomic) IBOutlet UISwitch *ratedSwitch;
-@property (weak, nonatomic) IBOutlet UILabel *sendLabel;
-@property (weak, nonatomic) IBOutlet UILabel *ratedLabel;
-@property (weak, nonatomic) IBOutlet SimplePickerInputTableViewCell *timeCell;
-@property (weak, nonatomic) IBOutlet SimplePickerInputTableViewCell *gameCell;
-@property (weak, nonatomic) IBOutlet StringInputTableViewCell *opponentCell;
-@property (weak, nonatomic) IBOutlet UISwitch *privateSwitch;
-@property (weak, nonatomic) IBOutlet SimplePickerInputTableViewCell *playAsCell;
-@property (weak, nonatomic) IBOutlet UILabel *playAsLabel;
-@property (weak, nonatomic) IBOutlet UILabel *playAsDetailLabel;
-@property (weak, nonatomic) IBOutlet UITableViewCell *privateCell;
-@property (weak, nonatomic) IBOutlet UILabel *privateCellLabel;
+@property(weak, nonatomic) IBOutlet UISwitch *ratedSwitch;
+@property(weak, nonatomic) IBOutlet UILabel *sendLabel;
+@property(weak, nonatomic) IBOutlet UILabel *ratedLabel;
+@property(weak, nonatomic) IBOutlet SimplePickerInputTableViewCell *timeCell;
+@property(weak, nonatomic) IBOutlet SimplePickerInputTableViewCell *gameCell;
+@property(weak, nonatomic) IBOutlet StringInputTableViewCell *opponentCell;
+@property(weak, nonatomic) IBOutlet UISwitch *privateSwitch;
+@property(weak, nonatomic) IBOutlet SimplePickerInputTableViewCell *playAsCell;
+@property(weak, nonatomic) IBOutlet UILabel *playAsLabel;
+@property(weak, nonatomic) IBOutlet UILabel *playAsDetailLabel;
+@property(weak, nonatomic) IBOutlet UITableViewCell *privateCell;
+@property(weak, nonatomic) IBOutlet UILabel *privateCellLabel;
 - (IBAction)flipPrivateSwitch:(id)sender;
-@property (weak, nonatomic) IBOutlet UIActivityIndicatorView *spinner;
-@property (weak, nonatomic) IBOutlet SimplePickerInputTableViewCell *restrictionCell;
-
+@property(weak, nonatomic) IBOutlet UIActivityIndicatorView *spinner;
+@property(weak, nonatomic)
+    IBOutlet SimplePickerInputTableViewCell *restrictionCell;
 
 - (IBAction)flipRatedSwitch:(id)sender;
 

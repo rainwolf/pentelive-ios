@@ -12,16 +12,18 @@
 
 @protocol SimplePickerInputTableViewCellDelegate <NSObject>
 @optional
-- (void)tableViewCell:(SimplePickerInputTableViewCell *)cell didEndEditingWithValue:(NSString *)value;
+- (void)tableViewCell:(SimplePickerInputTableViewCell *)cell
+    didEndEditingWithValue:(NSString *)value;
 @end
 
-@interface SimplePickerInputTableViewCell : PickerInputTableViewCell <UIPickerViewDataSource, UIPickerViewDelegate> {
+@interface SimplePickerInputTableViewCell
+    : PickerInputTableViewCell <UIPickerViewDataSource, UIPickerViewDelegate> {
     NSArray *datarray;
-	NSString *value;
+    NSString *value;
 }
 
-@property(nonatomic,retain) NSArray *datarray;
-@property (nonatomic, strong) NSString *value;
-@property (weak) IBOutlet id <SimplePickerInputTableViewCellDelegate> delegate;
+@property(nonatomic, retain) NSArray *datarray;
+@property(nonatomic, strong) NSString *value;
+@property(weak) IBOutlet id<SimplePickerInputTableViewCellDelegate> delegate;
 
 @end

@@ -6,12 +6,11 @@
 //  Copyright © 2016 Triade. All rights reserved.
 //
 
-#import <UIKit/UIKit.h>
-#import "SimplePickerInputTableViewCell.h"
 #import "DBBoardView.h"
+#import "SimplePickerInputTableViewCell.h"
 #import "StringInputTableViewCell.h"
 #import "penteLive-Swift.h"
-
+#import <UIKit/UIKit.h>
 
 @interface DateTableViewCell : UITableViewCell {
     UITextField *textField;
@@ -20,8 +19,12 @@
 
 @end
 
-@interface DBSetupView : UITableView <StringInputTableViewCellDelegate, UITableViewDelegate, UITableViewDataSource, UITextFieldDelegate, UIPickerViewDataSource, UIPickerViewDelegate> {
-    UITableViewCell *sortCell, *winnerCell, *eitherOrBothp1p2Cell, *excludeTimeoutCell, *liveOrTBCell;
+@interface DBSetupView
+    : UITableView <StringInputTableViewCellDelegate, UITableViewDelegate,
+                   UITableViewDataSource, UITextFieldDelegate,
+                   UIPickerViewDataSource, UIPickerViewDelegate> {
+    UITableViewCell *sortCell, *winnerCell, *eitherOrBothp1p2Cell,
+        *excludeTimeoutCell, *liveOrTBCell;
     DateTableViewCell *beforeCell, *afterCell;
     InputPickerCell *p1RatingCell, *p2RatingCell, *gameCell;
     DBBoardView *board, *zBoard;
@@ -30,14 +33,18 @@
     UIToolbar *datePickerToolbar;
     UIBarButtonItem *clearButton;
 }
-@property(nonatomic, retain, readwrite) UITableViewCell *sortCell, *winnerCell, *eitherOrBothp1p2Cell, *excludeTimeoutCell, *liveOrTBCell;
-@property(nonatomic, retain, readwrite) DateTableViewCell *beforeCell, *afterCell;
-@property(nonatomic, retain, readwrite) InputPickerCell *p1RatingCell, *p2RatingCell, *gameCell;
+@property(nonatomic, retain, readwrite) UITableViewCell *sortCell, *winnerCell,
+    *eitherOrBothp1p2Cell, *excludeTimeoutCell, *liveOrTBCell;
+@property(nonatomic, retain, readwrite) DateTableViewCell *beforeCell,
+    *afterCell;
+@property(nonatomic, retain, readwrite) InputPickerCell *p1RatingCell,
+    *p2RatingCell, *gameCell;
 @property(nonatomic, retain, readwrite) DBBoardView *board, *zBoard;
-@property(nonatomic, retain, readwrite) StringInputTableViewCell *player1Cell, *player2Cell;
-@property(nonatomic, retain, readwrite) UIDatePicker *beforePicker, *afterPicker;
+@property(nonatomic, retain, readwrite) StringInputTableViewCell *player1Cell,
+    *player2Cell;
+@property(nonatomic, retain, readwrite) UIDatePicker *beforePicker,
+    *afterPicker;
 @property(nonatomic, retain, readwrite) UIToolbar *datePickerToolbar;
 @property(nonatomic, retain, readwrite) UIBarButtonItem *clearButton;
-
 
 @end

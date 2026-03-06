@@ -9,12 +9,11 @@
 #ifndef WhosOnlineView_h
 #define WhosOnlineView_h
 
-
 #endif /* WhosOnlineView_h */
 
-#import <UIKit/UIKit.h>
 #import "GamesTableViewController.h"
 #import "KOTHTableViewController.h"
+#import <UIKit/UIKit.h>
 
 //@interface Player : NSObject {
 //    NSString *playerName, *rating;
@@ -27,18 +26,18 @@
 //@end
 //
 
-
 @interface Room : NSObject {
     NSString *name;
     NSMutableArray<Player *> *players;
 }
 @property(nonatomic, retain, readwrite) NSString *name;
 @property(nonatomic, retain, readwrite) NSMutableArray<Player *> *players;
--(void) addPlayer: (Player *) player;
+- (void)addPlayer:(Player *)player;
 
 @end
 
-@interface WhosOnlineView : UITableView <UITableViewDelegate, UITableViewDataSource> {
+@interface WhosOnlineView
+    : UITableView <UITableViewDelegate, UITableViewDataSource> {
     PentePlayer *player;
     NSArray<Room *> *rooms;
     GamesTableViewController *vc;
@@ -50,11 +49,9 @@
 
 @end
 
-
 @interface PlayerCell : UITableViewCell {
     UILabel *ratingLabel;
 }
 @property(nonatomic, retain, readwrite) UILabel *ratingLabel;
 
 @end
-

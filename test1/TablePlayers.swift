@@ -9,23 +9,24 @@
 import UIKit
 
 class TablePlayers: UITableView, UITableViewDelegate, UITableViewDataSource {
-    
     var players: [LivePlayer]?
     var game: Int?
     var wantsToSeeAvatars = UserDefaults.standard.bool(forKey: "wantToSeeAvatars")
     var pentePlayer: PentePlayer!
 
-    func numberOfSections(in tableView: UITableView) -> Int {
+    func numberOfSections(in _: UITableView) -> Int {
         return 1
     }
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+
+    func tableView(_: UITableView, numberOfRowsInSection _: Int) -> Int {
         return players!.count
     }
+
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "playerCell") ?? PlayerTableCell(style: .value1, reuseIdentifier: "playerCell")
         let player = players?[indexPath.row]
         cell.textLabel?.textAlignment = .center
-        
+
         cell.textLabel?.font = UIFont(name: "HelveticaNeue", size: 16)
         cell.textLabel?.attributedText = player?.getNameString()
         cell.textLabel?.numberOfLines = 0
