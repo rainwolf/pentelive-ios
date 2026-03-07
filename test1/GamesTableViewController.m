@@ -3586,9 +3586,9 @@ array, and add a new row to the table view
             RatingStat *ratingStat = [[RatingStat alloc] init];
             //                [ratingStat setGame:
             //                ratingStat_dict[@"gameName"]];
-            [ratingStat setRating:ratingStat_dict[@"rating"]];
-            [ratingStat setTotalGames:ratingStat_dict[@"totalGames"]];
-            [ratingStat setLastPlayed:ratingStat_dict[@"lastGameDate"]];
+            [ratingStat setRating:[ratingStat_dict[@"rating"] stringValue]];
+            [ratingStat setTotalGames:[ratingStat_dict[@"totalGames"] stringValue]];
+            [ratingStat setLastPlayed:[ratingStat_dict[@"lastGameDate"] stringValue]];
             [ratingStat setCrown:[ratingStat_dict[@"tourneyWinner"] intValue]];
             [ratingStat setGameId:[ratingStat_dict[@"gameId"] intValue]];
 
