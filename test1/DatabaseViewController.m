@@ -844,14 +844,14 @@ struct Capture {
             NSString *url = [NSString
                 stringWithFormat:
                     @"https://www.pente.org/gameServer/mobileController/"
-                    @"search?format_name=org.pente.gameDatabase."
+                    @"search?json=&format_name=org.pente.gameDatabase."
                     @"SimpleGameStorerSearchRequestFormat&format_data=%@",
                     [self URLEncodedString_ch:getStr]];
             if (development) {
                 url = [NSString
                     stringWithFormat:
                         @"https://localhost/gameServer/mobileController/"
-                        @"search?format_name=org.pente.gameDatabase."
+                        @"search?json=&format_name=org.pente.gameDatabase."
                         @"SimpleGameStorerSearchRequestFormat&format_data=%@",
                         [self URLEncodedString_ch:getStr]];
             }
@@ -935,87 +935,62 @@ struct Capture {
             NSMutableArray<NSNumber *> *moves = [[NSMutableArray alloc] init];
             NSMutableArray<UIColor *> *colors = [[NSMutableArray alloc] init];
 
-            for (NSString *line in
-                 [dashboardString componentsSeparatedByString:@"\n"]) {
-                if ([line rangeOfString:@"moves="].location == 0) {
-                    //                            NSLog(line);
-                    //                if ([line rangeOfString:@","].location !=
-                    //                NSNotFound) {
-                    if ([line length] > 6) {
-                        for (NSString *moveString in
-                             [[line substringFromIndex:6]
-                                 componentsSeparatedByString:@","]) {
-                            [moves addObject:[NSNumber
-                                                 numberWithInt:[moveString
-                                                                   intValue]]];
-                        }
-                    }
+            dashboardString = @"";
+            NSError *jsonError = nil;
+            NSDictionary *jsonResponse =
+                [NSJSONSerialization JSONObjectWithData:responseData
+                                               options:0
+                                                 error:&jsonError];
+            if (!jsonError && jsonResponse &&
+                [jsonResponse[@"access"] boolValue] &&
+                ![jsonResponse[@"blocked"] boolValue]) {
+                for (NSNumber *moveNum in jsonResponse[@"moves"]) {
+                    [moves addObject:moveNum];
                 }
-                if ([line rangeOfString:@"occurrence="].location == 0) {
-                    //                            NSLog(line);
-                    double max = 0.0, min = DBL_MAX;
-                    //                if ([line rangeOfString:@";"].location !=
-                    //                NSNotFound) {
-                    if ([line length] > 11) {
-                        for (NSString *moveString in
-                             [[line substringFromIndex:11]
-                                 componentsSeparatedByString:@";"]) {
-                            double dblValue = [moveString doubleValue];
-                            if (max < dblValue) {
-                                max = dblValue;
-                            }
-                            if (min > dblValue) {
-                                min = dblValue;
-                            }
-                        }
-                        if (max == min) {
-                            max = 100.0;
-                            min = 0.0;
-                        }
-                        //            double i = 0.0;
-                        for (NSString *moveString in
-                             [[line substringFromIndex:11]
-                                 componentsSeparatedByString:@";"]) {
-                            double dblValue =
-                                ([moveString doubleValue] - min) / (max - min);
-                            if (dblValue <= 0.5) {
-                                [colors
-                                    addObject:[UIColor
-                                                  colorWithRed:1.0
+                NSArray *occurrenceList = jsonResponse[@"occurrence"];
+                double max = 0.0, min = DBL_MAX;
+                for (NSString *pctStr in occurrenceList) {
+                    double v = [pctStr doubleValue];
+                    if (v > max) max = v;
+                    if (v < min) min = v;
+                }
+                if (max == min) {
+                    max = 100.0;
+                    min = 0.0;
+                }
+                for (NSString *pctStr in occurrenceList) {
+                    double dblValue = ([pctStr doubleValue] - min) / (max - min);
+                    NSLog(@"dblValue: %f, pctStr: %@", dblValue, pctStr);
+                    if (dblValue <= 0.5) {
+                        [colors addObject:[UIColor colorWithRed:1.0
                                                          green:(dblValue / 0.5)
                                                           blue:0
                                                          alpha:1]];
-                            } else {
-                                [colors
-                                    addObject:[UIColor colorWithRed:(1.0 -
-                                                                     dblValue) /
-                                                                    0.5
-                                                              green:1
-                                                               blue:0
-                                                              alpha:1]];
-                            }
-                            //                if (i < [moves count]/2) {
-                            //                    [colors addObject: [UIColor
-                            //                    colorWithRed:(2.0*i/[moves
-                            //                    count]) green:1.0 blue:0
-                            //                    alpha:1]];
-                            //                } else {
-                            //                    [colors addObject: [UIColor
-                            //                    colorWithRed:1.0
-                            //                    green:(2.0*(i-[moves
-                            //                    count]/2.0)/[moves count])
-                            //                    blue:0 alpha:1]];
-                            //                }
-                            //                i+=1;
-                            //                [colors addObject: [UIColor
-                            //                colorWithHue:(dblValue-min)/(2*max)
-                            //                saturation:1.0 brightness:1.0
-                            //                alpha:1.0]]; NSLog(@"%f",
-                            //                dblValue);
-                        }
+                    } else {
+                        [colors addObject:[UIColor colorWithRed:(1.0 - dblValue) / 0.5
+                                                          green:1
+                                                           blue:0
+                                                          alpha:1]];
                     }
-                    break;
                 }
+                NSMutableString *gamesHTML = [[NSMutableString alloc] init];
+                for (NSDictionary *gameEntry in jsonResponse[@"games"]) {
+                    NSString *viewUrl = gameEntry[@"viewUrl"];
+                    NSDictionary *p1 = gameEntry[@"player1"];
+                    NSDictionary *p2 = gameEntry[@"player2"];
+                    NSString *p1Name = [p1[@"winner"] boolValue]
+                        ? [NSString stringWithFormat:@"<b>%@</b>", p1[@"name"]]
+                        : p1[@"name"];
+                    NSString *p2Name = [p2[@"winner"] boolValue]
+                        ? [NSString stringWithFormat:@"<b>%@</b>", p2[@"name"]]
+                        : p2[@"name"];
+                    [gamesHTML appendFormat:
+                        @"<a href=\"https://www.pente.org%@\">%@ vs %@"
+                        @" - %@ (%@)</a><br>",
+                        viewUrl, p1Name, p2Name,
+                        gameEntry[@"date"], gameEntry[@"event"]];
+                }
+                dashboardString = gamesHTML;
             }
             if ([moves count] == 0 &&
                 ![dashboardString
