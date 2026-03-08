@@ -960,7 +960,6 @@ struct Capture {
                 }
                 for (NSString *pctStr in occurrenceList) {
                     double dblValue = ([pctStr doubleValue] - min) / (max - min);
-                    NSLog(@"dblValue: %f, pctStr: %@", dblValue, pctStr);
                     if (dblValue <= 0.5) {
                         [colors addObject:[UIColor colorWithRed:1.0
                                                          green:(dblValue / 0.5)
