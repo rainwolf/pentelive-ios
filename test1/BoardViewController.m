@@ -1466,9 +1466,11 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
     NSString *currentPlayer = jsonResponse[@"currentPlayer"];
     BOOL undoRequest = [jsonResponse[@"undoRequested"] boolValue];
     [self.game setSetID:[jsonResponse[@"sid"] stringValue]];
-    movesList =
-        [NSMutableArray arrayWithArray:[jsonResponse[@"moves"]
-                                           componentsSeparatedByString:@","]];
+    if ([jsonResponse[@"moves"] length] > 0) {
+        movesList = [NSMutableArray arrayWithArray:[jsonResponse[@"moves"] componentsSeparatedByString:@","]];
+    } else {
+        movesList = [[NSMutableArray alloc] init];
+    }
     [self.game setRatedNot:jsonResponse[@"rated"]];
     [self.game setPrivateGame:jsonResponse[@"privateGame"]];
     iAmP1 = [myUsername isEqualToString:p1Name];
@@ -1498,12 +1500,12 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                                            componentsSeparatedByString:@","]];
 
     cancelMsg = @"";
-    if (jsonResponse[@"cancelInfo"]) {
-        if ([myUsername isEqualToString:jsonResponse[@"cancelInfo"][@"name"]]) {
+    if (jsonResponse[@"cancel"]) {
+        if (![myUsername isEqualToString:jsonResponse[@"cancel"][@"name"]]) {
             cancelRequest = YES;
             cancelMsg = [NSString
                 stringWithFormat:@"/n and writes: %@",
-                                 jsonResponse[@"cancelInfo"][@"message"]];
+                                 jsonResponse[@"cancel"][@"message"]];
         }
     }
 

@@ -3628,17 +3628,16 @@ array, and add a new row to the table view
             [game setRatedNot:invitation_dict[@"rated"]];
             [game setNameColor:UIColorFromRGB([invitation_dict[@"opponentColor"]
                                    intValue])];
-            [game setCrown:[invitation_dict[@"crown"] intValue]];
+            [game setCrown:[invitation_dict[@"opponentTourneyWinner"] intValue]];
             if (wantsToSeeAvatars && ![game.nameColor isEqual:blackColor]) {
                 [self.player addUser:[game opponentName]];
             }
             [sectionItems addObject:game];
         }
-        int idx = (int)[sectionItems count];
         if ([jsonResponse[@"invitationsSent"] count] > 0) {
             if (!sentInvitationsCollapsed) {
                 indexSet = [[NSMutableArray alloc] init];
-                for (int i = 0; i < idx; ++i)
+                for (int i = 0; i < [[self.player sentInvitations] count]; ++i)
                     [indexSet
                         addObject:[NSIndexPath
                                       indexPathForRow:i
@@ -3651,7 +3650,7 @@ array, and add a new row to the table view
             [self.player setSentInvitations:sectionItems];
             if (!sentInvitationsCollapsed) {
                 indexSet = [[NSMutableArray alloc] init];
-                for (int i = 0; i < idx; ++i)
+                for (int i = 0; i < [[self.player sentInvitations] count]; ++i)
                     [indexSet
                         addObject:[NSIndexPath
                                       indexPathForRow:i
@@ -3668,7 +3667,7 @@ array, and add a new row to the table view
         for (NSDictionary
                  *invitation_dict in jsonResponse[@"invitationsReceived"]) {
             Game *game = [[Game alloc] init];
-            [game setGameID:[invitation_dict[@"gid"] stringValue]];
+            [game setGameID:[invitation_dict[@"setId"] stringValue]];
             [game setGameType:invitation_dict[@"gameName"]];
             [game setOpponentName:invitation_dict[@"opponentName"]];
             [game setOpponentRating:[invitation_dict[@"opponentRating"]
@@ -3681,17 +3680,16 @@ array, and add a new row to the table view
             [game setRatedNot:invitation_dict[@"rated"]];
             [game setNameColor:UIColorFromRGB([invitation_dict[@"opponentColor"]
                                    intValue])];
-            [game setCrown:[invitation_dict[@"crown"] intValue]];
+            [game setCrown:[invitation_dict[@"opponentTourneyWinner"] intValue]];
             if (wantsToSeeAvatars && ![game.nameColor isEqual:blackColor]) {
                 [self.player addUser:[game opponentName]];
             }
             [sectionItems addObject:game];
         }
-        idx = (int)[sectionItems count];
         if ([jsonResponse[@"invitationsReceived"] count] > 0) {
             if (!invitationsReceivedCollapsed) {
                 indexSet = [[NSMutableArray alloc] init];
-                for (int i = 0; i < idx; ++i)
+                for (int i = 0; i < [[self.player invitations] count]; ++i)
                     [indexSet
                         addObject:[NSIndexPath
                                       indexPathForRow:i
@@ -3704,7 +3702,7 @@ array, and add a new row to the table view
             [self.player setInvitations:sectionItems];
             if (!invitationsReceivedCollapsed) {
                 indexSet = [[NSMutableArray alloc] init];
-                for (int i = 0; i < idx; ++i)
+                for (int i = 0; i < [sectionItems count]; ++i)
                     [indexSet
                         addObject:[NSIndexPath
                                       indexPathForRow:i
@@ -3748,7 +3746,7 @@ array, and add a new row to the table view
             [game setRatedNot:game_dict[@"rated"]];
             [game setNameColor:UIColorFromRGB(
                                    [game_dict[@"opponentColor"] intValue])];
-            [game setCrown:[game_dict[@"crown"] intValue]];
+            [game setCrown:[game_dict[@"opponentTourneyWinner"] intValue]];
             if (wantsToSeeAvatars && ![game.nameColor isEqual:blackColor]) {
                 [self.player addUser:[game opponentName]];
             }
@@ -3797,7 +3795,7 @@ array, and add a new row to the table view
             [game setRatedNot:game_dict[@"rated"]];
             [game setNameColor:UIColorFromRGB(
                                    [game_dict[@"opponentColor"] intValue])];
-            [game setCrown:[game_dict[@"crown"] intValue]];
+            [game setCrown:[game_dict[@"opponentTourneyWinner"] intValue]];
             if (wantsToSeeAvatars && ![game.nameColor isEqual:blackColor]) {
                 [self.player addUser:[game opponentName]];
             }
