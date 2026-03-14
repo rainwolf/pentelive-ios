@@ -677,9 +677,7 @@ struct Capture {
     [board setLastMove:-1];
     [self.progressView startAnimating];
     [self.view addSubview:self.progressView];
-    dispatch_async(
-        dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-            NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
             //    [[NSRunLoop mainRunLoop] runUntilDate:[NSDate
             //    dateWithTimeIntervalSinceNow:2.0]];
             NSMutableString *movesStr = [[NSMutableString alloc] init];
@@ -858,12 +856,7 @@ struct Capture {
             [request setURL:[NSURL URLWithString:url]];
             [request setHTTPMethod:@"GET"];
             [request setTimeoutInterval:200.0];
-            NSURLResponse *response;
-            NSError *error;
-            NSData *responseData =
-                [NSURLConnection sendSynchronousRequest:request
-                                      returningResponse:&response
-                                                  error:&error];
+            [PenteHTTPClient sendRequest:request completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
             NSString *dashboardString =
                 [[NSString alloc] initWithData:responseData
                                       encoding:NSUTF8StringEncoding];
@@ -880,17 +873,9 @@ struct Capture {
                     cancelButtonTitle:@"OK"
                     otherButtonTitles:nil];
                 //        [alert show];
-                [alert performSelectorOnMainThread:@selector(show)
-                                        withObject:nil
-                                     waitUntilDone:YES];
-                [self.progressView
-                    performSelectorOnMainThread:@selector(stopAnimating)
-                                     withObject:nil
-                                  waitUntilDone:NO];
-                [self.progressView
-                    performSelectorOnMainThread:@selector(removeFromSuperview)
-                                     withObject:nil
-                                  waitUntilDone:NO];
+                [alert show];
+                [self.progressView stopAnimating];
+                [self.progressView removeFromSuperview];
                 return;
             }
 
@@ -1053,25 +1038,23 @@ struct Capture {
                               forKey:[moves objectAtIndex:i]];
             }
 
-            dispatch_async(dispatch_get_main_queue(), ^{
-                [playerStats
-                    loadHTMLString:
-                        [HEADERSTRING
-                            stringByAppendingString:
-                                [[moveStatsString
-                                    stringByAppendingString:@"</center><br>"]
-                                    stringByAppendingString:dashboardString]]
-                           baseURL:nil];
-                //    dbOptions = [NSDictionary dictionaryWithObjects:colors
-                //    forKeys:moves count:[moves count]];
-                [board setDbOptions:dbOptions];
-                [zoomedBoard setDbOptions:dbOptions];
-                [board setNeedsDisplay];
-                [zoomedBoard setNeedsDisplay];
-                [self.progressView stopAnimating];
-                [self.progressView removeFromSuperview];
-            });
-        });
+            [playerStats
+                loadHTMLString:
+                    [HEADERSTRING
+                        stringByAppendingString:
+                            [[moveStatsString
+                                stringByAppendingString:@"</center><br>"]
+                                stringByAppendingString:dashboardString]]
+                       baseURL:nil];
+            //    dbOptions = [NSDictionary dictionaryWithObjects:colors
+            //    forKeys:moves count:[moves count]];
+            [board setDbOptions:dbOptions];
+            [zoomedBoard setDbOptions:dbOptions];
+            [board setNeedsDisplay];
+            [zoomedBoard setNeedsDisplay];
+            [self.progressView stopAnimating];
+            [self.progressView removeFromSuperview];
+            }];
 }
 
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {

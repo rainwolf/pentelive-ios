@@ -159,9 +159,6 @@ InvitationsViewController *invitationVC;
 
         NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
         NSString *url;
-        NSURLResponse *response;
-        NSError *error;
-        NSData *responseData;
 
         // load the message
         url = [NSString stringWithFormat:@"https://www.pente.org/gameServer/"
@@ -175,88 +172,90 @@ InvitationsViewController *invitationVC;
         [request setURL:[NSURL URLWithString:url]];
         [request setHTTPMethod:@"GET"];
         [request setTimeoutInterval:7.0];
-        responseData = [NSURLConnection sendSynchronousRequest:request
-                                             returningResponse:&response
-                                                         error:&error];
-        NSString *dashboardString =
-            [[NSString alloc] initWithData:responseData
-                                  encoding:NSUTF8StringEncoding];
+        __weak typeof(self) weakSelf = self;
+        [PenteHTTPClient sendRequest:request completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
+            __strong typeof(weakSelf) strongSelf = weakSelf;
+            if (!strongSelf) return;
+            NSString *dashboardString =
+                [[NSString alloc] initWithData:responseData
+                                      encoding:NSUTF8StringEncoding];
 
-        NSRange tmpRange =
-            [dashboardString rangeOfString:@"        <br>\r\n          "];
-        int myTurnStart = (int)tmpRange.location + (int)tmpRange.length;
-        NSRange msgRange =
-            [dashboardString rangeOfString:@"          <br><br>"];
-        msgRange =
-            NSMakeRange(myTurnStart, msgRange.location - myTurnStart - 2);
+            NSRange tmpRange =
+                [dashboardString rangeOfString:@"        <br>\r\n          "];
+            int myTurnStart = (int)tmpRange.location + (int)tmpRange.length;
+            NSRange msgRange =
+                [dashboardString rangeOfString:@"          <br><br>"];
+            msgRange =
+                NSMakeRange(myTurnStart, msgRange.location - myTurnStart - 2);
 
-        NSString *tmpText = [[dashboardString substringWithRange:msgRange]
-            stringByReplacingOccurrencesOfString:@"<br>"
-                                      withString:@"\n"];
+            NSString *tmpText = [[dashboardString substringWithRange:msgRange]
+                stringByReplacingOccurrencesOfString:@"<br>"
+                                          withString:@"\n"];
 
-        NSString *receivedText =
-            [self stripURL:[self replaceWithSmileys:tmpText]];
+            NSString *receivedText =
+                [strongSelf stripURL:[strongSelf replaceWithSmileys:tmpText]];
 
-        NSDictionary *fontAttributes =
-            [NSDictionary dictionaryWithObject:[receivedMessageView font]
-                                        forKey:NSFontAttributeName];
-        //        [self.view addSubview:receivedMessageView];
-        CGRect textFrame = [receivedText
-            boundingRectWithSize:CGSizeMake(
-                                     receivedMessageView.contentSize.width +
-                                         receivedMessageView.contentOffset.x -
-                                         receivedMessageView.contentInset.left -
-                                         receivedMessageView.contentInset.right,
-                                     halfScreenSize)
-                         options:NSStringDrawingUsesLineFragmentOrigin
-                      attributes:fontAttributes
-                         context:nil];
-        [receivedMessageView setText:receivedText];
-        CGFloat fontLineHeight = [[receivedMessageView font] lineHeight];
+            NSDictionary *fontAttributes =
+                [NSDictionary dictionaryWithObject:[strongSelf->receivedMessageView font]
+                                            forKey:NSFontAttributeName];
+            //        [self.view addSubview:receivedMessageView];
+            CGRect textFrame = [receivedText
+                boundingRectWithSize:CGSizeMake(
+                                         strongSelf->receivedMessageView.contentSize.width +
+                                             strongSelf->receivedMessageView.contentOffset.x -
+                                             strongSelf->receivedMessageView.contentInset.left -
+                                             strongSelf->receivedMessageView.contentInset.right,
+                                         halfScreenSize)
+                             options:NSStringDrawingUsesLineFragmentOrigin
+                          attributes:fontAttributes
+                             context:nil];
+            [strongSelf->receivedMessageView setText:receivedText];
+            CGFloat fontLineHeight = [[strongSelf->receivedMessageView font] lineHeight];
 
-        [toField removeFromSuperview];
+            [strongSelf->toField removeFromSuperview];
 
-        [UIView
-            animateWithDuration:0.3f
-                     animations:^{
-                         CGRect frame = subjectField.frame;
-                         frame = subjectField.frame;
-                         frame.origin.y = 2;
-                         [subjectField setFrame:frame];
-                         frame = receivedMessageView.frame;
-                         if ((textFrame.size.height -
-                              receivedMessageView.contentInset.top -
-                              receivedMessageView.contentInset.bottom +
-                              receivedMessageView.contentOffset.y +
-                              fontLineHeight) < halfScreenSize) {
-                             frame.size.height =
-                                 textFrame.size.height -
-                                 receivedMessageView.contentInset.top -
-                                 receivedMessageView.contentInset.bottom +
-                                 receivedMessageView.contentOffset.y +
-                                 fontLineHeight;
-                         } else {
-                             frame.size.height = halfScreenSize;
-                         }
-                         frame.origin.y = subjectField.frame.origin.y +
-                                          subjectField.frame.size.height;
-                         [receivedMessageView setFrame:frame];
-                         //            [sendButton setFrame:CGRectMake(2,
-                         //            bannerView.frame.origin.y - 42,
-                         //            self.view.bounds.size.width - 4, 40)];
-                         [replyMessageView
-                             setFrame:
-                                 CGRectMake(
-                                     3,
-                                     receivedMessageView.frame.origin.y +
-                                         receivedMessageView.frame.size.height +
+            [UIView
+                animateWithDuration:0.3f
+                         animations:^{
+                             CGRect frame = strongSelf->subjectField.frame;
+                             frame = strongSelf->subjectField.frame;
+                             frame.origin.y = 2;
+                             [strongSelf->subjectField setFrame:frame];
+                             frame = strongSelf->receivedMessageView.frame;
+                             if ((textFrame.size.height -
+                                  strongSelf->receivedMessageView.contentInset.top -
+                                  strongSelf->receivedMessageView.contentInset.bottom +
+                                  strongSelf->receivedMessageView.contentOffset.y +
+                                  fontLineHeight) < halfScreenSize) {
+                                 frame.size.height =
+                                     textFrame.size.height -
+                                     strongSelf->receivedMessageView.contentInset.top -
+                                     strongSelf->receivedMessageView.contentInset.bottom +
+                                     strongSelf->receivedMessageView.contentOffset.y +
+                                     fontLineHeight;
+                             } else {
+                                 frame.size.height = halfScreenSize;
+                             }
+                             frame.origin.y = strongSelf->subjectField.frame.origin.y +
+                                              strongSelf->subjectField.frame.size.height;
+                             [strongSelf->receivedMessageView setFrame:frame];
+                             //            [sendButton setFrame:CGRectMake(2,
+                             //            bannerView.frame.origin.y - 42,
+                             //            self.view.bounds.size.width - 4, 40)];
+                             [strongSelf->replyMessageView
+                                 setFrame:
+                                     CGRectMake(
                                          3,
-                                     self.view.bounds.size.width - 6,
-                                     sendButton.frame.origin.y -
-                                         receivedMessageView.frame.origin.y -
-                                         receivedMessageView.frame.size.height -
-                                         6)];
-                     }];
+                                         strongSelf->receivedMessageView.frame.origin.y +
+                                             strongSelf->receivedMessageView.frame.size.height +
+                                             3,
+                                         strongSelf.view.bounds.size.width - 6,
+                                         strongSelf->sendButton.frame.origin.y -
+                                             strongSelf->receivedMessageView.frame.origin.y -
+                                             strongSelf->receivedMessageView.frame.size.height -
+                                             6)];
+                         }];
+        }];
     } else {
         [self setTitle:@"new message"];
         [receivedMessageView removeFromSuperview];
@@ -509,85 +508,74 @@ InvitationsViewController *invitationVC;
         forHTTPHeaderField:@"Content-Type"];
     [request setHTTPBody:postData];
     [request setTimeoutInterval:7.0];
-    NSURLResponse *response;
-    NSError *error;
-    //    [NSURLConnection sendSynchronousRequest:request
+    //    [PenteHTTPClient sendSynchronousRequest:request
     //    returningResponse:&response error:&error];
 
-    NSData *responseData = [NSURLConnection sendSynchronousRequest:request
-                                                 returningResponse:&response
-                                                             error:&error];
-    NSString *dashboardString =
-        [[NSString alloc] initWithData:responseData
-                              encoding:NSUTF8StringEncoding];
-    //    NSLog(@"kitty %@", dashboardString);
+    __weak typeof(self) weakSelf = self;
+    [PenteHTTPClient sendRequest:request completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        if (!strongSelf) return;
+        NSString *dashboardString =
+            [[NSString alloc] initWithData:responseData
+                                  encoding:NSUTF8StringEncoding];
+        //    NSLog(@"kitty %@", dashboardString);
 
-    if (error) {
-        UIAlertView *alert = [[UIAlertView alloc]
-                initWithTitle:NSLocalizedString(@"Error", nil)
-                      message:[NSString
-                                  stringWithFormat:NSLocalizedString(
-                                                       @"Reason: %@", nil),
-                                                   error.localizedDescription]
-                     delegate:nil
-            cancelButtonTitle:@"OK"
-            otherButtonTitles:nil];
-        //        [alert show];
-        [alert performSelectorOnMainThread:@selector(show)
-                                withObject:nil
-                             waitUntilDone:YES];
-    } else if ([dashboardString
-                   rangeOfString:[NSString stringWithFormat:
-                                               @"Error: Player %@ not found.",
-                                               toField.text]]
-                   .length != 0) {
-        UIAlertView *alert = [[UIAlertView alloc]
-                initWithTitle:NSLocalizedString(@"Error", nil)
-                      message:[NSString
-                                  stringWithFormat:
-                                      NSLocalizedString(
-                                          @"The username %@ does not exist.",
-                                          nil),
-                                      toField.text]
-                     delegate:nil
-            cancelButtonTitle:@"OK"
-            otherButtonTitles:nil];
-        //        [alert show];
-        [alert performSelectorOnMainThread:@selector(show)
-                                withObject:nil
-                             waitUntilDone:YES];
-    } else {
-        if ([toField.text length] > 0) {
-            NSString *opponent = [toField.text lowercaseString];
-            NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-            toHistory = [[defaults objectForKey:@"invitedHistory"] mutableCopy];
-            if (toHistory) {
-                int i = 0;
-                for (i = 0; i < [toHistory count]; ++i) {
-                    if ([[toHistory objectAtIndex:i]
-                            localizedCaseInsensitiveCompare:toField.text] ==
-                        NSOrderedDescending)
-                        break;
+        if (error) {
+            UIAlertView *alert = [[UIAlertView alloc]
+                    initWithTitle:NSLocalizedString(@"Error", nil)
+                          message:[NSString
+                                      stringWithFormat:NSLocalizedString(
+                                                           @"Reason: %@", nil),
+                                                       error.localizedDescription]
+                         delegate:nil
+                cancelButtonTitle:@"OK"
+                otherButtonTitles:nil];
+            //        [alert show];
+            [alert show];
+        } else if ([dashboardString
+                       rangeOfString:[NSString stringWithFormat:
+                                                   @"Error: Player %@ not found.",
+                                                   strongSelf->toField.text]]
+                       .length != 0) {
+            UIAlertView *alert = [[UIAlertView alloc]
+                    initWithTitle:NSLocalizedString(@"Error", nil)
+                          message:[NSString
+                                      stringWithFormat:
+                                          NSLocalizedString(
+                                              @"The username %@ does not exist.",
+                                              nil),
+                                          strongSelf->toField.text]
+                         delegate:nil
+                cancelButtonTitle:@"OK"
+                otherButtonTitles:nil];
+            //        [alert show];
+            [alert show];
+        } else {
+            if ([strongSelf->toField.text length] > 0) {
+                NSString *opponent = [strongSelf->toField.text lowercaseString];
+                NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+                strongSelf->toHistory = [[defaults objectForKey:@"invitedHistory"] mutableCopy];
+                if (strongSelf->toHistory) {
+                    int i = 0;
+                    for (i = 0; i < [strongSelf->toHistory count]; ++i) {
+                        if ([[strongSelf->toHistory objectAtIndex:i]
+                                localizedCaseInsensitiveCompare:strongSelf->toField.text] ==
+                            NSOrderedDescending)
+                            break;
+                    }
+                    if (![strongSelf->toHistory containsObject:opponent]) {
+                        [strongSelf->toHistory insertObject:opponent atIndex:i];
+                    }
+                } else {
+                    strongSelf->toHistory = [NSMutableArray arrayWithObject:opponent];
                 }
-                if (![toHistory containsObject:opponent]) {
-                    [toHistory insertObject:opponent atIndex:i];
-                }
-            } else {
-                toHistory = [NSMutableArray arrayWithObject:opponent];
+                [defaults setObject:strongSelf->toHistory forKey:@"invitedHistory"];
             }
-            [defaults setObject:toHistory forKey:@"invitedHistory"];
+            [strongSelf->spinner stopAnimating];
+            [strongSelf.navigationController popToRootViewControllerAnimated:YES];
         }
-        [spinner performSelectorOnMainThread:@selector(stopAnimating)
-                                  withObject:nil
-                               waitUntilDone:NO];
-        [self.navigationController performSelectorOnMainThread:@selector
-                                   (popToRootViewControllerAnimated:)
-                                                    withObject:nil
-                                                 waitUntilDone:NO];
-    }
-    [spinner performSelectorOnMainThread:@selector(stopAnimating)
-                              withObject:nil
-                           waitUntilDone:NO];
+        [strongSelf->spinner stopAnimating];
+    }];
 }
 
 - (void)deleteMessageTap {
@@ -636,26 +624,20 @@ InvitationsViewController *invitationVC;
 
     [request setHTTPShouldUsePipelining:YES];
 
-    NSURLResponse *response;
-    NSError *error;
-    [NSURLConnection sendSynchronousRequest:request
-                          returningResponse:&response
-                                      error:&error];
+    __weak typeof(self) weakSelf = self;
+    [PenteHTTPClient sendRequest:request completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        if (!strongSelf) return;
+        //        NSData *responseData = [NSURLConnection
+        //        sendSynchronousRequest:request returningResponse:&response
+        //        error:&error]; NSString *dashboardString = [[NSString alloc]
+        //        initWithData:responseData encoding:NSUTF8StringEncoding];
+        //        //        [self login];
+        //        NSLog(@"kitty %@", dashboardString);
 
-    //        NSData *responseData = [NSURLConnection
-    //        sendSynchronousRequest:request returningResponse:&response
-    //        error:&error]; NSString *dashboardString = [[NSString alloc]
-    //        initWithData:responseData encoding:NSUTF8StringEncoding];
-    //        //        [self login];
-    //        NSLog(@"kitty %@", dashboardString);
-
-    [spinner performSelectorOnMainThread:@selector(stopAnimating)
-                              withObject:nil
-                           waitUntilDone:NO];
-    [self.navigationController
-        performSelectorOnMainThread:@selector(popToRootViewControllerAnimated:)
-                         withObject:nil
-                      waitUntilDone:NO];
+        [strongSelf->spinner stopAnimating];
+        [strongSelf.navigationController popToRootViewControllerAnimated:YES];
+    }];
 }
 
 - (void)challengeTap {

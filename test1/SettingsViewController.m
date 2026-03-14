@@ -207,7 +207,7 @@
     //
     //    NSURLResponse *response;
     //    NSError *error;
-    //    NSData *responseData = [NSURLConnection sendSynchronousRequest:request
+    //    NSData *responseData = [PenteHTTPClient sendSynchronousRequest:request
     //    returningResponse:&response error:&error]; NSString *dashboardString =
     //    [[NSString alloc] initWithData:responseData
     //    encoding:NSUTF8StringEncoding]; NSLog(dashboardString);
@@ -296,96 +296,92 @@
             [request setURL:[NSURL URLWithString:url]];
             [request setHTTPMethod:@"GET"];
             [request setTimeoutInterval:7.0];
-            NSURLResponse *response;
-            NSError *error;
-            NSData *responseData =
-                [NSURLConnection sendSynchronousRequest:request
-                                      returningResponse:&response
-                                                  error:&error];
+            __weak typeof(self) weakSelf = self;
+            [PenteHTTPClient sendRequest:request completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
+                // connect to the game server
+                NSMutableURLRequest *loginRequest = [[NSMutableURLRequest alloc] init];
+                NSString *loginUrl =
+                    [NSString stringWithFormat:@"https://www.pente.org/gameServer/"
+                                               @"index.jsp?name2=%@&password2=%@",
+                                               username, password];
+                if (development) {
+                    loginUrl = [NSString
+                        stringWithFormat:@"https://localhost/gameServer/"
+                                         @"index.jsp?name2=%@&password2=%@",
+                                         username, password];
+                }
+                [loginRequest setURL:[NSURL URLWithString:loginUrl]];
+                [loginRequest setHTTPMethod:@"POST"];
+                [loginRequest setTimeoutInterval:7.0];
+                __weak typeof(self) weakSelf2 = weakSelf;
+                [PenteHTTPClient sendRequest:loginRequest completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
+                    NSString *dashboardString =
+                        [[NSString alloc] initWithData:responseData
+                                              encoding:NSUTF8StringEncoding];
+                    //            NSLog(@"kittyyyyyyString -%@-", dashboardString);
 
-            // connect to the game server
-            request = [[NSMutableURLRequest alloc] init];
-            url =
-                [NSString stringWithFormat:@"https://www.pente.org/gameServer/"
-                                           @"index.jsp?name2=%@&password2=%@",
-                                           username, password];
-            if (development) {
-                url = [NSString
-                    stringWithFormat:@"https://localhost/gameServer/"
-                                     @"index.jsp?name2=%@&password2=%@",
-                                     username, password];
-            }
-            [request setURL:[NSURL URLWithString:url]];
-            [request setHTTPMethod:@"POST"];
-            [request setTimeoutInterval:7.0];
-            responseData = [NSURLConnection sendSynchronousRequest:request
-                                                 returningResponse:&response
-                                                             error:&error];
-            NSString *dashboardString =
-                [[NSString alloc] initWithData:responseData
-                                      encoding:NSUTF8StringEncoding];
-            //            NSLog(@"kittyyyyyyString -%@-", dashboardString);
+                    if (error) {
+                        UIAlertView *alert = [[UIAlertView alloc]
+                                initWithTitle:@"Error"
+                                      message:[NSString stringWithFormat:
+                                                            NSLocalizedString(
+                                                                @"Trouble connecting "
+                                                                @"to pente.org, "
+                                                                @"please try again in "
+                                                                @"a bit.\nReason: %@",
+                                                                nil),
+                                                            error.localizedDescription]
+                                     delegate:nil
+                            cancelButtonTitle:@"OK"
+                            otherButtonTitles:nil];
+                        [alert show];
+                    } else if ([dashboardString isEqualToString:@""]) {
+                        [weakSelf2.navC setLoggedIn:NO];
+                        UIAlertView *alert = [[UIAlertView alloc]
+                                initWithTitle:@"Error"
+                                      message:@"pente.org appears to be down, "
+                                              @"please try again later."
+                                     delegate:nil
+                            cancelButtonTitle:@"OK"
+                            otherButtonTitles:nil];
+                        [alert show];
 
-            if (error) {
-                UIAlertView *alert = [[UIAlertView alloc]
-                        initWithTitle:@"Error"
-                              message:[NSString stringWithFormat:
-                                                    NSLocalizedString(
-                                                        @"Trouble connecting "
-                                                        @"to pente.org, "
-                                                        @"please try again in "
-                                                        @"a bit.\nReason: %@",
-                                                        nil),
-                                                    error.localizedDescription]
-                             delegate:nil
-                    cancelButtonTitle:@"OK"
-                    otherButtonTitles:nil];
-                [alert show];
-            } else if ([dashboardString isEqualToString:@""]) {
-                [self.navC setLoggedIn:NO];
-                UIAlertView *alert = [[UIAlertView alloc]
-                        initWithTitle:@"Error"
-                              message:@"pente.org appears to be down, "
-                                      @"please try again later."
-                             delegate:nil
-                    cancelButtonTitle:@"OK"
-                    otherButtonTitles:nil];
-                [alert show];
-
-            } else if ([dashboardString
-                           rangeOfString:
-                               @"Invalid name or password, please try again."]
-                           .length != 0) {
-                [self.navC setLoggedIn:NO];
-                UIAlertView *alert = [[UIAlertView alloc]
-                        initWithTitle:NSLocalizedString(
-                                          @"Wrong username or password", nil)
-                              message:nil
-                             delegate:nil
-                    cancelButtonTitle:@"OK"
-                    otherButtonTitles:nil];
-                [alert show];
-            } else if ([dashboardString
-                           rangeOfString:
-                               @"<h2>Pente.org is undergoing maintenance.</h2>"]
-                           .length != 0) {
-                UIAlertView *alert = [[UIAlertView alloc]
-                        initWithTitle:@"Maintenance"
-                              message:@"pente.org is undergoing maintenance, "
-                                      @"please "
-                                      @"try again in a few minutes."
-                             delegate:nil
-                    cancelButtonTitle:@"OK"
-                    otherButtonTitles:nil];
-                [alert show];
-            } else {
-                [self.navC setLoggedIn:YES];
-                [self.navC setDidMove:YES];
-                //                    [self.tableView
-                //                    deselectRowAtIndexPath:indexPath
-                //                    animated:NO];
-                [self.navigationController popToRootViewControllerAnimated:YES];
-            }
+                    } else if ([dashboardString
+                                   rangeOfString:
+                                       @"Invalid name or password, please try again."]
+                                   .length != 0) {
+                        [weakSelf2.navC setLoggedIn:NO];
+                        UIAlertView *alert = [[UIAlertView alloc]
+                                initWithTitle:NSLocalizedString(
+                                                  @"Wrong username or password", nil)
+                                      message:nil
+                                     delegate:nil
+                            cancelButtonTitle:@"OK"
+                            otherButtonTitles:nil];
+                        [alert show];
+                    } else if ([dashboardString
+                                   rangeOfString:
+                                       @"<h2>Pente.org is undergoing maintenance.</h2>"]
+                                   .length != 0) {
+                        UIAlertView *alert = [[UIAlertView alloc]
+                                initWithTitle:@"Maintenance"
+                                      message:@"pente.org is undergoing maintenance, "
+                                              @"please "
+                                              @"try again in a few minutes."
+                                     delegate:nil
+                            cancelButtonTitle:@"OK"
+                            otherButtonTitles:nil];
+                        [alert show];
+                    } else {
+                        [weakSelf2.navC setLoggedIn:YES];
+                        [weakSelf2.navC setDidMove:YES];
+                        //                    [self.tableView
+                        //                    deselectRowAtIndexPath:indexPath
+                        //                    animated:NO];
+                        [weakSelf2.navigationController popToRootViewControllerAnimated:YES];
+                    }
+                }];
+            }];
         }
     }
     if ([specifier.key isEqualToString:@"SignupButton"]) {
@@ -498,85 +494,78 @@
 
         [request setHTTPShouldUsePipelining:YES];
 
-        NSURLResponse *response;
-        NSError *error;
-        [NSURLConnection sendSynchronousRequest:request
-                              returningResponse:&response
-                                          error:&error];
-        NSData *responseData = [NSURLConnection sendSynchronousRequest:request
-                                                     returningResponse:&response
-                                                                 error:&error];
-        NSString *dashboardString =
-            [[NSString alloc] initWithData:responseData
-                                  encoding:NSUTF8StringEncoding];
+        __weak typeof(self) weakSelf = self;
+        [PenteHTTPClient sendRequest:request completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
+            NSString *dashboardString =
+                [[NSString alloc] initWithData:responseData
+                                      encoding:NSUTF8StringEncoding];
 
-        //                        NSLog(@"kittyyyyyyString -%@-",
-        //                        dashboardString);
+            //                        NSLog(@"kittyyyyyyString -%@-",
+            //                        dashboardString);
 
-        if (error) {
-            UIAlertView *alert = [[UIAlertView alloc]
-                    initWithTitle:NSLocalizedString(@"Error", nil)
-                          message:[NSString stringWithFormat:
-                                                @"Reason: %@",
-                                                error.localizedDescription]
-                         delegate:nil
-                cancelButtonTitle:NSLocalizedString(@"OK", nil)
-                otherButtonTitles:nil];
-            //        [alert show];
-            [alert performSelectorOnMainThread:@selector(show)
-                                    withObject:nil
-                                 waitUntilDone:YES];
-            return;
-        } else if ([dashboardString isEqualToString:@""]) {
-            [self.navC setLoggedIn:NO];
-            UIAlertView *alert = [[UIAlertView alloc]
-                    initWithTitle:NSLocalizedString(@"Error", nil)
-                          message:@"pente.org appears to be down, please try "
-                                  @"again later."
-                         delegate:nil
-                cancelButtonTitle:NSLocalizedString(@"OK", nil)
-                otherButtonTitles:nil];
-            [alert show];
+            if (error) {
+                UIAlertView *alert = [[UIAlertView alloc]
+                        initWithTitle:NSLocalizedString(@"Error", nil)
+                              message:[NSString stringWithFormat:
+                                                    @"Reason: %@",
+                                                    error.localizedDescription]
+                             delegate:nil
+                    cancelButtonTitle:NSLocalizedString(@"OK", nil)
+                    otherButtonTitles:nil];
+                //        [alert show];
+                [alert show];
+                return;
+            } else if ([dashboardString isEqualToString:@""]) {
+                [weakSelf.navC setLoggedIn:NO];
+                UIAlertView *alert = [[UIAlertView alloc]
+                        initWithTitle:NSLocalizedString(@"Error", nil)
+                              message:@"pente.org appears to be down, please try "
+                                      @"again later."
+                             delegate:nil
+                    cancelButtonTitle:NSLocalizedString(@"OK", nil)
+                    otherButtonTitles:nil];
+                [alert show];
 
-        } else if ([dashboardString
-                       rangeOfString:
-                           @" is already taken, please choose another."]
-                       .length != 0) {
-            [self.navC setLoggedIn:NO];
-            UIAlertView *alert = [[UIAlertView alloc]
-                    initWithTitle:NSLocalizedString(@"Error", nil)
-                          message:[NSString
-                                      stringWithFormat:
-                                          NSLocalizedString(
-                                              @"The username %@ is already "
-                                              @"taken, please choose another.",
-                                              nil),
-                                          username]
-                         delegate:nil
-                cancelButtonTitle:NSLocalizedString(@"OK", nil)
-                otherButtonTitles:nil];
-            [alert show];
-        } else if ([dashboardString
-                       rangeOfString:
-                           @"<h2>Pente.org is undergoing maintenance.</h2>"]
-                       .length != 0) {
-            UIAlertView *alert =
-                [[UIAlertView alloc] initWithTitle:@"Maintenance"
-                                           message:@"pente.org is undergoing "
-                                                   @"maintenance, please try "
-                                                   @"again in a few minutes."
-                                          delegate:nil
-                                 cancelButtonTitle:@"OK"
-                                 otherButtonTitles:nil];
-            [alert show];
-        } else {
-            [defaults removeObjectForKey:@"emailAddress"];
-            [defaults removeObjectForKey:@"passwordVerification"];
-            [defaults setBool:NO forKey:@"RatedPlayPolicyAccepted"];
-            [self.navC setLoggedIn:YES];
-            [self.navC setDidMove:YES];
-            [self.navigationController popToRootViewControllerAnimated:YES];
-        }
+            } else if ([dashboardString
+                           rangeOfString:
+                               @" is already taken, please choose another."]
+                           .length != 0) {
+                [weakSelf.navC setLoggedIn:NO];
+                UIAlertView *alert = [[UIAlertView alloc]
+                        initWithTitle:NSLocalizedString(@"Error", nil)
+                              message:[NSString
+                                          stringWithFormat:
+                                              NSLocalizedString(
+                                                  @"The username %@ is already "
+                                                  @"taken, please choose another.",
+                                                  nil),
+                                              username]
+                             delegate:nil
+                    cancelButtonTitle:NSLocalizedString(@"OK", nil)
+                    otherButtonTitles:nil];
+                [alert show];
+            } else if ([dashboardString
+                           rangeOfString:
+                               @"<h2>Pente.org is undergoing maintenance.</h2>"]
+                           .length != 0) {
+                UIAlertView *alert =
+                    [[UIAlertView alloc] initWithTitle:@"Maintenance"
+                                               message:@"pente.org is undergoing "
+                                                       @"maintenance, please try "
+                                                       @"again in a few minutes."
+                                              delegate:nil
+                                     cancelButtonTitle:@"OK"
+                                     otherButtonTitles:nil];
+                [alert show];
+            } else {
+                [defaults removeObjectForKey:@"emailAddress"];
+                [defaults removeObjectForKey:@"passwordVerification"];
+                [defaults setBool:NO forKey:@"RatedPlayPolicyAccepted"];
+                [weakSelf.navC setLoggedIn:YES];
+                [weakSelf.navC setDidMove:YES];
+                [weakSelf.navigationController popToRootViewControllerAnimated:YES];
+            }
+        }];
     }
     //    if ([specifier.key isEqualToString:@"MoreSettingsButton"]) {
     //        NSLog(@"kittyyyyyy");
@@ -959,27 +948,22 @@
 
             //    [request setHTTPShouldUsePipelining: YES];
 
-            NSURLResponse *response;
-            NSError *error;
-            NSData *responseData =
-                [NSURLConnection sendSynchronousRequest:request
-                                      returningResponse:&response
-                                                  error:&error];
-            NSString *dashboardString =
-                [[NSString alloc] initWithData:responseData
-                                      encoding:NSUTF8StringEncoding];
-            //        NSLog(dashboardString);
+            __weak typeof(self) weakSelf = self;
+            [PenteHTTPClient sendRequest:request completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
+                NSString *dashboardString =
+                    [[NSString alloc] initWithData:responseData
+                                          encoding:NSUTF8StringEncoding];
+                //        NSLog(dashboardString);
 
-            dispatch_async(dispatch_get_main_queue(), ^{
-                [self.progressView stopAnimating];
-                [self.progressView removeFromSuperview];
+                [weakSelf.progressView stopAnimating];
+                [weakSelf.progressView removeFromSuperview];
                 if ([dashboardString containsString:@"success"]) {
                     [[NSUserDefaults standardUserDefaults]
                         setBool:NO
                          forKey:@"shouldSendReceipt"];
                     [TSMessage
                         showNotificationInViewController:
-                            self.navigationController
+                            weakSelf.navigationController
                                                    title:NSLocalizedString(
                                                              @"Purchase "
                                                              @"registration "
@@ -1003,7 +987,7 @@
                 } else {
                     [TSMessage
                         showNotificationInViewController:
-                            self.navigationController
+                            weakSelf.navigationController
                                                    title:NSLocalizedString(
                                                              @"Purchase "
                                                              @"registration "
@@ -1032,7 +1016,7 @@
                                                   TSMessageNotificationPositionBottom
                                     canBeDismissedByUser:YES];
                 }
-            });
+            }];
         }
         failure:^(SKPaymentTransaction *transaction, NSError *error) {
             dispatch_async(dispatch_get_main_queue(), ^{
@@ -1144,28 +1128,23 @@
 
             //    [request setHTTPShouldUsePipelining: YES];
 
-            NSURLResponse *response;
-            NSError *error;
             NSLog(@"before sending to server");
-            NSData *responseData =
-                [NSURLConnection sendSynchronousRequest:request
-                                      returningResponse:&response
-                                                  error:&error];
-            NSString *dashboardString =
-                [[NSString alloc] initWithData:responseData
-                                      encoding:NSUTF8StringEncoding];
-            //        NSLog(dashboardString);
+            __weak typeof(self) weakSelf = self;
+            [PenteHTTPClient sendRequest:request completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
+                NSString *dashboardString =
+                    [[NSString alloc] initWithData:responseData
+                                          encoding:NSUTF8StringEncoding];
+                //        NSLog(dashboardString);
 
-            dispatch_async(dispatch_get_main_queue(), ^{
-                [self.progressView stopAnimating];
-                [self.progressView removeFromSuperview];
+                [weakSelf.progressView stopAnimating];
+                [weakSelf.progressView removeFromSuperview];
                 if ([dashboardString containsString:@"success"]) {
                     [[NSUserDefaults standardUserDefaults]
                         setBool:NO
                          forKey:@"shouldSendReceipt"];
                     [TSMessage
                         showNotificationInViewController:
-                            self.navigationController
+                            weakSelf.navigationController
                                                    title:
                                                        NSLocalizedString(
                                                            @"Purchase restore "
@@ -1193,7 +1172,7 @@
                          forKey:@"shouldSendReceipt"];
                     [TSMessage
                         showNotificationInViewController:
-                            self.navigationController
+                            weakSelf.navigationController
                                                    title:NSLocalizedString(
                                                              @"Purchase "
                                                              @"restore failed",
@@ -1220,7 +1199,7 @@
                 } else {
                     [TSMessage
                         showNotificationInViewController:
-                            self.navigationController
+                            weakSelf.navigationController
                                                    title:NSLocalizedString(
                                                              @"Purchase "
                                                              @"restore failed",
@@ -1248,7 +1227,7 @@
                                                   TSMessageNotificationPositionBottom
                                     canBeDismissedByUser:YES];
                 }
-            });
+            }];
         }
         failure:^(NSError *error) {
             NSLog(@"Something went wrong, %@", error.localizedFailureReason);
@@ -1362,26 +1341,22 @@
                                  dataUsingEncoding:NSUTF8StringEncoding]];
             [request setHTTPBody:body];
 
-            NSError *error = nil;
-            [NSURLConnection sendSynchronousRequest:request
-                                  returningResponse:nil
-                                              error:&error];
-            if (error) {
-                UIAlertView *alert = [[UIAlertView alloc]
-                        initWithTitle:NSLocalizedString(@"Error", nil)
-                              message:[NSString stringWithFormat:
-                                                    NSLocalizedString(
-                                                        @"Reason: %@", nil),
-                                                    error.localizedDescription]
-                             delegate:nil
-                    cancelButtonTitle:@"OK"
-                    otherButtonTitles:nil];
-                //        [alert show];
-                [alert performSelectorOnMainThread:@selector(show)
-                                        withObject:nil
-                                     waitUntilDone:YES];
-                return;
-            }
+            __weak typeof(self) weakSelf = self;
+            [PenteHTTPClient sendRequest:request completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
+                if (error) {
+                    UIAlertView *alert = [[UIAlertView alloc]
+                            initWithTitle:NSLocalizedString(@"Error", nil)
+                                  message:[NSString stringWithFormat:
+                                                        NSLocalizedString(
+                                                            @"Reason: %@", nil),
+                                                        error.localizedDescription]
+                                 delegate:nil
+                        cancelButtonTitle:@"OK"
+                        otherButtonTitles:nil];
+                    [alert show];
+                    return;
+                }
+            }];
         }
     });
 }
@@ -1483,25 +1458,20 @@
 
         [request setHTTPShouldUsePipelining:YES];
 
-        NSURLResponse *response;
-        NSError *error;
-        [NSURLConnection sendSynchronousRequest:request
-                              returningResponse:&response
-                                          error:&error];
-
-        if (error) {
-            UIAlertView *alert = [[UIAlertView alloc]
-                    initWithTitle:NSLocalizedString(@"Error", nil)
-                          message:[NSString stringWithFormat:
-                                                @"Reason: %@",
-                                                error.localizedDescription]
-                         delegate:nil
-                cancelButtonTitle:NSLocalizedString(@"OK", nil)
-                otherButtonTitles:nil];
-            [alert performSelectorOnMainThread:@selector(show)
-                                    withObject:nil
-                                 waitUntilDone:YES];
-        }
+        __weak typeof(self) weakSelf = self;
+        [PenteHTTPClient sendRequest:request completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
+            if (error) {
+                UIAlertView *alert = [[UIAlertView alloc]
+                        initWithTitle:NSLocalizedString(@"Error", nil)
+                              message:[NSString stringWithFormat:
+                                                    @"Reason: %@",
+                                                    error.localizedDescription]
+                             delegate:nil
+                    cancelButtonTitle:NSLocalizedString(@"OK", nil)
+                    otherButtonTitles:nil];
+                [alert show];
+            }
+        }];
     }
     if (self.navC.player && self.navC.player.personalizeAds !=
                                 [[NSUserDefaults standardUserDefaults]
@@ -1533,26 +1503,21 @@
 
         [request setHTTPShouldUsePipelining:YES];
 
-        NSURLResponse *response;
-        NSError *error;
-        [NSURLConnection sendSynchronousRequest:request
-                              returningResponse:&response
-                                          error:&error];
-
-        if (error) {
-            UIAlertView *alert = [[UIAlertView alloc]
-                    initWithTitle:NSLocalizedString(@"Error", nil)
-                          message:[NSString stringWithFormat:
-                                                @"Reason: %@",
-                                                error.localizedDescription]
-                         delegate:nil
-                cancelButtonTitle:NSLocalizedString(@"OK", nil)
-                otherButtonTitles:nil];
-            [alert performSelectorOnMainThread:@selector(show)
-                                    withObject:nil
-                                 waitUntilDone:YES];
-            return;
-        }
+        __weak typeof(self) weakSelf = self;
+        [PenteHTTPClient sendRequest:request completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
+            if (error) {
+                UIAlertView *alert = [[UIAlertView alloc]
+                        initWithTitle:NSLocalizedString(@"Error", nil)
+                              message:[NSString stringWithFormat:
+                                                    @"Reason: %@",
+                                                    error.localizedDescription]
+                             delegate:nil
+                    cancelButtonTitle:NSLocalizedString(@"OK", nil)
+                    otherButtonTitles:nil];
+                [alert show];
+                return;
+            }
+        }];
     }
 }
 

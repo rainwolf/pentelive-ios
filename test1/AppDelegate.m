@@ -128,11 +128,7 @@
 
         //    [request setHTTPShouldUsePipelining: YES];
 
-        NSURLResponse *response;
-        NSError *error;
-        NSData *responseData = [NSURLConnection sendSynchronousRequest:request
-                                                     returningResponse:&response
-                                                                 error:&error];
+        [PenteHTTPClient sendRequest:request completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
         NSString *dashboardString =
             [[NSString alloc] initWithData:responseData
                                   encoding:NSUTF8StringEncoding];
@@ -224,6 +220,7 @@
                                           TSMessageNotificationPositionBottom
                             canBeDismissedByUser:YES];
         }
+        }];
     }
 
     return YES;

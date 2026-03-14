@@ -7,6 +7,7 @@
 //
 
 #import "PentePlayer.h"
+@import AFNetworking;
 
 @implementation Game
 @synthesize setID;
@@ -431,19 +432,27 @@
                                   stringWithFormat:@"https://www.pente.org/"
                                                    @"gameServer/avatar?name=%@",
                                                    username]];
-            NSURLSessionDownloadTask *downloadPhotoTask = [[NSURLSession
-                sharedSession]
-                downloadTaskWithURL:url
-                  completionHandler:^(NSURL *location, NSURLResponse *response,
-                                      NSError *error) {
-                      UIImage *downloadedImage = [UIImage
-                          imageWithData:[NSData
-                                            dataWithContentsOfURL:location]];
-                      //                                                           UIImageView *imgV = [[UIImageView alloc] initWithImage: downloadedImage];
-                      if (downloadedImage) {
-                          [avatars setObject:downloadedImage forKey:username];
-                      }
-                  }];
+            AFURLSessionManager *avatarManager = [[AFURLSessionManager alloc]
+                initWithSessionConfiguration:NSURLSessionConfiguration
+                                                 .defaultSessionConfiguration];
+            NSURLRequest *avatarRequest = [NSURLRequest requestWithURL:url];
+            NSURLSessionDownloadTask *downloadPhotoTask = [avatarManager
+                downloadTaskWithRequest:avatarRequest
+                               progress:nil
+                            destination:^NSURL *(NSURL *targetPath,
+                                                 NSURLResponse *response) {
+                                return targetPath;
+                            }
+                      completionHandler:^(NSURLResponse *response, NSURL *location,
+                                          NSError *error) {
+                          UIImage *downloadedImage = [UIImage
+                              imageWithData:[NSData
+                                                dataWithContentsOfURL:location]];
+                          //                                                           UIImageView *imgV = [[UIImageView alloc] initWithImage: downloadedImage];
+                          if (downloadedImage) {
+                              [avatars setObject:downloadedImage forKey:username];
+                          }
+                      }];
             [downloadPhotoTask resume];
         });
 }

@@ -369,19 +369,12 @@ array, and add a new row to the table view
         forHTTPHeaderField:@"Content-Type"];
     [request setHTTPBody:postData];
     [request setTimeoutInterval:7.0];
-    NSURLResponse *response;
-    NSError *error;
-    NSData *responseData = [NSURLConnection sendSynchronousRequest:request
-                                                 returningResponse:&response
-                                                             error:&error];
-    NSString *dashboardString =
-        [[NSString alloc] initWithData:responseData
-                              encoding:NSUTF8StringEncoding];
+    [PenteHTTPClient sendRequest:request completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
+        NSString *dashboardString =
+            [[NSString alloc] initWithData:responseData
+                                  encoding:NSUTF8StringEncoding];
 
-    dispatch_async(dispatch_get_main_queue(), ^{
-        [spinner performSelectorOnMainThread:@selector(stopAnimating)
-                                  withObject:nil
-                               waitUntilDone:NO];
+        [spinner stopAnimating];
         NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
         [defaults setObject:gameCell.detailTextLabel.text
                      forKey:@"lastInvitedAIGame"];
@@ -399,9 +392,7 @@ array, and add a new row to the table view
                 cancelButtonTitle:@"OK"
                 otherButtonTitles:nil];
             //        [alert show];
-            [alert performSelectorOnMainThread:@selector(show)
-                                    withObject:nil
-                                 waitUntilDone:YES];
+            [alert show];
             return;
         } else if ([dashboardString
                        rangeOfString:
@@ -429,7 +420,7 @@ array, and add a new row to the table view
             //        [navController popToRootViewControllerAnimated:YES];
             [navController popViewControllerAnimated:YES];
         }
-    });
+    }];
 }
 
 //-(void) showError: (NSError *) error {

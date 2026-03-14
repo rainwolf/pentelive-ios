@@ -79,32 +79,29 @@
         forHTTPHeaderField:@"Content-Type"];
     [request setHTTPBody:postData];
     [request setTimeoutInterval:7.0];
-    NSURLResponse *response;
-    NSError *error;
-    [NSURLConnection sendSynchronousRequest:request
-                          returningResponse:&response
-                                      error:&error];
-    if (error == nil) {
-        ((PenteNavigationViewController *)self.navigationController)
-            .player.myColor = colorPickerView.color;
-    }
-    if (error) {
-        UIAlertView *alert = [[UIAlertView alloc]
-                initWithTitle:NSLocalizedString(@"Error", nil)
-                      message:[NSString
-                                  stringWithFormat:NSLocalizedString(
-                                                       @"Reason: %@", nil),
-                                                   error.localizedDescription]
-                     delegate:nil
-            cancelButtonTitle:@"OK"
-            otherButtonTitles:nil];
-        //        [alert show];
-        [alert performSelectorOnMainThread:@selector(show)
-                                withObject:nil
-                             waitUntilDone:YES];
-        return;
-    }
-    [super viewWillDisappear:animated];
+    [PenteHTTPClient sendRequest:request completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
+        if (error == nil) {
+            ((PenteNavigationViewController *)self.navigationController)
+                .player.myColor = colorPickerView.color;
+        }
+        if (error) {
+            UIAlertView *alert = [[UIAlertView alloc]
+                    initWithTitle:NSLocalizedString(@"Error", nil)
+                          message:[NSString
+                                      stringWithFormat:NSLocalizedString(
+                                                           @"Reason: %@", nil),
+                                                       error.localizedDescription]
+                         delegate:nil
+                cancelButtonTitle:@"OK"
+                otherButtonTitles:nil];
+            //        [alert show];
+            [alert performSelectorOnMainThread:@selector(show)
+                                    withObject:nil
+                                 waitUntilDone:YES];
+            return;
+        }
+        [super viewWillDisappear:animated];
+    }];
 }
 
 @end

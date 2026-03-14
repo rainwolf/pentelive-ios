@@ -175,6 +175,7 @@
 		63E69B0F1DF73FDE00BD21B7 /* TableSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63E69B0E1DF73FDE00BD21B7 /* TableSetupView.swift */; };
 		63EACA5D1712EA1200E3902B /* acceptButton.png in Resources */ = {isa = PBXBuildFile; fileRef = 63EACA5B1712EA1200E3902B /* acceptButton.png */; };
 		63EACA5E1712EA1200E3902B /* acceptButton@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 63EACA5C1712EA1200E3902B /* acceptButton@2x.png */; };
+		63EF95CB2F6582CA001C269F /* PenteHTTPClient.m in Sources */ = {isa = PBXBuildFile; fileRef = 63EF95CA2F6582CA001C269F /* PenteHTTPClient.m */; };
 		63EFAEAB1DB570A50029DA41 /* DatabaseViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 63EFAEAA1DB570A50029DA41 /* DatabaseViewController.m */; };
 		63EFAEAE1DB576F60029DA41 /* DBBoardView.m in Sources */ = {isa = PBXBuildFile; fileRef = 63EFAEAD1DB576F60029DA41 /* DBBoardView.m */; };
 		63EFAEB11DB579DB0029DA41 /* DBSetupView.m in Sources */ = {isa = PBXBuildFile; fileRef = 63EFAEB01DB579DB0029DA41 /* DBSetupView.m */; };
@@ -403,6 +404,8 @@
 		63E69B0E1DF73FDE00BD21B7 /* TableSetupView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TableSetupView.swift; sourceTree = "<group>"; };
 		63EACA5B1712EA1200E3902B /* acceptButton.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = acceptButton.png; sourceTree = "<group>"; };
 		63EACA5C1712EA1200E3902B /* acceptButton@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "acceptButton@2x.png"; sourceTree = "<group>"; };
+		63EF95C92F6582CA001C269F /* PenteHTTPClient.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PenteHTTPClient.h; sourceTree = "<group>"; };
+		63EF95CA2F6582CA001C269F /* PenteHTTPClient.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PenteHTTPClient.m; sourceTree = "<group>"; };
 		63EFAEA91DB570A50029DA41 /* DatabaseViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DatabaseViewController.h; sourceTree = "<group>"; };
 		63EFAEAA1DB570A50029DA41 /* DatabaseViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DatabaseViewController.m; sourceTree = "<group>"; };
 		63EFAEAC1DB576F60029DA41 /* DBBoardView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DBBoardView.h; sourceTree = "<group>"; };
@@ -588,6 +591,8 @@
 				635ADAD8167882EC001041E3 /* GamesTableViewController.m */,
 				63A56014167BB86D00AB91D2 /* PentePlayer.h */,
 				63A56015167BB86D00AB91D2 /* PentePlayer.m */,
+				63EF95C92F6582CA001C269F /* PenteHTTPClient.h */,
+				63EF95CA2F6582CA001C269F /* PenteHTTPClient.m */,
 				631B675D169DA7FE0098B3E1 /* Settings.bundle */,
 				63C4198A17B0E03200983B57 /* Images.xcassets */,
 				6336480F1CF350C600F432E2 /* RatingStatsView.h */,
@@ -1099,6 +1104,7 @@
 				6333AF871DC8BB030023BAAF /* WhosOnlineView.m in Sources */,
 				63FEFC591689BFB30070E9AA /* UIPullToReloadHeaderView.m in Sources */,
 				63FEFC5A1689BFB30070E9AA /* UIPullToReloadTableViewController.m in Sources */,
+				63EF95CB2F6582CA001C269F /* PenteHTTPClient.m in Sources */,
 				636A99E21E40DE2500D08C5D /* SocialViewController.swift in Sources */,
 				63FEFD54168DFDA30070E9AA /* SettingsViewController.m in Sources */,
 				6396A37C1D38DE81004BC68D /* ChangeColorViewController.m in Sources */,

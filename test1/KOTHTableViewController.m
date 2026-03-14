@@ -569,8 +569,6 @@ CGFloat bottomOffst = 0;
 - (void)joinLeave {
 
     NSString *url;
-    NSURLResponse *response;
-    NSError *error;
     //    NSData *responseData;
 
     // connect to the game server
@@ -597,28 +595,25 @@ CGFloat bottomOffst = 0;
     [request setHTTPBody:postData];
     [request setTimeoutInterval:7.0];
 
-    [NSURLConnection sendSynchronousRequest:request
-                          returningResponse:&response
-                                      error:&error];
-    if (error) {
-        UIAlertView *alert = [[UIAlertView alloc]
-                initWithTitle:@"Error"
-                      message:[NSString
-                                  stringWithFormat:@"Reason: %@",
-                                                   error.localizedDescription]
-                     delegate:nil
-            cancelButtonTitle:@"OK"
-            otherButtonTitles:nil];
-        //        [alert show];
-        [alert performSelectorOnMainThread:@selector(show)
-                                withObject:nil
-                             waitUntilDone:YES];
-        return;
-    }
+    [PenteHTTPClient sendRequest:request completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
+        if (error) {
+            UIAlertView *alert = [[UIAlertView alloc]
+                    initWithTitle:@"Error"
+                          message:[NSString
+                                      stringWithFormat:@"Reason: %@",
+                                                       error.localizedDescription]
+                         delegate:nil
+                cancelButtonTitle:@"OK"
+                otherButtonTitles:nil];
+            //        [alert show];
+            [alert show];
+            return;
+        }
 
-    ((PenteNavigationViewController *)self.navigationController).didMove = YES;
+        ((PenteNavigationViewController *)self.navigationController).didMove = YES;
 
-    [self loadKoth];
+        [self loadKoth];
+    }];
 }
 
 - (void)loadKoth {
@@ -632,9 +627,6 @@ CGFloat bottomOffst = 0;
 
     NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
     NSString *url;
-    NSURLResponse *response;
-    NSError *error;
-    NSData *responseData;
 
     // connect to the game server
     url = [NSString
@@ -651,9 +643,7 @@ CGFloat bottomOffst = 0;
     [request setURL:[NSURL URLWithString:url]];
     [request setHTTPMethod:@"GET"];
     [request setTimeoutInterval:7.0];
-    responseData = [NSURLConnection sendSynchronousRequest:request
-                                         returningResponse:&response
-                                                     error:&error];
+    [PenteHTTPClient sendRequest:request completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
     if (error) {
         UIAlertView *alert = [[UIAlertView alloc]
                 initWithTitle:@"Error"
@@ -664,9 +654,7 @@ CGFloat bottomOffst = 0;
             cancelButtonTitle:@"OK"
             otherButtonTitles:nil];
         //        [alert show];
-        [alert performSelectorOnMainThread:@selector(show)
-                                withObject:nil
-                             waitUntilDone:YES];
+        [alert show];
         self.tableView.layer.borderWidth = 0.0;
         return;
     }
@@ -779,6 +767,7 @@ CGFloat bottomOffst = 0;
 
         [self.refreshControl endRefreshing];
     });
+    }];
 }
 
 - (UIView *)tableView:(UITableView *)tableView

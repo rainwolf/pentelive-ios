@@ -1266,9 +1266,6 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
 
     NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
     NSString *url;
-    NSURLResponse *response;
-    NSError *error;
-    NSData *responseData;
     //    NSLog(@"kittyLog %@", replyMessage);
     if ([replyMessage isEqualToString:@""]) {
         url = [NSString
@@ -1306,33 +1303,23 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
 
     //    [request setHTTPShouldUsePipelining: YES];
 
-    responseData = [NSURLConnection sendSynchronousRequest:request
-                                         returningResponse:&response
-                                                     error:&error];
-
-    [spinner performSelectorOnMainThread:@selector(stopAnimating)
-                              withObject:nil
-                           waitUntilDone:NO];
-    if (error) {
-        UIAlertView *alert = [[UIAlertView alloc]
-                initWithTitle:NSLocalizedString(@"Error", nil)
-                      message:[NSString
-                                  stringWithFormat:NSLocalizedString(
-                                                       @"Reason: %@", nil),
-                                                   error.localizedDescription]
-                     delegate:nil
-            cancelButtonTitle:@"OK"
-            otherButtonTitles:nil];
-        //        [alert show];
-        [alert performSelectorOnMainThread:@selector(show)
-                                withObject:nil
-                             waitUntilDone:YES];
-        return;
-    }
-
-    [self performSelectorOnMainThread:@selector(cleanUp)
-                           withObject:nil
-                        waitUntilDone:NO];
+    __weak typeof(self) weakSelf = self;
+    [PenteHTTPClient sendRequest:request completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        if (!strongSelf) return;
+        [strongSelf->spinner stopAnimating];
+        if (error) {
+            UIAlertView *alert = [[UIAlertView alloc]
+                    initWithTitle:NSLocalizedString(@"Error", nil)
+                          message:[NSString stringWithFormat:NSLocalizedString(@"Reason: %@", nil), error.localizedDescription]
+                         delegate:nil
+                cancelButtonTitle:@"OK"
+                otherButtonTitles:nil];
+            [alert show];
+            return;
+        }
+        [strongSelf cleanUp];
+    }];
 }
 
 - (void)cleanUp {
@@ -1398,7 +1385,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                                      44)];
     }
 
-    BOOL iAmP1 = NO;
+    __block BOOL iAmP1 = NO;
 
     [self setReplyMessage:@""];
     [self setReceivedMessage:nil];
@@ -1424,20 +1411,19 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
     //    tmpStr = [NSString
     //    stringWithFormat:@"https://localhost/gameServer/mobile/game.jsp?gid=%@",[self.game
     //    gameID]];
-    NSError *error;
     NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
-    NSURLResponse *response;
     [request setURL:[NSURL URLWithString:tmpStr]];
     [request setHTTPMethod:@"GET"];
     [request setTimeoutInterval:7.0];
     //    NSString *htmlString = [NSString stringWithContentsOfURL:url
     //    encoding:NSUTF8StringEncoding error:&error];
-    NSData *responseData = [NSURLConnection sendSynchronousRequest:request
-                                                 returningResponse:&response
-                                                             error:&error];
+    __weak typeof(self) weakSelf = self;
+    [PenteHTTPClient sendRequest:request completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        if (!strongSelf) return;
 
     if (error) {
-        [self showAlertWithMessage:error.localizedDescription];
+        [strongSelf showAlertWithMessage:error.localizedDescription];
         return;
     }
 
@@ -1446,7 +1432,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                                         options:NSJSONReadingMutableContainers
                                           error:&error];
     if (error) {
-        [self showAlertWithMessage:error.localizedDescription];
+        [strongSelf showAlertWithMessage:error.localizedDescription];
         return;
     }
 
@@ -1465,31 +1451,31 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
              *p2Name = jsonResponse[@"player2"][@"name"];
     NSString *currentPlayer = jsonResponse[@"currentPlayer"];
     BOOL undoRequest = [jsonResponse[@"undoRequested"] boolValue];
-    [self.game setSetID:[jsonResponse[@"sid"] stringValue]];
+    [strongSelf.game setSetID:[jsonResponse[@"sid"] stringValue]];
     if ([jsonResponse[@"moves"] length] > 0) {
-        movesList = [NSMutableArray arrayWithArray:[jsonResponse[@"moves"] componentsSeparatedByString:@","]];
+        strongSelf->movesList = [NSMutableArray arrayWithArray:[jsonResponse[@"moves"] componentsSeparatedByString:@","]];
     } else {
-        movesList = [[NSMutableArray alloc] init];
+        strongSelf->movesList = [[NSMutableArray alloc] init];
     }
-    [self.game setRatedNot:jsonResponse[@"rated"]];
-    [self.game setPrivateGame:jsonResponse[@"privateGame"]];
+    [strongSelf.game setRatedNot:jsonResponse[@"rated"]];
+    [strongSelf.game setPrivateGame:jsonResponse[@"privateGame"]];
     iAmP1 = [myUsername isEqualToString:p1Name];
-    [self.game setGameType:jsonResponse[@"gameName"]];
-    isGoGame = ([self.game.gameType hasPrefix:@"Go"] &&
-                ![self.game.gameType hasPrefix:@"Gomoku"]) ||
-               ([self.game.gameType hasPrefix:@"Speed Go"] &&
-                ![self.game.gameType hasPrefix:@"Speed Gomoku"]);
-    [self setTitle:[self.game gameType]];
+    [strongSelf.game setGameType:jsonResponse[@"gameName"]];
+    isGoGame = ([strongSelf.game.gameType hasPrefix:@"Go"] &&
+                ![strongSelf.game.gameType hasPrefix:@"Gomoku"]) ||
+               ([strongSelf.game.gameType hasPrefix:@"Speed Go"] &&
+                ![strongSelf.game.gameType hasPrefix:@"Speed Gomoku"]);
+    [strongSelf setTitle:[strongSelf.game gameType]];
     if (iAmP1) {
-        [self.game setOpponentName:p2Name];
-        [self.game setOpponentRating:[jsonResponse[@"player2"][@"rating"]
+        [strongSelf.game setOpponentName:p2Name];
+        [strongSelf.game setOpponentRating:[jsonResponse[@"player2"][@"rating"]
                                          stringValue]];
-        [self.game setMyColor:isGoGame ? @"black" : @"white"];
+        [strongSelf.game setMyColor:isGoGame ? @"black" : @"white"];
     } else {
-        [self.game setOpponentName:p1Name];
-        [self.game setOpponentRating:[jsonResponse[@"player1"][@"rating"]
+        [strongSelf.game setOpponentName:p1Name];
+        [strongSelf.game setOpponentRating:[jsonResponse[@"player1"][@"rating"]
                                          stringValue]];
-        [self.game setMyColor:isGoGame ? @"white" : @"black"];
+        [strongSelf.game setMyColor:isGoGame ? @"white" : @"black"];
     }
 
     atMoves =
@@ -1511,179 +1497,179 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
 
     for (int i = 0; i < [messages count]; ++i) {
         NSString *tmpStr = [Message replaceSmileys:[messages objectAtIndex:i]];
-        [messagesHistory setObject:tmpStr forKey:[atMoves objectAtIndex:i]];
+        [strongSelf->messagesHistory setObject:tmpStr forKey:[atMoves objectAtIndex:i]];
     }
 
-    [receivedMessageView setFont:[UIFont fontWithName:@"HelveticaNeue-Bold"
+    [strongSelf->receivedMessageView setFont:[UIFont fontWithName:@"HelveticaNeue-Bold"
                                                  size:15.35f]];
-    if ([messagesHistory
+    if ([strongSelf->messagesHistory
             objectForKey:[NSString stringWithFormat:@"%lu",
                                                     (unsigned long)
-                                                        [movesList count]]]) {
-        if (([[self.game myColor] isEqualToString:@"white"] &&
-             (([movesList count] % 2) == 1)) ||
-            ([[self.game myColor] isEqualToString:@"black"] &&
-             (([movesList count] % 2) == 0))) {
-            [receivedMessageView setFont:[UIFont fontWithName:@"HelveticaNeue"
+                                                        [strongSelf->movesList count]]]) {
+        if (([[strongSelf.game myColor] isEqualToString:@"white"] &&
+             (([strongSelf->movesList count] % 2) == 1)) ||
+            ([[strongSelf.game myColor] isEqualToString:@"black"] &&
+             (([strongSelf->movesList count] % 2) == 0))) {
+            [strongSelf->receivedMessageView setFont:[UIFont fontWithName:@"HelveticaNeue"
                                                          size:15.35f]];
-            receivedMessage = [NSString
+            strongSelf->receivedMessage = [NSString
                 stringWithFormat:
                     @" me: %@",
-                    [messagesHistory
+                    [strongSelf->messagesHistory
                         objectForKey:[NSString
                                          stringWithFormat:@"%lu",
                                                           (unsigned long)
-                                                              [movesList
+                                                              [strongSelf->movesList
                                                                   count]]]];
         } else {
-            [receivedMessageView
+            [strongSelf->receivedMessageView
                 setFont:[UIFont fontWithName:@"HelveticaNeue-Bold"
                                         size:15.35f]];
-            receivedMessage = [NSString
+            strongSelf->receivedMessage = [NSString
                 stringWithFormat:
-                    @" %@: %@", [self.game opponentName],
-                    [messagesHistory
+                    @" %@: %@", [strongSelf.game opponentName],
+                    [strongSelf->messagesHistory
                         objectForKey:[NSString
                                          stringWithFormat:@"%lu",
                                                           (unsigned long)
-                                                              [movesList
+                                                              [strongSelf->movesList
                                                                   count]]]];
         }
-        if (([[self.game gameType] isEqualToString:@"Connect6"] &&
-             [[self.game myColor] isEqualToString:@"white"] &&
-             (([movesList count] % 4) == 1)) ||
-            ([[self.game gameType] isEqualToString:@"Connect6"] &&
-             [[self.game myColor] isEqualToString:@"black"] &&
-             (([movesList count] % 4) == 3))) {
-            [receivedMessageView setFont:[UIFont fontWithName:@"HelveticaNeue"
+        if (([[strongSelf.game gameType] isEqualToString:@"Connect6"] &&
+             [[strongSelf.game myColor] isEqualToString:@"white"] &&
+             (([strongSelf->movesList count] % 4) == 1)) ||
+            ([[strongSelf.game gameType] isEqualToString:@"Connect6"] &&
+             [[strongSelf.game myColor] isEqualToString:@"black"] &&
+             (([strongSelf->movesList count] % 4) == 3))) {
+            [strongSelf->receivedMessageView setFont:[UIFont fontWithName:@"HelveticaNeue"
                                                          size:15.35f]];
-            receivedMessage = [NSString
+            strongSelf->receivedMessage = [NSString
                 stringWithFormat:
                     @" me: %@",
-                    [messagesHistory
+                    [strongSelf->messagesHistory
                         objectForKey:[NSString
                                          stringWithFormat:@"%lu",
                                                           (unsigned long)
-                                                              [movesList
+                                                              [strongSelf->movesList
                                                                   count]]]];
-        } else if ([[self.game gameType] isEqualToString:@"Connect6"]) {
-            [receivedMessageView
+        } else if ([[strongSelf.game gameType] isEqualToString:@"Connect6"]) {
+            [strongSelf->receivedMessageView
                 setFont:[UIFont fontWithName:@"HelveticaNeue-Bold"
                                         size:15.35f]];
-            receivedMessage = [NSString
+            strongSelf->receivedMessage = [NSString
                 stringWithFormat:
-                    @" %@: %@", [self.game opponentName],
-                    [messagesHistory
+                    @" %@: %@", [strongSelf.game opponentName],
+                    [strongSelf->messagesHistory
                         objectForKey:[NSString
                                          stringWithFormat:@"%lu",
                                                           (unsigned long)
-                                                              [movesList
+                                                              [strongSelf->movesList
                                                                   count]]]];
         }
         if (isGoGame) {
-            if (([[self.game myColor] isEqualToString:@"black"] &&
-                 (([movesList count] % 2) == 1)) ||
-                ([[self.game myColor] isEqualToString:@"white"] &&
-                 (([movesList count] % 2) == 0))) {
-                [receivedMessageView
+            if (([[strongSelf.game myColor] isEqualToString:@"black"] &&
+                 (([strongSelf->movesList count] % 2) == 1)) ||
+                ([[strongSelf.game myColor] isEqualToString:@"white"] &&
+                 (([strongSelf->movesList count] % 2) == 0))) {
+                [strongSelf->receivedMessageView
                     setFont:[UIFont fontWithName:@"HelveticaNeue" size:15.35f]];
-                receivedMessage = [NSString
+                strongSelf->receivedMessage = [NSString
                     stringWithFormat:
                         @" me: %@",
-                        [messagesHistory
+                        [strongSelf->messagesHistory
                             objectForKey:[NSString
                                              stringWithFormat:@"%lu",
                                                               (unsigned long)
-                                                                  [movesList
+                                                                  [strongSelf->movesList
                                                                       count]]]];
             } else {
-                [receivedMessageView
+                [strongSelf->receivedMessageView
                     setFont:[UIFont fontWithName:@"HelveticaNeue-Bold"
                                             size:15.35f]];
-                receivedMessage = [NSString
+                strongSelf->receivedMessage = [NSString
                     stringWithFormat:
-                        @" %@: %@", [self.game opponentName],
-                        [messagesHistory
+                        @" %@: %@", [strongSelf.game opponentName],
+                        [strongSelf->messagesHistory
                             objectForKey:[NSString
                                              stringWithFormat:@"%lu",
                                                               (unsigned long)
-                                                                  [movesList
+                                                                  [strongSelf->movesList
                                                                       count]]]];
             }
         }
     } else {
-        receivedMessage = @"";
-        [replyMessageView
-            setFrame:CGRectMake(0, 0, self.view.bounds.size.width - 40, 88)];
+        strongSelf->receivedMessage = @"";
+        [strongSelf->replyMessageView
+            setFrame:CGRectMake(0, 0, strongSelf.view.bounds.size.width - 40, 88)];
     }
 
-    [receivedMessageView setEditable:NO];
-    [receivedMessageView setAlpha:0.90];
-    //    [receivedMessageView setBackgroundColor:[UIColor colorWithRed:0.98f
+    [strongSelf->receivedMessageView setEditable:NO];
+    [strongSelf->receivedMessageView setAlpha:0.90];
+    //    [strongSelf->receivedMessageView setBackgroundColor:[UIColor colorWithRed:0.98f
     //    green:0.98f blue:0.98f alpha:0.95]];
-    receivedMessageView.clipsToBounds = YES;
-    receivedMessageView.layer.cornerRadius = 5.0f;
-    receivedMessageView.contentInset = UIEdgeInsetsMake(-10.0, 0.0, 0, 0.0);
-    [receivedMessageView setText:receivedMessage];
-    CGRect frame = receivedMessageView.frame;
+    strongSelf->receivedMessageView.clipsToBounds = YES;
+    strongSelf->receivedMessageView.layer.cornerRadius = 5.0f;
+    strongSelf->receivedMessageView.contentInset = UIEdgeInsetsMake(-10.0, 0.0, 0, 0.0);
+    [strongSelf->receivedMessageView setText:strongSelf->receivedMessage];
+    CGRect frame = strongSelf->receivedMessageView.frame;
     frame.origin.y = 568;
 
     NSDictionary *fontAttributes =
-        [NSDictionary dictionaryWithObject:[receivedMessageView font]
+        [NSDictionary dictionaryWithObject:[strongSelf->receivedMessageView font]
                                     forKey:NSFontAttributeName];
-    [self.view addSubview:receivedMessageView];
-    CGRect textFrame = [receivedMessage
+    [strongSelf.view addSubview:strongSelf->receivedMessageView];
+    CGRect textFrame = [strongSelf->receivedMessage
         boundingRectWithSize:CGSizeMake(
-                                 receivedMessageView.contentSize.width +
-                                     receivedMessageView.contentOffset.x -
-                                     receivedMessageView.contentInset.left -
-                                     receivedMessageView.contentInset.right,
-                                 receivedMessageView.font.lineHeight * 5)
+                                 strongSelf->receivedMessageView.contentSize.width +
+                                     strongSelf->receivedMessageView.contentOffset.x -
+                                     strongSelf->receivedMessageView.contentInset.left -
+                                     strongSelf->receivedMessageView.contentInset.right,
+                                 strongSelf->receivedMessageView.font.lineHeight * 5)
                      options:(NSStringDrawingUsesLineFragmentOrigin |
                               NSLineBreakByWordWrapping)
                   attributes:fontAttributes
                      context:nil];
-    [receivedMessageView setText:receivedMessage];
-    //    CGFloat fontLineHeight = [[receivedMessageView font] lineHeight];
-    [receivedMessageView setFrame:frame];
-    //    [self.view addSubview: receivedMessageView];
+    [strongSelf->receivedMessageView setText:strongSelf->receivedMessage];
+    //    CGFloat fontLineHeight = [[strongSelf->receivedMessageView font] lineHeight];
+    [strongSelf->receivedMessageView setFrame:frame];
+    //    [strongSelf.view addSubview: strongSelf->receivedMessageView];
 
-    //    if (receivedMessageView.contentSize.height <
-    //    (3*receivedMessageView.font.lineHeight)) {
-    if (textFrame.size.height < (3 * receivedMessageView.font.lineHeight)) {
-        //        frame.size.height = receivedMessageView.contentSize.height;
+    //    if (strongSelf->receivedMessageView.contentSize.height <
+    //    (3*strongSelf->receivedMessageView.font.lineHeight)) {
+    if (textFrame.size.height < (3 * strongSelf->receivedMessageView.font.lineHeight)) {
+        //        frame.size.height = strongSelf->receivedMessageView.contentSize.height;
         frame.size.height = textFrame.size.height;
     } else {
         frame.size.height =
-            MIN((receivedMessageView.font.lineHeight * 5),
-                textFrame.size.height - receivedMessageView.contentInset.top);
+            MIN((strongSelf->receivedMessageView.font.lineHeight * 5),
+                textFrame.size.height - strongSelf->receivedMessageView.contentInset.top);
     }
-    [receivedMessageView removeFromSuperview];
-    [receivedMessageView setFrame:frame];
+    [strongSelf->receivedMessageView removeFromSuperview];
+    [strongSelf->receivedMessageView setFrame:frame];
 
-    [replyMessageView setFont:[UIFont systemFontOfSize:15]];
-    frame = replyMessageView.frame;
-    frame.size.height = replyMessageView.font.lineHeight * 3;
-    [replyMessageView setAlpha:0.90];
-    [replyMessageView setEditable:YES];
-    replyMessageView.clipsToBounds = YES;
-    replyMessageView.layer.cornerRadius = 5.0f;
-    replyMessageView.contentInset = UIEdgeInsetsMake(-7.0, 0.0, 0, 0.0);
-    [replyMessageView setFrame:frame];
-    //    [replyMessageView
+    [strongSelf->replyMessageView setFont:[UIFont systemFontOfSize:15]];
+    frame = strongSelf->replyMessageView.frame;
+    frame.size.height = strongSelf->replyMessageView.font.lineHeight * 3;
+    [strongSelf->replyMessageView setAlpha:0.90];
+    [strongSelf->replyMessageView setEditable:YES];
+    strongSelf->replyMessageView.clipsToBounds = YES;
+    strongSelf->replyMessageView.layer.cornerRadius = 5.0f;
+    strongSelf->replyMessageView.contentInset = UIEdgeInsetsMake(-7.0, 0.0, 0, 0.0);
+    [strongSelf->replyMessageView setFrame:frame];
+    //    [strongSelf->replyMessageView
     //    setAutocapitalizationType:UITextAutocapitalizationTypeNone];
-    //    [replyMessageView setAutocorrectionType:UITextAutocorrectionTypeNo];
-    [replyMessageView setReturnKeyType:UIReturnKeyDone];
-    [replyMessageView setDelegate:self];
-    replyMessageView.layer.borderWidth = 2.0f;
-    replyMessageView.layer.borderColor = [[UIColor grayColor] CGColor];
+    //    [strongSelf->replyMessageView setAutocorrectionType:UITextAutocorrectionTypeNo];
+    [strongSelf->replyMessageView setReturnKeyType:UIReturnKeyDone];
+    [strongSelf->replyMessageView setDelegate:self];
+    strongSelf->replyMessageView.layer.borderWidth = 2.0f;
+    strongSelf->replyMessageView.layer.borderColor = [[UIColor grayColor] CGColor];
 
     NSString *locRating = NSLocalizedString(@"rating:", nil);
     NSString *remTime = NSLocalizedString(@"Remaining time:", nil);
     NSString *ratedPrivate = [NSString
         stringWithFormat:NSLocalizedString(@"This game is %@ and %@", nil),
-                         [self.game localizedRatedNot],
-                         [self.game privateGame]];
+                         [strongSelf.game localizedRatedNot],
+                         [strongSelf.game privateGame]];
 
     if (![myUsername isEqualToString:p1Name] &&
         ![myUsername isEqualToString:p2Name]) {
@@ -1696,8 +1682,8 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                 @"profile?viewName=%@\">%@</a>, %@ %@ <br> %@ %@ <br> "
                 @"%@ </font><hr>",
                 p1Name, p1Name, p2Name, p2Name, locRating,
-                [self.game opponentRating], remTime,
-                [self.game localizedTimeString], ratedPrivate];
+                [strongSelf.game opponentRating], remTime,
+                [strongSelf.game localizedTimeString], ratedPrivate];
     } else {
         playerStatsBaseString = [NSString
             stringWithFormat:
@@ -1705,8 +1691,8 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                 @"href=\"https://www.pente.org/gameServer/"
                 @"profile?viewName=%@\">%@</a>, %@ %@ <br> %@ %@ <br> "
                 @"%@</font><hr>",
-                [self.game opponentName], [self.game opponentName], locRating,
-                [self.game opponentRating], remTime, [self.game remainingTime],
+                [strongSelf.game opponentName], [strongSelf.game opponentName], locRating,
+                [strongSelf.game opponentRating], remTime, [strongSelf.game remainingTime],
                 ratedPrivate];
     }
 
@@ -1718,48 +1704,48 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
     dPenteOpening = NO;
     whiteCaptures = 0;
     blackCaptures = 0;
-    [self resetBoard];
+    [strongSelf resetBoard];
 
-    lastMove = (int)[movesList count];
+    lastMove = (int)[strongSelf->movesList count];
 
-    if ([[self.game gameType] isEqualToString:@"Pente"] ||
-        [[self.game gameType] isEqualToString:@"Boat-Pente"] ||
-        [[self.game gameType] isEqualToString:@"Speed Pente"] ||
-        [[self.game gameType] isEqualToString:@"Speed Boat-Pente"]) {
-        [self replayPenteGame:lastMove];
+    if ([[strongSelf.game gameType] isEqualToString:@"Pente"] ||
+        [[strongSelf.game gameType] isEqualToString:@"Boat-Pente"] ||
+        [[strongSelf.game gameType] isEqualToString:@"Speed Pente"] ||
+        [[strongSelf.game gameType] isEqualToString:@"Speed Boat-Pente"]) {
+        [strongSelf replayPenteGame:lastMove];
     }
-    if ([[self.game gameType] isEqualToString:@"Keryo-Pente"] ||
-        [[self.game gameType] isEqualToString:@"Speed Keryo-Pente"]) {
-        [self replayKeryoPenteGame:lastMove];
+    if ([[strongSelf.game gameType] isEqualToString:@"Keryo-Pente"] ||
+        [[strongSelf.game gameType] isEqualToString:@"Speed Keryo-Pente"]) {
+        [strongSelf replayKeryoPenteGame:lastMove];
     }
-    if ([[self.game gameType] isEqualToString:@"O-Pente"] ||
-        [[self.game gameType] isEqualToString:@"Speed O-Pente"]) {
-        [self replayOPenteGame:lastMove];
+    if ([[strongSelf.game gameType] isEqualToString:@"O-Pente"] ||
+        [[strongSelf.game gameType] isEqualToString:@"Speed O-Pente"]) {
+        [strongSelf replayOPenteGame:lastMove];
     }
-    if ([[self.game gameType] isEqualToString:@"G-Pente"] ||
-        [[self.game gameType] isEqualToString:@"Speed G-Pente"]) {
-        [self replayGPenteGame:lastMove];
+    if ([[strongSelf.game gameType] isEqualToString:@"G-Pente"] ||
+        [[strongSelf.game gameType] isEqualToString:@"Speed G-Pente"]) {
+        [strongSelf replayGPenteGame:lastMove];
     }
-    if ([[self.game gameType] isEqualToString:@"D-Pente"] ||
-        [[self.game gameType] isEqualToString:@"Speed D-Pente"] ||
-        [[self.game gameType] isEqualToString:@"DK-Pente"] ||
-        [[self.game gameType] isEqualToString:@"Speed DK-Pente"]) {
-        if ([[self.game gameType] isEqualToString:@"DK-Pente"] ||
-            [[self.game gameType] isEqualToString:@"Speed DK-Pente"]) {
-            [self replayDKPenteGame:lastMove];
+    if ([[strongSelf.game gameType] isEqualToString:@"D-Pente"] ||
+        [[strongSelf.game gameType] isEqualToString:@"Speed D-Pente"] ||
+        [[strongSelf.game gameType] isEqualToString:@"DK-Pente"] ||
+        [[strongSelf.game gameType] isEqualToString:@"Speed DK-Pente"]) {
+        if ([[strongSelf.game gameType] isEqualToString:@"DK-Pente"] ||
+            [[strongSelf.game gameType] isEqualToString:@"Speed DK-Pente"]) {
+            [strongSelf replayDKPenteGame:lastMove];
         } else {
-            [self replayDPenteGame:lastMove];
+            [strongSelf replayDPenteGame:lastMove];
         }
 
         dPenteChoice = NO;
-        if ([movesList count] == 4) {
+        if ([strongSelf->movesList count] == 4) {
             //            NSLog(@"kitty %@", htmlString);
-            if (dPenteState == 2 && activeGame) {
+            if (dPenteState == 2 && strongSelf->activeGame) {
                 dPenteChoice = YES;
-                [submitButton setHidden:YES];
+                [strongSelf->submitButton setHidden:YES];
                 [player2Button setHidden:NO];
                 [player1Button setHidden:NO];
-                [self.view bringSubviewToFront:player1Button];
+                [strongSelf.view bringSubviewToFront:player1Button];
                 [dPenteChoiceLabel setHidden:NO];
                 [whiteStoneCaptures setHidden:YES];
                 [whiteCapturesCountLabel setHidden:YES];
@@ -1773,23 +1759,23 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
             }
         }
     }
-    if ([self.game.gameType containsString:@"Swap2-"]) {
-        swap2Opening = [movesList count] == 0;
+    if ([strongSelf.game.gameType containsString:@"Swap2-"]) {
+        swap2Opening = [strongSelf->movesList count] == 0;
         swap2Choice = dPenteState == 2 &&
-                      ([movesList count] == 3 || [movesList count] == 5);
-        if ([self.game.gameType containsString:@"Swap2-Pente"]) {
-            [self replaySwap2PenteGame:lastMove];
-        } else if ([self.game.gameType containsString:@"Swap2-Keryo"]) {
-            [self replaySwap2KeryoGame:lastMove];
+                      ([strongSelf->movesList count] == 3 || [strongSelf->movesList count] == 5);
+        if ([strongSelf.game.gameType containsString:@"Swap2-Pente"]) {
+            [strongSelf replaySwap2PenteGame:lastMove];
+        } else if ([strongSelf.game.gameType containsString:@"Swap2-Keryo"]) {
+            [strongSelf replaySwap2KeryoGame:lastMove];
         }
 
         if (swap2Choice) {
-            if ([movesList count] == 3) {
+            if ([strongSelf->movesList count] == 3) {
                 dPenteChoice = YES;
-                [submitButton setHidden:YES];
+                [strongSelf->submitButton setHidden:YES];
                 [player2Button setHidden:NO];
                 [player1Button setHidden:NO];
-                [self.view bringSubviewToFront:player1Button];
+                [strongSelf.view bringSubviewToFront:player1Button];
                 [dPenteChoiceLabel setHidden:NO];
                 [whiteStoneCaptures setHidden:YES];
                 [whiteCapturesCountLabel setHidden:YES];
@@ -1798,12 +1784,12 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                 [lockButton setHidden:YES];
                 [passButton setHidden:NO];
 
-            } else if ([movesList count] == 5) {
+            } else if ([strongSelf->movesList count] == 5) {
                 dPenteChoice = YES;
-                [submitButton setHidden:YES];
+                [strongSelf->submitButton setHidden:YES];
                 [player2Button setHidden:NO];
                 [player1Button setHidden:NO];
-                [self.view bringSubviewToFront:player1Button];
+                [strongSelf.view bringSubviewToFront:player1Button];
                 [dPenteChoiceLabel setHidden:NO];
                 [whiteStoneCaptures setHidden:YES];
                 [whiteCapturesCountLabel setHidden:YES];
@@ -1814,62 +1800,62 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
         } else {
         }
     }
-    if ([[self.game gameType] containsString:@"Poof-Pente"]) {
-        [self replayPoofPenteGame:lastMove];
+    if ([[strongSelf.game gameType] containsString:@"Poof-Pente"]) {
+        [strongSelf replayPoofPenteGame:lastMove];
     }
     go = NO;
     goMarkStones = NO;
     goEvaluateDeadStones = NO;
     if (isGoGame) {
-        if ([self.game.gameType containsString:@"(9x9)"]) {
+        if ([strongSelf.game.gameType containsString:@"(9x9)"]) {
             gridSize = 9;
-        } else if ([self.game.gameType containsString:@"(13x13)"]) {
+        } else if ([strongSelf.game.gameType containsString:@"(13x13)"]) {
             gridSize = 13;
         }
         goMarkStones =
             [jsonResponse[@"goState"] isEqualToString:@"MARK_DEAD_STONES"];
         goEvaluateDeadStones =
             [jsonResponse[@"goState"] isEqualToString:@"EVALUATE_DEAD_STONES"];
-        [self replayGoGame:lastMove];
-        [board setGo:YES];
-        [zoomedBoard setGo:YES];
+        [strongSelf replayGoGame:lastMove];
+        [strongSelf->board setGo:YES];
+        [strongSelf->zoomedBoard setGo:YES];
         if (!goMarkStones && !goEvaluateDeadStones) {
-            [self copyGoBoard];
-            [zoomedBoard setAbstractBoard:abstractGoBoard];
+            [strongSelf copyGoBoard];
+            [strongSelf->zoomedBoard setAbstractBoard:abstractGoBoard];
             go = YES;
         } else if (goMarkStones) {
-            [self showTerritory:nil];
-        } else if (goEvaluateDeadStones && activeGame) {
-            [self evaluateDeadStones];
+            [strongSelf showTerritory:nil];
+        } else if (goEvaluateDeadStones && strongSelf->activeGame) {
+            [strongSelf evaluateDeadStones];
         }
     }
-    if ([[self.game gameType] containsString:@"Connect6"]) {
-        [self replayConnect6Game:lastMove];
+    if ([[strongSelf.game gameType] containsString:@"Connect6"]) {
+        [strongSelf replayConnect6Game:lastMove];
     }
-    [self updateCaptures];
+    [strongSelf updateCaptures];
 
-    if ([[self.game gameType] containsString:@"Gomoku"]) {
-        [self replayGomokuGame:lastMove];
+    if ([[strongSelf.game gameType] containsString:@"Gomoku"]) {
+        [strongSelf replayGomokuGame:lastMove];
     }
 
     // Find out your color
-    if ([[self.game myColor] isEqualToString:@"white"]) {
-        [stone setStoneColor:WHITE];
+    if ([[strongSelf.game myColor] isEqualToString:@"white"]) {
+        [strongSelf->stone setStoneColor:WHITE];
     } else {
-        [stone setStoneColor:BLACK];
+        [strongSelf->stone setStoneColor:BLACK];
     }
-    [zoomedStone setStoneColor:[stone stoneColor]];
+    [strongSelf->zoomedStone setStoneColor:[strongSelf->stone stoneColor]];
     if (goMarkStones) {
-        [zoomedStone setStoneColor:RED];
-        [zoomedStone setAlpha:0.7];
+        [strongSelf->zoomedStone setStoneColor:RED];
+        [strongSelf->zoomedStone setAlpha:0.7];
     }
 
     moveStatsString = [[NSMutableString alloc] init];
     for (int i = 0; i < lastMove; ++i) {
-        int rowCol = [self parseMove:[movesList objectAtIndex:i]];
+        int rowCol = [strongSelf parseMove:[strongSelf->movesList objectAtIndex:i]];
         if (i == 0) {
             [moveStatsString appendString:@"<b>1.</b> "];
-        } else if ([[self.game gameType] containsString:@"Connect6"]) {
+        } else if ([[strongSelf.game gameType] containsString:@"Connect6"]) {
             if (((i - 3) % 4) == 0) {
                 [moveStatsString
                     appendString:[NSString
@@ -1902,34 +1888,34 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
             [moveStatsString appendString:@"PASS"];
         }
     }
-    [playerStats
+    [strongSelf->playerStats
         loadHTMLString:[HEADERSTRING
                            stringByAppendingString:
                                [playerStatsBaseString
                                    stringByAppendingString:moveStatsString]]
                baseURL:nil];
 
-    [board setGridSize:gridSize];
-    [zoomedBoard setGridSize:gridSize];
-    [board setNeedsDisplay];
-    [zoomedBoard setNeedsDisplay];
+    [strongSelf->board setGridSize:gridSize];
+    [strongSelf->zoomedBoard setGridSize:gridSize];
+    [strongSelf->board setNeedsDisplay];
+    [strongSelf->zoomedBoard setNeedsDisplay];
 
     if (cancelRequest) {
-        [self presentCancelReply];
+        [strongSelf presentCancelReply];
     }
 
-    if (![receivedMessage isEqualToString:@""]) {
-        [self notifyNewMessage];
+    if (![strongSelf->receivedMessage isEqualToString:@""]) {
+        [strongSelf notifyNewMessage];
     }
 
-    activeGame = [currentPlayer isEqualToString:myUsername];
+    strongSelf->activeGame = [currentPlayer isEqualToString:myUsername];
 
-    if ([[self.game opponentName] isEqualToString:@"computer"]) {
+    if ([[strongSelf.game opponentName] isEqualToString:@"computer"]) {
         NSString *message = nil;
         BOOL iWin = YES;
-        if ([self detectPenteOf:2 - ([movesList count] % 2)
-                     atPosition:[[movesList lastObject] intValue]]) {
-            if (2 - ([movesList count] % 2) == 1) {
+        if ([strongSelf detectPenteOf:2 - ([strongSelf->movesList count] % 2)
+                     atPosition:[[strongSelf->movesList lastObject] intValue]]) {
+            if (2 - ([strongSelf->movesList count] % 2) == 1) {
                 message = NSLocalizedString(@"White wins", nil);
             } else {
                 message = NSLocalizedString(@"Black wins", nil);
@@ -1940,18 +1926,18 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
             message = NSLocalizedString(@"White wins", nil);
         }
         if (message) {
-            activeGame = NO;
+            strongSelf->activeGame = NO;
             if ([message isEqualToString:@"White wins"]) {
-                if ([[self.game myColor] isEqualToString:@"black"]) {
+                if ([[strongSelf.game myColor] isEqualToString:@"black"]) {
                     iWin = NO;
                 }
             } else {
-                if ([[self.game myColor] isEqualToString:@"white"]) {
+                if ([[strongSelf.game myColor] isEqualToString:@"white"]) {
                     iWin = NO;
                 }
             }
             [TSMessage
-                showNotificationInViewController:self.navigationController
+                showNotificationInViewController:strongSelf.navigationController
                                            title:NSLocalizedString(@"Game Over",
                                                                    nil)
                                         subtitle:message
@@ -1974,86 +1960,87 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
         }
     }
     if ([jsonResponse[@"state"] isEqualToString:@"inactive"]) {
-        activeGame = NO;
+        strongSelf->activeGame = NO;
         PenteNavigationViewController *navC =
-            (PenteNavigationViewController *)self.navigationController;
+            (PenteNavigationViewController *)strongSelf.navigationController;
         if (navC.player.dbAccess) {
-            [submitButton setImage:[UIImage imageNamed:@"database.png"]
+            [strongSelf->submitButton setImage:[UIImage imageNamed:@"database.png"]
                           forState:UIControlStateNormal];
-            [submitButton removeTarget:self
+            [strongSelf->submitButton removeTarget:self
                                 action:@selector(submitMove:)
                       forControlEvents:UIControlEventTouchUpInside];
-            [submitButton addTarget:self
+            [strongSelf->submitButton addTarget:self
                              action:@selector(toDB)
                    forControlEvents:UIControlEventTouchUpInside];
-            [submitButton setTitle:NSLocalizedString(@"   search", nil)
+            [strongSelf->submitButton setTitle:NSLocalizedString(@"   search", nil)
                           forState:UIControlStateNormal];
-            [submitButton setAlpha:1.0f];
-            [submitButton setEnabled:YES];
-            [submitButton setNeedsDisplay];
+            [strongSelf->submitButton setAlpha:1.0f];
+            [strongSelf->submitButton setEnabled:YES];
+            [strongSelf->submitButton setNeedsDisplay];
             [lockButton removeFromSuperview];
         }
     }
-    if (undoRequest && activeGame) {
-        [self presentUndoOptions];
+    if (undoRequest && strongSelf->activeGame) {
+        [strongSelf presentUndoOptions];
     }
-    if (goMarkStones && activeGame &&
+    if (goMarkStones && strongSelf->activeGame &&
         ![[NSUserDefaults standardUserDefaults] boolForKey:@"doublePassInfo"]) {
-        [self presentDoublePass];
+        [strongSelf presentDoublePass];
     }
     if (([myUsername isEqualToString:p1Name] ||
          [myUsername isEqualToString:p2Name]) &&
-        !activeGame && [jsonResponse[@"state"] isEqualToString:@"active"] &&
+        !strongSelf->activeGame && [jsonResponse[@"state"] isEqualToString:@"active"] &&
         dPenteState != 2 &&
-        ([movesList count] > 1 ||
-         ([movesList count] > 0 &&
-          (isGoGame || [[self.game gameType] isEqualToString:@"D-Pente"] ||
-           [[self.game gameType] isEqualToString:@"DK-Pente"])))) {
-        [submitButton removeTarget:nil
+        ([strongSelf->movesList count] > 1 ||
+         ([strongSelf->movesList count] > 0 &&
+          (isGoGame || [[strongSelf.game gameType] isEqualToString:@"D-Pente"] ||
+           [[strongSelf.game gameType] isEqualToString:@"DK-Pente"])))) {
+        [strongSelf->submitButton removeTarget:nil
                             action:NULL
                   forControlEvents:UIControlEventAllEvents];
         if (undoRequest) {
-            [submitButton setTitle:NSLocalizedString(@"undo requested", nil)
+            [strongSelf->submitButton setTitle:NSLocalizedString(@"undo requested", nil)
                           forState:UIControlStateDisabled];
-            [submitButton setEnabled:NO];
-            [submitButton setAlpha:0.85];
+            [strongSelf->submitButton setEnabled:NO];
+            [strongSelf->submitButton setAlpha:0.85];
         } else {
-            [submitButton setTitle:NSLocalizedString(@"request undo", nil)
+            [strongSelf->submitButton setTitle:NSLocalizedString(@"request undo", nil)
                           forState:UIControlStateNormal];
-            [submitButton setEnabled:YES];
-            [submitButton setAlpha:1];
-            [submitButton addTarget:self
+            [strongSelf->submitButton setEnabled:YES];
+            [strongSelf->submitButton setAlpha:1];
+            [strongSelf->submitButton addTarget:self
                              action:@selector(requestUndo:)
                    forControlEvents:UIControlEventTouchUpInside];
         }
     } else if (([myUsername isEqualToString:p1Name] ||
                 [myUsername isEqualToString:p2Name]) &&
-               activeGame) {
-        [submitButton removeTarget:nil
+               strongSelf->activeGame) {
+        [strongSelf->submitButton removeTarget:nil
                             action:NULL
                   forControlEvents:UIControlEventAllEvents];
-        [submitButton addTarget:self
+        [strongSelf->submitButton addTarget:self
                          action:@selector(submitMove:)
                forControlEvents:UIControlEventTouchUpInside];
         if (isGoGame) {
             if (goMarkStones) {
-                [submitButton setTitle:NSLocalizedString(@"submit", nil)
+                [strongSelf->submitButton setTitle:NSLocalizedString(@"submit", nil)
                               forState:UIControlStateNormal];
-                [submitButton setEnabled:YES];
-                [submitButton setAlpha:1.0];
+                [strongSelf->submitButton setEnabled:YES];
+                [strongSelf->submitButton setAlpha:1.0];
             } else {
-                [submitButton setTitle:NSLocalizedString(@"PASS", nil)
+                [strongSelf->submitButton setTitle:NSLocalizedString(@"PASS", nil)
                               forState:UIControlStateNormal];
-                [submitButton setEnabled:YES];
-                [submitButton setAlpha:1.0];
+                [strongSelf->submitButton setEnabled:YES];
+                [strongSelf->submitButton setAlpha:1.0];
             }
         } else {
-            [submitButton setTitle:NSLocalizedString(@"submit", nil)
+            [strongSelf->submitButton setTitle:NSLocalizedString(@"submit", nil)
                           forState:UIControlStateDisabled];
-            [submitButton setEnabled:NO];
-            [submitButton setAlpha:0.85];
+            [strongSelf->submitButton setEnabled:NO];
+            [strongSelf->submitButton setAlpha:0.85];
         }
     }
+    }]; // end sendRequest completion
 }
 
 - (void)requestUndo:(UIButton *)sender {
@@ -2108,32 +2095,20 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
 
                         [request setHTTPShouldUsePipelining:YES];
 
-                        [NSURLConnection sendSynchronousRequest:request
-                                              returningResponse:&response
-                                                          error:&error];
-                        if (error) {
-                            UIAlertView *alert = [[UIAlertView alloc]
-                                    initWithTitle:NSLocalizedString(@"Error",
-                                                                    nil)
-                                          message:
-                                              [NSString
-                                                  stringWithFormat:
-                                                      NSLocalizedString(
-                                                          @"Reason: %@", nil),
-                                                      error
-                                                          .localizedDescription]
-                                         delegate:nil
-                                cancelButtonTitle:@"OK"
-                                otherButtonTitles:nil];
-                            //        [alert show];
-                            [alert performSelectorOnMainThread:@selector(show)
-                                                    withObject:nil
-                                                 waitUntilDone:YES];
-                            return;
-                        } else {
-                            [self.navigationController
-                                popToRootViewControllerAnimated:YES];
-                        }
+                        __weak typeof(self) weakSelf = self;
+                        [PenteHTTPClient sendRequest:request completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
+                            if (error) {
+                                UIAlertView *alert = [[UIAlertView alloc]
+                                        initWithTitle:NSLocalizedString(@"Error", nil)
+                                              message:[NSString stringWithFormat:NSLocalizedString(@"Reason: %@", nil), error.localizedDescription]
+                                             delegate:nil
+                                    cancelButtonTitle:@"OK"
+                                    otherButtonTitles:nil];
+                                [alert show];
+                                return;
+                            }
+                            [weakSelf.navigationController popToRootViewControllerAnimated:YES];
+                        }];
                     }];
         [confirmController addAction:cancelAction];
         [confirmController addAction:confirmAction];
@@ -2236,31 +2211,21 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
 
                     [request setHTTPShouldUsePipelining:YES];
 
-                    [NSURLConnection sendSynchronousRequest:request
-                                          returningResponse:&response
-                                                      error:&error];
-                    if (error) {
-                        UIAlertView *alert = [[UIAlertView alloc]
-                                initWithTitle:NSLocalizedString(@"Error", nil)
-                                      message:[NSString
-                                                  stringWithFormat:
-                                                      NSLocalizedString(
-                                                          @"Reason: %@", nil),
-                                                      error
-                                                          .localizedDescription]
-                                     delegate:nil
-                            cancelButtonTitle:@"OK"
-                            otherButtonTitles:nil];
-                        //        [alert show];
-                        [alert performSelectorOnMainThread:@selector(show)
-                                                withObject:nil
-                                             waitUntilDone:YES];
-                        return;
-                    } else {
+                    __weak typeof(self) weakSelf = self;
+                    [PenteHTTPClient sendRequest:request completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
+                        if (error) {
+                            UIAlertView *alert = [[UIAlertView alloc]
+                                    initWithTitle:NSLocalizedString(@"Error", nil)
+                                          message:[NSString stringWithFormat:NSLocalizedString(@"Reason: %@", nil), error.localizedDescription]
+                                         delegate:nil
+                                cancelButtonTitle:@"OK"
+                                otherButtonTitles:nil];
+                            [alert show];
+                            return;
+                        }
                         [navControllor setDidMove:YES];
-                        [self.navigationController
-                            popToRootViewControllerAnimated:YES];
-                    }
+                        [weakSelf.navigationController popToRootViewControllerAnimated:YES];
+                    }];
                 }];
     UIAlertAction *declineAction = [UIAlertAction
         actionWithTitle:NSLocalizedString(@"Decline", nil)
@@ -2301,29 +2266,20 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
 
                     [request setHTTPShouldUsePipelining:YES];
 
-                    [NSURLConnection sendSynchronousRequest:request
-                                          returningResponse:&response
-                                                      error:&error];
-                    if (error) {
-                        UIAlertView *alert = [[UIAlertView alloc]
-                                initWithTitle:NSLocalizedString(@"Error", nil)
-                                      message:[NSString
-                                                  stringWithFormat:
-                                                      NSLocalizedString(
-                                                          @"Reason: %@", nil),
-                                                      error
-                                                          .localizedDescription]
-                                     delegate:nil
-                            cancelButtonTitle:@"OK"
-                            otherButtonTitles:nil];
-                        //        [alert show];
-                        [alert performSelectorOnMainThread:@selector(show)
-                                                withObject:nil
-                                             waitUntilDone:YES];
-                        return;
-                    } else {
-                        [self replayGame];
-                    }
+                    __weak typeof(self) weakSelf = self;
+                    [PenteHTTPClient sendRequest:request completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
+                        if (error) {
+                            UIAlertView *alert = [[UIAlertView alloc]
+                                    initWithTitle:NSLocalizedString(@"Error", nil)
+                                          message:[NSString stringWithFormat:NSLocalizedString(@"Reason: %@", nil), error.localizedDescription]
+                                         delegate:nil
+                                cancelButtonTitle:@"OK"
+                                otherButtonTitles:nil];
+                            [alert show];
+                            return;
+                        }
+                        [weakSelf replayGame];
+                    }];
                 }];
 
     [alert addAction:acceptAction];
@@ -4812,48 +4768,24 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                                             forHTTPHeaderField:@"Content-Type"];
                                         [request setHTTPBody:postData];
                                         [request setTimeoutInterval:7.0];
-                                        NSURLResponse *response;
-                                        NSData *responseData = [NSURLConnection
-                                            sendSynchronousRequest:request
-                                                 returningResponse:&response
-                                                             error:&error];
-                                        NSString *dashboardString = [[NSString
-                                            alloc]
-                                            initWithData:responseData
-                                                encoding:NSUTF8StringEncoding];
-                                        if ([dashboardString
-                                                containsString:
-                                                    @"Error: Cancel request "
-                                                    @"already exists."]) {
-                                            UIAlertView *alert = [[UIAlertView
-                                                alloc]
-                                                    initWithTitle:
-                                                        NSLocalizedString(
-                                                            @"Error", nil)
-                                                          message:
-                                                              NSLocalizedString(
-                                                                  @"A cancel "
-                                                                  @"request "
-                                                                  @"already "
-                                                                  @"exists.",
-                                                                  nil)
-                                                         delegate:nil
-                                                cancelButtonTitle:
-                                                    NSLocalizedString(@"OK",
-                                                                      nil)
-                                                otherButtonTitles:nil];
-                                            [alert show];
-                                        } else {
-                                            PenteNavigationViewController
-                                                *navControllor =
-                                                    (PenteNavigationViewController
-                                                         *)self
-                                                        .navigationController;
-                                            [navControllor setDidMove:YES];
-                                        }
-                                        [self.navigationController
-                                            popToRootViewControllerAnimated:
-                                                YES];
+                                        __weak typeof(self) weakSelf = self;
+                                        [PenteHTTPClient sendRequest:request completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
+                                            NSString *dashboardString = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
+                                            if ([dashboardString containsString:@"Error: Cancel request already exists."]) {
+                                                UIAlertView *alert = [[UIAlertView alloc]
+                                                        initWithTitle:NSLocalizedString(@"Error", nil)
+                                                              message:NSLocalizedString(@"A cancel request already exists.", nil)
+                                                             delegate:nil
+                                                    cancelButtonTitle:NSLocalizedString(@"OK", nil)
+                                                    otherButtonTitles:nil];
+                                                [alert show];
+                                            } else {
+                                                PenteNavigationViewController *navControllor =
+                                                    (PenteNavigationViewController *)weakSelf.navigationController;
+                                                [navControllor setDidMove:YES];
+                                            }
+                                            [weakSelf.navigationController popToRootViewControllerAnimated:YES];
+                                        }];
                                     }];
                         [confirmController addAction:cancelAction];
                         [confirmController addAction:confirmAction];
@@ -4937,22 +4869,13 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                                         [request
                                             setHTTPShouldUsePipelining:YES];
 
-                                        NSURLResponse *response;
-                                        NSError *error;
-                                        [NSURLConnection
-                                            sendSynchronousRequest:request
-                                                 returningResponse:&response
-                                                             error:&error];
-
-                                        PenteNavigationViewController
-                                            *navControllor =
-                                                (PenteNavigationViewController
-                                                     *)
-                                                    self.navigationController;
-                                        [navControllor setDidMove:YES];
-                                        [navControllor
-                                            popToRootViewControllerAnimated:
-                                                YES];
+                                        __weak typeof(self) weakSelf = self;
+                                        [PenteHTTPClient sendRequest:request completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
+                                            PenteNavigationViewController *navControllor =
+                                                (PenteNavigationViewController *)weakSelf.navigationController;
+                                            [navControllor setDidMove:YES];
+                                            [navControllor popToRootViewControllerAnimated:YES];
+                                        }];
                                     }];
                         [confirmController addAction:cancelAction];
                         [confirmController addAction:confirmAction];
@@ -5055,8 +4978,6 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
 }
 
 - (void)sendCancelReply:(NSString *)reply {
-    NSError *error = nil;
-    NSURLResponse *response;
     NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
 
     NSString *post = [NSString
@@ -5082,13 +5003,13 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
 
     [request setHTTPShouldUsePipelining:YES];
 
-    [NSURLConnection sendSynchronousRequest:request
-                          returningResponse:&response
-                                      error:&error];
-    PenteNavigationViewController *navControllor =
-        (PenteNavigationViewController *)self.navigationController;
-    [navControllor setDidMove:YES];
-    [self.navigationController popToRootViewControllerAnimated:YES];
+    __weak typeof(self) weakSelf = self;
+    [PenteHTTPClient sendRequest:request completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
+        PenteNavigationViewController *navControllor =
+            (PenteNavigationViewController *)weakSelf.navigationController;
+        [navControllor setDidMove:YES];
+        [weakSelf.navigationController popToRootViewControllerAnimated:YES];
+    }];
 }
 
 - (void)presentDoublePass {

@@ -281,66 +281,61 @@ NSArray<NSString *> *restrictions;
             forHTTPHeaderField:@"Content-Type"];
         [request setHTTPBody:postData];
         [request setTimeoutInterval:7.0];
-        NSURLResponse *response;
-        NSError *error;
-        [NSURLConnection sendSynchronousRequest:request
-                              returningResponse:&response
-                                          error:&error];
-        //        NSData *responseData = [NSURLConnection
-        //        sendSynchronousRequest:request returningResponse:&response
-        //        error:&error]; NSString *dashboardString = [[NSString alloc]
-        //        initWithData:responseData encoding:NSUTF8StringEncoding];
+        [PenteHTTPClient sendRequest:request completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
+            //        NSData *responseData = [NSURLConnection
+            //        sendSynchronousRequest:request returningResponse:&response
+            //        error:&error]; NSString *dashboardString = [[NSString alloc]
+            //        initWithData:responseData encoding:NSUTF8StringEncoding];
 
-        //        [spinner performSelectorOnMainThread:@selector(stopAnimating)
-        //        withObject:nil waitUntilDone:NO];
-        if (error) {
-            UIAlertView *alert = [[UIAlertView alloc]
-                    initWithTitle:NSLocalizedString(@"Error", nil)
-                          message:[NSString
-                                      stringWithFormat:
-                                          NSLocalizedString(@"Reason: %@", nil),
-                                          error.localizedDescription]
-                         delegate:nil
-                cancelButtonTitle:@"OK"
-                otherButtonTitles:nil];
-            //        [alert show];
-            [alert performSelectorOnMainThread:@selector(show)
-                                    withObject:nil
-                                 waitUntilDone:YES];
-        } else {
-            if ([invitee isEqualToString:@""]) {
-                long openInvitationsLimit =
-                    [[NSUserDefaults standardUserDefaults]
-                        integerForKey:@"openInvitationsLimit"];
-                openInvitationsLimit += 2;
-                [[NSUserDefaults standardUserDefaults]
-                    setInteger:openInvitationsLimit
-                        forKey:@"openInvitationsLimit"];
+            //        [spinner performSelectorOnMainThread:@selector(stopAnimating)
+            //        withObject:nil waitUntilDone:NO];
+            if (error) {
+                UIAlertView *alert = [[UIAlertView alloc]
+                        initWithTitle:NSLocalizedString(@"Error", nil)
+                              message:[NSString
+                                          stringWithFormat:
+                                              NSLocalizedString(@"Reason: %@", nil),
+                                              error.localizedDescription]
+                             delegate:nil
+                    cancelButtonTitle:@"OK"
+                    otherButtonTitles:nil];
+                //        [alert show];
+                [alert show];
             } else {
-                NSUserDefaults *defaults =
-                    [NSUserDefaults standardUserDefaults];
-                NSString *opponent = self.invitee;
-                NSMutableArray *invitedHistory =
-                    [[defaults objectForKey:@"invitedHistory"] mutableCopy];
-                if (invitedHistory) {
-                    int i = 0;
-                    for (i = 0; i < [invitedHistory count]; ++i) {
-                        if ([[invitedHistory objectAtIndex:i]
-                                localizedCaseInsensitiveCompare:opponent] ==
-                            NSOrderedDescending)
-                            break;
-                    }
-                    if (![invitedHistory containsObject:opponent]) {
-                        [invitedHistory insertObject:opponent atIndex:i];
-                    }
+                if ([invitee isEqualToString:@""]) {
+                    long openInvitationsLimit =
+                        [[NSUserDefaults standardUserDefaults]
+                            integerForKey:@"openInvitationsLimit"];
+                    openInvitationsLimit += 2;
+                    [[NSUserDefaults standardUserDefaults]
+                        setInteger:openInvitationsLimit
+                            forKey:@"openInvitationsLimit"];
                 } else {
-                    invitedHistory = [NSMutableArray arrayWithObject:opponent];
+                    NSUserDefaults *defaults =
+                        [NSUserDefaults standardUserDefaults];
+                    NSString *opponent = self.invitee;
+                    NSMutableArray *invitedHistory =
+                        [[defaults objectForKey:@"invitedHistory"] mutableCopy];
+                    if (invitedHistory) {
+                        int i = 0;
+                        for (i = 0; i < [invitedHistory count]; ++i) {
+                            if ([[invitedHistory objectAtIndex:i]
+                                    localizedCaseInsensitiveCompare:opponent] ==
+                                NSOrderedDescending)
+                                break;
+                        }
+                        if (![invitedHistory containsObject:opponent]) {
+                            [invitedHistory insertObject:opponent atIndex:i];
+                        }
+                    } else {
+                        invitedHistory = [NSMutableArray arrayWithObject:opponent];
+                    }
+                    [defaults setObject:invitedHistory forKey:@"invitedHistory"];
                 }
-                [defaults setObject:invitedHistory forKey:@"invitedHistory"];
             }
-        }
 
-        [popoverView dismiss];
+            [popoverView dismiss];
+        }];
     }
 }
 

@@ -305,90 +305,133 @@ CGFloat bottomOffset = 0;
         [request setURL:[NSURL URLWithString:url]];
         [request setHTTPMethod:@"GET"];
         [request setTimeoutInterval:7.0];
-        NSURLResponse *response;
-        NSError *error;
-        NSData *responseData = [NSURLConnection sendSynchronousRequest:request
-                                                     returningResponse:&response
-                                                                 error:&error];
-
-        // connect to the game server
-        request = [[NSMutableURLRequest alloc] init];
-        url = [NSString
-            stringWithFormat:@"https://www.pente.org/gameServer/"
-                             @"login.jsp?mobile=&name2=%@&password2=%@",
-                             username, password];
-        if (development) {
-            url = [NSString
-                stringWithFormat:@"https://localhost/gameServer/"
+        __weak typeof(self) weakSelf = self;
+        [PenteHTTPClient sendRequest:request completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
+            // connect to the game server
+            NSMutableURLRequest *loginRequest = [[NSMutableURLRequest alloc] init];
+            NSString *loginUrl = [NSString
+                stringWithFormat:@"https://www.pente.org/gameServer/"
                                  @"login.jsp?mobile=&name2=%@&password2=%@",
                                  username, password];
-        }
-        [request setURL:[NSURL URLWithString:url]];
-        [request setHTTPMethod:@"POST"];
-        [request setTimeoutInterval:3.0];
-        responseData = [NSURLConnection sendSynchronousRequest:request
-                                             returningResponse:&response
-                                                         error:&error];
-        NSString *dashboardString =
-            [[NSString alloc] initWithData:responseData
-                                  encoding:NSUTF8StringEncoding];
+            if (development) {
+                loginUrl = [NSString
+                    stringWithFormat:@"https://localhost/gameServer/"
+                                     @"login.jsp?mobile=&name2=%@&password2=%@",
+                                     username, password];
+            }
+            [loginRequest setURL:[NSURL URLWithString:loginUrl]];
+            [loginRequest setHTTPMethod:@"POST"];
+            [loginRequest setTimeoutInterval:3.0];
+            __weak typeof(self) weakSelf2 = weakSelf;
+            [PenteHTTPClient sendRequest:loginRequest completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
+                NSString *dashboardString =
+                    [[NSString alloc] initWithData:responseData
+                                          encoding:NSUTF8StringEncoding];
 
-        if (error && error.code == NSURLErrorTimedOut) {
-            [request setTimeoutInterval:10.0];
-            error = nil;
-            responseData = [NSURLConnection sendSynchronousRequest:request
-                                                 returningResponse:&response
-                                                             error:&error];
-            dashboardString =
-                [[NSString alloc] initWithData:responseData
-                                      encoding:NSUTF8StringEncoding];
-        }
-        if (error) {
-            [self noInternet:[NSString
-                                 stringWithFormat:
-                                     @"Trouble connecting to pente.org, please "
-                                     @"try again in a bit.\nReason: %@",
-                                     error.localizedDescription]];
-            return;
-        } else if ([dashboardString isEqualToString:@""] ||
-                   ([dashboardString rangeOfString:@"HTTP Error"].length !=
-                    0)) {
-            [self noInternet:
-                      @"pente.org appears to be down, please try again later."];
-            return;
-        } else if ([dashboardString
-                       rangeOfString:
-                           @"<h2>Pente.org is undergoing maintenance.</h2>"]
-                       .length != 0) {
-            UIAlertView *alert =
-                [[UIAlertView alloc] initWithTitle:@"Maintenance"
-                                           message:@"pente.org is undergoing "
-                                                   @"maintenance, please try "
-                                                   @"again in a few minutes."
-                                          delegate:nil
-                                 cancelButtonTitle:NSLocalizedString(@"OK", nil)
-                                 otherButtonTitles:nil];
-            [alert show];
-            //            [self performSegueWithIdentifier:@"settingsTap"
-            //            sender:self]; settingsViewController.showAIOption =
-            //            YES;
-            return;
-        } else if ([dashboardString
-                       rangeOfString:
-                           @"Invalid name or password, please try again."]
-                       .length != 0) {
-            [self performSegueWithIdentifier:@"settingsTap" sender:self];
-            //            settingsViewController.showAIOption = YES;
-            return;
-        } else {
-            PenteNavigationViewController *navControllor =
-                (PenteNavigationViewController *)self.navigationController;
-            [navControllor setLoggedIn:YES];
-            [NSThread detachNewThreadSelector:@selector(handleDeviceToken)
-                                     toTarget:self
-                                   withObject:nil];
-            [self dashboardParse];
-        }
+                if (error && error.code == NSURLErrorTimedOut) {
+                    [loginRequest setTimeoutInterval:10.0];
+                    __weak typeof(self) weakSelf3 = weakSelf2;
+                    [PenteHTTPClient sendRequest:loginRequest completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
+                        NSString *dashboardString =
+                            [[NSString alloc] initWithData:responseData
+                                                  encoding:NSUTF8StringEncoding];
+                        if (error) {
+                            [weakSelf3 noInternet:[NSString
+                                                 stringWithFormat:
+                                                     @"Trouble connecting to pente.org, please "
+                                                     @"try again in a bit.\nReason: %@",
+                                                     error.localizedDescription]];
+                            return;
+                        } else if ([dashboardString isEqualToString:@""] ||
+                                   ([dashboardString rangeOfString:@"HTTP Error"].length !=
+                                    0)) {
+                            [weakSelf3 noInternet:
+                                      @"pente.org appears to be down, please try again later."];
+                            return;
+                        } else if ([dashboardString
+                                       rangeOfString:
+                                           @"<h2>Pente.org is undergoing maintenance.</h2>"]
+                                       .length != 0) {
+                            UIAlertView *alert =
+                                [[UIAlertView alloc] initWithTitle:@"Maintenance"
+                                                           message:@"pente.org is undergoing "
+                                                                   @"maintenance, please try "
+                                                                   @"again in a few minutes."
+                                                          delegate:nil
+                                                 cancelButtonTitle:NSLocalizedString(@"OK", nil)
+                                                 otherButtonTitles:nil];
+                            [alert show];
+                            //            [self performSegueWithIdentifier:@"settingsTap"
+                            //            sender:self]; settingsViewController.showAIOption =
+                            //            YES;
+                            return;
+                        } else if ([dashboardString
+                                       rangeOfString:
+                                           @"Invalid name or password, please try again."]
+                                       .length != 0) {
+                            [weakSelf3 performSegueWithIdentifier:@"settingsTap" sender:weakSelf3];
+                            //            settingsViewController.showAIOption = YES;
+                            return;
+                        } else {
+                            PenteNavigationViewController *navControllor =
+                                (PenteNavigationViewController *)weakSelf3.navigationController;
+                            [navControllor setLoggedIn:YES];
+                            [NSThread detachNewThreadSelector:@selector(handleDeviceToken)
+                                                     toTarget:weakSelf3
+                                                   withObject:nil];
+                            [weakSelf3 dashboardParse];
+                        }
+                    }];
+                    return;
+                }
+                if (error) {
+                    [weakSelf2 noInternet:[NSString
+                                         stringWithFormat:
+                                             @"Trouble connecting to pente.org, please "
+                                             @"try again in a bit.\nReason: %@",
+                                             error.localizedDescription]];
+                    return;
+                } else if ([dashboardString isEqualToString:@""] ||
+                           ([dashboardString rangeOfString:@"HTTP Error"].length !=
+                            0)) {
+                    [weakSelf2 noInternet:
+                              @"pente.org appears to be down, please try again later."];
+                    return;
+                } else if ([dashboardString
+                               rangeOfString:
+                                   @"<h2>Pente.org is undergoing maintenance.</h2>"]
+                               .length != 0) {
+                    UIAlertView *alert =
+                        [[UIAlertView alloc] initWithTitle:@"Maintenance"
+                                                   message:@"pente.org is undergoing "
+                                                           @"maintenance, please try "
+                                                           @"again in a few minutes."
+                                                  delegate:nil
+                                         cancelButtonTitle:NSLocalizedString(@"OK", nil)
+                                         otherButtonTitles:nil];
+                    [alert show];
+                    //            [self performSegueWithIdentifier:@"settingsTap"
+                    //            sender:self]; settingsViewController.showAIOption =
+                    //            YES;
+                    return;
+                } else if ([dashboardString
+                               rangeOfString:
+                                   @"Invalid name or password, please try again."]
+                               .length != 0) {
+                    [weakSelf2 performSegueWithIdentifier:@"settingsTap" sender:weakSelf2];
+                    //            settingsViewController.showAIOption = YES;
+                    return;
+                } else {
+                    PenteNavigationViewController *navControllor =
+                        (PenteNavigationViewController *)weakSelf2.navigationController;
+                    [navControllor setLoggedIn:YES];
+                    [NSThread detachNewThreadSelector:@selector(handleDeviceToken)
+                                             toTarget:weakSelf2
+                                           withObject:nil];
+                    [weakSelf2 dashboardParse];
+                }
+            }];
+        }];
     } else {
         [self notRegisteredYet];
         //        [self performSegueWithIdentifier:@"settingsTap" sender:self];
@@ -524,22 +567,19 @@ CGFloat bottomOffset = 0;
         [request setURL:[NSURL URLWithString:url]];
         [request setHTTPMethod:@"GET"];
         [request setTimeoutInterval:7.0];
-        NSURLResponse *response;
-        NSError *error;
-        NSData *responseData = [NSURLConnection sendSynchronousRequest:request
-                                                     returningResponse:&response
-                                                                 error:&error];
-        if (error) {
-            NSLog(@"wth \n %@", error.localizedDescription);
-        }
-        NSString *replyString =
-            [[NSString alloc] initWithData:responseData
-                                  encoding:NSUTF8StringEncoding];
+        [PenteHTTPClient sendRequest:request completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
+            if (error) {
+                NSLog(@"wth \n %@", error.localizedDescription);
+            }
+            NSString *replyString =
+                [[NSString alloc] initWithData:responseData
+                                      encoding:NSUTF8StringEncoding];
 
-        //        NSLog(@"wth \n %@", replyString);
-        if ([replyString containsString:@"It seems to have worked"]) {
-            [defaults setObject:[NSDate date] forKey:@"lastPing"];
-        }
+            //        NSLog(@"wth \n %@", replyString);
+            if ([replyString containsString:@"It seems to have worked"]) {
+                [defaults setObject:[NSDate date] forKey:@"lastPing"];
+            }
+        }];
     } else {
         NSLog(@"No Device Token stored");
     }
@@ -604,7 +644,7 @@ CGFloat bottomOffset = 0;
 //
 //            NSURLResponse *response;
 //            NSError *error;
-//            [NSURLConnection sendSynchronousRequest:request
+//            [PenteHTTPClient sendSynchronousRequest:request
 //            returningResponse:&response error:&error];
 //
 //            if (error) {
@@ -652,7 +692,7 @@ CGFloat bottomOffset = 0;
 //
 //            NSURLResponse *response;
 //            NSError *error;
-//            [NSURLConnection sendSynchronousRequest:request
+//            [PenteHTTPClient sendSynchronousRequest:request
 //            returningResponse:&response error:&error];
 //
 //            if (error) {
@@ -2313,31 +2353,30 @@ array, and add a new row to the table view
 
     //    [request setHTTPShouldUsePipelining: YES];
 
-    NSURLResponse *response;
-    NSError *error;
-    [NSURLConnection sendSynchronousRequest:request
-                          returningResponse:&response
-                                      error:&error];
-    if (error) {
-        UIAlertView *alert = [[UIAlertView alloc]
-                initWithTitle:NSLocalizedString(@"Error", nil)
-                      message:[NSString
-                                  stringWithFormat:NSLocalizedString(
-                                                       @"Reason: %@", nil),
-                                                   error.localizedDescription]
-                     delegate:nil
-            cancelButtonTitle:NSLocalizedString(@"OK", nil)
-            otherButtonTitles:nil];
-        //        [alert show];
-        [alert performSelectorOnMainThread:@selector(show)
-                                withObject:nil
-                             waitUntilDone:YES];
-        return;
-    }
-    //    NSData *responseData = [NSURLConnection sendSynchronousRequest:request
-    //    returningResponse:&response error:&error]; NSString *dashboardString =
-    //    [[NSString alloc] initWithData:responseData
-    //    encoding:NSUTF8StringEncoding];
+    __weak typeof(self) weakSelf = self;
+    [PenteHTTPClient sendRequest:request completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
+        if (error) {
+            UIAlertView *alert = [[UIAlertView alloc]
+                    initWithTitle:NSLocalizedString(@"Error", nil)
+                          message:[NSString
+                                      stringWithFormat:NSLocalizedString(
+                                                           @"Reason: %@", nil),
+                                                       error.localizedDescription]
+                         delegate:nil
+                cancelButtonTitle:NSLocalizedString(@"OK", nil)
+                otherButtonTitles:nil];
+            //        [alert show];
+            [alert performSelectorOnMainThread:@selector(show)
+                                    withObject:nil
+                                 waitUntilDone:YES];
+            return;
+        }
+        //    NSData *responseData = [PenteHTTPClient sendSynchronousRequest:request
+        //    returningResponse:&response error:&error]; NSString *dashboardString =
+        //    [[NSString alloc] initWithData:responseData
+        //    encoding:NSUTF8StringEncoding];
+        (void)weakSelf;
+    }];
 }
 
 - (void)acceptInvitation:(UIButton *)sender {
@@ -2458,58 +2497,56 @@ array, and add a new row to the table view
 
     //    [request setHTTPShouldUsePipelining: YES];
 
-    NSURLResponse *response;
-    NSError *error;
-    [NSURLConnection sendSynchronousRequest:request
-                          returningResponse:&response
-                                      error:&error];
-    if (error) {
-        UIAlertView *alert = [[UIAlertView alloc]
-                initWithTitle:NSLocalizedString(@"Error", nil)
-                      message:[NSString
-                                  stringWithFormat:NSLocalizedString(
-                                                       @"Reason: %@", nil),
-                                                   error.localizedDescription]
-                     delegate:nil
-            cancelButtonTitle:NSLocalizedString(@"OK", nil)
-            otherButtonTitles:nil];
-        //        [alert show];
-        [alert performSelectorOnMainThread:@selector(show)
-                                withObject:nil
-                             waitUntilDone:YES];
-        return;
-    }
-    //    NSData *responseData = [NSURLConnection sendSynchronousRequest:request
-    //    returningResponse:&response error:&error]; NSString *dashboardString =
-    //    [[NSString alloc] initWithData:responseData
-    //    encoding:NSUTF8StringEncoding];
-
-    [UIView animateWithDuration:0.3
-        animations:^{
-            [self removeButtonsFromCell];
-            [self.tableView beginUpdates];
-            selectedInvitationIndexPath = nil;
-            [self.tableView endUpdates];
-            selectedInvitationCell = nil;
+    __weak typeof(self) weakSelf = self;
+    [PenteHTTPClient sendRequest:request completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
+        if (error) {
+            UIAlertView *alert = [[UIAlertView alloc]
+                    initWithTitle:NSLocalizedString(@"Error", nil)
+                          message:[NSString
+                                      stringWithFormat:NSLocalizedString(
+                                                           @"Reason: %@", nil),
+                                                       error.localizedDescription]
+                         delegate:nil
+                cancelButtonTitle:NSLocalizedString(@"OK", nil)
+                otherButtonTitles:nil];
+            //        [alert show];
+            [alert performSelectorOnMainThread:@selector(show)
+                                    withObject:nil
+                                 waitUntilDone:YES];
+            return;
         }
-        completion:^(BOOL finished) {
-            [self performSelector:@selector(scrollViewDidScroll:)
-                       withObject:self.tableView
-                       afterDelay:0.01];
-            //[self parseDashboard];
-        }];
+        //    NSData *responseData = [PenteHTTPClient sendSynchronousRequest:request
+        //    returningResponse:&response error:&error]; NSString *dashboardString =
+        //    [[NSString alloc] initWithData:responseData
+        //    encoding:NSUTF8StringEncoding];
 
-    [self.player.invitations removeObjectAtIndex:tmpPath.row];
+        [UIView animateWithDuration:0.3
+            animations:^{
+                [weakSelf removeButtonsFromCell];
+                [weakSelf.tableView beginUpdates];
+                selectedInvitationIndexPath = nil;
+                [weakSelf.tableView endUpdates];
+                selectedInvitationCell = nil;
+            }
+            completion:^(BOOL finished) {
+                [weakSelf performSelector:@selector(scrollViewDidScroll:)
+                           withObject:weakSelf.tableView
+                           afterDelay:0.01];
+                //[self parseDashboard];
+            }];
 
-    [UIView animateWithDuration:0.3
-        animations:^{
-            [self.tableView
-                deleteRowsAtIndexPaths:[NSArray arrayWithObject:tmpPath]
-                      withRowAnimation:UITableViewRowAnimationFade];
-        }
+        [weakSelf.player.invitations removeObjectAtIndex:tmpPath.row];
+
+        [UIView animateWithDuration:0.3
+            animations:^{
+                [weakSelf.tableView
+                    deleteRowsAtIndexPaths:[NSArray arrayWithObject:tmpPath]
+                          withRowAnimation:UITableViewRowAnimationFade];
+            }
         completion:^(BOOL finished) {
-            [self dashboardParse];
+            [weakSelf dashboardParse];
         }];
+    }];
 }
 
 - (void)cancelInvitation:(UIButton *)sender {
@@ -2968,52 +3005,50 @@ array, and add a new row to the table view
 
         [request setHTTPBody:postData];
         [request setTimeoutInterval:7.0];
-        NSURLResponse *response;
-        NSError *error;
-        [NSURLConnection sendSynchronousRequest:request
-                              returningResponse:&response
-                                          error:&error];
-        if (error) {
-            UIAlertView *alert = [[UIAlertView alloc]
-                    initWithTitle:NSLocalizedString(@"Error", nil)
-                          message:[NSString
-                                      stringWithFormat:
-                                          NSLocalizedString(@"Reason: %@", nil),
-                                          error.localizedDescription]
-                         delegate:nil
-                cancelButtonTitle:NSLocalizedString(@"OK", nil)
-                otherButtonTitles:nil];
-            //        [alert show];
-            [alert performSelectorOnMainThread:@selector(show)
-                                    withObject:nil
-                                 waitUntilDone:YES];
-            return;
-        }
-        //        NSData *responseData = [NSURLConnection
-        //        sendSynchronousRequest:request returningResponse:&response
-        //        error:&error]; NSString *dashboardString = [[NSString alloc]
-        //        initWithData:responseData encoding:NSUTF8StringEncoding];
-        //        //        [self login];
-        //        NSLog(@"kitty %@", dashboardString);
-
-        [self.player.messages removeObjectAtIndex:indexPath.row];
-        [UIView animateWithDuration:0.3
-            animations:^{
-                [self.tableView
-                    deleteRowsAtIndexPaths:[NSArray arrayWithObject:indexPath]
-                          withRowAnimation:UITableViewRowAnimationFade];
-                //            [tableView reloadData];
+        __weak typeof(self) weakSelf = self;
+        [PenteHTTPClient sendRequest:request completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
+            if (error) {
+                UIAlertView *alert = [[UIAlertView alloc]
+                        initWithTitle:NSLocalizedString(@"Error", nil)
+                              message:[NSString
+                                          stringWithFormat:
+                                              NSLocalizedString(@"Reason: %@", nil),
+                                              error.localizedDescription]
+                             delegate:nil
+                    cancelButtonTitle:NSLocalizedString(@"OK", nil)
+                    otherButtonTitles:nil];
+                //        [alert show];
+                [alert performSelectorOnMainThread:@selector(show)
+                                        withObject:nil
+                                     waitUntilDone:YES];
+                return;
             }
-            completion:^(BOOL finished) {
-                [self dashboardParse];
-                [self performSelector:@selector(scrollViewDidScroll:)
-                           withObject:self.tableView
-                           afterDelay:0.01];
-            }];
-        //            [self.tableView deleteRowsAtIndexPaths:[NSArray
-        //            arrayWithObject:indexPath]
-        //            withRowAnimation:UITableViewRowAnimationFade]; [self
-        //            parseDashboard]; [self.tableView reloadData];
+            //        NSData *responseData = [NSURLConnection
+            //        sendSynchronousRequest:request returningResponse:&response
+            //        error:&error]; NSString *dashboardString = [[NSString alloc]
+            //        initWithData:responseData encoding:NSUTF8StringEncoding];
+            //        //        [self login];
+            //        NSLog(@"kitty %@", dashboardString);
+
+            [weakSelf.player.messages removeObjectAtIndex:indexPath.row];
+            [UIView animateWithDuration:0.3
+                animations:^{
+                    [weakSelf.tableView
+                        deleteRowsAtIndexPaths:[NSArray arrayWithObject:indexPath]
+                              withRowAnimation:UITableViewRowAnimationFade];
+                    //            [tableView reloadData];
+                }
+                completion:^(BOOL finished) {
+                    [weakSelf dashboardParse];
+                    [weakSelf performSelector:@selector(scrollViewDidScroll:)
+                               withObject:weakSelf.tableView
+                               afterDelay:0.01];
+                }];
+            //            [self.tableView deleteRowsAtIndexPaths:[NSArray
+            //            arrayWithObject:indexPath]
+            //            withRowAnimation:UITableViewRowAnimationFade]; [self
+            //            parseDashboard]; [self.tableView reloadData];
+        }];
     }
     if (indexPath.section == ACTIVEGAMESSECTION) {
         //            [self.tableView setUserInteractionEnabled: NO];
@@ -3047,50 +3082,48 @@ array, and add a new row to the table view
 
         //        [request setHTTPShouldUsePipelining: YES];
 
-        NSURLResponse *response;
-        NSError *error;
-        [NSURLConnection sendSynchronousRequest:request
-                              returningResponse:&response
-                                          error:&error];
-        if (error) {
-            UIAlertView *alert = [[UIAlertView alloc]
-                    initWithTitle:NSLocalizedString(@"Error", nil)
-                          message:[NSString
-                                      stringWithFormat:
-                                          NSLocalizedString(@"Reason: %@", nil),
-                                          error.localizedDescription]
-                         delegate:nil
-                cancelButtonTitle:NSLocalizedString(@"OK", nil)
-                otherButtonTitles:nil];
-            //        [alert show];
-            [alert performSelectorOnMainThread:@selector(show)
-                                    withObject:nil
-                                 waitUntilDone:YES];
-            return;
-        }
-        //    NSData *responseData = [NSURLConnection
-        //    sendSynchronousRequest:request returningResponse:&response
-        //    error:&error]; NSString *dashboardString =
-        //    [[NSString alloc] initWithData:responseData
-        //    encoding:NSUTF8StringEncoding];
-
-        [self.player.activeGames removeObjectAtIndex:indexPath.row];
-        [UIView animateWithDuration:0.3
-            animations:^{
-                [self.tableView
-                    deleteRowsAtIndexPaths:[NSArray arrayWithObject:indexPath]
-                          withRowAnimation:UITableViewRowAnimationFade];
+        __weak typeof(self) weakSelf = self;
+        [PenteHTTPClient sendRequest:request completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
+            if (error) {
+                UIAlertView *alert = [[UIAlertView alloc]
+                        initWithTitle:NSLocalizedString(@"Error", nil)
+                              message:[NSString
+                                          stringWithFormat:
+                                              NSLocalizedString(@"Reason: %@", nil),
+                                              error.localizedDescription]
+                             delegate:nil
+                    cancelButtonTitle:NSLocalizedString(@"OK", nil)
+                    otherButtonTitles:nil];
+                //        [alert show];
+                [alert performSelectorOnMainThread:@selector(show)
+                                        withObject:nil
+                                     waitUntilDone:YES];
+                return;
             }
-            completion:^(BOOL finished) {
-                [self dashboardParse];
-                [self performSelector:@selector(scrollViewDidScroll:)
-                           withObject:self.tableView
-                           afterDelay:0.01];
-            }];
-        //            [self.tableView deleteRowsAtIndexPaths:[NSArray
-        //            arrayWithObject:indexPath]
-        //            withRowAnimation:UITableViewRowAnimationFade]; [self
-        //            parseDashboard]; [self.tableView reloadData];
+            //    NSData *responseData = [NSURLConnection
+            //    sendSynchronousRequest:request returningResponse:&response
+            //    error:&error]; NSString *dashboardString =
+            //    [[NSString alloc] initWithData:responseData
+            //    encoding:NSUTF8StringEncoding];
+
+            [weakSelf.player.activeGames removeObjectAtIndex:indexPath.row];
+            [UIView animateWithDuration:0.3
+                animations:^{
+                    [weakSelf.tableView
+                        deleteRowsAtIndexPaths:[NSArray arrayWithObject:indexPath]
+                              withRowAnimation:UITableViewRowAnimationFade];
+                }
+                completion:^(BOOL finished) {
+                    [weakSelf dashboardParse];
+                    [weakSelf performSelector:@selector(scrollViewDidScroll:)
+                               withObject:weakSelf.tableView
+                               afterDelay:0.01];
+                }];
+            //            [self.tableView deleteRowsAtIndexPaths:[NSArray
+            //            arrayWithObject:indexPath]
+            //            withRowAnimation:UITableViewRowAnimationFade]; [self
+            //            parseDashboard]; [self.tableView reloadData];
+        }];
     }
 
     if (indexPath.section == SENTINVITATIONSSECTION) {
@@ -3127,50 +3160,48 @@ array, and add a new row to the table view
 
         //        [request setHTTPShouldUsePipelining: YES];
 
-        NSURLResponse *response;
-        NSError *error;
-        [NSURLConnection sendSynchronousRequest:request
-                              returningResponse:&response
-                                          error:&error];
-        if (error) {
-            UIAlertView *alert = [[UIAlertView alloc]
-                    initWithTitle:NSLocalizedString(@"Error", nil)
-                          message:[NSString
-                                      stringWithFormat:
-                                          NSLocalizedString(@"Reason: %@", nil),
-                                          error.localizedDescription]
-                         delegate:nil
-                cancelButtonTitle:NSLocalizedString(@"OK", nil)
-                otherButtonTitles:nil];
-            //        [alert show];
-            [alert performSelectorOnMainThread:@selector(show)
-                                    withObject:nil
-                                 waitUntilDone:YES];
-            return;
-        }
-        //    NSData *responseData = [NSURLConnection
-        //    sendSynchronousRequest:request returningResponse:&response
-        //    error:&error]; NSString *dashboardString =
-        //    [[NSString alloc] initWithData:responseData
-        //    encoding:NSUTF8StringEncoding];
-
-        [self.player.sentInvitations removeObjectAtIndex:indexPath.row];
-        [UIView animateWithDuration:0.1
-            animations:^{
-                [self.tableView
-                    deleteRowsAtIndexPaths:[NSArray arrayWithObject:indexPath]
-                          withRowAnimation:UITableViewRowAnimationFade];
+        __weak typeof(self) weakSelf = self;
+        [PenteHTTPClient sendRequest:request completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
+            if (error) {
+                UIAlertView *alert = [[UIAlertView alloc]
+                        initWithTitle:NSLocalizedString(@"Error", nil)
+                              message:[NSString
+                                          stringWithFormat:
+                                              NSLocalizedString(@"Reason: %@", nil),
+                                              error.localizedDescription]
+                             delegate:nil
+                    cancelButtonTitle:NSLocalizedString(@"OK", nil)
+                    otherButtonTitles:nil];
+                //        [alert show];
+                [alert performSelectorOnMainThread:@selector(show)
+                                        withObject:nil
+                                     waitUntilDone:YES];
+                return;
             }
-            completion:^(BOOL finished) {
-                [self dashboardParse];
-                [self performSelector:@selector(scrollViewDidScroll:)
-                           withObject:self.tableView
-                           afterDelay:0.01];
-            }];
-        //            [self.tableView deleteRowsAtIndexPaths:[NSArray
-        //            arrayWithObject:indexPath]
-        //            withRowAnimation:UITableViewRowAnimationFade]; [self
-        //            parseDashboard]; [self.tableView reloadData];
+            //    NSData *responseData = [NSURLConnection
+            //    sendSynchronousRequest:request returningResponse:&response
+            //    error:&error]; NSString *dashboardString =
+            //    [[NSString alloc] initWithData:responseData
+            //    encoding:NSUTF8StringEncoding];
+
+            [weakSelf.player.sentInvitations removeObjectAtIndex:indexPath.row];
+            [UIView animateWithDuration:0.1
+                animations:^{
+                    [weakSelf.tableView
+                        deleteRowsAtIndexPaths:[NSArray arrayWithObject:indexPath]
+                              withRowAnimation:UITableViewRowAnimationFade];
+                }
+                completion:^(BOOL finished) {
+                    [weakSelf dashboardParse];
+                    [weakSelf performSelector:@selector(scrollViewDidScroll:)
+                               withObject:weakSelf.tableView
+                               afterDelay:0.01];
+                }];
+            //            [self.tableView deleteRowsAtIndexPaths:[NSArray
+            //            arrayWithObject:indexPath]
+            //            withRowAnimation:UITableViewRowAnimationFade]; [self
+            //            parseDashboard]; [self.tableView reloadData];
+        }];
     }
     if (indexPath.section == NONACTIVEGAMESSECTION) {
         //            [self.tableView setUserInteractionEnabled: NO];
@@ -3232,51 +3263,46 @@ array, and add a new row to the table view
             forHTTPHeaderField:@"Content-Type"];
         [request setHTTPBody:postData];
         [request setTimeoutInterval:7.0];
-        NSURLResponse *response;
-        //        NSError *error;
-        //        [NSURLConnection sendSynchronousRequest:request
-        //        returningResponse:&response error:&error];
-        NSData *responseData = [NSURLConnection sendSynchronousRequest:request
-                                                     returningResponse:&response
-                                                                 error:&error];
-        if (error) {
-            UIAlertView *alert = [[UIAlertView alloc]
-                    initWithTitle:NSLocalizedString(@"Error", nil)
-                          message:[NSString
-                                      stringWithFormat:
-                                          NSLocalizedString(@"Reason: %@", nil),
-                                          error.localizedDescription]
-                         delegate:nil
-                cancelButtonTitle:NSLocalizedString(@"OK", nil)
-                otherButtonTitles:nil];
-            //        [alert show];
-            [alert performSelectorOnMainThread:@selector(show)
-                                    withObject:nil
-                                 waitUntilDone:YES];
-            return;
-        }
-        NSString *dashboardString =
-            [[NSString alloc] initWithData:responseData
-                                  encoding:NSUTF8StringEncoding];
-        movesRange = NSMakeRange(0, [dashboardString length]);
-        movesRange = [dashboardString
-            rangeOfString:@"Error: Cancel request already exists."
-                  options:0
-                    range:movesRange];
-        if (movesRange.location != NSNotFound) {
-            UIAlertView *alert = [[UIAlertView alloc]
-                    initWithTitle:NSLocalizedString(@"Error", nil)
-                          message:NSLocalizedString(
-                                      @"A cancel request already exists.", nil)
-                         delegate:nil
-                cancelButtonTitle:NSLocalizedString(@"OK", nil)
-                otherButtonTitles:nil];
-            [alert show];
-            self.tableView.layer.borderWidth = 0.0;
-            [self.tableView setEditing:FALSE animated:TRUE];
-        } else {
-            [self dashboardParse];
-        }
+        __weak typeof(self) weakSelf = self;
+        [PenteHTTPClient sendRequest:request completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
+            __strong typeof(weakSelf) strongSelf = weakSelf;
+            if (!strongSelf) return;
+            if (error) {
+                UIAlertView *alert = [[UIAlertView alloc]
+                        initWithTitle:NSLocalizedString(@"Error", nil)
+                              message:[NSString
+                                          stringWithFormat:
+                                              NSLocalizedString(@"Reason: %@", nil),
+                                              error.localizedDescription]
+                             delegate:nil
+                    cancelButtonTitle:NSLocalizedString(@"OK", nil)
+                    otherButtonTitles:nil];
+                [alert show];
+                return;
+            }
+            NSString *dashboardString =
+                [[NSString alloc] initWithData:responseData
+                                      encoding:NSUTF8StringEncoding];
+            NSRange movesRange = NSMakeRange(0, [dashboardString length]);
+            movesRange = [dashboardString
+                rangeOfString:@"Error: Cancel request already exists."
+                      options:0
+                        range:movesRange];
+            if (movesRange.location != NSNotFound) {
+                UIAlertView *alert = [[UIAlertView alloc]
+                        initWithTitle:NSLocalizedString(@"Error", nil)
+                              message:NSLocalizedString(
+                                          @"A cancel request already exists.", nil)
+                             delegate:nil
+                    cancelButtonTitle:NSLocalizedString(@"OK", nil)
+                    otherButtonTitles:nil];
+                [alert show];
+                strongSelf.tableView.layer.borderWidth = 0.0;
+                [strongSelf.tableView setEditing:FALSE animated:TRUE];
+            } else {
+                [strongSelf dashboardParse];
+            }
+        }];
     }
 
     //    }
@@ -3365,9 +3391,6 @@ array, and add a new row to the table view
 
     NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
     NSString *url;
-    NSURLResponse *response;
-    NSError *error;
-    NSData *responseData;
 
     // connect to the game server
     url = [NSString stringWithFormat:@"https://www.pente.org/gameServer/mobile/"
@@ -3396,51 +3419,52 @@ array, and add a new row to the table view
     [request setURL:[NSURL URLWithString:url]];
     [request setHTTPMethod:@"GET"];
     [request setTimeoutInterval:7.0];
-    responseData = [NSURLConnection sendSynchronousRequest:request
-                                         returningResponse:&response
-                                                     error:&error];
+    __weak typeof(self) weakSelf = self;
+    [PenteHTTPClient sendRequest:request completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        if (!strongSelf) return;
 
-    //    NSString *dashboardString = [NSString stringWithContentsOfURL:[NSURL
-    //    URLWithString:url] encoding:NSUTF8StringEncoding error:&error];
-    if (error) {
-        [self showErrorAlertWithMessage:error.localizedDescription];
-        return;
-    }
-    // read the response into a dictionary
-    NSDictionary *jsonResponse =
-        [NSJSONSerialization JSONObjectWithData:responseData
-                                        options:NSJSONReadingMutableContainers
-                                          error:&error];
-    if (error) {
-        [self showErrorAlertWithMessage:error.localizedDescription];
-        return;
-    }
+        //    NSString *dashboardString = [NSString stringWithContentsOfURL:[NSURL
+        //    URLWithString:url] encoding:NSUTF8StringEncoding error:&error];
+        if (error) {
+            [strongSelf showErrorAlertWithMessage:error.localizedDescription];
+            return;
+        }
+        // read the response into a dictionary
+        NSError *jsonError;
+        NSDictionary *jsonResponse =
+            [NSJSONSerialization JSONObjectWithData:responseData
+                                            options:NSJSONReadingMutableContainers
+                                              error:&jsonError];
+        if (jsonError) {
+            [strongSelf showErrorAlertWithMessage:jsonError.localizedDescription];
+            return;
+        }
 
-    dispatch_async(dispatch_get_main_queue(), ^{
         [CATransaction begin];
         [CATransaction setCompletionBlock:^{
-            self.tableView.layer.borderWidth = 0.0;
-            [self performSelector:@selector(scrollViewDidScroll:)
-                       withObject:self.tableView
+            strongSelf.tableView.layer.borderWidth = 0.0;
+            [strongSelf performSelector:@selector(scrollViewDidScroll:)
+                       withObject:strongSelf.tableView
                        afterDelay:0.01];
             //            [self performSelector:@selector(scrollViewDidScroll:)
             //            withObject: self.tableView afterDelay:0.05];
-            [self performSelector:@selector(pullDownToReloadActionFinished)
+            [strongSelf performSelector:@selector(pullDownToReloadActionFinished)
                        withObject:nil];
-            [self parseMessages];
+            [strongSelf parseMessages];
         }];
-        [self.tableView beginUpdates];
+        [strongSelf.tableView beginUpdates];
 
-        [self.tableView setUserInteractionEnabled:NO];
+        [strongSelf.tableView setUserInteractionEnabled:NO];
 
         if (![jsonResponse objectForKey:@"invitationsReceived"]) {
-            self.tableView.layer.borderWidth = 0.0;
-            [self performSelector:@selector(scrollViewDidScroll:)
-                       withObject:self.tableView
+            strongSelf.tableView.layer.borderWidth = 0.0;
+            [strongSelf performSelector:@selector(scrollViewDidScroll:)
+                       withObject:strongSelf.tableView
                        afterDelay:0.01];
-            [self performSelector:@selector(pullDownToReloadActionFinished)
+            [strongSelf performSelector:@selector(pullDownToReloadActionFinished)
                        withObject:nil];
-            [self.tableView setUserInteractionEnabled:YES];
+            [strongSelf.tableView setUserInteractionEnabled:YES];
             return;
         } else {
             [defaults setBool:YES forKey:@"registrationSuccess"];
@@ -3450,15 +3474,15 @@ array, and add a new row to the table view
         NSMutableArray *indexSet;
 
         NSDictionary *userInfo = jsonResponse[@"player"];
-        [self.player setMyColor:UIColorFromRGB([userInfo[@"color"] intValue])];
-        [self.player setShowAds:[userInfo[@"showAds"] boolValue]];
-        [self.player setPlayerName:userInfo[@"name"]];
-        [self.player setSubscriber:[userInfo[@"subscriber"] boolValue]];
-        [self.player setDbAccess:[userInfo[@"dbAccess"] boolValue]];
-        [self.player setEmailMe:[userInfo[@"emailMe"] boolValue]];
-        [[NSUserDefaults standardUserDefaults] setBool:player.emailMe
+        [strongSelf.player setMyColor:UIColorFromRGB([userInfo[@"color"] intValue])];
+        [strongSelf.player setShowAds:[userInfo[@"showAds"] boolValue]];
+        [strongSelf.player setPlayerName:userInfo[@"name"]];
+        [strongSelf.player setSubscriber:[userInfo[@"subscriber"] boolValue]];
+        [strongSelf.player setDbAccess:[userInfo[@"dbAccess"] boolValue]];
+        [strongSelf.player setEmailMe:[userInfo[@"emailMe"] boolValue]];
+        [[NSUserDefaults standardUserDefaults] setBool:strongSelf.player.emailMe
                                                 forKey:@"emailMe"];
-        [[NSUserDefaults standardUserDefaults] setBool:player.personalizeAds
+        [[NSUserDefaults standardUserDefaults] setBool:strongSelf.player.personalizeAds
                                                 forKey:PERSONALIZEADSKEY];
         livePlayers = [userInfo[@"livePlayers"] stringValue];
         if (@available(iOS 26.0, *)) {
@@ -3500,7 +3524,7 @@ array, and add a new row to the table view
                                                          blue:(29.0 / 255)
                                                         alpha:1.0]];
         }
-        if ([self.player subscriber]) {
+        if ([strongSelf.player subscriber]) {
             [[NSUserDefaults standardUserDefaults]
                 setBool:NO
                  forKey:@"shouldSendReceipt"];
@@ -3533,15 +3557,15 @@ array, and add a new row to the table view
             }
             [sectionItems addObject:hill];
         }
-        [self.player setTbHills:tbHills];
+        [strongSelf.player setTbHills:tbHills];
 
         int totalHills =
             ([[NSUserDefaults standardUserDefaults] boolForKey:@"showOnlyTB"]
-                 ? player.tbHills
+                 ? strongSelf.player.tbHills
                  : (int)[sectionItems count]);
         long kothRows = 0;
-        if (self.tableView) {
-            kothRows = [self.tableView numberOfRowsInSection:KOTHSECTION];
+        if (strongSelf.tableView) {
+            kothRows = [strongSelf.tableView numberOfRowsInSection:KOTHSECTION];
         }
         if (totalHills != kothRows) {
             if (!kothCollapsed) {
@@ -3551,12 +3575,12 @@ array, and add a new row to the table view
                         addObject:[NSIndexPath indexPathForRow:i
                                                      inSection:KOTHSECTION]];
                 }
-                [self.player setHills:[[NSMutableArray alloc] init]];
-                [self.tableView
+                [strongSelf.player setHills:[[NSMutableArray alloc] init]];
+                [strongSelf.tableView
                     deleteRowsAtIndexPaths:indexSet
                           withRowAnimation:UITableViewRowAnimationFade];
             }
-            [self.player setHills:sectionItems];
+            [strongSelf.player setHills:sectionItems];
             if (!kothCollapsed) {
                 indexSet = [[NSMutableArray alloc] init];
                 for (int i = 0; i < totalHills; ++i) {
@@ -3564,12 +3588,12 @@ array, and add a new row to the table view
                         addObject:[NSIndexPath indexPathForRow:i
                                                      inSection:KOTHSECTION]];
                 }
-                [self.tableView
+                [strongSelf.tableView
                     insertRowsAtIndexPaths:indexSet
                           withRowAnimation:UITableViewRowAnimationFade];
             }
         } else {
-            [self.player setHills:sectionItems];
+            [strongSelf.player setHills:sectionItems];
         }
 
         int totalTB = 0;
@@ -3587,7 +3611,7 @@ array, and add a new row to the table view
                                                 indexPathForRow:i
                                                       inSection:KOTHSECTION]];
                     }
-                    [self.tableView
+                    [strongSelf.tableView
                         insertRowsAtIndexPaths:indexSet
                               withRowAnimation:UITableViewRowAnimationFade];
                 }
@@ -3599,7 +3623,7 @@ array, and add a new row to the table view
                                                 indexPathForRow:i
                                                       inSection:KOTHSECTION]];
                     }
-                    [self.tableView
+                    [strongSelf.tableView
                         deleteRowsAtIndexPaths:indexSet
                               withRowAnimation:UITableViewRowAnimationFade];
                 }
@@ -3608,7 +3632,7 @@ array, and add a new row to the table view
 
         int tbRatings = 0;
         NSArray *ratingStats = jsonResponse[@"ratingStats"];
-        [[self.player ratingStats] removeAllObjects];
+        [[strongSelf.player ratingStats] removeAllObjects];
         for (NSDictionary *ratingStat_dict in ratingStats) {
             RatingStat *ratingStat = [[RatingStat alloc] init];
             //                [ratingStat setGame:
@@ -3619,7 +3643,7 @@ array, and add a new row to the table view
             [ratingStat setCrown:[ratingStat_dict[@"tourneyWinner"] intValue]];
             [ratingStat setGameId:[ratingStat_dict[@"gameId"] intValue]];
 
-            [[self.player ratingStats] addObject:ratingStat];
+            [[strongSelf.player ratingStats] addObject:ratingStat];
             int gameInt = ratingStat.gameId;
             if (gameInt > 50) {
                 gameInt -= 50;
@@ -3635,7 +3659,7 @@ array, and add a new row to the table view
                 [ratingStat setGame:gameStr];
             }
         }
-        [self.player setTbRatings:tbRatings];
+        [strongSelf.player setTbRatings:tbRatings];
 
         sectionItems = [[NSMutableArray alloc] init];
 
@@ -3657,15 +3681,15 @@ array, and add a new row to the table view
                                    intValue])];
             [game setCrown:[invitation_dict[@"opponentTourneyWinner"] intValue]];
             if (wantsToSeeAvatars && ![game.nameColor isEqual:blackColor]) {
-                [self.player addUser:[game opponentName]];
+                [strongSelf.player addUser:[game opponentName]];
             }
             [sectionItems addObject:game];
         }
-        [self updateSection:SENTINVITATIONSSECTION
+        [strongSelf updateSection:SENTINVITATIONSSECTION
                    newItems:sectionItems
-                   oldItems:[self.player sentInvitations]
+                   oldItems:[strongSelf.player sentInvitations]
                   collapsed:sentInvitationsCollapsed
-                     setter:^(NSMutableArray *items) { [self.player setSentInvitations:items]; }];
+                     setter:^(NSMutableArray *items) { [strongSelf.player setSentInvitations:items]; }];
 
         sectionItems = [[NSMutableArray alloc] init];
         for (NSDictionary
@@ -3686,15 +3710,15 @@ array, and add a new row to the table view
                                    intValue])];
             [game setCrown:[invitation_dict[@"opponentTourneyWinner"] intValue]];
             if (wantsToSeeAvatars && ![game.nameColor isEqual:blackColor]) {
-                [self.player addUser:[game opponentName]];
+                [strongSelf.player addUser:[game opponentName]];
             }
             [sectionItems addObject:game];
         }
-        [self updateSection:INVITATIONSSECTION
+        [strongSelf updateSection:INVITATIONSSECTION
                    newItems:sectionItems
-                   oldItems:[self.player invitations]
+                   oldItems:[strongSelf.player invitations]
                   collapsed:invitationsReceivedCollapsed
-                     setter:^(NSMutableArray *items) { [self.player setInvitations:items]; }];
+                     setter:^(NSMutableArray *items) { [strongSelf.player setInvitations:items]; }];
 
         //        [self.tableView reloadData];
 
@@ -3729,16 +3753,16 @@ array, and add a new row to the table view
                                    [game_dict[@"opponentColor"] intValue])];
             [game setCrown:[game_dict[@"opponentTourneyWinner"] intValue]];
             if (wantsToSeeAvatars && ![game.nameColor isEqual:blackColor]) {
-                [self.player addUser:[game opponentName]];
+                [strongSelf.player addUser:[game opponentName]];
             }
             [sectionItems addObject:game];
         }
 
-        [self updateSection:ACTIVEGAMESSECTION
+        [strongSelf updateSection:ACTIVEGAMESSECTION
                    newItems:sectionItems
-                   oldItems:[self.player activeGames]
+                   oldItems:[strongSelf.player activeGames]
                   collapsed:activeGamesCollapsed
-                     setter:^(NSMutableArray *items) { [self.player setActiveGames:items]; }];
+                     setter:^(NSMutableArray *items) { [strongSelf.player setActiveGames:items]; }];
 
         sectionItems = [[NSMutableArray alloc] init];
         for (NSDictionary
@@ -3755,21 +3779,21 @@ array, and add a new row to the table view
                                    [game_dict[@"opponentColor"] intValue])];
             [game setCrown:[game_dict[@"opponentTourneyWinner"] intValue]];
             if (wantsToSeeAvatars && ![game.nameColor isEqual:blackColor]) {
-                [self.player addUser:[game opponentName]];
+                [strongSelf.player addUser:[game opponentName]];
             }
             [sectionItems addObject:game];
         }
 
-        [self updateSection:NONACTIVEGAMESSECTION
+        [strongSelf updateSection:NONACTIVEGAMESSECTION
                    newItems:sectionItems
-                   oldItems:[self.player nonActiveGames]
+                   oldItems:[strongSelf.player nonActiveGames]
                   collapsed:nonActiveGamesCollapsed
-                     setter:^(NSMutableArray *items) { [self.player setNonActiveGames:items]; }];
+                     setter:^(NSMutableArray *items) { [strongSelf.player setNonActiveGames:items]; }];
         //        [self.tableView reloadData];
-        [self.pullToReloadHeaderView
+        [strongSelf.pullToReloadHeaderView
             setStatusString:@"Loading Open Invitations..."
                    animated:YES];
-        [self.pullToReloadHeaderView layoutSubviews];
+        [strongSelf.pullToReloadHeaderView layoutSubviews];
 
         //    [self.tableView beginUpdates];
         //    [self.tableView endUpdates];
@@ -3800,24 +3824,24 @@ array, and add a new row to the table view
                                    [game_dict[@"inviterColor"] intValue])];
             [game setCrown:[game_dict[@"inviterTourneyWinner"] intValue]];
             if (wantsToSeeAvatars && ![game.nameColor isEqual:blackColor]) {
-                [self.player addUser:[game opponentName]];
+                [strongSelf.player addUser:[game opponentName]];
             }
             [sectionItems addObject:game];
         }
 
-        [self updateSection:PUBLICINVITATIONSSECTION
+        [strongSelf updateSection:PUBLICINVITATIONSSECTION
                    newItems:sectionItems
-                   oldItems:[self.player publicInvitations]
+                   oldItems:[strongSelf.player publicInvitations]
                   collapsed:publicInvitationsCollapsed
-                     setter:^(NSMutableArray *items) { [self.player setPublicInvitations:items]; }];
+                     setter:^(NSMutableArray *items) { [strongSelf.player setPublicInvitations:items]; }];
         //        [self.tableView reloadData];
 
-        [self performSelector:@selector(scrollViewDidScroll:)
-                   withObject:self.tableView
+        [strongSelf performSelector:@selector(scrollViewDidScroll:)
+                   withObject:strongSelf.tableView
                    afterDelay:.33f];
-        [self.pullToReloadHeaderView setStatusString:@"Loading Messages..."
+        [strongSelf.pullToReloadHeaderView setStatusString:@"Loading Messages..."
                                             animated:YES];
-        [self.pullToReloadHeaderView layoutSubviews];
+        [strongSelf.pullToReloadHeaderView layoutSubviews];
 
         //    [CATransaction begin];
         //    [CATransaction setCompletionBlock:^{
@@ -3846,15 +3870,15 @@ array, and add a new row to the table view
                                       [message_dict[@"fromColor"] intValue])];
             [message setCrown:[message_dict[@"fromTourneyWinner"] intValue]];
             if (wantsToSeeAvatars && ![message.nameColor isEqual:blackColor]) {
-                [self.player addUser:[message author]];
+                [strongSelf.player addUser:[message author]];
             }
             [sectionItems addObject:message];
         }
-        [self updateSection:MESSAGESSECTION
+        [strongSelf updateSection:MESSAGESSECTION
                    newItems:sectionItems
-                   oldItems:[self.player messages]
+                   oldItems:[strongSelf.player messages]
                   collapsed:messagesCollapsed
-                     setter:^(NSMutableArray *items) { [self.player setMessages:items]; }];
+                     setter:^(NSMutableArray *items) { [strongSelf.player setMessages:items]; }];
 
         sectionItems = [[NSMutableArray alloc] init];
         for (NSDictionary *tournament_dict in jsonResponse[@"tournaments"]) {
@@ -3870,23 +3894,23 @@ array, and add a new row to the table view
             [sectionItems addObject:tournament];
         }
 
-        [self updateSection:TOURNAMENTSSECTION
+        [strongSelf updateSection:TOURNAMENTSSECTION
                    newItems:sectionItems
-                   oldItems:[self.player tournaments]
+                   oldItems:[strongSelf.player tournaments]
                   collapsed:tournamentsCollapsed
-                     setter:^(NSMutableArray *items) { [self.player setTournaments:items]; }];
+                     setter:^(NSMutableArray *items) { [strongSelf.player setTournaments:items]; }];
 
         NSMutableDictionary<NSString *, NSString *> *playersDict =
             [[NSMutableDictionary alloc] init];
         for (NSString *name in jsonResponse[@"onlinePlayers"]) {
             [playersDict setObject:@"" forKey:name];
         }
-        [self.player setOnlinePlayers:playersDict];
+        [strongSelf.player setOnlinePlayers:playersDict];
 
-        [self.tableView endUpdates];
+        [strongSelf.tableView endUpdates];
         [CATransaction commit];
-        [self.tableView setUserInteractionEnabled:YES];
-    });
+        [strongSelf.tableView setUserInteractionEnabled:YES];
+    }];
 }
 
 - (void)messagesParse {
@@ -4278,115 +4302,106 @@ array, and add a new row to the table view
 
 - (void)showOnlinePlayers {
     [actionPopoverView dismiss];
-    dispatch_async(
-        dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-            NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
-            NSString *url =
-                [NSString stringWithFormat:@"https://www.pente.org/gameServer/"
-                                           @"mobile/whosonlineandlive.jsp"];
-            if (development) {
-                url =
-                    [NSString stringWithFormat:@"https://localhost/gameServer/"
-                                               @"mobile/whosonlineandlive.jsp"];
-            }
+    NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
+    NSString *url =
+        [NSString stringWithFormat:@"https://www.pente.org/gameServer/"
+                                   @"mobile/whosonlineandlive.jsp"];
+    if (development) {
+        url =
+            [NSString stringWithFormat:@"https://localhost/gameServer/"
+                                       @"mobile/whosonlineandlive.jsp"];
+    }
 
-            [request setURL:[NSURL URLWithString:url]];
-            [request setHTTPMethod:@"GET"];
-            [request setTimeoutInterval:7.0];
-            NSURLResponse *response;
-            NSError *error;
-            NSData *responseData =
-                [NSURLConnection sendSynchronousRequest:request
-                                      returningResponse:&response
-                                                  error:&error];
-            NSString *dashboardString =
-                [[NSString alloc] initWithData:responseData
-                                      encoding:NSUTF8StringEncoding];
+    [request setURL:[NSURL URLWithString:url]];
+    [request setHTTPMethod:@"GET"];
+    [request setTimeoutInterval:7.0];
+    __weak typeof(self) weakSelf = self;
+    [PenteHTTPClient sendRequest:request completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        if (!strongSelf) return;
+        NSString *dashboardString =
+            [[NSString alloc] initWithData:responseData
+                                  encoding:NSUTF8StringEncoding];
 
-            if (error) {
-                UIAlertView *alert = [[UIAlertView alloc]
-                        initWithTitle:NSLocalizedString(@"Error", nil)
-                              message:[NSString stringWithFormat:
-                                                    NSLocalizedString(
-                                                        @"Reason: %@", nil),
-                                                    error.localizedDescription]
-                             delegate:nil
-                    cancelButtonTitle:NSLocalizedString(@"OK", nil)
-                    otherButtonTitles:nil];
-                //        [alert show];
-                [alert performSelectorOnMainThread:@selector(show)
-                                        withObject:nil
-                                     waitUntilDone:YES];
-                [self.progressView stopAnimating];
-                [self.progressView removeFromSuperview];
-                return;
-            }
-            [self.progressView stopAnimating];
-            BOOL wantsToSeeAvatars = [[NSUserDefaults standardUserDefaults]
-                boolForKey:@"wantToSeeAvatars"];
-            NSMutableDictionary<NSString *, NSString *> *playersDict =
-                [[NSMutableDictionary alloc] init];
-            NSMutableArray<Room *> *rooms = [[NSMutableArray alloc] init];
-            for (NSString *line in
-                 [dashboardString componentsSeparatedByString:@"\n"]) {
-                NSArray *splitRoomPlayers =
-                    [line componentsSeparatedByString:@":"];
-                if ([splitRoomPlayers count] > 1) {
-                    Room *room = [[Room alloc] init];
-                    [room setName:[splitRoomPlayers objectAtIndex:0]];
-                    NSArray *splitPlayers = [[splitRoomPlayers objectAtIndex:1]
-                        componentsSeparatedByString:@";"];
-                    for (NSString *playerString in splitPlayers) {
-                        NSArray *splitLine =
-                            [playerString componentsSeparatedByString:@","];
-                        if ([splitLine count] > 3) {
-                            Player *playr = [[Player alloc] init];
-                            [playr setName:[splitLine objectAtIndex:0]];
-                            [playr setRating:[splitLine objectAtIndex:1]];
-                            [playr setColor:[[splitLine objectAtIndex:2]
-                                                intValue]];
-                            [playr setCrown:[[splitLine objectAtIndex:3]
+        if (error) {
+            UIAlertView *alert = [[UIAlertView alloc]
+                    initWithTitle:NSLocalizedString(@"Error", nil)
+                          message:[NSString stringWithFormat:
+                                                NSLocalizedString(
+                                                    @"Reason: %@", nil),
+                                                error.localizedDescription]
+                         delegate:nil
+                cancelButtonTitle:NSLocalizedString(@"OK", nil)
+                otherButtonTitles:nil];
+            [alert show];
+            [strongSelf.progressView stopAnimating];
+            [strongSelf.progressView removeFromSuperview];
+            return;
+        }
+        [strongSelf.progressView stopAnimating];
+        BOOL wantsToSeeAvatars = [[NSUserDefaults standardUserDefaults]
+            boolForKey:@"wantToSeeAvatars"];
+        NSMutableDictionary<NSString *, NSString *> *playersDict =
+            [[NSMutableDictionary alloc] init];
+        NSMutableArray<Room *> *rooms = [[NSMutableArray alloc] init];
+        for (NSString *line in
+             [dashboardString componentsSeparatedByString:@"\n"]) {
+            NSArray *splitRoomPlayers =
+                [line componentsSeparatedByString:@":"];
+            if ([splitRoomPlayers count] > 1) {
+                Room *room = [[Room alloc] init];
+                [room setName:[splitRoomPlayers objectAtIndex:0]];
+                NSArray *splitPlayers = [[splitRoomPlayers objectAtIndex:1]
+                    componentsSeparatedByString:@";"];
+                for (NSString *playerString in splitPlayers) {
+                    NSArray *splitLine =
+                        [playerString componentsSeparatedByString:@","];
+                    if ([splitLine count] > 3) {
+                        Player *playr = [[Player alloc] init];
+                        [playr setName:[splitLine objectAtIndex:0]];
+                        [playr setRating:[splitLine objectAtIndex:1]];
+                        [playr setColor:[[splitLine objectAtIndex:2]
+                                            intValue]];
+                        [playr setCrown:[[splitLine objectAtIndex:3]
                                                 intValue]];
                             [playr
                                 setNumberOfGames:[splitLine objectAtIndex:4]];
                             [room addPlayer:playr];
-                            [playersDict setObject:@"" forKey:playr.name];
-                            if (wantsToSeeAvatars && (playr.color != 0)) {
-                                [self.player addUser:playr.name];
-                            }
+                        [playersDict setObject:@"" forKey:playr.name];
+                        if (wantsToSeeAvatars && (playr.color != 0)) {
+                            [strongSelf.player addUser:playr.name];
                         }
                     }
-                    [rooms addObject:room];
                 }
+                [rooms addObject:room];
             }
-            [self.player setOnlinePlayers:playersDict];
+        }
+        [strongSelf.player setOnlinePlayers:playersDict];
 
-            dispatch_async(dispatch_get_main_queue(), ^{
-                WhosOnlineView *playersView = [[WhosOnlineView alloc]
-                    initWithFrame:CGRectMake(0, 0, 285,
-                                             floor(self.view.frame.size.height *
-                                                   2 / (3 * 44)) *
-                                                 44)];
-                [playersView setPlayer:self.player];
-                playersView.layer.cornerRadius = 5.0f;
-                playersView.layer.borderWidth = 1.0f;
-                [playersView setDelegate:playersView];
-                [playersView setDataSource:playersView];
-                [playersView setRooms:rooms];
-                //            [self.playersView setPlayers:players];
-                [playersView setVc:self];
-                self.actionPopoverView = [PopoverView
-                    showPopoverAtPoint:CGPointMake(
-                                           self.view.bounds.size.width - 20,
-                                           self.tableView.contentOffset.y)
-                                inView:self.view
-                             withTitle:NSLocalizedString(@"who's online", nil)
-                       withContentView:playersView
-                              delegate:self];
-                [self.actionPopoverView layoutSubviews];
-                [playersView flashScrollIndicators];
-            });
-        });
+        WhosOnlineView *playersView = [[WhosOnlineView alloc]
+            initWithFrame:CGRectMake(0, 0, 285,
+                                     floor(strongSelf.view.frame.size.height *
+                                           2 / (3 * 44)) *
+                                         44)];
+        [playersView setPlayer:strongSelf.player];
+        playersView.layer.cornerRadius = 5.0f;
+        playersView.layer.borderWidth = 1.0f;
+        [playersView setDelegate:playersView];
+        [playersView setDataSource:playersView];
+        [playersView setRooms:rooms];
+        //            [self.playersView setPlayers:players];
+        [playersView setVc:strongSelf];
+        strongSelf.actionPopoverView = [PopoverView
+            showPopoverAtPoint:CGPointMake(
+                                   strongSelf.view.bounds.size.width - 20,
+                                   strongSelf.tableView.contentOffset.y)
+                        inView:strongSelf.view
+                     withTitle:NSLocalizedString(@"who's online", nil)
+               withContentView:playersView
+                      delegate:strongSelf];
+        [strongSelf.actionPopoverView layoutSubviews];
+        [playersView flashScrollIndicators];
+    }];
 
     //    [ratingView setFrame: frame];
 }

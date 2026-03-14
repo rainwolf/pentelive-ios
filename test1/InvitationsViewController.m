@@ -638,100 +638,90 @@ array, and add a new row to the table view
         forHTTPHeaderField:@"Content-Type"];
     [request setHTTPBody:postData];
     [request setTimeoutInterval:7.0];
-    NSURLResponse *response;
-    NSError *error;
-    NSData *responseData = [NSURLConnection sendSynchronousRequest:request
-                                                 returningResponse:&response
-                                                             error:&error];
-    NSString *dashboardString =
-        [[NSString alloc] initWithData:responseData
-                              encoding:NSUTF8StringEncoding];
+    [PenteHTTPClient sendRequest:request completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
+        NSString *dashboardString =
+            [[NSString alloc] initWithData:responseData
+                                  encoding:NSUTF8StringEncoding];
 
-    [spinner performSelectorOnMainThread:@selector(stopAnimating)
-                              withObject:nil
-                           waitUntilDone:NO];
+        [spinner stopAnimating];
 
-    if (error) {
-        UIAlertView *alert = [[UIAlertView alloc]
-                initWithTitle:NSLocalizedString(@"Error", nil)
-                      message:[NSString
-                                  stringWithFormat:NSLocalizedString(
-                                                       @"Reason: %@", nil),
-                                                   error.localizedDescription]
-                     delegate:nil
-            cancelButtonTitle:@"OK"
-            otherButtonTitles:nil];
-        //        [alert show];
-        [alert performSelectorOnMainThread:@selector(show)
-                                withObject:nil
-                             waitUntilDone:YES];
-        return;
-    } else if ([dashboardString
-                   rangeOfString:[NSString
-                                     stringWithFormat:@"Player not found: %@",
-                                                      opponentCell.textField
-                                                          .text]]
-                   .length != 0) {
-        UIAlertView *alert = [[UIAlertView alloc]
-                initWithTitle:NSLocalizedString(@"Error", nil)
-                      message:[NSString
-                                  stringWithFormat:
-                                      NSLocalizedString(
-                                          @"The username %@ does not exist.",
-                                          nil),
-                                      opponentCell.textField.text]
-                     delegate:nil
-            cancelButtonTitle:NSLocalizedString(@"OK", nil)
-            otherButtonTitles:nil];
-        [alert show];
-    } else {
-        PenteNavigationViewController *navController =
-            (PenteNavigationViewController *)self.navigationController;
-        [navController setDidMove:YES];
-        [navController setChallengeCancelled:YES];
+        if (error) {
+            UIAlertView *alert = [[UIAlertView alloc]
+                    initWithTitle:NSLocalizedString(@"Error", nil)
+                          message:[NSString
+                                      stringWithFormat:NSLocalizedString(
+                                                           @"Reason: %@", nil),
+                                                       error.localizedDescription]
+                         delegate:nil
+                cancelButtonTitle:@"OK"
+                otherButtonTitles:nil];
+            //        [alert show];
+            [alert show];
+            return;
+        } else if ([dashboardString
+                       rangeOfString:[NSString
+                                         stringWithFormat:@"Player not found: %@",
+                                                          opponentCell.textField
+                                                              .text]]
+                       .length != 0) {
+            UIAlertView *alert = [[UIAlertView alloc]
+                    initWithTitle:NSLocalizedString(@"Error", nil)
+                          message:[NSString
+                                      stringWithFormat:
+                                          NSLocalizedString(
+                                              @"The username %@ does not exist.",
+                                              nil),
+                                          opponentCell.textField.text]
+                         delegate:nil
+                cancelButtonTitle:NSLocalizedString(@"OK", nil)
+                otherButtonTitles:nil];
+            [alert show];
+        } else {
+            PenteNavigationViewController *navController =
+                (PenteNavigationViewController *)self.navigationController;
+            [navController setDidMove:YES];
+            [navController setChallengeCancelled:YES];
 
-        NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-        if ([opponentCell.textField.text length] > 0) {
-            NSString *opponent = [opponentCell.textField.text lowercaseString];
-            NSMutableArray *invitedHistory =
-                [[defaults objectForKey:@"invitedHistory"] mutableCopy];
-            if (invitedHistory) {
-                int i = 0;
-                for (i = 0; i < [invitedHistory count]; ++i) {
-                    if ([[invitedHistory objectAtIndex:i]
-                            localizedCaseInsensitiveCompare:opponentCell
-                                                                .textField
-                                                                .text] ==
-                        NSOrderedDescending)
-                        break;
+            NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+            if ([opponentCell.textField.text length] > 0) {
+                NSString *opponent = [opponentCell.textField.text lowercaseString];
+                NSMutableArray *invitedHistory =
+                    [[defaults objectForKey:@"invitedHistory"] mutableCopy];
+                if (invitedHistory) {
+                    int i = 0;
+                    for (i = 0; i < [invitedHistory count]; ++i) {
+                        if ([[invitedHistory objectAtIndex:i]
+                                localizedCaseInsensitiveCompare:opponentCell
+                                                                    .textField
+                                                                    .text] ==
+                            NSOrderedDescending)
+                            break;
+                    }
+                    if (![invitedHistory containsObject:opponent]) {
+                        [invitedHistory insertObject:opponent atIndex:i];
+                    }
+                } else {
+                    invitedHistory = [NSMutableArray arrayWithObject:opponent];
                 }
-                if (![invitedHistory containsObject:opponent]) {
-                    [invitedHistory insertObject:opponent atIndex:i];
-                }
-            } else {
-                invitedHistory = [NSMutableArray arrayWithObject:opponent];
+                [defaults setObject:invitedHistory forKey:@"invitedHistory"];
+                [opponentCell setInvitedHistory:invitedHistory];
             }
-            [defaults setObject:invitedHistory forKey:@"invitedHistory"];
-            [opponentCell setInvitedHistory:invitedHistory];
-        }
-        [defaults setObject:gameCell.detailTextLabel.text
-                     forKey:@"lastInvitedGame"];
-        [defaults setObject:restrictionCell.detailTextLabel.text
-                     forKey:@"lastInvitationRestriction"];
-        [defaults setObject:timeCell.detailTextLabel.text
-                     forKey:@"lastInvitedTimeLimit"];
-        [defaults setBool:!ratedSwitch.on forKey:@"lastInvitationRated"];
-        [defaults setObject:playAsCell.detailTextLabel.text
-                     forKey:@"lastInvitedColor"];
-        [defaults setBool:privateSwitch.on forKey:@"lastInvitationPrivate"];
+            [defaults setObject:gameCell.detailTextLabel.text
+                         forKey:@"lastInvitedGame"];
+            [defaults setObject:restrictionCell.detailTextLabel.text
+                         forKey:@"lastInvitationRestriction"];
+            [defaults setObject:timeCell.detailTextLabel.text
+                         forKey:@"lastInvitedTimeLimit"];
+            [defaults setBool:!ratedSwitch.on forKey:@"lastInvitationRated"];
+            [defaults setObject:playAsCell.detailTextLabel.text
+                         forKey:@"lastInvitedColor"];
+            [defaults setBool:privateSwitch.on forKey:@"lastInvitationPrivate"];
 
-        //        [navController popToRootViewControllerAnimated:YES];
-        [navController
-            performSelectorOnMainThread:@selector(popViewControllerAnimated:)
-                             withObject:nil
-                          waitUntilDone:NO];
-        //        [navController popViewControllerAnimated:YES];
-    }
+            //        [navController popToRootViewControllerAnimated:YES];
+            [navController popViewControllerAnimated:NO];
+            //        [navController popViewControllerAnimated:YES];
+        }
+    }];
 }
 
 //- (NSString *)tableView:(UITableView *)tableView
