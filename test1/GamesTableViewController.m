@@ -3317,6 +3317,33 @@ array, and add a new row to the table view
     });
 }
 
+- (void)updateSection:(NSInteger)section
+             newItems:(NSMutableArray *)newItems
+             oldItems:(NSMutableArray *)oldItems
+            collapsed:(BOOL)collapsed
+               setter:(void (^)(NSMutableArray *))setter {
+    if ([newItems count] != [oldItems count]) {
+        if (!collapsed) {
+            NSMutableArray *indexSet = [[NSMutableArray alloc] init];
+            for (int i = 0; i < (int)[oldItems count]; ++i)
+                [indexSet addObject:[NSIndexPath indexPathForRow:i inSection:section]];
+            setter([[NSMutableArray alloc] init]);
+            [self.tableView deleteRowsAtIndexPaths:indexSet
+                                  withRowAnimation:UITableViewRowAnimationFade];
+        }
+        setter(newItems);
+        if (!collapsed) {
+            NSMutableArray *indexSet = [[NSMutableArray alloc] init];
+            for (int i = 0; i < (int)[newItems count]; ++i)
+                [indexSet addObject:[NSIndexPath indexPathForRow:i inSection:section]];
+            [self.tableView insertRowsAtIndexPaths:indexSet
+                                  withRowAnimation:UITableViewRowAnimationFade];
+        }
+    } else {
+        setter(newItems);
+    }
+}
+
 - (void)parseDashboard {
     UIColor *blackColor = UIColorFromRGB(0);
 
@@ -3634,34 +3661,11 @@ array, and add a new row to the table view
             }
             [sectionItems addObject:game];
         }
-        if ([jsonResponse[@"invitationsSent"] count] > 0) {
-            if (!sentInvitationsCollapsed) {
-                indexSet = [[NSMutableArray alloc] init];
-                for (int i = 0; i < [[self.player sentInvitations] count]; ++i)
-                    [indexSet
-                        addObject:[NSIndexPath
-                                      indexPathForRow:i
-                                            inSection:SENTINVITATIONSSECTION]];
-                [self.player setInvitations:[[NSMutableArray alloc] init]];
-                [self.tableView
-                    deleteRowsAtIndexPaths:indexSet
-                          withRowAnimation:UITableViewRowAnimationFade];
-            }
-            [self.player setSentInvitations:sectionItems];
-            if (!sentInvitationsCollapsed) {
-                indexSet = [[NSMutableArray alloc] init];
-                for (int i = 0; i < [[self.player sentInvitations] count]; ++i)
-                    [indexSet
-                        addObject:[NSIndexPath
-                                      indexPathForRow:i
-                                            inSection:SENTINVITATIONSSECTION]];
-                [self.tableView
-                    insertRowsAtIndexPaths:indexSet
-                          withRowAnimation:UITableViewRowAnimationFade];
-            }
-        } else {
-            [self.player setSentInvitations:sectionItems];
-        }
+        [self updateSection:SENTINVITATIONSSECTION
+                   newItems:sectionItems
+                   oldItems:[self.player sentInvitations]
+                  collapsed:sentInvitationsCollapsed
+                     setter:^(NSMutableArray *items) { [self.player setSentInvitations:items]; }];
 
         sectionItems = [[NSMutableArray alloc] init];
         for (NSDictionary
@@ -3686,34 +3690,11 @@ array, and add a new row to the table view
             }
             [sectionItems addObject:game];
         }
-        if ([jsonResponse[@"invitationsReceived"] count] > 0) {
-            if (!invitationsReceivedCollapsed) {
-                indexSet = [[NSMutableArray alloc] init];
-                for (int i = 0; i < [[self.player invitations] count]; ++i)
-                    [indexSet
-                        addObject:[NSIndexPath
-                                      indexPathForRow:i
-                                            inSection:INVITATIONSSECTION]];
-                [self.player setInvitations:[[NSMutableArray alloc] init]];
-                [self.tableView
-                    deleteRowsAtIndexPaths:indexSet
-                          withRowAnimation:UITableViewRowAnimationFade];
-            }
-            [self.player setInvitations:sectionItems];
-            if (!invitationsReceivedCollapsed) {
-                indexSet = [[NSMutableArray alloc] init];
-                for (int i = 0; i < [sectionItems count]; ++i)
-                    [indexSet
-                        addObject:[NSIndexPath
-                                      indexPathForRow:i
-                                            inSection:INVITATIONSSECTION]];
-                [self.tableView
-                    insertRowsAtIndexPaths:indexSet
-                          withRowAnimation:UITableViewRowAnimationFade];
-            }
-        } else {
-            [self.player setInvitations:sectionItems];
-        }
+        [self updateSection:INVITATIONSSECTION
+                   newItems:sectionItems
+                   oldItems:[self.player invitations]
+                  collapsed:invitationsReceivedCollapsed
+                     setter:^(NSMutableArray *items) { [self.player setInvitations:items]; }];
 
         //        [self.tableView reloadData];
 
@@ -3753,34 +3734,11 @@ array, and add a new row to the table view
             [sectionItems addObject:game];
         }
 
-        if ([sectionItems count] != [[self.player activeGames] count]) {
-            if (!activeGamesCollapsed) {
-                indexSet = [[NSMutableArray alloc] init];
-                for (int i = 0; i < [[self.player activeGames] count]; ++i)
-                    [indexSet
-                        addObject:[NSIndexPath
-                                      indexPathForRow:i
-                                            inSection:ACTIVEGAMESSECTION]];
-                [self.player setActiveGames:[[NSMutableArray alloc] init]];
-                [self.tableView
-                    deleteRowsAtIndexPaths:indexSet
-                          withRowAnimation:UITableViewRowAnimationFade];
-            }
-            [self.player setActiveGames:sectionItems];
-            if (!activeGamesCollapsed) {
-                indexSet = [[NSMutableArray alloc] init];
-                for (int i = 0; i < [[self.player activeGames] count]; ++i)
-                    [indexSet
-                        addObject:[NSIndexPath
-                                      indexPathForRow:i
-                                            inSection:ACTIVEGAMESSECTION]];
-                [self.tableView
-                    insertRowsAtIndexPaths:indexSet
-                          withRowAnimation:UITableViewRowAnimationFade];
-            }
-        } else {
-            [self.player setActiveGames:sectionItems];
-        }
+        [self updateSection:ACTIVEGAMESSECTION
+                   newItems:sectionItems
+                   oldItems:[self.player activeGames]
+                  collapsed:activeGamesCollapsed
+                     setter:^(NSMutableArray *items) { [self.player setActiveGames:items]; }];
 
         sectionItems = [[NSMutableArray alloc] init];
         for (NSDictionary
@@ -3802,38 +3760,11 @@ array, and add a new row to the table view
             [sectionItems addObject:game];
         }
 
-        if ([sectionItems count] != [[self.player nonActiveGames] count]) {
-            if (!self->nonActiveGamesCollapsed) {
-                indexSet = [[NSMutableArray alloc] init];
-                for (int i = 0; i < [[self.player nonActiveGames] count]; ++i)
-                    [indexSet
-                        addObject:[NSIndexPath
-                                      indexPathForRow:i
-                                            inSection:NONACTIVEGAMESSECTION]];
-                [self.player setNonActiveGames:[[NSMutableArray alloc] init]];
-                //    [self
-                //    performSelectorOnMainThread:@selector(scrollViewDidScroll:)
-                //    withObject: self.tableView waitUntilDone:YES];
-                //                dispatch_async(dispatch_get_main_queue(), ^{
-                [self.tableView
-                    deleteRowsAtIndexPaths:indexSet
-                          withRowAnimation:UITableViewRowAnimationFade];
-            }
-            [self.player setNonActiveGames:sectionItems];
-            if (!nonActiveGamesCollapsed) {
-                indexSet = [[NSMutableArray alloc] init];
-                for (int i = 0; i < [[self.player nonActiveGames] count]; ++i)
-                    [indexSet
-                        addObject:[NSIndexPath
-                                      indexPathForRow:i
-                                            inSection:NONACTIVEGAMESSECTION]];
-                [self.tableView
-                    insertRowsAtIndexPaths:indexSet
-                          withRowAnimation:UITableViewRowAnimationFade];
-            }
-        } else {
-            [self.player setNonActiveGames:sectionItems];
-        }
+        [self updateSection:NONACTIVEGAMESSECTION
+                   newItems:sectionItems
+                   oldItems:[self.player nonActiveGames]
+                  collapsed:nonActiveGamesCollapsed
+                     setter:^(NSMutableArray *items) { [self.player setNonActiveGames:items]; }];
         //        [self.tableView reloadData];
         [self.pullToReloadHeaderView
             setStatusString:@"Loading Open Invitations..."
@@ -3874,39 +3805,11 @@ array, and add a new row to the table view
             [sectionItems addObject:game];
         }
 
-        if ([sectionItems count] != [[self.player publicInvitations] count]) {
-            if (!self->publicInvitationsCollapsed) {
-                indexSet = [[NSMutableArray alloc] init];
-                for (int i = 0; i < [[self.player publicInvitations] count];
-                     ++i)
-                    [indexSet
-                        addObject:
-                            [NSIndexPath
-                                indexPathForRow:i
-                                      inSection:PUBLICINVITATIONSSECTION]];
-                [self.player
-                    setPublicInvitations:[[NSMutableArray alloc] init]];
-                [self.tableView
-                    deleteRowsAtIndexPaths:indexSet
-                          withRowAnimation:UITableViewRowAnimationFade];
-            }
-            [self.player setPublicInvitations:sectionItems];
-            if (!publicInvitationsCollapsed) {
-                indexSet = [[NSMutableArray alloc] init];
-                for (int i = 0; i < [[self.player publicInvitations] count];
-                     ++i)
-                    [indexSet
-                        addObject:
-                            [NSIndexPath
-                                indexPathForRow:i
-                                      inSection:PUBLICINVITATIONSSECTION]];
-                [self.tableView
-                    insertRowsAtIndexPaths:indexSet
-                          withRowAnimation:UITableViewRowAnimationFade];
-            }
-        } else {
-            [self.player setPublicInvitations:sectionItems];
-        }
+        [self updateSection:PUBLICINVITATIONSSECTION
+                   newItems:sectionItems
+                   oldItems:[self.player publicInvitations]
+                  collapsed:publicInvitationsCollapsed
+                     setter:^(NSMutableArray *items) { [self.player setPublicInvitations:items]; }];
         //        [self.tableView reloadData];
 
         [self performSelector:@selector(scrollViewDidScroll:)
@@ -3947,33 +3850,11 @@ array, and add a new row to the table view
             }
             [sectionItems addObject:message];
         }
-        if ([sectionItems count] != [[self.player messages] count]) {
-            NSMutableArray *indexSet;
-            if (!self->messagesCollapsed) {
-                indexSet = [[NSMutableArray alloc] init];
-                for (int i = 0; i < [[self.player messages] count]; ++i)
-                    [indexSet addObject:[NSIndexPath
-                                            indexPathForRow:i
-                                                  inSection:MESSAGESSECTION]];
-                [self.player setMessages:[[NSMutableArray alloc] init]];
-                [self.tableView
-                    deleteRowsAtIndexPaths:indexSet
-                          withRowAnimation:UITableViewRowAnimationFade];
-            }
-            [self.player setMessages:sectionItems];
-            if (!self->messagesCollapsed) {
-                indexSet = [[NSMutableArray alloc] init];
-                for (int i = 0; i < [[self.player messages] count]; ++i)
-                    [indexSet addObject:[NSIndexPath
-                                            indexPathForRow:i
-                                                  inSection:MESSAGESSECTION]];
-                [self.tableView
-                    insertRowsAtIndexPaths:indexSet
-                          withRowAnimation:UITableViewRowAnimationFade];
-            }
-        } else {
-            [self.player setMessages:sectionItems];
-        }
+        [self updateSection:MESSAGESSECTION
+                   newItems:sectionItems
+                   oldItems:[self.player messages]
+                  collapsed:messagesCollapsed
+                     setter:^(NSMutableArray *items) { [self.player setMessages:items]; }];
 
         sectionItems = [[NSMutableArray alloc] init];
         for (NSDictionary *tournament_dict in jsonResponse[@"tournaments"]) {
@@ -3989,35 +3870,11 @@ array, and add a new row to the table view
             [sectionItems addObject:tournament];
         }
 
-        if ([sectionItems count] != [[self.player tournaments] count]) {
-            NSMutableArray *indexSet;
-            if (!self->tournamentsCollapsed) {
-                indexSet = [[NSMutableArray alloc] init];
-                for (int i = 0; i < [[self.player tournaments] count]; ++i)
-                    [indexSet
-                        addObject:[NSIndexPath
-                                      indexPathForRow:i
-                                            inSection:TOURNAMENTSSECTION]];
-                [self.player setTournaments:[[NSMutableArray alloc] init]];
-                [self.tableView
-                    deleteRowsAtIndexPaths:indexSet
-                          withRowAnimation:UITableViewRowAnimationFade];
-            }
-            [self.player setTournaments:sectionItems];
-            if (!self->tournamentsCollapsed) {
-                indexSet = [[NSMutableArray alloc] init];
-                for (int i = 0; i < [[self.player tournaments] count]; ++i)
-                    [indexSet
-                        addObject:[NSIndexPath
-                                      indexPathForRow:i
-                                            inSection:TOURNAMENTSSECTION]];
-                [self.tableView
-                    insertRowsAtIndexPaths:indexSet
-                          withRowAnimation:UITableViewRowAnimationFade];
-            }
-        } else {
-            [self.player setTournaments:sectionItems];
-        }
+        [self updateSection:TOURNAMENTSSECTION
+                   newItems:sectionItems
+                   oldItems:[self.player tournaments]
+                  collapsed:tournamentsCollapsed
+                     setter:^(NSMutableArray *items) { [self.player setTournaments:items]; }];
 
         NSMutableDictionary<NSString *, NSString *> *playersDict =
             [[NSMutableDictionary alloc] init];
