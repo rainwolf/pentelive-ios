@@ -177,8 +177,8 @@
     [self.view addSubview:playerStats];
 
     setupView = [[AISetupView alloc]
-        initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width * 2 / 3,
-                                 132)];
+                 init];
+    [setupView setFrame:CGRectMake(0, 0, self.view.bounds.size.width * 2 / 3, 3*55)];
     setupView.layer.cornerRadius = 5.0f;
     setupView.layer.borderWidth = 1.0f;
     [setupView setScrollEnabled:NO];
