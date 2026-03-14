@@ -29,5 +29,6 @@ platform :ios, '13.0'
     pod 'CocoaAsyncSocket'
     pod 'UIBarButtonItem-Badge', :git => 'https://github.com/rainwolf/UIBarButtonItem-Badge.git'
     pod 'AFWebViewController', '~> 1.0'
+    pod 'AFNetworking', '~> 4.0'
 end
 
