@@ -7,10 +7,4 @@
    <FileRef
       location = "group:Pods/Pods.xcodeproj">
    </FileRef>
-   <FileRef
-      location = "group:PenteHTTPClient.h">
-   </FileRef>
-   <FileRef
-      location = "group:PenteHTTPClient.m">
-   </FileRef>
 </Workspace>

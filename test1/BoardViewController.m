@@ -1370,8 +1370,18 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
 }
 
 - (void)replayGame {
+//    initialize all the global variables to the default values, then replay the game up to lastMove.
     gridSize = 19;
     isGoGame = NO;
+    self->movesList = [[NSMutableArray alloc] init];
+    self->captures = [[NSMutableArray alloc] init];
+    for (int i = 0; i < gridSize; ++i) {
+        for (int j = 0; j < gridSize; ++j) {
+            abstractBoard[i][j] = 0;
+        }
+    }
+    lastMove = -1;
+    
     [board setLastConnect6Move:-1];
     [zoomedBoard setLastConnect6Move:-1];
     whiteCaptures = 0;

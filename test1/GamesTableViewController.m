@@ -935,18 +935,14 @@ CGFloat bottomOffset = 0;
                       initWithStyle:UITableViewCellStyleSubtitle
                     reuseIdentifier:tmpIdentifier];
             }
-            if (@available(iOS 13.0, *)) {
-                cell.backgroundColor = [UIColor systemBackgroundColor];
-            } else {
-                cell.backgroundColor = [UIColor whiteColor];
-            }
+            cell.backgroundColor = [UIColor systemBackgroundColor];
         }
         cell.ratingLabel.text = @"";
         cell.ratingLabel.text = [message timeStamp];
         cell.textLabel.attributedText =
             [self.player markIfOnline:[message author]
                     andAttributedName:[message attributedName]];
-        if ([message unread]) {
+        if ([[message unread] isEqualToString:@"unread"]) {
             NSMutableAttributedString *str = [[NSMutableAttributedString alloc]
                 initWithString:[message subject]];
             [str addAttribute:NSForegroundColorAttributeName
@@ -3547,7 +3543,7 @@ array, and add a new row to the table view
                 gameInt -= 50;
                 tbHills += 1;
             }
-            NSString *gameStr = [PenteGame getGameName:hill.gameId];
+            NSString *gameStr = [PenteGame getGameName: gameInt];
             if (hill.gameId > 50) {
                 [hill setGame:[@"tb-" stringByAppendingString:gameStr]];
             } else if (hill.gameId % 2 == 0) {
