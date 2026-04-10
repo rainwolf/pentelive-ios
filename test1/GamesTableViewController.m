@@ -3662,7 +3662,7 @@ array, and add a new row to the table view
         for (NSDictionary
                  *invitation_dict in jsonResponse[@"invitationsSent"]) {
             Game *game = [[Game alloc] init];
-            [game setGameID:[invitation_dict[@"gid"] stringValue]];
+            [game setGameID:[invitation_dict[@"setId"] stringValue]];
             [game setGameType:invitation_dict[@"gameName"]];
             [game setOpponentName:invitation_dict[@"opponentName"]];
             [game setOpponentRating:[invitation_dict[@"opponentRating"]
