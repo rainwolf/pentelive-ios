@@ -15,11 +15,11 @@ class LivePlayer: NSObject {
     var subscriber = false
     var crown: Int = 0
     var muted: Bool = false
-
+    
     init(name: String) {
         self.name = name
     }
-
+    
     func getNameString() -> NSAttributedString {
         let text = NSMutableAttributedString(string: name)
         if subscriber {
@@ -48,7 +48,7 @@ class LivePlayer: NSObject {
         }
         return text
     }
-
+    
     func getRatingString(game: Int) -> NSAttributedString {
         var ratingInt = 1600
         if ratings[game] != nil {
@@ -78,6 +78,10 @@ class LivePlayer: NSObject {
     }
 }
 
+enum GameEnum: Int {
+    case pente = 1, speedPente, keryoPente, speedKeryoPente, gomoku, speedGomoku, dPente, speedDPente, gPente, speedGPente, poofPente, speedPoofPente, connect6, speedConnect6, boatPente, speedBoatPente, dkPente, speedDKPente, go, speedGo, go9x9, speedGo9x9, go13x13, speedGo13x13, oPente, speedOPente, swap2Pente, speedSwap2Pente, swap2Keryo, speedSwap2Keryo
+}
+
 class Table: NSObject {
     var players = [String: LivePlayer]()
     var timed = false
@@ -97,21 +101,22 @@ class Table: NSObject {
     var goStoneGroupsByPlayerAndID = [Int: [Int: [Int]]]()
     var goDeadStonesByPlayer = [Int: [Int]]()
     var goTerritoryByPlayer = [Int: [Int]]()
-
+    
     var koMove = -1
-
-    let gameNames = [1: "Pente", 2: "Speed Pente", 3: "Keryo-Pente", 4: "Speed Keryo-Pente", 5: "Gomoku", 6: "Speed Gomoku",
-                     7: "D-Pente", 8: "Speed D-Pente", 9: "G-Pente", 10: "Speed G-Pente", 11: "Poof-Pente", 12: "Speed Poof-Pente",
-                     13: "Connect6", 14: "Speed Connect6", 15: "Boat-Pente", 16: "Speed Boat-Pente", 17: "DK-Pente", 18: "Speed DK-Pente",
-                     19: "Go", 20: "Speed Go", 21: "Go (9x9)", 22: "Speed Go (9x9)", 23: "Go (13x13)", 24: "Speed Go (13x13)",
-                     25: "O-Pente", 26: "Speed O-Pente", 27: "Swap2-Pente", 28: "Speed Swap2-Pente", 29: "Swap2-Keryo",
-                     30: "Speed Swap2-Keryo"]
-
+    
+    let gameNames = [1: "Pente", 2: "Speed Pente", 3: "Keryo-Pente", 4: "Speed Keryo-Pente", 5: "Gomoku",
+                     6: "Speed Gomoku", 7: "D-Pente", 8: "Speed D-Pente", 9: "G-Pente", 10: "Speed G-Pente",
+                     11: "Poof-Pente", 12: "Speed Poof-Pente", 13: "Connect6", 14: "Speed Connect6",
+                     15: "Boat-Pente", 16: "Speed Boat-Pente", 17: "DK-Pente", 18: "Speed DK-Pente",
+                     19: "Go", 20: "Speed Go", 21: "Go (9x9)", 22: "Speed Go (9x9)", 23: "Go (13x13)",
+                     24: "Speed Go (13x13)", 25: "O-Pente", 26: "Speed O-Pente", 27: "Swap2-Pente",
+                     28: "Speed Swap2-Pente", 29: "Swap2-Keryo", 30: "Speed Swap2-Keryo"]
+    
     init(table: Int) {
         self.table = table
         super.init()
     }
-
+    
     func shouldTimerRun() -> Bool {
         if timed {
             if moves.isEmpty {
@@ -125,34 +130,34 @@ class Table: NSObject {
         }
         return false
     }
-
+    
     func isDPente() -> Bool {
-        return game == 7 || game == 8 || game == 17 || game == 18
+        return game == GameEnum.dPente.rawValue || game == GameEnum.speedDPente.rawValue || game == GameEnum.dkPente.rawValue || game == GameEnum.speedDKPente.rawValue
     }
-
+    
     func isSwap2() -> Bool {
-        return game == 27 || game == 28 || game == 29 || game == 30
+        return game == GameEnum.swap2Pente.rawValue || game == GameEnum.speedSwap2Pente.rawValue || game == GameEnum.swap2Keryo.rawValue || game == GameEnum.speedSwap2Keryo.rawValue
     }
-
+    
     func isSwap2ChoiceWithPassOption() -> Bool {
         return isSwap2() && moves.count == 3 && state.swap2State == .noChoice
     }
-
+    
     func isSwap2ChoiceWithoutPassOption() -> Bool {
         return isSwap2() && moves.count == 5 && (state.swap2State == .swap2Pass || state.swap2State == .noChoice)
     }
-
+    
     func addPlayer(player: LivePlayer) {
         if players.count == 0 {
             owner = player.name
         }
         players.updateValue(player, forKey: player.name)
     }
-
+    
     func removePlayer(player: String) {
         players.removeValue(forKey: player)
     }
-
+    
     func amIseated(i: String) -> Bool {
         for player in seats.values {
             if player.name == i {
@@ -161,7 +166,7 @@ class Table: NSObject {
         }
         return false
     }
-
+    
     func changeState(state: [String: Any]) {
         timed = state["timed"] as! Bool
         timer.updateValue(state["initialMinutes"] as! Int, forKey: "initialMinutes")
@@ -172,27 +177,27 @@ class Table: NSObject {
         open = (state["tableType"] as! Int) == 1
         owner = state["player"] as! String
     }
-
+    
     func sit(seat: Int, player: LivePlayer) {
         seats.updateValue(player, forKey: seat)
-//        players.removeValue(forKey: player.name)
+        //        players.removeValue(forKey: player.name)
     }
-
+    
     func stand(player: String) {
         if let seatedPlayer = seats[1] {
             if seatedPlayer.name == player {
                 seats.removeValue(forKey: 1)
-//                addPlayer(player: seatedPlayer)
+                //                addPlayer(player: seatedPlayer)
             }
         }
         if let seatedPlayer = seats[2] {
             if seatedPlayer.name == player {
                 seats.removeValue(forKey: 2)
-//                addPlayer(player: seatedPlayer)
+                //                addPlayer(player: seatedPlayer)
             }
         }
     }
-
+    
     func addMoves(moves: [Int]) {
         self.moves.removeAll()
         abstractBoard = Array(repeating: Array(repeating: 0, count: 19), count: 19)
@@ -200,8 +205,8 @@ class Table: NSObject {
         goStoneGroupsByPlayerAndID.removeAll(); goStoneGroupsByPlayerAndID[1] = [Int: [Int]](); goStoneGroupsByPlayerAndID[2] = [Int: [Int]]()
         goDeadStonesByPlayer.removeAll(); goDeadStonesByPlayer[1] = [Int](); goDeadStonesByPlayer[2] = [Int]()
         goTerritoryByPlayer.removeAll(); goTerritoryByPlayer[1] = [Int](); goTerritoryByPlayer[2] = [Int]()
-//        state.dPenteState = .noChoice
-//        state.swap2State = .noChoice
+        //        state.dPenteState = .noChoice
+        //        state.swap2State = .noChoice
         state.goState = .play
         blackCaptures = 0
         whiteCaptures = 0
@@ -209,18 +214,18 @@ class Table: NSObject {
             addMove(move: move)
         }
     }
-
+    
     func showMarkStones(player: String) -> Bool {
-//        return false
-//        print(isGo())
-//        print(state.goState)
-//        print(doublePassMove())
-//        print(moves.count)
-//        print(currentPlayerName())
-//        print(player)
+        //        return false
+        //        print(isGo())
+        //        print(state.goState)
+        //        print(doublePassMove())
+        //        print(moves.count)
+        //        print(currentPlayerName())
+        //        print(player)
         return isGo() && (state.goState == .markStones) && (doublePassMove() == moves.count - 1) && (currentPlayerName() == player)
     }
-
+    
     func showEvaluateStones(player: String) -> Bool {
         var notOver = true
         if doublePassMove() < moves.count - 2 && moves.count > 3 && moves[moves.count - 1] == passMove && moves[moves.count - 2] == passMove {
@@ -228,18 +233,18 @@ class Table: NSObject {
         }
         return isGo() && (state.goState == .evaluateStones) && state.state == .started && (currentPlayerName() == player) && notOver
     }
-
+    
     func lastMove() -> Int {
         if moves.count > 0 {
             return moves.last!
         }
         return -1
     }
-
+    
     func gameHasCaptures() -> Bool {
-        return game != 5 && game != 6 && game != 13 && game != 14
+        return game != GameEnum.gomoku.rawValue && game != GameEnum.speedGomoku.rawValue && game != GameEnum.connect6.rawValue && game != GameEnum.speedConnect6.rawValue
     }
-
+    
     func addMove(move: Int) {
         if isGo() {
             addGoMove(move: move)
@@ -250,85 +255,85 @@ class Table: NSObject {
         let i = move / 19
         let j = move % 19
         abstractBoard[i][j] = color
-        if game != 5, game != 6, game != 13, game != 14 {
-            if game == 11 || game == 12 || game == 25 || game == 26 {
+        if game != GameEnum.gomoku.rawValue, game != GameEnum.speedGomoku.rawValue, game != GameEnum.connect6.rawValue, game != GameEnum.speedConnect6.rawValue {
+            if game == GameEnum.poofPente.rawValue || game == GameEnum.speedPoofPente.rawValue || game == GameEnum.oPente.rawValue || game == GameEnum.speedOPente.rawValue {
                 detectPoof(move: move, color: color)
             }
-            if game == 25 || game == 26 {
+            if game == GameEnum.oPente.rawValue || game == GameEnum.speedOPente.rawValue {
                 detectKeryoPoof(move: move, color: color)
             }
             detectCapture(move: move, color: color)
-            if game == 3 || game == 4 || game == 17 || game == 18 || game == 25 || game == 26 || game == 29 || game == 30 {
+            if game == GameEnum.keryoPente.rawValue || game == GameEnum.speedKeryoPente.rawValue || game == GameEnum.dkPente.rawValue || game == GameEnum.speedDKPente.rawValue || game == GameEnum.oPente.rawValue || game == GameEnum.speedOPente.rawValue || game == GameEnum.swap2Keryo.rawValue || game == GameEnum.speedSwap2Keryo.rawValue {
                 detectKeryoCapture(move: move, color: color)
             }
         }
-        if game != 5, game != 6, game != 13, game != 14, game != 7, game != 8, game != 17, game != 18,
-           game != 27, game != 28, game != 29, game != 30, rated || game == 9 || game == 10
+        if game != GameEnum.gomoku.rawValue, game != GameEnum.speedGomoku.rawValue, game != GameEnum.connect6.rawValue, game != GameEnum.speedConnect6.rawValue, game != GameEnum.dPente.rawValue, game != GameEnum.speedDPente.rawValue, game != GameEnum.dkPente.rawValue, game != GameEnum.speedDKPente.rawValue,
+           game != GameEnum.swap2Pente.rawValue, game != GameEnum.speedSwap2Pente.rawValue, game != GameEnum.swap2Keryo.rawValue, game != GameEnum.speedSwap2Keryo.rawValue, rated || game == GameEnum.gPente.rawValue || game == GameEnum.speedGPente.rawValue
         {
-            if moves.count == 2 {
-                for i in 7 ..< 12 {
-                    for j in 7 ..< 12 {
-                        if abstractBoard[i][j] == 0 {
-                            abstractBoard[i][j] = -1
-                        }
-                    }
-                }
-                if game == 9 || game == 10 {
-                    for i in 1 ..< 3 {
-                        if abstractBoard[9][11 + i] == 0 {
-                            abstractBoard[9][11 + i] = -1
-                        }
-                        if abstractBoard[9][7 - i] == 0 {
-                            abstractBoard[9][7 - i] = -1
-                        }
-                        if abstractBoard[11 + i][9] == 0 {
-                            abstractBoard[11 + i][9] = -1
-                        }
-                        if abstractBoard[7 - i][9] == 0 {
-                            abstractBoard[7 - i][9] = -1
-                        }
-                    }
-                }
-            } else if moves.count == 3 {
-                for i in 7 ..< 12 {
-                    for j in 7 ..< 12 {
-                        if abstractBoard[i][j] == -1 {
-                            abstractBoard[i][j] = 0
-                        }
-                    }
-                }
-                if game == 9 || game == 10 {
-                    for i in 1 ..< 3 {
-                        if abstractBoard[9][11 + i] == -1 {
-                            abstractBoard[9][11 + i] = 0
-                        }
-                        if abstractBoard[9][7 - i] == -1 {
-                            abstractBoard[9][7 - i] = 0
-                        }
-                        if abstractBoard[11 + i][9] == -1 {
-                            abstractBoard[11 + i][9] = 0
-                        }
-                        if abstractBoard[7 - i][9] == -1 {
-                            abstractBoard[7 - i][9] = 0
-                        }
-                    }
-                }
-            }
+           if moves.count == 2 {
+               for i in 7 ..< 12 {
+                   for j in 7 ..< 12 {
+                       if abstractBoard[i][j] == 0 {
+                           abstractBoard[i][j] = -1
+                       }
+                   }
+               }
+               if game == GameEnum.gPente.rawValue || game == GameEnum.speedGPente.rawValue {
+                   for i in 1 ..< 3 {
+                       if abstractBoard[9][11 + i] == 0 {
+                           abstractBoard[9][11 + i] = -1
+                       }
+                       if abstractBoard[9][7 - i] == 0 {
+                           abstractBoard[9][7 - i] = -1
+                       }
+                       if abstractBoard[11 + i][9] == 0 {
+                           abstractBoard[11 + i][9] = -1
+                       }
+                       if abstractBoard[7 - i][9] == 0 {
+                           abstractBoard[7 - i][9] = -1
+                       }
+                   }
+               }
+           } else if moves.count == 3 {
+               for i in 7 ..< 12 {
+                   for j in 7 ..< 12 {
+                       if abstractBoard[i][j] == -1 {
+                           abstractBoard[i][j] = 0
+                       }
+                   }
+               }
+               if game == GameEnum.gPente.rawValue || game == GameEnum.speedGPente.rawValue {
+                   for i in 1 ..< 3 {
+                       if abstractBoard[9][11 + i] == -1 {
+                           abstractBoard[9][11 + i] = 0
+                       }
+                       if abstractBoard[9][7 - i] == -1 {
+                           abstractBoard[9][7 - i] = 0
+                       }
+                       if abstractBoard[11 + i][9] == -1 {
+                           abstractBoard[11 + i][9] = 0
+                       }
+                       if abstractBoard[7 - i][9] == -1 {
+                           abstractBoard[7 - i][9] = 0
+                       }
+                   }
+               }
+           }
         }
     }
-
+    
     var hasPass = false, doublePass = false
     var gridSize = 19, passMove = 19 * 19
-
+    
     func addGoMove(move: Int) {
-        if game == 22 || game == 21 {
+        if game == GameEnum.speedGo9x9.rawValue || game == GameEnum.go9x9.rawValue {
             gridSize = 9
-        } else if game == 23 || game == 24 {
+        } else if game == GameEnum.go13x13.rawValue || game == GameEnum.speedGo13x13.rawValue {
             gridSize = 13
         }
         passMove = gridSize * gridSize
         let player = currentPlayer(), color = 3 - player
-//        print("Go move ",player)
+        //        print("Go move ",player)
         if move == passMove {
             if state.goState == .markStones {
                 state.goState = .evaluateStones
@@ -349,24 +354,24 @@ class Table: NSObject {
                 setBoardValue(move: move, value: 0)
             }
         } else {
-//            print("Go ",player, " ", color)
+            //            print("Go ",player, " ", color)
             if move < passMove {
                 var groupsByID = goStoneGroupsByPlayerAndID[player]!, stoneGroupIDs = goStoneGroupIDsByPlayer[player]!
                 setBoardValue(move: move, value: color)
                 settleGroups(groupsByID: &groupsByID, stoneGroupIDs: &stoneGroupIDs, move: move)
                 goStoneGroupsByPlayerAndID[player] = groupsByID; goStoneGroupIDsByPlayer[player] = stoneGroupIDs
-
+                
                 groupsByID = goStoneGroupsByPlayerAndID[color]!; stoneGroupIDs = goStoneGroupIDsByPlayer[color]!
                 makeCaptures(move: move, groupsByID: &groupsByID, stoneGroupIDs: &stoneGroupIDs)
                 goStoneGroupsByPlayerAndID[color] = groupsByID; goStoneGroupIDsByPlayer[color] = stoneGroupIDs
             }
         }
     }
-
+    
     func setOwner(owner: String) {
         self.owner = owner
     }
-
+    
     func reset() {
         moves.removeAll()
         resetTimers()
@@ -381,7 +386,7 @@ class Table: NSObject {
         state.swap2State = .noChoice
         state.goState = .play
     }
-
+    
     func resetTimers() {
         let minutes = timer["initialMinutes"]!
         var seconds = 0
@@ -392,7 +397,7 @@ class Table: NSObject {
         state.timers[1]!.updateValue(millis, forKey: "millis")
         state.timers[2]!.updateValue(millis, forKey: "millis")
     }
-
+    
     func updateTimer(playerName: String, millis: Int) {
         var seat = 0
         if let player = seats[1] {
@@ -410,7 +415,7 @@ class Table: NSObject {
             state.timers[seat]!.updateValue(0, forKey: "startTime")
         }
     }
-
+    
     func swapSeats(swap: Bool, silent: Bool) {
         if swap {
             if !silent {
@@ -432,11 +437,11 @@ class Table: NSObject {
             state.swap2State = .notSwapped
         }
     }
-
+    
     func swap2Pass(silent _: Bool) {
         state.swap2State = .swap2Pass
     }
-
+    
     func undoLastMove() {
         let newMoves = moves[0 ..< (moves.count - 1)]
         blackCaptures = 0
@@ -454,7 +459,7 @@ class Table: NSObject {
             addMove(move: move)
         }
     }
-
+    
     func currentPlayer() -> Int {
         if isGo() {
             let d = doublePassMove()
@@ -465,7 +470,7 @@ class Table: NSObject {
             } else {
                 return 1 + (moves.count % 2)
             }
-        } else if game != 13 && game != 14 {
+        } else if game != GameEnum.connect6.rawValue && game != GameEnum.speedConnect6.rawValue {
             return 1 + (moves.count % 2)
         } else {
             if moves.count == 0 {
@@ -474,7 +479,7 @@ class Table: NSObject {
             return 2 - (((moves.count - 1) / 2) % 2)
         }
     }
-
+    
     func doublePassMove() -> Int {
         var pass = false, i = 0
         for move in moves {
@@ -491,10 +496,10 @@ class Table: NSObject {
         }
         return -1
     }
-
+    
     func currentPlayerName() -> String {
         var seat = currentPlayer()
-        if (game == 7 || game == 8 || game == 17 || game == 18) && moves.count < 4 {
+        if (game == GameEnum.dPente.rawValue || game == GameEnum.speedDPente.rawValue || game == GameEnum.dkPente.rawValue || game == GameEnum.speedDKPente.rawValue) && moves.count < 4 {
             seat = 1
         }
         if isSwap2() {
@@ -504,51 +509,51 @@ class Table: NSObject {
                 seat = 2
             }
         }
-
+        
         if let player = seats[seat] {
             return player.name
         }
         return ""
     }
-
+    
     func gameName() -> String {
         return gameNames[game]!
     }
-
+    
     func gameColor() -> UIColor {
-        if game < 3 {
+        if game < GameEnum.keryoPente.rawValue {
             return UIColor(red: 0.984, green: 0.851, blue: 0.541, alpha: 1)
-        } else if game < 5 {
+        } else if game < GameEnum.gomoku.rawValue {
             return UIColor(red: 0.702, green: 1, blue: 0.518, alpha: 1)
-        } else if game < 7 {
+        } else if game < GameEnum.dPente.rawValue {
             return UIColor(red: 0.612, green: 1, blue: 0.898, alpha: 1)
-        } else if game < 9 {
+        } else if game < GameEnum.gPente.rawValue {
             return UIColor(red: 0.584, green: 0.753, blue: 0.98, alpha: 1)
-        } else if game < 11 {
+        } else if game < GameEnum.poofPente.rawValue {
             return UIColor(red: 0.616, green: 0.545, blue: 0.965, alpha: 1)
-        } else if game < 13 {
+        } else if game < GameEnum.connect6.rawValue {
             return UIColor(red: 0.929, green: 0.639, blue: 0.992, alpha: 1)
-        } else if game < 15 {
+        } else if game < GameEnum.boatPente.rawValue {
             return UIColor(red: 0.929, green: 0.639, blue: 0.992, alpha: 1)
-        } else if game < 17 {
+        } else if game < GameEnum.dkPente.rawValue {
             return UIColor(red: 0.145, green: 0.729, blue: 1, alpha: 1)
-        } else if game < 19 {
+        } else if game < GameEnum.go.rawValue {
             return UIColor(red: 1, green: 165.0 / 255.0, blue: 0, alpha: 1)
-        } else if game < 25 {
+        } else if game < GameEnum.oPente.rawValue {
             return UIColor(red: 250.0 / 255, green: 200.0 / 255.0, blue: 50.0 / 255.0, alpha: 1)
-        } else if game < 27 {
+        } else if game < GameEnum.swap2Pente.rawValue {
             return UIColor(red: 0.32, green: 0.75, blue: 0.50, alpha: 1.0)
-        } else if game < 29 {
+        } else if game < GameEnum.swap2Keryo.rawValue {
             return UIColor(red: 0.90, green: 0.67, blue: 0.44, alpha: 1.00)
         } else {
             return UIColor(red: 0.31, green: 0.78, blue: 0.47, alpha: 1.00)
         }
     }
-
+    
     func isGo() -> Bool {
-        return game > 18 && game < 25
+        return game >= GameEnum.go.rawValue && game < GameEnum.oPente.rawValue
     }
-
+    
     func makeCaptures(move: Int, groupsByID: inout [Int: [Int]], stoneGroupIDs: inout [Int: Int]) {
         var captures = 0
         if move % gridSize != 0 {
@@ -576,7 +581,7 @@ class Table: NSObject {
             }
         }
     }
-
+    
     func getCaptures(move: Int, groupsByID: inout [Int: [Int]], stoneGroupIDs: inout [Int: Int], captures: Int, neighborStone: Int, neighborStoneID: Int) -> Int {
         var newCaptures = captures
         if let neighborStoneGroup = groupsByID[neighborStoneID] {
@@ -592,7 +597,7 @@ class Table: NSObject {
         }
         return newCaptures
     }
-
+    
     func checkKo(move: Int) -> Bool {
         let position = getBoardValue(move: move)
         if move % gridSize != 0 {
@@ -625,7 +630,7 @@ class Table: NSObject {
         }
         return true
     }
-
+    
     func captureGroup(groupID: Int, groupsByID: inout [Int: [Int]], stoneGroupIDs: inout [Int: Int]) {
         let group = groupsByID[groupID]!
         let color = getBoardValue(move: group[0])
@@ -640,7 +645,7 @@ class Table: NSObject {
             whiteCaptures += group.count
         }
     }
-
+    
     func groupHasLiberties(group: [Int]) -> Bool {
         for stone in group {
             if stoneHasLiberties(move: stone) {
@@ -649,7 +654,7 @@ class Table: NSObject {
         }
         return false
     }
-
+    
     func stoneHasLiberties(move: Int) -> Bool {
         if move % gridSize != 0 {
             let neighborStone = move - 1
@@ -681,19 +686,19 @@ class Table: NSObject {
         }
         return false
     }
-
+    
     func getBoardValue(move: Int) -> Int {
         let i = move / gridSize
         let j = move % gridSize
         return abstractBoard[i][j]
     }
-
+    
     func setBoardValue(move: Int, value: Int) {
         let i = move / gridSize
         let j = move % gridSize
         abstractBoard[i][j] = value
     }
-
+    
     func settleGroups(groupsByID: inout [Int: [Int]], stoneGroupIDs: inout [Int: Int], move: Int) {
         let newGroup = [move]
         groupsByID[move] = newGroup
@@ -723,7 +728,7 @@ class Table: NSObject {
             }
         }
     }
-
+    
     func mergeGroups(group1: Int, group2: Int, groupsByID: inout [Int: [Int]], stoneGroupIDs: inout [Int: Int]) {
         var oldGroup, newGroup: [Int]
         var oldGroupID, newGroupID: Int
@@ -745,13 +750,13 @@ class Table: NSObject {
             stoneGroupIDs[stone] = newGroupID
         }
     }
-
+    
     func getGoScoreString() -> String {
         getTerritories()
         let p1Stones = getMoves(value: 2).count, p2Stones = getMoves(value: 1).count, p1Territory = goTerritoryByPlayer[1]!.count, p2Territory = goTerritoryByPlayer[2]!.count
         return "black score is \(p1Territory) + \(p1Stones) = \(p1Stones + p1Territory)\nwhite score is \(p2Territory) + \(p2Stones) + 7.5 = \(p2Stones + p2Territory + 7).5"
     }
-
+    
     func resetGoBeforeFlood() {
         for i in 0 ..< gridSize {
             for j in 0 ..< gridSize {
@@ -762,7 +767,7 @@ class Table: NSObject {
             }
         }
     }
-
+    
     func getEmptyNeighbor(move: Int) -> Int {
         if move % gridSize != 0 {
             let neighborStone = move - 1
@@ -790,7 +795,7 @@ class Table: NSObject {
         }
         return -1
     }
-
+    
     func getMoves(value: Int) -> [Int] {
         var result = [Int]()
         for i in 0 ..< gridSize {
@@ -803,7 +808,7 @@ class Table: NSObject {
         }
         return result
     }
-
+    
     func floodFillWorker(move: Int, value: Int) {
         setBoardValue(move: move, value: value)
         var neighbor = getEmptyNeighbor(move: move)
@@ -812,7 +817,7 @@ class Table: NSObject {
             neighbor = getEmptyNeighbor(move: move)
         }
     }
-
+    
     func floodFill(player: Int) {
         for i in 0 ..< gridSize {
             for j in 0 ..< gridSize {
@@ -828,7 +833,7 @@ class Table: NSObject {
             }
         }
     }
-
+    
     func getTerritories() {
         floodFill(player: 1)
         var p1Territory = getMoves(value: 3)
@@ -850,13 +855,13 @@ class Table: NSObject {
         }
         goTerritoryByPlayer[1] = p1Territory; goTerritoryByPlayer[2] = p2Territory
     }
-
+    
     func rejectDeadStones() {
         let i = doublePassMove() - 1
         let newMoves = Array(moves[0 ..< i])
         addMoves(moves: newMoves)
     }
-
+    
     func makeFontBlackIfNeeded(seat: Int) -> NSAttributedString {
         if seats[seat]!.subscriber {
             return (seats[seat]?.getNameString())!
@@ -866,12 +871,12 @@ class Table: NSObject {
             return str
         }
     }
-
+    
     func makeAttributedString() -> NSAttributedString {
-//        let titleAttributes = [NSFontAttributeName: UIFont.preferredFont(forTextStyle: .headline), NSForegroundColorAttributeName: UIColor(red: 255/255, green: 193/255, blue: 7/255, alpha: 1.0)]
+        //        let titleAttributes = [NSFontAttributeName: UIFont.preferredFont(forTextStyle: .headline), NSForegroundColorAttributeName: UIColor(red: 255/255, green: 193/255, blue: 7/255, alpha: 1.0)]
         let titleAttributes = [NSAttributedString.Key.font: UIFont.preferredFont(forTextStyle: .headline)]
         let subtitleAttributes = [NSAttributedString.Key.font: UIFont.preferredFont(forTextStyle: .subheadline), NSAttributedString.Key.foregroundColor: UIColor.black]
-
+        
         let titleString = NSMutableAttributedString(string: "\(gameName())", attributes: titleAttributes)
         titleString.addAttribute(.foregroundColor, value: UIColor.black, range: NSMakeRange(0, titleString.length))
         if seats.count > 0 {
@@ -925,10 +930,10 @@ class Table: NSObject {
             }
         }
         titleString.append(subtitleString)
-
+        
         return titleString
     }
-
+    
     func detectCapture(move: Int, color: Int) {
         let i = move / 19
         let j = move % 19
@@ -1039,7 +1044,7 @@ class Table: NSObject {
             }
         }
     }
-
+    
     func detectKeryoCapture(move: Int, color: Int) {
         let i = move / 19
         let j = move % 19
@@ -1158,7 +1163,7 @@ class Table: NSObject {
             }
         }
     }
-
+    
     func detectPoof(move: Int, color: Int) {
         let i = move / 19
         let j = move % 19
@@ -1277,7 +1282,7 @@ class Table: NSObject {
                 }
             }
         }
-
+        
         if poof {
             if myColor == 1 {
                 whiteCaptures = whiteCaptures + 1
@@ -1286,7 +1291,7 @@ class Table: NSObject {
             }
         }
     }
-
+    
     func detectKeryoPoof(move: Int, color: Int) {
         let i = move / 19
         let j = move % 19
@@ -1413,7 +1418,7 @@ class Table: NSObject {
                 }
             }
         }
-
+        
         // 4 directions with center of 3 stones placed to poof
         if (i - 2) > -1, (i + 2) < 19 { // horizontal
             if abstractBoard[i - 1][j] == myColor, abstractBoard[i + 1][j] == myColor {
@@ -1475,7 +1480,7 @@ class Table: NSObject {
                 }
             }
         }
-
+        
         if poofed {
             if myColor == 1 {
                 whiteCaptures += 1
@@ -1493,26 +1498,26 @@ class GameState: NSObject {
         case paused
         case halfSet
     }
-
+    
     enum DPenteState: Int {
         case noChoice = 0
         case swapped
         case notSwapped
     }
-
+    
     enum Swap2State: Int {
         case noChoice = 0
         case swap2Pass
         case swapped
         case notSwapped
     }
-
+    
     enum GoState: Int {
         case play = 0
         case markStones
         case evaluateStones
     }
-
+    
     var state = State.notStarted
     var dPenteState = DPenteState.noChoice
     var swap2State = Swap2State.noChoice
@@ -1523,19 +1528,19 @@ class GameState: NSObject {
 class TablesAndPlayer: NSObject {
     var tables: [Int: Table] = [:]
     var players: [String: LivePlayer] = [:]
-
+    
     func player(name: String) -> LivePlayer? {
         return players[name]
     }
-
+    
     func addPlayer(player: LivePlayer) {
         players.updateValue(player, forKey: player.name)
     }
-
+    
     func removePlayer(player: String) {
         players.removeValue(forKey: player)
     }
-
+    
     func joinTable(tableId: Int, player: String) {
         if tables[tableId] == nil {
             tables.updateValue(Table(table: tableId), forKey: tableId)
@@ -1543,11 +1548,11 @@ class TablesAndPlayer: NSObject {
         let table = tables[tableId]!
         table.addPlayer(player: players[player]!)
     }
-
+    
     func table(tableId: Int) -> Table? {
         return tables[tableId]
     }
-
+    
     func exitTable(tableId: Int, player: String) {
         if tables[tableId] == nil {
             return
@@ -1558,7 +1563,7 @@ class TablesAndPlayer: NSObject {
             tables.removeValue(forKey: tableId)
         }
     }
-
+    
     func changeTable(event: [String: Any]) {
         let tableId = event["table"] as! Int
         if tables[tableId] == nil {
@@ -1567,7 +1572,7 @@ class TablesAndPlayer: NSObject {
         let table = tables[tableId]!
         table.changeState(state: event)
     }
-
+    
     func sitTable(tableId: Int, player: String, seat: Int) {
         if tables[tableId] == nil {
             return
@@ -1576,7 +1581,7 @@ class TablesAndPlayer: NSObject {
         let livePlayer = players[player]!
         table.sit(seat: seat, player: livePlayer)
     }
-
+    
     func standTable(tableId: Int, player: String) {
         if tables[tableId] == nil {
             return
@@ -1584,7 +1589,7 @@ class TablesAndPlayer: NSObject {
         let table = tables[tableId]!
         table.stand(player: player)
     }
-
+    
     func ownerTable(tableId: Int, player: String) {
         if tables[tableId] == nil {
             return
@@ -1592,7 +1597,7 @@ class TablesAndPlayer: NSObject {
         let table = tables[tableId]!
         table.owner = player
     }
-
+    
     func updateTimerTable(tableId: Int, player: String, millis: Int) {
         if tables[tableId] == nil {
             return
@@ -1600,7 +1605,7 @@ class TablesAndPlayer: NSObject {
         let table = tables[tableId]!
         table.updateTimer(playerName: player, millis: millis)
     }
-
+    
     func gameStateChange(tableId: Int, state: GameState.State) {
         if tables[tableId] == nil {
             return
@@ -1611,7 +1616,7 @@ class TablesAndPlayer: NSObject {
         }
         table.state.state = state
     }
-
+    
     func swapSeats(tableId: Int, swap: Bool, silent: Bool) {
         if tables[tableId] == nil {
             return
@@ -1619,7 +1624,7 @@ class TablesAndPlayer: NSObject {
         let table = tables[tableId]!
         table.swapSeats(swap: swap, silent: silent)
     }
-
+    
     func swap2Pass(tableId: Int, silent: Bool) {
         if tables[tableId] == nil {
             return
@@ -1627,7 +1632,7 @@ class TablesAndPlayer: NSObject {
         let table = tables[tableId]!
         table.swap2Pass(silent: silent)
     }
-
+    
     func invitablePlayersFor(tableId: Int) -> [String] {
         if tables[tableId] == nil {
             return []
@@ -1647,7 +1652,7 @@ class TablesAndPlayer: NSObject {
         }
         return invitablePlayers
     }
-
+    
     func bootablePlayersFor(tableId: Int) -> [String] {
         if tables[tableId] == nil {
             return []

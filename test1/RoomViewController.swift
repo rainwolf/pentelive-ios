@@ -169,11 +169,6 @@ class PlayerTableCell: UITableViewCell {
 
     override func viewDidAppear(_: Bool) {
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShowHide), name: UIResponder.keyboardWillChangeFrameNotification, object: nil)
-//        if let navc = self.navigationController {
-//            print("navc")
-//        } else {
-//            print("oh no")
-//        }
 
         tableViewController = nil
     }
@@ -200,13 +195,6 @@ class PlayerTableCell: UITableViewCell {
             return playersAndTables.tables.count
         }
     }
-
-//    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-//        if segmentControl.selectedSegmentIndex == 0 {
-//            return 44
-//        }
-//        return 0
-//    }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         if segmentControl.selectedSegmentIndex == 0 {
