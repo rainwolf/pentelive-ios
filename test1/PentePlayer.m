@@ -425,36 +425,42 @@
     }
     [pendingAvatarChecks addObject:username];
 
-    dispatch_async(
-        dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-            NSURL *url = [NSURL
-                URLWithString:[NSString
-                                  stringWithFormat:@"https://www.pente.org/"
-                                                   @"gameServer/avatar?name=%@",
-                                                   username]];
-            AFURLSessionManager *avatarManager = [[AFURLSessionManager alloc]
-                initWithSessionConfiguration:NSURLSessionConfiguration
-                                                 .defaultSessionConfiguration];
-            NSURLRequest *avatarRequest = [NSURLRequest requestWithURL:url];
-            NSURLSessionDownloadTask *downloadPhotoTask = [avatarManager
-                downloadTaskWithRequest:avatarRequest
-                               progress:nil
-                            destination:^NSURL *(NSURL *targetPath,
-                                                 NSURLResponse *response) {
-                                return targetPath;
-                            }
-                      completionHandler:^(NSURLResponse *response, NSURL *location,
-                                          NSError *error) {
-                          UIImage *downloadedImage = [UIImage
-                              imageWithData:[NSData
-                                                dataWithContentsOfURL:location]];
-                          //                                                           UIImageView *imgV = [[UIImageView alloc] initWithImage: downloadedImage];
-                          if (downloadedImage) {
-                              [avatars setObject:downloadedImage forKey:username];
-                          }
-                      }];
-            [downloadPhotoTask resume];
-        });
+    NSCharacterSet *allowed = [NSCharacterSet URLQueryAllowedCharacterSet];
+    NSString *encodedName =
+        [username stringByAddingPercentEncodingWithAllowedCharacters:allowed];
+    NSURL *url = [NSURL
+        URLWithString:[NSString
+                          stringWithFormat:
+                              @"https://www.pente.org/gameServer/avatar?name=%@",
+                              encodedName]];
+    NSURLRequest *avatarRequest = [NSURLRequest requestWithURL:url];
+    AFHTTPSessionManager *avatarManager = [[AFHTTPSessionManager alloc]
+        initWithSessionConfiguration:NSURLSessionConfiguration
+                                         .defaultSessionConfiguration];
+    avatarManager.responseSerializer = [AFImageResponseSerializer serializer];
+
+    __weak typeof(self) weakSelf = self;
+    NSURLSessionDataTask *task = [avatarManager
+              dataTaskWithRequest:avatarRequest
+                   uploadProgress:nil
+                 downloadProgress:nil
+                completionHandler:^(NSURLResponse *response, id responseObject,
+                                    NSError *error) {
+                    __strong typeof(weakSelf) strongSelf = weakSelf;
+                    if (!strongSelf) {
+                        return;
+                    }
+                    dispatch_async(dispatch_get_main_queue(), ^{
+                        [strongSelf.pendingAvatarChecks removeObject:username];
+                        if ([responseObject isKindOfClass:[UIImage class]]) {
+                            [strongSelf.avatars setObject:responseObject
+                                                   forKey:username];
+//                        } else {
+//                            NSLog(@"Avatar for %@ failed: %@", username, error);
+                        }
+                    });
+                }];
+    [task resume];
 }
 
 - (NSAttributedString *)markIfOnline:(NSString *)name
