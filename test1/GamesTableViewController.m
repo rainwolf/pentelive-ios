@@ -172,6 +172,48 @@ CGFloat bottomOffset = 0;
     }
 
     //    [self toLive];
+
+    [[NSNotificationCenter defaultCenter]
+        addObserver:self
+           selector:@selector(avatarLoaded:)
+               name:PenteAvatarLoadedNotification
+             object:nil];
+}
+
+- (void)avatarLoaded:(NSNotification *)notification {
+    NSString *username = notification.userInfo[@"username"];
+    NSMutableArray *indexPaths = [NSMutableArray array];
+
+    void (^searchGames)(NSArray *, NSInteger) = ^(NSArray *games, NSInteger section) {
+        [games enumerateObjectsUsingBlock:^(Game *game, NSUInteger row, BOOL *stop) {
+            if ([[game opponentName] isEqualToString:username]) {
+                [indexPaths addObject:[NSIndexPath indexPathForRow:row inSection:section]];
+            }
+        }];
+    };
+
+    if (!activeGamesCollapsed)
+        searchGames(self.player.activeGames, ACTIVEGAMESSECTION);
+    if (!nonActiveGamesCollapsed)
+        searchGames(self.player.nonActiveGames, NONACTIVEGAMESSECTION);
+    if (!invitationsReceivedCollapsed)
+        searchGames(self.player.invitations, INVITATIONSSECTION);
+    if (!sentInvitationsCollapsed)
+        searchGames(self.player.sentInvitations, SENTINVITATIONSSECTION);
+    if (!publicInvitationsCollapsed)
+        searchGames(self.player.publicInvitations, PUBLICINVITATIONSSECTION);
+    if (!messagesCollapsed) {
+        [self.player.messages enumerateObjectsUsingBlock:^(Message *msg, NSUInteger row, BOOL *stop) {
+            if ([[msg author] isEqualToString:username]) {
+                [indexPaths addObject:[NSIndexPath indexPathForRow:row inSection:MESSAGESSECTION]];
+            }
+        }];
+    }
+
+    if (indexPaths.count > 0) {
+        [self.tableView reloadRowsAtIndexPaths:indexPaths
+                              withRowAnimation:UITableViewRowAnimationNone];
+    }
 }
 
 //-(void) toSettings {

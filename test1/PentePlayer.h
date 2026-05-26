@@ -22,6 +22,8 @@
 #define PERSONALIZEADSKEY @"personalizeAds"
 #define GDPRTERMSKEY @"termsAcceptedGDPR_0"
 
+extern NSString * const PenteAvatarLoadedNotification;
+
 @interface Game : NSObject {
     NSString *gameID, *setID, *gameType, *opponentName, *opponentRating,
         *myColor, *remainingTime, *ratedNot, *privateGame, *localizedTime,

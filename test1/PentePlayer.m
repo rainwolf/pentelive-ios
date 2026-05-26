@@ -9,6 +9,8 @@
 #import "PentePlayer.h"
 @import AFNetworking;
 
+NSString * const PenteAvatarLoadedNotification = @"PenteAvatarLoadedNotification";
+
 @implementation Game
 @synthesize setID;
 @synthesize gameID;
@@ -451,6 +453,12 @@
                           //                                                           UIImageView *imgV = [[UIImageView alloc] initWithImage: downloadedImage];
                           if (downloadedImage) {
                               [avatars setObject:downloadedImage forKey:username];
+                              dispatch_async(dispatch_get_main_queue(), ^{
+                                  [[NSNotificationCenter defaultCenter]
+                                      postNotificationName:PenteAvatarLoadedNotification
+                                      object:nil
+                                      userInfo:@{@"username": username}];
+                              });
                           }
                       }];
             [downloadPhotoTask resume];
