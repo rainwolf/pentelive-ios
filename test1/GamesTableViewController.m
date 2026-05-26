@@ -28,6 +28,13 @@
 #define usernameKey @"username"
 #define passwordKey @"password"
 
+// serverColor arrives as e.g. "white (p1)" or "black (p2)"
+static NSString *parseStoneColor(NSString *serverColor) {
+    if ([serverColor hasPrefix:@"white"]) return @"white";
+    if ([serverColor hasPrefix:@"black"]) return @"black";
+    return @"";
+}
+
 #define MESSAGESSECTION 0
 #define INVITATIONSSECTION 1
 #define ACTIVEGAMESSECTION 2
@@ -3742,7 +3749,7 @@ array, and add a new row to the table view
             [game setGameType:game_dict[@"gameName"]];
             [game setOpponentName:game_dict[@"opponentName"]];
             [game setOpponentRating:[game_dict[@"opponentRating"] stringValue]];
-            [game setMyColor:game_dict[@"color"]];
+            [game setMyColor:parseStoneColor(game_dict[@"color"])];
             [game setRemainingTime:game_dict[@"timeLeft"]];
             [game setRatedNot:game_dict[@"rated"]];
             [game setNameColor:UIColorFromRGB(
@@ -3768,7 +3775,7 @@ array, and add a new row to the table view
             [game setGameType:game_dict[@"gameName"]];
             [game setOpponentName:game_dict[@"opponentName"]];
             [game setOpponentRating:[game_dict[@"opponentRating"] stringValue]];
-            [game setMyColor:game_dict[@"color"]];
+            [game setMyColor:parseStoneColor(game_dict[@"color"])];
             [game setRemainingTime:game_dict[@"timeLeft"]];
             [game setRatedNot:game_dict[@"rated"]];
             [game setNameColor:UIColorFromRGB(
@@ -3811,7 +3818,7 @@ array, and add a new row to the table view
             [game setGameType:game_dict[@"gameName"]];
             [game setOpponentName:game_dict[@"inviterName"]];
             [game setOpponentRating:[game_dict[@"inviterRating"] stringValue]];
-            [game setMyColor:game_dict[@"color"]];
+            [game setMyColor:parseStoneColor(game_dict[@"color"])];
             [game setRemainingTime:
                       [NSString stringWithFormat:@"%@ days per move",
                                                  game_dict[@"daysPerMove"]]];
