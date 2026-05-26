@@ -115,6 +115,10 @@ CGFloat bottomOffset = 0;
     player = [[PentePlayer alloc] init];
     ((PenteNavigationViewController *)self.navigationController).player =
         player;
+    __weak typeof(self) weakSelf = self;
+    player.onAvatarLoaded = ^(NSString *username) {
+        [weakSelf.tableView reloadData];
+    };
     [super viewDidLoad];
     [self setTitle:NSLocalizedString(@"home", nil)];
 

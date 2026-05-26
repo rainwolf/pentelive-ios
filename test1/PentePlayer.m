@@ -455,6 +455,9 @@
                         if ([responseObject isKindOfClass:[UIImage class]]) {
                             [strongSelf.avatars setObject:responseObject
                                                    forKey:username];
+                            if (strongSelf.onAvatarLoaded) {
+                                strongSelf.onAvatarLoaded(username);
+                            }
 //                        } else {
 //                            NSLog(@"Avatar for %@ failed: %@", username, error);
                         }
