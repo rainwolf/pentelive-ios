@@ -446,6 +446,8 @@
     [aiPlayer getMove];
     //    NSLog(@"kitty move %i", newMove);
     activeGame = YES;
+    // sleep for 0.x seconds
+    [NSThread sleepForTimeInterval:0.18];
     [self replayGame:[[aiPlayer moves] count]];
     aiThinking = NO;
     [spinner performSelectorOnMainThread:@selector(stopAnimating)
