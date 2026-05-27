@@ -115,6 +115,15 @@ CGFloat bottomOffset = 0;
     player = [[PentePlayer alloc] init];
     ((PenteNavigationViewController *)self.navigationController).player =
         player;
+    __weak typeof(self) weakSelf = self;
+    player.onAvatarLoaded = ^(NSString *username) {
+        [NSObject cancelPreviousPerformRequestsWithTarget:weakSelf
+                                                 selector:@selector(reloadTableData)
+                                                   object:nil];
+        [weakSelf performSelector:@selector(reloadTableData)
+                       withObject:nil
+                       afterDelay:0.3];
+    };
     [super viewDidLoad];
     [self setTitle:NSLocalizedString(@"home", nil)];
 
@@ -188,6 +197,10 @@ CGFloat bottomOffset = 0;
 //    (PenteNavigationViewController *)self.navigationController];
 //    [self.navigationController pushViewController:vc animated:YES];
 //}
+
+- (void)reloadTableData {
+    [self.tableView reloadData];
+}
 
 - (void)viewDidAppear:(BOOL)animated {
     PenteNavigationViewController *navController =

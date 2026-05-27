@@ -120,6 +120,8 @@
 @property(nonatomic, retain, readwrite)
     NSDictionary<NSString *, NSString *> *onlinePlayers;
 
+@property (nonatomic, copy) void (^onAvatarLoaded)(NSString *username);
+
 - (void)addUser:(NSString *)username;
 - (NSAttributedString *)markIfOnline:(NSString *)name
                    andAttributedName:(NSAttributedString *)attributedString;
