@@ -182,7 +182,7 @@ class PlayerTableCell: UITableViewCell {
         
         tableViewController = nil
         if isArena {
-            let data: [String: Any] = ["game": 1, "timed": false, "initialMinutes": 5, "incrementalSeconds": 1, "rated": true, "playAs": 1]
+            let data: [String: Any] = ["game": 1, "timed": true, "initialMinutes": 5, "incrementalSeconds": 1, "rated": me.hasPrefix("guest") ? false : true, "playAs": 1]
             setupView = ArenaTableSetupView(data: data, socket: socket, me: me)
         }
     }

@@ -233,7 +233,7 @@ CGFloat bottomOffset = 0;
     //    [self performSelector:@selector(scrollViewDidScroll:) withObject:
     //    self.tableView afterDelay:.05f];
     [super viewDidAppear:animated];
-    [self performSelector:@selector(toLive) withObject:NULL afterDelay:.5f];
+//    [self performSelector:@selector(toLive) withObject:NULL afterDelay:.5f];
 }
 
 - (void)viewWillAppear:(BOOL)animated {

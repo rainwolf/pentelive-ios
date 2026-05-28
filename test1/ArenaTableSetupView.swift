@@ -197,6 +197,9 @@ class ArenaTableSetupView: UITableView, UITableViewDelegate, UITableViewDataSour
     func tableView(_: UITableView, didSelectRowAt indexPath: IndexPath) {
         var idx = 1
         if indexPath.row == idx {
+            if me.hasPrefix("guest") {
+                return
+            }
             if ratedCell.detailTextLabel?.text == NSLocalizedString("yes", comment: "") {
                 data?["rated"] = false
                 ratedCell.detailTextLabel?.text = NSLocalizedString("no", comment: "")
