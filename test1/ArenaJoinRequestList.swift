@@ -94,7 +94,7 @@ class ArenaJoinRequestList: UITableView, UITableViewDelegate, UITableViewDataSou
     }
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
-            let event = ["DSGArenaRejectTableJoinEvent": ["player": self.me!, "playerToReject": data[indexPath.row], "table": tableId!, "mesage": nil]]
+            let event = ["DSGArenaRejectTableJoinEvent": ["player": self.me!, "playerToReject": data[indexPath.row], "table": tableId!, "message": nil]]
             socket.sendEvent(eventDictionary: event)
         }
     }
