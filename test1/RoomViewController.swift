@@ -56,6 +56,8 @@ class PlayerTableCell: UITableViewCell {
     var playerNamesArray: [String] = []
     var isArena: Bool = false
     var setupView: ArenaTableSetupView?
+    private var joinCountdownOverlay: UIView?
+    private let joinCountdownDuration: CFTimeInterval = 6
 
     
     private let lockView = UIImageView(image: UIImage(named: "lock"))
@@ -263,12 +265,66 @@ class PlayerTableCell: UITableViewCell {
     
     func tableView(_: UITableView, didSelectRowAt indexPath: IndexPath) {
         if segmentControl.selectedSegmentIndex == 1 || isArena {
+            if isArena, joinCountdownOverlay != nil {
+                return
+            }
             let table = playersAndTables.tables[displayedTableKeys[indexPath.row]]!
             if table.open {
                 let eventDictionary = isArena ? ["dsgArenaRequestJoinTableEvent": ["table": table.table, "time": 0]] : ["dsgJoinTableEvent": ["table": table.table, "time": 0]]
                 socket.sendEvent(eventDictionary: eventDictionary)
+                if isArena {
+                    showJoinCountdown()
+                }
             }
         }
+    }
+
+    private func showJoinCountdown() {
+        guard joinCountdownOverlay == nil else { return }
+
+        let overlay = UIView(frame: view.bounds)
+        overlay.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        overlay.backgroundColor = UIColor.black.withAlphaComponent(0.3)
+
+        let radius: CGFloat = 40
+        let lineWidth: CGFloat = 6
+        let center = CGPoint(x: overlay.bounds.midX, y: overlay.bounds.midY)
+        let circlePath = UIBezierPath(arcCenter: center, radius: radius, startAngle: -.pi / 2, endAngle: .pi * 1.5, clockwise: true)
+
+        let track = CAShapeLayer()
+        track.path = circlePath.cgPath
+        track.strokeColor = UIColor.white.withAlphaComponent(0.3).cgColor
+        track.fillColor = UIColor.clear.cgColor
+        track.lineWidth = lineWidth
+        overlay.layer.addSublayer(track)
+
+        let progress = CAShapeLayer()
+        progress.path = circlePath.cgPath
+        progress.strokeColor = UIColor.systemGreen.cgColor
+        progress.fillColor = UIColor.clear.cgColor
+        progress.lineWidth = lineWidth
+        progress.lineCap = .round
+        progress.strokeEnd = 0
+        overlay.layer.addSublayer(progress)
+
+        let anim = CABasicAnimation(keyPath: "strokeEnd")
+        anim.fromValue = 1
+        anim.toValue = 0
+        anim.duration = joinCountdownDuration
+        anim.timingFunction = CAMediaTimingFunction(name: .linear)
+        progress.add(anim, forKey: "countdown")
+
+        view.addSubview(overlay)
+        joinCountdownOverlay = overlay
+
+        Timer.scheduledTimer(withTimeInterval: joinCountdownDuration, repeats: false) { [weak self] _ in
+            self?.hideJoinCountdown()
+        }
+    }
+
+    private func hideJoinCountdown() {
+        joinCountdownOverlay?.removeFromSuperview()
+        joinCountdownOverlay = nil
     }
     
     func tableView(_: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
