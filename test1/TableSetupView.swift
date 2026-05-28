@@ -60,7 +60,7 @@ class TableSetupView: UITableView, UITableViewDelegate, UITableViewDataSource, U
             if game % 2 == 0 {
                 game = game - 1
             }
-            cell.textField.text = table.gameNames[game]
+            cell.textField.text = Table.gameNames[game]
             gamePicker.selectRow(game / 2, inComponent: 0, animated: true)
 
             cell.textField.inputView = gamePicker
@@ -225,7 +225,7 @@ class TableSetupView: UITableView, UITableViewDelegate, UITableViewDataSource, U
 
     func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent _: Int) -> Int {
         if pickerView.tag == 1 {
-            return table.gameNames.count / 2
+            return Table.gameNames.count / 2
         }
         if pickerView.tag == 2 {
             return 119
@@ -238,7 +238,7 @@ class TableSetupView: UITableView, UITableViewDelegate, UITableViewDataSource, U
 
     func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent _: Int) -> String? {
         if pickerView.tag == 1 {
-            return table.gameNames[row * 2 + 1]
+            return Table.gameNames[row * 2 + 1]
         }
         if pickerView.tag == 2 {
             return "\(row)"
@@ -251,7 +251,7 @@ class TableSetupView: UITableView, UITableViewDelegate, UITableViewDataSource, U
 
     func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent _: Int) {
         if pickerView.tag == 1 {
-            gameCell?.textField.text = table.gameNames[row * 2 + 1]
+            gameCell?.textField.text = Table.gameNames[row * 2 + 1]
             table.game = row * 2 + 1
         }
         if pickerView.tag == 2 {

@@ -104,7 +104,7 @@ class Table: NSObject {
     
     var koMove = -1
     
-    let gameNames = [1: "Pente", 2: "Speed Pente", 3: "Keryo-Pente", 4: "Speed Keryo-Pente", 5: "Gomoku",
+    static let gameNames = [1: "Pente", 2: "Speed Pente", 3: "Keryo-Pente", 4: "Speed Keryo-Pente", 5: "Gomoku",
                      6: "Speed Gomoku", 7: "D-Pente", 8: "Speed D-Pente", 9: "G-Pente", 10: "Speed G-Pente",
                      11: "Poof-Pente", 12: "Speed Poof-Pente", 13: "Connect6", 14: "Speed Connect6",
                      15: "Boat-Pente", 16: "Speed Boat-Pente", 17: "DK-Pente", 18: "Speed DK-Pente",
@@ -120,7 +120,7 @@ class Table: NSObject {
     func shouldTimerRun() -> Bool {
         if timed {
             if moves.isEmpty {
-                let gameName = gameNames[game]!
+                let gameName = Table.gameNames[game]!
                 if gameName.contains("D-") || gameName.contains("DK-") || gameName.contains("Go") || gameName.contains("Swap2") {
                     return true
                 }
@@ -517,7 +517,7 @@ class Table: NSObject {
     }
     
     func gameName() -> String {
-        return gameNames[game]!
+        return Table.gameNames[game]!
     }
     
     func gameColor() -> UIColor {

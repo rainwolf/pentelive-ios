@@ -40,19 +40,28 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
     let verticalLine = LiveVerticalLine()
     var zoomedCellSize: CGFloat = 0
     var offSet: CGPoint!
-    var setupView: TableSetupView
+    var setupView: TableSetupView?
+    var arenaJoinRequestView: ArenaJoinRequestList?
+    weak var arenaJoinRequestVC: UIViewController?
+    var popoverView: PopoverView?
+    var isArenaTable = false
 
     var waitAlertController, invitationAlertController, inviteAlertController: UIAlertController?
     var tablesAndPlayers: TablesAndPlayer!
     var invitablePlayers: [String]!
     var pentePlayer: PentePlayer!
 
-    init(table: Table, socket: PenteLiveSocket, tablesAndPlayers: TablesAndPlayer, pente_player: PentePlayer, me: String) {
+    init(table: Table, socket: PenteLiveSocket, tablesAndPlayers: TablesAndPlayer, pente_player: PentePlayer, me: String, isArenaTable: Bool = false) {
+        self.isArenaTable = isArenaTable
         self.table = table
         self.socket = socket
         board = LiveBoard(table: table)
         zoomedBoard = LiveBoard(table: table)
-        setupView = TableSetupView(table: table, socket: socket, me: me)
+        if isArenaTable {
+            arenaJoinRequestView = ArenaJoinRequestList(socket: socket, me: me, tableAndPlayers: tablesAndPlayers, tableId: table.table, gameId: table.game)
+        } else {
+            setupView = TableSetupView(table: table, socket: socket, me: me)
+        }
         self.tablesAndPlayers = tablesAndPlayers
         pentePlayer = pente_player
         self.me = me
@@ -73,26 +82,17 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
         playButton.titleLabel?.font = UIFont.boldSystemFont(ofSize: 25)
         playButton.setTitleColor(UIColor.blue, for: .normal)
         playButton.addTarget(self, action: #selector(play), for: .touchUpInside)
-//        var button = UIButton(type: .custom)
-//        button.setImage(UIImage(named: "gamesettings"), for: .normal)
-//        button.addTarget(self, action:#selector(showSettings), for: .touchUpInside)
-//        button.frame = CGRect(x: 0, y: 0, width: 32, height: 32)
-//        let settingsItem = UIBarButtonItem(customView: button)
-        let settingsItem = UIBarButtonItem(image: UIImage(named: "gamesettings"), style: .plain, target: self, action: #selector(showSettings))
-//        button = UIButton(type: .custom)
-//        button.setImage(UIImage(named: "cancel"), for: .normal)
-//        button.addTarget(self, action:#selector(showOptions), for: .touchUpInside)
-//        button.frame = CGRect(x: 0, y: 0, width: 32, height: 32)
-//        let optionsItem = UIBarButtonItem(customView: button)
+
         let optionsItem = UIBarButtonItem(image: UIImage(named: "cancel"), style: .plain, target: self, action: #selector(showOptions))
-//        button = UIButton(type: .custom)
-//        button.setImage(UIImage(named: "onlineUsers"), for: .normal)
-//        button.addTarget(self, action:#selector(showPlayersOptions), for: .touchUpInside)
-//        button.frame = CGRect(x: 0, y: 0, width: 32, height: 32)
-        let onlineUsersItem = UIBarButtonItem(image: UIImage(named: "onlineUsers"), style: .plain, target: self, action: #selector(showPlayersOptions))
-        navigationItem.setRightBarButtonItems([settingsItem,
-                                               optionsItem,
-                                               onlineUsersItem], animated: true)
+        if !isArenaTable {
+            let settingsItem = UIBarButtonItem(image: UIImage(named: "gamesettings"), style: .plain, target: self, action: #selector(showSettings))
+            let onlineUsersItem = UIBarButtonItem(image: UIImage(named: "onlineUsers"), style: .plain, target: self, action: #selector(showPlayersOptions))
+            navigationItem.setRightBarButtonItems([settingsItem,
+                                                   optionsItem,
+                                                   onlineUsersItem], animated: true)
+        } else {
+            navigationItem.setRightBarButtonItems([optionsItem], animated: true)
+        }
     }
 
     required init(coder aDecoder: NSCoder) {
@@ -151,7 +151,11 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
         zoomedStone.isHidden = true
         view.addSubview(zoomedStone)
 
-        setupView.frame = CGRect(x: 0, y: 0, width: 4 * width / 5, height: 264)
+        if !isArenaTable {
+            setupView?.frame = CGRect(x: 0, y: 0, width: 4 * width / 5, height: 314)
+        } else {
+            arenaJoinRequestView!.frame = CGRect(x: 0, y: 0, width: 4 * width / 5, height: 214)
+        }
     }
 
     @objc func boardTouch(gestureReconizer: UILongPressGestureRecognizer) {
@@ -235,6 +239,15 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
     }
 
     @objc func backToMainRoom(sender _: UIBarButtonItem) {
+        exitTable()
+    }
+
+    @objc func exitTableFromArena() {
+        dismissArenaJoinRequest()
+        exitTable()
+    }
+
+    func exitTable() {
         if table.state.state == GameState.State.started {
             return
         }
@@ -274,8 +287,54 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
         textField.frame = frame
         let backBtn = UIBarButtonItem(title: NSLocalizedString("Exit", comment: ""), style: UIBarButtonItem.Style.plain, target: self, action: #selector(backToMainRoom))
         navigationItem.leftBarButtonItem = backBtn
+        if isArenaTable && table.players.count == 1 {
+            showArenaJoinRequest()
+        }
+    }
+    
+    func showArenaJoinRequest() {
+        if isArenaTable, let requestView = arenaJoinRequestView {
+            if arenaJoinRequestVC == nil {
+                let contentWidth = 4 * view.frame.width / 5
+                let contentHeight: CGFloat = 214
+                let buttonHeight: CGFloat = 44
+
+                let requestVC = UIViewController()
+                requestVC.preferredContentSize = CGSize(width: contentWidth, height: contentHeight)
+
+                requestView.frame = CGRect(x: 0, y: 0, width: contentWidth, height: contentHeight - buttonHeight)
+                requestVC.view.addSubview(requestView)
+
+                let exitButton = UIButton(type: .system)
+                exitButton.setTitle(NSLocalizedString("Exit Table", comment: ""), for: .normal)
+                exitButton.setTitleColor(.red, for: .normal)
+                exitButton.titleLabel?.font = UIFont.boldSystemFont(ofSize: 22)
+                exitButton.frame = CGRect(x: 0, y: contentHeight - buttonHeight, width: contentWidth, height: buttonHeight)
+                exitButton.addTarget(self, action: #selector(exitTableFromArena), for: .touchUpInside)
+                requestVC.view.addSubview(exitButton)
+
+                requestVC.modalPresentationStyle = .popover
+                requestVC.isModalInPresentation = true
+                if let popover = requestVC.popoverPresentationController {
+                    popover.delegate = self
+                    popover.sourceView = view
+                    popover.sourceRect = CGRect(x: view.bounds.size.width - 20, y: board.frame.origin.y, width: 0, height: 0)
+                    popover.permittedArrowDirections = .up
+                }
+                arenaJoinRequestVC = requestVC
+                present(arenaJoinRequestVC!, animated: true)
+            } else {
+                present(arenaJoinRequestVC!, animated: true)
+            }
+        }
     }
 
+    func dismissArenaJoinRequest() {
+        arenaJoinRequestView?.reset()
+        arenaJoinRequestVC?.dismiss(animated: true)
+        arenaJoinRequestVC = nil
+    }
+    
     override func viewDidDisappear(_: Bool) {
         NotificationCenter.default.removeObserver(self)
     }
@@ -283,7 +342,7 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
     @objc func showSettings() {
         if me == table.owner, table.state.state == .notStarted {
             let popover = PopoverView()
-            setupView.reloadData()
+            setupView?.reloadData()
             popover.delegate = self
             popover.show(at: CGPoint(x: view.bounds.size.width - 20, y: board.frame.origin.y), in: view, withContentView: setupView)
         }
@@ -341,15 +400,13 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
             }
             alertController.addAction(dismissAction)
             if let popoverController = alertController.popoverPresentationController {
-                popoverController.barButtonItem = navigationItem.rightBarButtonItems?[1]
+                popoverController.barButtonItem = navigationItem.rightBarButtonItems?[isArenaTable ? 0 : 1]
             }
 //            self.presentViewController(alertController, animated: true, completion: nil)
             present(alertController, animated: true)
 //            print("kitten")
         }
     }
-
-    func popoverViewDidDismiss(_: PopoverView!) {}
 
     @objc func showPlayersOptions() {
         if table.owner == me {
@@ -435,6 +492,11 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
             self.present(self.inviteAlertController!, animated: true)
         }
     }
+    
+    func arenaTableRequestJoinEvent(event: [String: Any]) {
+        let playerName = event["player"] as! String
+        arenaJoinRequestView?.addPlayer(name: playerName)
+    }
 
     func showBootDialog() {
         DispatchQueue.main.async {
@@ -484,7 +546,7 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
     }
 
     func stateChanged() {
-        setupView.reloadData()
+        setupView?.reloadData()
         board.backgroundColor = table.gameColor(); zoomedBoard.backgroundColor = table.gameColor()
         board.go = table.isGo(); zoomedBoard.go = table.isGo()
         if table.game == 22 || table.game == 21 {
@@ -899,12 +961,17 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
         addText(text: NSLocalizedString("\(playerName) has left the table", comment: ""))
         if playerName == me {
             _ = navigationController?.popViewController(animated: true)
+        } else if isArenaTable && table.players.count == 1 {
+            showArenaJoinRequest()
         }
     }
 
     func tableJoinEvent(event: [String: Any]) {
         let playerName = event["player"] as! String
         addText(text: NSLocalizedString("\(playerName) has joined the table", comment: ""))
+        if isArenaTable && table.players.count == 2 {
+            dismissArenaJoinRequest()
+        }
     }
 
     func bootEvent(player: String, by: String) {
@@ -939,13 +1006,13 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
         if invitationAlertController != nil, (invitationAlertController?.isBeingPresented)! {
             return
         }
-        if setupView.gameCell != nil, (setupView.gameCell?.textField.isFirstResponder)! {
+        if setupView?.gameCell != nil, (setupView?.gameCell?.textField.isFirstResponder)! {
             return
         }
-        if setupView.initialMinutesCell != nil, (setupView.initialMinutesCell?.textField.isFirstResponder)! {
+        if setupView?.initialMinutesCell != nil, (setupView?.initialMinutesCell?.textField.isFirstResponder)! {
             return
         }
-        if setupView.incrementalSecondsCell != nil, (setupView.incrementalSecondsCell?.textField.isFirstResponder)! {
+        if setupView?.incrementalSecondsCell != nil, (setupView?.incrementalSecondsCell?.textField.isFirstResponder)! {
             return
         }
         var bottomOffset: CGFloat = 0
@@ -1001,5 +1068,15 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
                 }
             }
         }
+    }
+}
+
+extension TableViewController: UIPopoverPresentationControllerDelegate {
+    func adaptivePresentationStyle(for _: UIPresentationController) -> UIModalPresentationStyle {
+        return .none
+    }
+
+    func popoverPresentationControllerShouldDismissPopover(_: UIPopoverPresentationController) -> Bool {
+        return false
     }
 }
