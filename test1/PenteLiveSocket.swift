@@ -26,7 +26,7 @@ import UIKit
         super.init()
         socket = GCDAsyncSocket(delegate: self, delegateQueue: DispatchQueue(label: "penteLiveDelegateQueue"))
         do {
-            print("connecting")
+            print("connecting: \(server):\(port)")
             try socket.connect(toHost: server, onPort: UInt16(port), withTimeout: 5)
         } catch {
             print("connecting error: \(error.localizedDescription)")
@@ -169,6 +169,8 @@ import UIKit
             room.rejectGoDeadStonesTableEvent(event: content as! [String: Any])
         } else if let content = event?["dsgSwap2PassTableEvent"] {
             room.swap2PassTableEvent(event: content as! [String: Any])
+        } else if let content = event?["dsgArenaRequestJoinTableEvent"] {
+            room.arenaRequestJoinTableEvent(event: content as! [String: Any])
         }
     }
 

@@ -55,6 +55,7 @@
 		636A99E51E4136C800D08C5D /* footprint.png in Resources */ = {isa = PBXBuildFile; fileRef = 636A99E31E4136C800D08C5D /* footprint.png */; };
 		636A99E61E4136C800D08C5D /* footprint@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 636A99E41E4136C800D08C5D /* footprint@2x.png */; };
 		637885CF1E5CCA360064DCE3 /* PenteWebViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 637885CE1E5CCA360064DCE3 /* PenteWebViewController.swift */; };
+		637BCC102FC627FE005F0446 /* ArenaJoinRequestList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 637BCC0F2FC627FE005F0446 /* ArenaJoinRequestList.swift */; };
 		637CC49416BAB32D00C4F10A /* PlainTableViewSectionHeader.png in Resources */ = {isa = PBXBuildFile; fileRef = 637CC49216BAB32D00C4F10A /* PlainTableViewSectionHeader.png */; };
 		637CC49516BAB32D00C4F10A /* PlainTableViewSectionHeader@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 637CC49316BAB32D00C4F10A /* PlainTableViewSectionHeader@2x.png */; };
 		637EA04216F645EF00DD499A /* MessagesViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 637EA04116F645EF00DD499A /* MessagesViewController.m */; };
@@ -175,6 +176,7 @@
 		63E69B0F1DF73FDE00BD21B7 /* TableSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63E69B0E1DF73FDE00BD21B7 /* TableSetupView.swift */; };
 		63EACA5D1712EA1200E3902B /* acceptButton.png in Resources */ = {isa = PBXBuildFile; fileRef = 63EACA5B1712EA1200E3902B /* acceptButton.png */; };
 		63EACA5E1712EA1200E3902B /* acceptButton@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 63EACA5C1712EA1200E3902B /* acceptButton@2x.png */; };
+		63EE6BFD2FC0CF280015D6F0 /* ArenaTableSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63EE6BFC2FC0CF280015D6F0 /* ArenaTableSetupView.swift */; };
 		63EF95CB2F6582CA001C269F /* PenteHTTPClient.m in Sources */ = {isa = PBXBuildFile; fileRef = 63EF95CA2F6582CA001C269F /* PenteHTTPClient.m */; };
 		63EFAEAB1DB570A50029DA41 /* DatabaseViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 63EFAEAA1DB570A50029DA41 /* DatabaseViewController.m */; };
 		63EFAEAE1DB576F60029DA41 /* DBBoardView.m in Sources */ = {isa = PBXBuildFile; fileRef = 63EFAEAD1DB576F60029DA41 /* DBBoardView.m */; };
@@ -268,6 +270,7 @@
 		637885CE1E5CCA360064DCE3 /* PenteWebViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PenteWebViewController.swift; sourceTree = "<group>"; };
 		6379451116AB74F200EA4ACA /* penteLive-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "penteLive-Info.plist"; sourceTree = "<group>"; };
 		6379451316AB75A000EA4ACA /* penteLive-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "penteLive-Info.plist"; path = "test1/penteLive-Info.plist"; sourceTree = "<group>"; };
+		637BCC0F2FC627FE005F0446 /* ArenaJoinRequestList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArenaJoinRequestList.swift; sourceTree = "<group>"; };
 		637CC49216BAB32D00C4F10A /* PlainTableViewSectionHeader.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = PlainTableViewSectionHeader.png; sourceTree = "<group>"; };
 		637CC49316BAB32D00C4F10A /* PlainTableViewSectionHeader@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "PlainTableViewSectionHeader@2x.png"; sourceTree = "<group>"; };
 		637EA04016F645EF00DD499A /* MessagesViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MessagesViewController.h; sourceTree = "<group>"; };
@@ -404,6 +407,7 @@
 		63E69B0E1DF73FDE00BD21B7 /* TableSetupView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TableSetupView.swift; sourceTree = "<group>"; };
 		63EACA5B1712EA1200E3902B /* acceptButton.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = acceptButton.png; sourceTree = "<group>"; };
 		63EACA5C1712EA1200E3902B /* acceptButton@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "acceptButton@2x.png"; sourceTree = "<group>"; };
+		63EE6BFC2FC0CF280015D6F0 /* ArenaTableSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArenaTableSetupView.swift; sourceTree = "<group>"; };
 		63EF95C92F6582CA001C269F /* PenteHTTPClient.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PenteHTTPClient.h; sourceTree = "<group>"; };
 		63EF95CA2F6582CA001C269F /* PenteHTTPClient.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PenteHTTPClient.m; sourceTree = "<group>"; };
 		63EFAEA91DB570A50029DA41 /* DatabaseViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DatabaseViewController.h; sourceTree = "<group>"; };
@@ -639,6 +643,8 @@
 				6353F6731DF569EB0094BB3B /* SeatsView.swift */,
 				6353F6751DF5C2EA0094BB3B /* LiveBoard.swift */,
 				63E69B0E1DF73FDE00BD21B7 /* TableSetupView.swift */,
+				63EE6BFC2FC0CF280015D6F0 /* ArenaTableSetupView.swift */,
+				637BCC0F2FC627FE005F0446 /* ArenaJoinRequestList.swift */,
 				63933F311DFAF5D3008FD0D6 /* TablePlayers.swift */,
 			);
 			name = "Live Game";
@@ -1097,6 +1103,7 @@
 				6397574A1667A4F100008555 /* BoardView.m in Sources */,
 				639A4BB01DF04902000894F5 /* PenteLiveSocket.swift in Sources */,
 				635ADAD3167880D9001041E3 /* BoardViewController.m in Sources */,
+				63EE6BFD2FC0CF280015D6F0 /* ArenaTableSetupView.swift in Sources */,
 				635ADAD9167882EC001041E3 /* GamesTableViewController.m in Sources */,
 				639A9CEF1D00C2FF0065B2FA /* InviteAIViewController.m in Sources */,
 				63A56016167BB86D00AB91D2 /* PentePlayer.m in Sources */,
@@ -1109,6 +1116,7 @@
 				63FEFD54168DFDA30070E9AA /* SettingsViewController.m in Sources */,
 				6396A37C1D38DE81004BC68D /* ChangeColorViewController.m in Sources */,
 				63933F321DFAF5D3008FD0D6 /* TablePlayers.swift in Sources */,
+				637BCC102FC627FE005F0446 /* ArenaJoinRequestList.swift in Sources */,
 				63FEFD651691CA9E0070E9AA /* InvitationsViewController.m in Sources */,
 				63EFAEAB1DB570A50029DA41 /* DatabaseViewController.m in Sources */,
 				6353F6721DF497C50094BB3B /* TableViewController.swift in Sources */,

@@ -14,19 +14,19 @@ class PlayerTableCell: UITableViewCell {
         super.layoutSubviews()
         frame.size.height = 44
         if (imageView?.image) != nil {
-//            let height = image.size.height
-//            let width = image.size.width
-//            var itemSize: CGSize
-//            if height < width {
-//                itemSize = CGSize(width: 44, height: 44*height/width)
-//            } else {
-//                itemSize = CGSize(width: 44*width/height, height: 44)
-//            }
-//            UIGraphicsBeginImageContextWithOptions(itemSize, false, 0.0)
-//            let imageRect = CGRect(x: 0.0, y: 0.0, width: itemSize.width, height: itemSize.height)
-//            imageView?.image!.draw(in: imageRect)
-//            imageView?.image! = UIGraphicsGetImageFromCurrentImageContext()!
-//            UIGraphicsEndImageContext()
+            //            let height = image.size.height
+            //            let width = image.size.width
+            //            var itemSize: CGSize
+            //            if height < width {
+            //                itemSize = CGSize(width: 44, height: 44*height/width)
+            //            } else {
+            //                itemSize = CGSize(width: 44*width/height, height: 44)
+            //            }
+            //            UIGraphicsBeginImageContextWithOptions(itemSize, false, 0.0)
+            //            let imageRect = CGRect(x: 0.0, y: 0.0, width: itemSize.width, height: itemSize.height)
+            //            imageView?.image!.draw(in: imageRect)
+            //            imageView?.image! = UIGraphicsGetImageFromCurrentImageContext()!
+            //            UIGraphicsEndImageContext()
             imageView?.frame = CGRect(x: 10, y: 0, width: 44, height: 44)
             imageView?.contentMode = .scaleAspectFit
             var frame = textLabel?.frame
@@ -36,17 +36,15 @@ class PlayerTableCell: UITableViewCell {
     }
 }
 
-@objc class RoomViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, UITextFieldDelegate {
+@objc class RoomViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, UITextFieldDelegate, PopoverViewDelegate {
     @objc var room: GameRoom
     var socket: PenteLiveSocket!
-    let segmentControl = UISegmentedControl(items: [NSLocalizedString("players", comment: ""), NSLocalizedString("tables", comment: "")])
+    var segmentControl = UISegmentedControl(items: [NSLocalizedString("players", comment: ""), NSLocalizedString("tables", comment: "")])
     var playersAndTables = TablesAndPlayer()
-//    var players: [String:LivePlayer] = [String:LivePlayer]()
-//    var tables: [Int:Table] = [Int:Table]()
     var tableView: UITableView = .init()
     var textView: UITextView = .init()
     var textField = UITextField()
-    var me = ""
+    var me: String = ""
     var tableViewController: TableViewController?
     var invitationAlertController: UIAlertController?
     var newplayerSndID: SystemSoundID!
@@ -56,44 +54,62 @@ class PlayerTableCell: UITableViewCell {
     var wantsToSeeAvatars = UserDefaults.standard.bool(forKey: "wantToSeeAvatars")
     let playSounds = !UserDefaults.standard.bool(forKey: "inAppSoundsOff")
     var playerNamesArray: [String] = []
+    var isArena: Bool = false
+    var setupView: ArenaTableSetupView?
+    private var joinCountdownOverlay: UIView?
+    private let joinCountdownDuration: CFTimeInterval = 6
 
+    
     private let lockView = UIImageView(image: UIImage(named: "lock"))
-
+    
     override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
-        room = GameRoom(name: "Main Room", port: 16000)
+        room = GameRoom(name: "Arena", port: 15999)
+        isArena = true
         super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
         initerface(room: room)
     }
-
+    
     init(room: GameRoom) {
         self.room = room
+        if room.name.lowercased().contains("arena") {
+            isArena = true
+        }
         super.init(nibName: nil, bundle: nil)
         initerface(room: room)
     }
-
+    
     func initerface(room: GameRoom) {
         tableView.delegate = self
         tableView.dataSource = self
-        tableView.tableHeaderView = segmentControl
+        tableView.tableHeaderView = isArena ? UISegmentedControl(items: [NSLocalizedString("tables", comment: "")]) : segmentControl
         tableView.rowHeight = UITableView.automaticDimension
         tableView.estimatedRowHeight = 44.0
         segmentControl.selectedSegmentIndex = 0
         segmentControl.addTarget(tableView, action: #selector(tableView.reloadData), for: UIControl.Event.valueChanged)
         view.addSubview(tableView)
-        textView.layer.borderWidth = 2.0
-        textView.layer.cornerRadius = 2.0
-        textView.isEditable = false
-        textView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(enterText)))
-        view.addSubview(textView)
-        textField.delegate = self
-        textField.layer.borderWidth = 1.0
-        textField.layer.cornerRadius = 1.0
-        textField.returnKeyType = .send
-        textField.backgroundColor = UIColor.white
-        view.addSubview(textField)
+        if !isArena {
+            textView.layer.borderWidth = 2.0
+            textView.layer.cornerRadius = 2.0
+            textView.isEditable = false
+            textView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(enterText)))
+            view.addSubview(textView)
+            textField.delegate = self
+            textField.layer.borderWidth = 1.0
+            textField.layer.cornerRadius = 1.0
+            textField.returnKeyType = .send
+            textField.backgroundColor = UIColor.white
+            view.addSubview(textField)
+        } else {
+//            adjust the tableView frame to reach the bottom of the screen
+            tableView.frame.size.height = tableView.frame.size.height * 3 / 2
+        }
         navigationItem.title = room.name
-
-        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.add, target: self, action: #selector(createTable))
+        
+        if isArena {
+            navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.add, target: self, action: #selector(createArenaTable))
+        } else {
+            navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.add, target: self, action: #selector(createTable))
+        }
         var sndPath = Bundle.main.path(forResource: "newplayer", ofType: "caf")
         var url = URL(fileURLWithPath: sndPath!)
         var sndID: SystemSoundID = 0
@@ -112,13 +128,20 @@ class PlayerTableCell: UITableViewCell {
         //        if development {
         //            me = "iostest"
         //        }
-    }
 
+        if development {
+            socket = PenteLiveSocket(server: "localhost", port: room.port, room: self)
+            //            socket = PenteLiveSocket(server: "localhost", port: room.port, room: self)
+        } else {
+            socket = PenteLiveSocket(server: "pente.org", port: room.port, room: self)
+        }
+    }
+    
     required init(coder aDecoder: NSCoder) {
         room = GameRoom()
         super.init(coder: aDecoder)!
     }
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -136,72 +159,77 @@ class PlayerTableCell: UITableViewCell {
         frame.origin.y = frame.origin.y + frame.size.height
         frame.size.height = 40
         textField.frame = frame
-//        print("1")
-//        self.pentePlayer = (self.navigationController as! PenteNavigationViewController).player
-//                print("jitty \(self.pentePlayer?.playerName)")
-        if development {
-            socket = PenteLiveSocket(server: "localhost", port: room.port, room: self)
-//            socket = PenteLiveSocket(server: "localhost", port: room.port, room: self)
-        } else {
-            socket = PenteLiveSocket(server: "pente.org", port: room.port, room: self)
-        }
-//        socket.room = self
-//        print("2")
     }
-
+    
     override func willMove(toParent parent: UIViewController?) {
         super.willMove(toParent: parent)
         if parent == nil {
             // The back button was pressed or interactive gesture used
             print("leaving")
-//            let eventDictionary = ["dsgExitMainRoomEvent":["player":UserDefaults.standard.string(forKey: "username")!,"booted":false, "time":0]]
-//            socket.sendEvent(eventDictionary: eventDictionary)
-//            let url = URL(string: "https://\(socket.server)/gameServer/bootMeMobile.jsp")
-//            let session = URLSession.shared
-//            _ = session.dataTask(with: url as URL!, completionHandler: { (data: Data?, response: URLResponse?, error: Error?) in
-//                if error == nil {
-//                    self.socket.disconnect()
-//                }
-//            }).resume()
+            //            let eventDictionary = ["dsgExitMainRoomEvent":["player":UserDefaults.standard.string(forKey: "username")!,"booted":false, "time":0]]
+            //            socket.sendEvent(eventDictionary: eventDictionary)
+            //            let url = URL(string: "https://\(socket.server)/gameServer/bootMeMobile.jsp")
+            //            let session = URLSession.shared
+            //            _ = session.dataTask(with: url as URL!, completionHandler: { (data: Data?, response: URLResponse?, error: Error?) in
+            //                if error == nil {
+            //                    self.socket.disconnect()
+            //                }
+            //            }).resume()
             socket.disconnect()
         }
     }
-
+    
     override func viewDidAppear(_: Bool) {
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShowHide), name: UIResponder.keyboardWillChangeFrameNotification, object: nil)
-
+        
         tableViewController = nil
+        if isArena {
+            let data: [String: Any] = ["game": 1, "timed": true, "initialMinutes": 5, "incrementalSeconds": 1, "rated": me.hasPrefix("guest") ? false : true, "playAs": 1]
+            setupView = ArenaTableSetupView(data: data, socket: socket, me: me)
+        }
     }
-
+    
     override func viewDidDisappear(_: Bool) {
         NotificationCenter.default.removeObserver(self)
     }
-
+    
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
-
+    
     func numberOfSections(in _: UITableView) -> Int {
         return 1
     }
-
-    func tableView(_: UITableView, numberOfRowsInSection _: Int) -> Int {
-        segmentControl.setTitle("\(NSLocalizedString("players", comment: "")) (\(playersAndTables.players.count))", forSegmentAt: 0)
-        segmentControl.setTitle("\(NSLocalizedString("tables", comment: "")) (\(playersAndTables.tables.count))", forSegmentAt: 1)
-        if segmentControl.selectedSegmentIndex == 0 {
-            return playersAndTables.players.count
-        } else {
-            return playersAndTables.tables.count
+    
+    private var displayedTableKeys: [Int] {
+        let keys = Array(playersAndTables.tables.keys)
+        if isArena {
+            return keys.filter { playersAndTables.tables[$0]?.players.count == 1 }
         }
+        return keys
     }
 
+    func tableView(_: UITableView, numberOfRowsInSection _: Int) -> Int {
+        if isArena {
+            segmentControl.setTitle("\(NSLocalizedString("tables", comment: "")) (\(displayedTableKeys.count))", forSegmentAt: 0)
+        } else {
+            segmentControl.setTitle("\(NSLocalizedString("players", comment: "")) (\(playersAndTables.players.count))", forSegmentAt: 0)
+            segmentControl.setTitle("\(NSLocalizedString("tables", comment: "")) (\(playersAndTables.tables.count))", forSegmentAt: 1)
+        }
+        if segmentControl.selectedSegmentIndex == 0 && !isArena{
+            return playersAndTables.players.count
+        } else {
+            return displayedTableKeys.count
+        }
+    }
+    
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        if segmentControl.selectedSegmentIndex == 0 {
+        if segmentControl.selectedSegmentIndex == 0 && !isArena {
             let cell = tableView.dequeueReusableCell(withIdentifier: "playerCell") ?? PlayerTableCell(style: .value1, reuseIdentifier: "playerCell")
             let player = playersAndTables.players[playerNamesArray[indexPath.row]]!
             cell.textLabel?.textAlignment = .center
-
+            
             cell.textLabel?.font = UIFont(name: "HelveticaNeue", size: 16)
             cell.textLabel?.attributedText = player.getNameString()
             cell.textLabel?.numberOfLines = 0
@@ -219,8 +247,7 @@ class PlayerTableCell: UITableViewCell {
             return cell
         } else {
             let cell = tableView.dequeueReusableCell(withIdentifier: "tableCell") ?? UITableViewCell(style: .default, reuseIdentifier: "tableCell")
-            let tablesArray = Array(playersAndTables.tables.keys)
-            let table = playersAndTables.tables[tablesArray[indexPath.row]]!
+            let table = playersAndTables.tables[displayedTableKeys[indexPath.row]]!
             cell.textLabel?.attributedText = table.makeAttributedString()
             cell.textLabel?.numberOfLines = 0
             cell.backgroundColor = table.gameColor()
@@ -235,29 +262,82 @@ class PlayerTableCell: UITableViewCell {
             return cell
         }
     }
-
+    
     func tableView(_: UITableView, didSelectRowAt indexPath: IndexPath) {
-        if segmentControl.selectedSegmentIndex == 1 {
-            let tablesArray = Array(playersAndTables.tables.keys)
-            let table = playersAndTables.tables[tablesArray[indexPath.row]]!
+        if segmentControl.selectedSegmentIndex == 1 || isArena {
+            if isArena, joinCountdownOverlay != nil {
+                return
+            }
+            let table = playersAndTables.tables[displayedTableKeys[indexPath.row]]!
             if table.open {
-                let eventDictionary = ["dsgJoinTableEvent": ["table": table.table, "time": 0]]
+                let eventDictionary = isArena ? ["dsgArenaRequestJoinTableEvent": ["table": table.table, "time": 0]] : ["dsgJoinTableEvent": ["table": table.table, "time": 0]]
                 socket.sendEvent(eventDictionary: eventDictionary)
+                if isArena {
+                    showJoinCountdown()
+                }
             }
         }
     }
 
+    private func showJoinCountdown() {
+        guard joinCountdownOverlay == nil else { return }
+
+        let overlay = UIView(frame: view.bounds)
+        overlay.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        overlay.backgroundColor = UIColor.black.withAlphaComponent(0.3)
+
+        let radius: CGFloat = 40
+        let lineWidth: CGFloat = 6
+        let center = CGPoint(x: overlay.bounds.midX, y: overlay.bounds.midY)
+        let circlePath = UIBezierPath(arcCenter: center, radius: radius, startAngle: -.pi / 2, endAngle: .pi * 1.5, clockwise: true)
+
+        let track = CAShapeLayer()
+        track.path = circlePath.cgPath
+        track.strokeColor = UIColor.white.withAlphaComponent(0.3).cgColor
+        track.fillColor = UIColor.clear.cgColor
+        track.lineWidth = lineWidth
+        overlay.layer.addSublayer(track)
+
+        let progress = CAShapeLayer()
+        progress.path = circlePath.cgPath
+        progress.strokeColor = UIColor.systemGreen.cgColor
+        progress.fillColor = UIColor.clear.cgColor
+        progress.lineWidth = lineWidth
+        progress.lineCap = .round
+        progress.strokeEnd = 0
+        overlay.layer.addSublayer(progress)
+
+        let anim = CABasicAnimation(keyPath: "strokeEnd")
+        anim.fromValue = 1
+        anim.toValue = 0
+        anim.duration = joinCountdownDuration
+        anim.timingFunction = CAMediaTimingFunction(name: .linear)
+        progress.add(anim, forKey: "countdown")
+
+        view.addSubview(overlay)
+        joinCountdownOverlay = overlay
+
+        Timer.scheduledTimer(withTimeInterval: joinCountdownDuration, repeats: false) { [weak self] _ in
+            self?.hideJoinCountdown()
+        }
+    }
+
+    private func hideJoinCountdown() {
+        joinCountdownOverlay?.removeFromSuperview()
+        joinCountdownOverlay = nil
+    }
+    
     func tableView(_: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
-        if segmentControl.selectedSegmentIndex == 0 && playerNamesArray[indexPath.row] != me {
+        if !isArena && segmentControl.selectedSegmentIndex == 0 && playerNamesArray[indexPath.row] != me {
             return true
         }
         return false
     }
-
+    
     func tableView(_: UITableView, editingStyleForRowAt _: IndexPath) -> UITableViewCell.EditingStyle {
         return .delete
     }
-
+    
     func tableView(_: UITableView, titleForDeleteConfirmationButtonForRowAt indexPath: IndexPath) -> String? {
         let player = playersAndTables.players[playerNamesArray[indexPath.row]]!
         if player.muted {
@@ -266,15 +346,15 @@ class PlayerTableCell: UITableViewCell {
             return "mute"
         }
     }
-
+    
     func tableView(_: UITableView, commit _: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         let player = playersAndTables.players[playerNamesArray[indexPath.row]]!
         player.muted = !player.muted
     }
-
+    
     func loginEvent(event: [String: Any]) {
-        pentePlayer?.playerName = (event["player"] as! String)
-        me = pentePlayer!.playerName
+        me = (event["player"] as! String)
+        pentePlayer?.playerName = me
         socket.me = me
         let serverData = event["serverData"] as! [String: Any]
         let messages: [String] = serverData["loginMessages"] as! [String]
@@ -284,9 +364,9 @@ class PlayerTableCell: UITableViewCell {
             }
         }
     }
-
+    
     func joinMainRoomEvent(event: [String: Any]) {
-//        print(event)
+        //        print(event)
         let playerName = event["player"] as! String
         let playerData = event["dsgPlayerData"] as! [String: Any]
         let gameData: [[String: AnyObject]] = playerData["gameData"] as! [[String: AnyObject]]
@@ -308,7 +388,7 @@ class PlayerTableCell: UITableViewCell {
                 }
             }
         }
-
+        
         if myCrown > 0 {
             player.crown = myCrown
         } else if myKotHCrown > 0 {
@@ -322,7 +402,7 @@ class PlayerTableCell: UITableViewCell {
         } else {
             player.color = UIColor.black
         }
-//        player.color = UIColor.black
+        //        player.color = UIColor.black
         player.subscriber = playerData["unlimitedTBGames"] as! Bool
         if wantsToSeeAvatars, player.subscriber {
             pentePlayer?.addUser(playerName)
@@ -337,7 +417,7 @@ class PlayerTableCell: UITableViewCell {
             self.addText(text: NSLocalizedString("* \(playerName) has joined the main room", comment: ""))
         }
     }
-
+    
     func updatePlayerDataEvent(event: [String: Any]) {
         let playerData = event["data"] as! [String: Any]
         let gameData: [[String: AnyObject]] = playerData["gameData"] as! [[String: AnyObject]]
@@ -380,7 +460,7 @@ class PlayerTableCell: UITableViewCell {
             self.tableView.reloadData()
         }
     }
-
+    
     func exitMainRoomEvent(event: [String: Any]) {
         let playerName = event["player"] as! String
         DispatchQueue.main.async {
@@ -390,7 +470,7 @@ class PlayerTableCell: UITableViewCell {
             self.addText(text: NSLocalizedString("\(playerName) has left the main room", comment: ""))
         }
     }
-
+    
     func addRoomText(event: [String: Any]) {
         let playerName = event["player"] as! String
         let text = event["text"] as! String
@@ -401,15 +481,33 @@ class PlayerTableCell: UITableViewCell {
             }
         }
     }
-
+    
     func addText(text: String) {
         textView.text = "\(textView.text!)\(text)\n"
         textView.scrollRangeToVisible(NSRange(location: textView.text.count - 1, length: 1))
     }
-
+    
     @objc func createTable() {
         let createEvent = ["dsgJoinTableEvent": ["table": -1, "time": 0]]
         socket.sendEvent(eventDictionary: createEvent)
+    }
+
+    @objc func createArenaTable() {
+        self.setupView?.frame = CGRect(x: 0, y: 0, width: 4 * self.view.frame.width / 5, height: 360)
+        let popover = PopoverView()
+        self.setupView?.reloadData()
+        self.setupView?.popoverView = popover
+        popover.delegate = self
+        popover.show(at: CGPoint(x: view.bounds.size.width - 20, y: view.frame.origin.y), in: view, withContentView: setupView)
+    }
+    
+    func arenaRequestJoinTableEvent(event: [String: Any]) {
+        let tableId = event["table"] as! Int
+        if self.tableViewController!.table.table == tableId {
+            DispatchQueue.main.async {
+                self.tableViewController?.arenaTableRequestJoinEvent(event: event)
+            }
+        }
     }
 
     func disconnected() {
@@ -418,11 +516,11 @@ class PlayerTableCell: UITableViewCell {
         }
         _ = navigationController?.popViewController(animated: true)
     }
-
+    
     func inviteTableEvent(event: [String: Any]) {
         DispatchQueue.main.async {
             let tableId = event["table"] as! Int
-//            let table = self.tables[tableId]!
+            //            let table = self.tables[tableId]!
             let invitingPlayer = event["player"] as! String
             let invitedPlayer = event["toInvite"] as! String
             let inviteText = event["inviteText"] as! String
@@ -475,7 +573,7 @@ class PlayerTableCell: UITableViewCell {
             }
         }
     }
-
+    
     func inviteResponseTableEvent(event: [String: Any]) {
         DispatchQueue.main.async {
             let toPlayer = event["toPlayer"] as! String
@@ -503,20 +601,22 @@ class PlayerTableCell: UITableViewCell {
                 }
             }
         }
-
-//        {"dsgInviteResponseTableEvent":{"toPlayer":"rainwolf","responseText":"okay then","accept":true,"ignore":false,"player":"iostest","table":1,"time":1481281037855}}
+        
+        //        {"dsgInviteResponseTableEvent":{"toPlayer":"rainwolf","responseText":"okay then","accept":true,"ignore":false,"player":"iostest","table":1,"time":1481281037855}}
     }
-
+    
     func joinTableEvent(event: [String: Any]) {
+        let tableId = event["table"] as! Int
+        let playerName = event["player"] as! String
+        self.playersAndTables.joinTable(tableId: tableId, player: playerName)
+        let table = self.playersAndTables.table(tableId: tableId)
+        self.tableView.reloadData()
+        if playerName == self.me {
+            self.tableViewController = TableViewController(table: table!, socket: self.socket, tablesAndPlayers: self.playersAndTables, pente_player: self.pentePlayer!, me: self.me, isArenaTable: self.isArena)
+            self.tableViewController?.pentePlayer = self.pentePlayer
+        }
         DispatchQueue.main.async {
-            let tableId = event["table"] as! Int
-            let playerName = event["player"] as! String
-            self.playersAndTables.joinTable(tableId: tableId, player: playerName)
-            let table = self.playersAndTables.table(tableId: tableId)
-            self.tableView.reloadData()
             if playerName == self.me {
-                self.tableViewController = TableViewController(table: table!, socket: self.socket, tablesAndPlayers: self.playersAndTables, pente_player: self.pentePlayer!, me: self.me)
-//                self.tableViewController?.pentePlayer = self.pentePlayer
                 self.navigationController?.pushViewController(self.tableViewController!, animated: true)
             } else {
                 if tableId == self.tableViewController?.table.table {
@@ -525,7 +625,7 @@ class PlayerTableCell: UITableViewCell {
             }
         }
     }
-
+    
     func exitTableEvent(event: [String: Any]) {
         DispatchQueue.main.async {
             let tableId = event["table"] as! Int
@@ -537,7 +637,7 @@ class PlayerTableCell: UITableViewCell {
             }
         }
     }
-
+    
     func changeTableEvent(event: [String: Any]) {
         let tableId = event["table"] as! Int
         playersAndTables.changeTable(event: event)
@@ -548,7 +648,7 @@ class PlayerTableCell: UITableViewCell {
             }
         }
     }
-
+    
     func sitTableEvent(event: [String: Any]) {
         DispatchQueue.main.async {
             let tableId = event["table"] as! Int
@@ -561,7 +661,7 @@ class PlayerTableCell: UITableViewCell {
             }
         }
     }
-
+    
     func standTableEvent(event: [String: Any]) {
         DispatchQueue.main.async {
             let tableId = event["table"] as! Int
@@ -573,7 +673,7 @@ class PlayerTableCell: UITableViewCell {
             }
         }
     }
-
+    
     func ownerTableEvent(event: [String: Any]) {
         DispatchQueue.main.async {
             let tableId = event["table"] as! Int
@@ -586,12 +686,12 @@ class PlayerTableCell: UITableViewCell {
             }
         }
     }
-
+    
     func timerChangeTableEvent(event: [String: Any]) {
         DispatchQueue.main.async {
             let tableId = event["table"] as! Int
-            var minutes = event["minutes"] as! Int
-            var seconds = event["seconds"] as! Int
+            let minutes = event["minutes"] as! Int
+            let seconds = event["seconds"] as! Int
             var millis = 0
             if event["millis"] as? Int == nil {
                 millis = (60 * minutes + seconds) * 1000
@@ -605,7 +705,7 @@ class PlayerTableCell: UITableViewCell {
             }
         }
     }
-
+    
     func gameStateTableEvent(event: [String: Any]) {
         DispatchQueue.main.async {
             let tableId = event["table"] as! Int
@@ -625,7 +725,7 @@ class PlayerTableCell: UITableViewCell {
             }
         }
     }
-
+    
     func swapSeatsTableEvent(event: [String: Any]) {
         DispatchQueue.main.async {
             let tableId = event["table"] as! Int
@@ -640,7 +740,7 @@ class PlayerTableCell: UITableViewCell {
             }
         }
     }
-
+    
     func swap2PassTableEvent(event: [String: Any]) {
         DispatchQueue.main.async {
             let tableId = event["table"] as! Int
@@ -651,7 +751,7 @@ class PlayerTableCell: UITableViewCell {
             }
         }
     }
-
+    
     func rejectGoDeadStonesTableEvent(event: [String: Any]) {
         DispatchQueue.main.async {
             let tableId = event["table"] as! Int
@@ -665,21 +765,21 @@ class PlayerTableCell: UITableViewCell {
             }
         }
     }
-
+    
     func undoRequestTableEvent(event: [String: Any]) {
         DispatchQueue.main.async {
             let tableId = event["table"] as! Int
             if self.playersAndTables.table(tableId: tableId) == nil {
                 return
             }
-//            let table = self.tables[tableId]!
+            //            let table = self.tables[tableId]!
             if tableId == self.tableViewController?.table.table {
                 let playerName = event["player"] as! String
                 self.tableViewController?.requestUndo(player: playerName)
             }
         }
     }
-
+    
     func replyUndoRequestTableEvent(event: [String: Any]) {
         DispatchQueue.main.async {
             let tableId = event["table"] as! Int
@@ -693,7 +793,7 @@ class PlayerTableCell: UITableViewCell {
             }
         }
     }
-
+    
     func cancelRequestTableEvent(event: [String: Any]) {
         DispatchQueue.main.async {
             let tableId = event["table"] as! Int
@@ -706,7 +806,7 @@ class PlayerTableCell: UITableViewCell {
             }
         }
     }
-
+    
     func cancelRequestReplyTableEvent(event: [String: Any]) {
         DispatchQueue.main.async {
             let tableId = event["table"] as! Int
@@ -722,7 +822,7 @@ class PlayerTableCell: UITableViewCell {
             }
         }
     }
-
+    
     func waitingPlayerReturnTimeUpTableEvent(event: [String: Any]) {
         DispatchQueue.main.async {
             let tableId = event["table"] as! Int
@@ -735,29 +835,29 @@ class PlayerTableCell: UITableViewCell {
             }
         }
     }
-
-//    func forceCancelResignTableEvent(event: [String: Any]) {
-//        DispatchQueue.main.async {
-//            let tableId = event["table"] as! Int
-//            if self.tables[tableId] == nil {
-//                return
-//            }
-//            if tableId == self.tableViewController?.table.table {
-//                //                let playerName = event["player"] as! String
-//                let accepted = event["accepted"] as! Bool
-//                if !accepted {
-//                    self.tableViewController?.addText(text: NSLocalizedString("* game cancellation declined *", comment: ""))
-//                }
-//            }
-//        }
-//    }
-
+    
+    //    func forceCancelResignTableEvent(event: [String: Any]) {
+    //        DispatchQueue.main.async {
+    //            let tableId = event["table"] as! Int
+    //            if self.tables[tableId] == nil {
+    //                return
+    //            }
+    //            if tableId == self.tableViewController?.table.table {
+    //                //                let playerName = event["player"] as! String
+    //                let accepted = event["accepted"] as! Bool
+    //                if !accepted {
+    //                    self.tableViewController?.addText(text: NSLocalizedString("* game cancellation declined *", comment: ""))
+    //                }
+    //            }
+    //        }
+    //    }
+    
     func moveTableEvent(event: [String: Any]) {
         let tableId = event["table"] as! Int
         if playersAndTables.table(tableId: tableId) == nil {
             return
         }
-//        let table = tables[tableId]!
+        //        let table = tables[tableId]!
         let move = event["move"] as! Int
         let moves = event["moves"] as! [Int]
         DispatchQueue.main.async {
@@ -774,13 +874,13 @@ class PlayerTableCell: UITableViewCell {
             }
         }
     }
-
+    
     func systemMessageTableEvent(event: [String: Any]) {
         let tableId = event["table"] as! Int
         if playersAndTables.table(tableId: tableId) == nil {
             return
         }
-//        let table = tables[tableId]!
+        //        let table = tables[tableId]!
         let message = event["message"] as! String
         DispatchQueue.main.async {
             if tableId == self.tableViewController?.table.table {
@@ -788,7 +888,7 @@ class PlayerTableCell: UITableViewCell {
             }
         }
     }
-
+    
     func UIColorFromRGB(rgbValue: Int) -> UIColor {
         return UIColor(
             red: CGFloat((rgbValue & 0xFF0000) >> 16) / 255.0,
@@ -797,7 +897,7 @@ class PlayerTableCell: UITableViewCell {
             alpha: CGFloat(1.0)
         )
     }
-
+    
     func addTableText(event: [String: Any]) {
         let playerName = event["player"] as! String
         let text = event["text"] as! String
@@ -809,7 +909,7 @@ class PlayerTableCell: UITableViewCell {
             }
         }
     }
-
+    
     func bootFromTableEvent(event: [String: Any]) {
         DispatchQueue.main.async {
             let table = event["table"] as! Int
@@ -824,7 +924,7 @@ class PlayerTableCell: UITableViewCell {
             }
         }
     }
-
+    
     func joinTableErrorEvent(event: [String: Any]) {
         let error = event["error"] as! Int
         if error == 22 {
@@ -833,12 +933,12 @@ class PlayerTableCell: UITableViewCell {
             }
         }
     }
-
+    
     @objc func enterText() {
         textField.text = ""
         textField.becomeFirstResponder()
     }
-
+    
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         textField.resignFirstResponder()
         if textField.text! != "" {
@@ -847,7 +947,7 @@ class PlayerTableCell: UITableViewCell {
         }
         return false
     }
-
+    
     @objc func keyboardWillShowHide(notification: NSNotification) {
         if invitationAlertController != nil, (invitationAlertController?.isBeingPresented)! {
             return
@@ -856,7 +956,7 @@ class PlayerTableCell: UITableViewCell {
         if UIDevice.current.userInterfaceIdiom == .phone, Int(UIScreen.main.nativeBounds.size.height) == 2436 {
             bottomOffset = 34.0
         }
-
+        
         let info = notification.userInfo
         var keyboardHeight: CGFloat = 0.0
         if (info?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue.origin.y == view.frame.origin.y + view.bounds.size.height {
@@ -864,7 +964,7 @@ class PlayerTableCell: UITableViewCell {
         } else {
             keyboardHeight = ((info?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue.height)!
         }
-//        print("keyboardWillShowHide \(keyboardHeight)")
+        //        print("keyboardWillShowHide \(keyboardHeight)")
         var frame = textView.frame
         if keyboardHeight == 0 {
             frame.origin.y = tableView.frame.origin.y + tableView.frame.size.height
