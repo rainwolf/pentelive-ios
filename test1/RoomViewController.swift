@@ -408,7 +408,10 @@ class PlayerTableCell: UITableViewCell {
             pentePlayer?.addUser(playerName)
         }
         DispatchQueue.main.async {
-            if self.playSounds {
+            // In an arena room, don't play the new-player sound when other players
+            // join the main room. It plays instead when you receive a join request
+            // (arenaRequestJoinTableEvent) and when a player joins your table (joinTableEvent).
+            if self.playSounds && !self.isArena {
                 AudioServicesPlaySystemSound(self.newplayerSndID)
             }
             self.playersAndTables.addPlayer(player: player)
@@ -505,6 +508,10 @@ class PlayerTableCell: UITableViewCell {
         let tableId = event["table"] as! Int
         if self.tableViewController!.table.table == tableId {
             DispatchQueue.main.async {
+                // Play the new-player sound when you receive a join request for your arena table.
+                if self.playSounds {
+                    AudioServicesPlaySystemSound(self.newplayerSndID)
+                }
                 self.tableViewController?.arenaTableRequestJoinEvent(event: event)
             }
         }
@@ -620,6 +627,10 @@ class PlayerTableCell: UITableViewCell {
                 self.navigationController?.pushViewController(self.tableViewController!, animated: true)
             } else {
                 if tableId == self.tableViewController?.table.table {
+                    // Play the new-player sound when a player joins your arena table.
+                    if self.playSounds && self.isArena {
+                        AudioServicesPlaySystemSound(self.newplayerSndID)
+                    }
                     self.tableViewController?.tableJoinEvent(event: event)
                 }
             }
