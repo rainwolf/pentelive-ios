@@ -204,10 +204,15 @@ class PlayerTableCell: UITableViewCell {
     
     private var displayedTableKeys: [Int] {
         let keys = Array(playersAndTables.tables.keys)
-        if isArena {
-            return keys.filter { playersAndTables.tables[$0]?.players.count == 1 }
+        // Guest users should not see rated tables.
+        let isGuest = me.lowercased().hasPrefix("guest")
+        return keys.filter {
+            guard let table = playersAndTables.tables[$0] else { return false }
+            if isGuest && table.rated { return false }
+            // Arena only shows open (single-player) tables.
+            if isArena && table.players.count != 1 { return false }
+            return true
         }
-        return keys
     }
 
     func tableView(_: UITableView, numberOfRowsInSection _: Int) -> Int {
