@@ -24,6 +24,7 @@
 #import "BoardViewController.h"
 #import "DBBoardView.h"
 #import "MMAI.h"
+#import "PenteGame.h"
 #import "PopoverView.h"
 #import "TSMessage.h"
 #import "TSMessageView.h"
@@ -35,6 +36,7 @@
     int finalMove, whiteCaptures, blackCaptures, lastMove;
     char coordinateLetters[19];
     BOOL aiThinking;
+    PenteGame *penteGame;
 }
 @synthesize aiPlayer;
 @synthesize board;
@@ -61,14 +63,11 @@
 
 BoardViewController *boardController;
 
-struct Capture {
-    int color;
-    int position;
-};
-
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view, typically from a nib.
+    penteGame = [[PenteGame alloc] init];
+    penteGame.abstractBoard = abstractBoard;
     aiThinking = NO;
 
     coordinateLetters[0] = 'A';
@@ -520,56 +519,17 @@ struct Capture {
                                    atPosition:finalMove];
                 if ([game containsString:@"Keryo-Pente"] ||
                     [game containsString:@"DK-Pente"] ||
+                    [game containsString:@"Swap2-Keryo"] ||
                     [game containsString:@"O-Pente"]) {
                     [self detectKeryoCaptureOfOpponent:opponentColor
                                             atPosition:finalMove];
                 }
                 if ([game containsString:@"G-Pente"] &&
                     [movesList count] == 2) {
-                    for (int i = 7; i < 12; ++i) {
-                        for (int j = 7; j < 12; ++j) {
-                            if (abstractBoard[i][j] == 0) {
-                                abstractBoard[i][j] = -1;
-                            }
-                        }
-                    }
-                    for (int i = 1; i < 3; ++i) {
-                        if (abstractBoard[9][11 + i] == 0) {
-                            abstractBoard[9][11 + i] = -1;
-                        }
-                        if (abstractBoard[9][7 - i] == 0) {
-                            abstractBoard[9][7 - i] = -1;
-                        }
-                        if (abstractBoard[11 + i][9] == 0) {
-                            abstractBoard[11 + i][9] = -1;
-                        }
-                        if (abstractBoard[7 - i][9] == 0) {
-                            abstractBoard[7 - i][9] = -1;
-                        }
-                    }
+                    [penteGame maskGPenteOpening];
                 } else if ([game containsString:@"G-Pente"] &&
                            [movesList count] == 3) {
-                    for (int i = 7; i < 12; ++i) {
-                        for (int j = 7; j < 12; ++j) {
-                            if (abstractBoard[i][j] == -1) {
-                                abstractBoard[i][j] = 0;
-                            }
-                        }
-                    }
-                    for (int i = 1; i < 3; ++i) {
-                        if (abstractBoard[9][11 + i] == -1) {
-                            abstractBoard[9][11 + i] = 0;
-                        }
-                        if (abstractBoard[9][7 - i] == -1) {
-                            abstractBoard[9][7 - i] = 0;
-                        }
-                        if (abstractBoard[11 + i][9] == -1) {
-                            abstractBoard[11 + i][9] = 0;
-                        }
-                        if (abstractBoard[7 - i][9] == -1) {
-                            abstractBoard[7 - i][9] = 0;
-                        }
-                    }
+                    [penteGame unmaskGPenteOpening];
                 }
             }
             if ([game containsString:@"Connect6"]) {
@@ -678,383 +638,385 @@ struct Capture {
     [self.progressView startAnimating];
     [self.view addSubview:self.progressView];
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-            //    [[NSRunLoop mainRunLoop] runUntilDate:[NSDate
-            //    dateWithTimeIntervalSinceNow:2.0]];
-            NSMutableString *movesStr = [[NSMutableString alloc] init];
-            for (NSNumber *move in movesList) {
-                int moveInt = [move intValue];
-                [movesStr
-                    appendString:[NSString stringWithFormat:
-                                               @"%c%d,",
-                                               coordinateLetters[moveInt % 19],
-                                               19 - (moveInt / 19)]];
-            }
-            NSString *winnerStr = @"0";
-            if (setupView.winnerCell.detailTextLabel.text) {
-                if ([setupView.winnerCell.detailTextLabel.text
-                        isEqualToString:NSLocalizedString(@"player 1", nil)]) {
-                    winnerStr = @"1";
-                } else if ([setupView.winnerCell.detailTextLabel.text
-                               isEqualToString:NSLocalizedString(@"player 2",
-                                                                 nil)]) {
-                    winnerStr = @"2";
-                }
-            }
-            NSString *afterStr = setupView.afterCell.textField.text,
-                     *beforeStr = setupView.beforeCell.textField.text;
-            if (afterStr && ![afterStr isEqualToString:@""]) {
-                afterStr =
-                    [NSString stringWithFormat:@"&after_date=%@", afterStr];
-            } else {
-                afterStr = @"";
-            }
-            if (beforeStr && ![beforeStr isEqualToString:@""]) {
-                beforeStr =
-                    [NSString stringWithFormat:@"&before_date=%@", beforeStr];
-            } else {
-                beforeStr = @"";
-            }
-            NSString *p1Str =
-                [setupView.player1Cell.textField.text lowercaseString];
-            if (p1Str == nil) {
-                p1Str = @"";
-            }
-            NSString *p2Str =
-                [setupView.player2Cell.textField.text lowercaseString];
-            if (p2Str == nil) {
-                p2Str = @"";
-            }
-            NSString *gameStr;
-            if (game) {
-                gameStr = game;
-            } else {
-                gameStr = setupView.gameCell.textField.text;
-            }
-            if (!game) {
-                game = @"Pente";
-            }
-            NSString *p1RatingStr = setupView.p1RatingCell.textField.text;
-            if (p1RatingStr == nil) {
-                p1RatingStr = [defaults objectForKey:@"DBP1Rating"];
-            }
-            if (p1RatingStr == nil || [p1RatingStr isEqualToString:@""]) {
-                p1RatingStr = @"0";
-            } else {
-                [defaults setObject:p1RatingStr forKey:@"DBP1Rating"];
-            }
-            NSString *p2RatingStr = setupView.p2RatingCell.textField.text;
-            if (p2RatingStr == nil) {
-                p2RatingStr = [defaults objectForKey:@"DBP2Rating"];
-            }
-            if (p2RatingStr == nil || [p2RatingStr isEqualToString:@""]) {
-                p2RatingStr = @"0";
-            } else {
-                [defaults setObject:p2RatingStr forKey:@"DBP2Rating"];
-            }
-            NSString *bothOrEitherStr =
-                setupView.eitherOrBothp1p2Cell.detailTextLabel.text;
-            if (!bothOrEitherStr) {
-                bothOrEitherStr = [defaults objectForKey:@"DBBothOrEither"];
-            }
-            if (!bothOrEitherStr ||
-                [bothOrEitherStr
-                    isEqualToString:NSLocalizedString(@"both", nil)]) {
-                bothOrEitherStr = @"";
-            } else {
-                bothOrEitherStr = @"&p1_or_p2=true";
-            }
-            NSString *excludeTimeoutStr =
-                setupView.excludeTimeoutCell.detailTextLabel.text;
-            if (!excludeTimeoutStr) {
-                excludeTimeoutStr =
-                    [defaults objectForKey:@"DBExcludeTimeouts"];
-            }
-            if (!excludeTimeoutStr ||
-                [excludeTimeoutStr
-                    isEqualToString:NSLocalizedString(@"no", nil)]) {
-                excludeTimeoutStr = @"";
-            } else {
-                excludeTimeoutStr = @"&exclude_timeout=true";
-            }
-            NSString *liveOrTBStr = setupView.liveOrTBCell.detailTextLabel.text;
-            if (!liveOrTBStr) {
-                liveOrTBStr = [defaults objectForKey:@"DBLiveOrTB"];
-            } else {
-                [defaults setObject:liveOrTBStr forKey:@"DBLiveOrTB"];
-            }
-            if (!liveOrTBStr ||
-                [liveOrTBStr isEqualToString:NSLocalizedString(@"all", nil)]) {
-                liveOrTBStr = @"";
-            } else {
-                if ([liveOrTBStr
-                        isEqualToString:NSLocalizedString(@"live only", nil)]) {
-                    liveOrTBStr = @"&only_live=yes";
-                } else {
-                    liveOrTBStr = @"&only_turn_based=yes";
-                }
-            }
-            //        NSLog(@"testkitty %@", [NSString
-            //        stringWithFormat:@"start_game_num=0&end_game_num=100&player_1_name=%@&player_2_name=%@&game=%@&site=All%%20Sites&event=All%%20Events&round=All%%20Rounds&section=All%%20Sections&winner=%@%@%@&p1_rating_above=%@&p2_rating_above=%@%@%@%@&iPhone=yes",
-            //        p1Str, p2Str, gameStr, winnerStr, afterStr, beforeStr,
-            //        p1RatingStr, p2RatingStr, bothOrEitherStr,
-            //        excludeTimeoutStr, liveOrTBStr]);
-            int sort = 1;
-            NSString *sortString = setupView.sortCell.detailTextLabel.text;
-            if (!sortString) {
-                sortString = [defaults stringForKey:@"DBSort"];
-            }
-            if (sortString &&
-                ![sortString
-                    isEqualToString:NSLocalizedString(@"popularity", nil)]) {
-                sort = 2;
-            }
-            NSString *getStr = [NSString
-                stringWithFormat:
-                    @"moves=%@&response_format=org.pente.gameDatabase."
-                    @"SimpleHtmlGameStorerSearchResponseFormat&response_params="
-                    @"%@&"
-                    @"results_order=%i&filter_data=%@",
-                    [self URLEncodedString_ch:movesStr],
-                    [self URLEncodedString_ch:@"zippedPartNumParam=1"], sort,
-                    [self URLEncodedString_ch:
-                              [NSString
-                                  stringWithFormat:
-                                      @"start_game_num=0&end_game_num=100&"
-                                      @"player_1_"
-                                      @"name=%@&player_2_name=%@&game=%@&site="
-                                      @"All%%"
-                                      @"20Sites&event=All%%20Events&round=All%%"
-                                      @"20Rounds&section=All%%20Sections&"
-                                      @"winner=%@%"
-                                      @"@%@&p1_rating_above=%@&p2_rating_above="
-                                      @"%@%@"
-                                      @"%@%@&iPhone=yes",
-                                      p1Str, p2Str, gameStr, winnerStr,
-                                      afterStr, beforeStr, p1RatingStr,
-                                      p2RatingStr, bothOrEitherStr,
-                                      excludeTimeoutStr, liveOrTBStr]]];
+    //    [[NSRunLoop mainRunLoop] runUntilDate:[NSDate
+    //    dateWithTimeIntervalSinceNow:2.0]];
+    NSMutableString *movesStr = [[NSMutableString alloc] init];
+    for (NSNumber *move in movesList) {
+        int moveInt = [move intValue];
+        [movesStr
+            appendString:[NSString
+                             stringWithFormat:@"%c%d,",
+                                              coordinateLetters[moveInt % 19],
+                                              19 - (moveInt / 19)]];
+    }
+    NSString *winnerStr = @"0";
+    if (setupView.winnerCell.detailTextLabel.text) {
+        if ([setupView.winnerCell.detailTextLabel.text
+                isEqualToString:NSLocalizedString(@"player 1", nil)]) {
+            winnerStr = @"1";
+        } else if ([setupView.winnerCell.detailTextLabel.text
+                       isEqualToString:NSLocalizedString(@"player 2", nil)]) {
+            winnerStr = @"2";
+        }
+    }
+    NSString *afterStr = setupView.afterCell.textField.text,
+             *beforeStr = setupView.beforeCell.textField.text;
+    if (afterStr && ![afterStr isEqualToString:@""]) {
+        afterStr = [NSString stringWithFormat:@"&after_date=%@", afterStr];
+    } else {
+        afterStr = @"";
+    }
+    if (beforeStr && ![beforeStr isEqualToString:@""]) {
+        beforeStr = [NSString stringWithFormat:@"&before_date=%@", beforeStr];
+    } else {
+        beforeStr = @"";
+    }
+    NSString *p1Str = [setupView.player1Cell.textField.text lowercaseString];
+    if (p1Str == nil) {
+        p1Str = @"";
+    }
+    NSString *p2Str = [setupView.player2Cell.textField.text lowercaseString];
+    if (p2Str == nil) {
+        p2Str = @"";
+    }
+    NSString *gameStr;
+    if (game) {
+        gameStr = game;
+    } else {
+        gameStr = setupView.gameCell.textField.text;
+    }
+    if (!game) {
+        game = @"Pente";
+    }
+    NSString *p1RatingStr = setupView.p1RatingCell.textField.text;
+    if (p1RatingStr == nil) {
+        p1RatingStr = [defaults objectForKey:@"DBP1Rating"];
+    }
+    if (p1RatingStr == nil || [p1RatingStr isEqualToString:@""]) {
+        p1RatingStr = @"0";
+    } else {
+        [defaults setObject:p1RatingStr forKey:@"DBP1Rating"];
+    }
+    NSString *p2RatingStr = setupView.p2RatingCell.textField.text;
+    if (p2RatingStr == nil) {
+        p2RatingStr = [defaults objectForKey:@"DBP2Rating"];
+    }
+    if (p2RatingStr == nil || [p2RatingStr isEqualToString:@""]) {
+        p2RatingStr = @"0";
+    } else {
+        [defaults setObject:p2RatingStr forKey:@"DBP2Rating"];
+    }
+    NSString *bothOrEitherStr =
+        setupView.eitherOrBothp1p2Cell.detailTextLabel.text;
+    if (!bothOrEitherStr) {
+        bothOrEitherStr = [defaults objectForKey:@"DBBothOrEither"];
+    }
+    if (!bothOrEitherStr ||
+        [bothOrEitherStr isEqualToString:NSLocalizedString(@"both", nil)]) {
+        bothOrEitherStr = @"";
+    } else {
+        bothOrEitherStr = @"&p1_or_p2=true";
+    }
+    NSString *excludeTimeoutStr =
+        setupView.excludeTimeoutCell.detailTextLabel.text;
+    if (!excludeTimeoutStr) {
+        excludeTimeoutStr = [defaults objectForKey:@"DBExcludeTimeouts"];
+    }
+    if (!excludeTimeoutStr ||
+        [excludeTimeoutStr isEqualToString:NSLocalizedString(@"no", nil)]) {
+        excludeTimeoutStr = @"";
+    } else {
+        excludeTimeoutStr = @"&exclude_timeout=true";
+    }
+    NSString *liveOrTBStr = setupView.liveOrTBCell.detailTextLabel.text;
+    if (!liveOrTBStr) {
+        liveOrTBStr = [defaults objectForKey:@"DBLiveOrTB"];
+    } else {
+        [defaults setObject:liveOrTBStr forKey:@"DBLiveOrTB"];
+    }
+    if (!liveOrTBStr ||
+        [liveOrTBStr isEqualToString:NSLocalizedString(@"all", nil)]) {
+        liveOrTBStr = @"";
+    } else {
+        if ([liveOrTBStr
+                isEqualToString:NSLocalizedString(@"live only", nil)]) {
+            liveOrTBStr = @"&only_live=yes";
+        } else {
+            liveOrTBStr = @"&only_turn_based=yes";
+        }
+    }
+    //        NSLog(@"testkitty %@", [NSString
+    //        stringWithFormat:@"start_game_num=0&end_game_num=100&player_1_name=%@&player_2_name=%@&game=%@&site=All%%20Sites&event=All%%20Events&round=All%%20Rounds&section=All%%20Sections&winner=%@%@%@&p1_rating_above=%@&p2_rating_above=%@%@%@%@&iPhone=yes",
+    //        p1Str, p2Str, gameStr, winnerStr, afterStr, beforeStr,
+    //        p1RatingStr, p2RatingStr, bothOrEitherStr,
+    //        excludeTimeoutStr, liveOrTBStr]);
+    int sort = 1;
+    NSString *sortString = setupView.sortCell.detailTextLabel.text;
+    if (!sortString) {
+        sortString = [defaults stringForKey:@"DBSort"];
+    }
+    if (sortString &&
+        ![sortString isEqualToString:NSLocalizedString(@"popularity", nil)]) {
+        sort = 2;
+    }
+    NSString *getStr = [NSString
+        stringWithFormat:
+            @"moves=%@&response_format=org.pente.gameDatabase."
+            @"SimpleHtmlGameStorerSearchResponseFormat&response_params="
+            @"%@&"
+            @"results_order=%i&filter_data=%@",
+            [self URLEncodedString_ch:movesStr],
+            [self URLEncodedString_ch:@"zippedPartNumParam=1"], sort,
+            [self URLEncodedString_ch:
+                      [NSString stringWithFormat:
+                                    @"start_game_num=0&end_game_num=100&"
+                                    @"player_1_"
+                                    @"name=%@&player_2_name=%@&game=%@&site="
+                                    @"All%%"
+                                    @"20Sites&event=All%%20Events&round=All%%"
+                                    @"20Rounds&section=All%%20Sections&"
+                                    @"winner=%@%"
+                                    @"@%@&p1_rating_above=%@&p2_rating_above="
+                                    @"%@%@"
+                                    @"%@%@&iPhone=yes",
+                                    p1Str, p2Str, gameStr, winnerStr, afterStr,
+                                    beforeStr, p1RatingStr, p2RatingStr,
+                                    bothOrEitherStr, excludeTimeoutStr,
+                                    liveOrTBStr]]];
 
-            //        NSLog(@"\ngetkittyyyyyyString -\n%@-", [self
-            //        URLEncodedString_ch:getStr]);
-            //        NSLog(@"\n\ngetkittyyyyyyString
-            //        -\n%@-", getStr);
-            NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
-            NSString *url = [NSString
-                stringWithFormat:
-                    @"https://www.pente.org/gameServer/mobileController/"
-                    @"search?json=&format_name=org.pente.gameDatabase."
-                    @"SimpleGameStorerSearchRequestFormat&format_data=%@",
-                    [self URLEncodedString_ch:getStr]];
-            if (development) {
-                url = [NSString
-                    stringWithFormat:
-                        @"https://localhost/gameServer/mobileController/"
-                        @"search?json=&format_name=org.pente.gameDatabase."
-                        @"SimpleGameStorerSearchRequestFormat&format_data=%@",
-                        [self URLEncodedString_ch:getStr]];
-            }
-            [request setURL:[NSURL URLWithString:url]];
-            [request setHTTPMethod:@"GET"];
-            [request setTimeoutInterval:200.0];
-            [PenteHTTPClient sendRequest:request completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
-            NSString *dashboardString =
-                [[NSString alloc] initWithData:responseData
-                                      encoding:NSUTF8StringEncoding];
-            //            NSLog(@"kittyyyyyyString -\n%@-", dashboardString);
+    //        NSLog(@"\ngetkittyyyyyyString -\n%@-", [self
+    //        URLEncodedString_ch:getStr]);
+    //        NSLog(@"\n\ngetkittyyyyyyString
+    //        -\n%@-", getStr);
+    NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
+    NSString *url = [NSString
+        stringWithFormat:@"https://www.pente.org/gameServer/mobileController/"
+                         @"search?json=&format_name=org.pente.gameDatabase."
+                         @"SimpleGameStorerSearchRequestFormat&format_data=%@",
+                         [self URLEncodedString_ch:getStr]];
+    if (development) {
+        url =
+            [NSString stringWithFormat:
+                          @"https://localhost/gameServer/mobileController/"
+                          @"search?json=&format_name=org.pente.gameDatabase."
+                          @"SimpleGameStorerSearchRequestFormat&format_data=%@",
+                          [self URLEncodedString_ch:getStr]];
+    }
+    [request setURL:[NSURL URLWithString:url]];
+    [request setHTTPMethod:@"GET"];
+    [request setTimeoutInterval:200.0];
+    [PenteHTTPClient
+        sendRequest:request
+         completion:^(NSData *responseData, NSURLResponse *response,
+                      NSError *error) {
+             NSString *dashboardString =
+                 [[NSString alloc] initWithData:responseData
+                                       encoding:NSUTF8StringEncoding];
+             //            NSLog(@"kittyyyyyyString -\n%@-", dashboardString);
 
-            if (error) {
-                UIAlertView *alert = [[UIAlertView alloc]
-                        initWithTitle:NSLocalizedString(@"Error", nil)
-                              message:[NSString stringWithFormat:
-                                                    NSLocalizedString(
-                                                        @"Reason: %@", nil),
-                                                    error.localizedDescription]
-                             delegate:nil
-                    cancelButtonTitle:@"OK"
-                    otherButtonTitles:nil];
-                //        [alert show];
-                [alert show];
-                [self.progressView stopAnimating];
-                [self.progressView removeFromSuperview];
-                return;
-            }
+             if (error) {
+                 UIAlertView *alert = [[UIAlertView alloc]
+                         initWithTitle:NSLocalizedString(@"Error", nil)
+                               message:[NSString stringWithFormat:
+                                                     NSLocalizedString(
+                                                         @"Reason: %@", nil),
+                                                     error.localizedDescription]
+                              delegate:nil
+                     cancelButtonTitle:@"OK"
+                     otherButtonTitles:nil];
+                 //        [alert show];
+                 [alert show];
+                 [self.progressView stopAnimating];
+                 [self.progressView removeFromSuperview];
+                 return;
+             }
 
-            moveStatsString = [[NSMutableString alloc] init];
-            for (int i = 0; i < [movesList count]; ++i) {
-                int rowCol = [[movesList objectAtIndex:i] intValue];
-                if (i == 0) {
-                    [moveStatsString appendString:@"<center><b>1.</b> "];
-                } else {
-                    if ([game containsString:@"Connect6"]) {
-                        if (((i - 3) % 4) == 0) {
-                            [moveStatsString
-                                appendString:
-                                    [NSString
-                                        stringWithFormat:@"&nbsp; <b>%i.</b> ",
-                                                         (i >> 2) + 2]];
-                        } else if (((i - 3) % 4) == 2 || i == 1) {
-                            [moveStatsString appendString:@" - "];
-                        } else {
-                            [moveStatsString appendString:@"-"];
-                        }
-                    } else {
-                        if ((i % 2) == 0) {
-                            [moveStatsString
-                                appendString:
-                                    [NSString
-                                        stringWithFormat:@"&nbsp; <b>%i.</b> ",
-                                                         (i >> 1) + 1]];
-                        } else {
-                            [moveStatsString appendString:@" - "];
-                        }
-                    }
-                }
-                [moveStatsString
-                    appendString:[NSString
-                                     stringWithFormat:@"%c%d",
-                                                      coordinateLetters[rowCol %
-                                                                        19],
-                                                      19 - (rowCol / 19)]];
-            }
+             moveStatsString = [[NSMutableString alloc] init];
+             for (int i = 0; i < [movesList count]; ++i) {
+                 int rowCol = [[movesList objectAtIndex:i] intValue];
+                 if (i == 0) {
+                     [moveStatsString appendString:@"<center><b>1.</b> "];
+                 } else {
+                     if ([game containsString:@"Connect6"]) {
+                         if (((i - 3) % 4) == 0) {
+                             [moveStatsString
+                                 appendString:
+                                     [NSString
+                                         stringWithFormat:@"&nbsp; <b>%i.</b> ",
+                                                          (i >> 2) + 2]];
+                         } else if (((i - 3) % 4) == 2 || i == 1) {
+                             [moveStatsString appendString:@" - "];
+                         } else {
+                             [moveStatsString appendString:@"-"];
+                         }
+                     } else {
+                         if ((i % 2) == 0) {
+                             [moveStatsString
+                                 appendString:
+                                     [NSString
+                                         stringWithFormat:@"&nbsp; <b>%i.</b> ",
+                                                          (i >> 1) + 1]];
+                         } else {
+                             [moveStatsString appendString:@" - "];
+                         }
+                     }
+                 }
+                 [moveStatsString
+                     appendString:[NSString stringWithFormat:
+                                                @"%c%d",
+                                                coordinateLetters[rowCol % 19],
+                                                19 - (rowCol / 19)]];
+             }
 
-            NSMutableArray<NSNumber *> *moves = [[NSMutableArray alloc] init];
-            NSMutableArray<UIColor *> *colors = [[NSMutableArray alloc] init];
+             NSMutableArray<NSNumber *> *moves = [[NSMutableArray alloc] init];
+             NSMutableArray<UIColor *> *colors = [[NSMutableArray alloc] init];
 
-            dashboardString = @"";
-            NSError *jsonError = nil;
-            NSDictionary *jsonResponse =
-                [NSJSONSerialization JSONObjectWithData:responseData
-                                               options:0
-                                                 error:&jsonError];
-            if (!jsonError && jsonResponse &&
-                [jsonResponse[@"access"] boolValue] &&
-                ![jsonResponse[@"blocked"] boolValue]) {
-                for (NSNumber *moveNum in jsonResponse[@"moves"]) {
-                    [moves addObject:moveNum];
-                }
-                NSArray *occurrenceList = jsonResponse[@"occurrence"];
-                double max = 0.0, min = DBL_MAX;
-                for (NSString *pctStr in occurrenceList) {
-                    double v = [pctStr doubleValue];
-                    if (v > max) max = v;
-                    if (v < min) min = v;
-                }
-                if (max == min) {
-                    max = 100.0;
-                    min = 0.0;
-                }
-                for (NSString *pctStr in occurrenceList) {
-                    double dblValue = ([pctStr doubleValue] - min) / (max - min);
-                    if (dblValue <= 0.5) {
-                        [colors addObject:[UIColor colorWithRed:1.0
-                                                         green:(dblValue / 0.5)
-                                                          blue:0
-                                                         alpha:1]];
-                    } else {
-                        [colors addObject:[UIColor colorWithRed:(1.0 - dblValue) / 0.5
-                                                          green:1
-                                                           blue:0
-                                                          alpha:1]];
-                    }
-                }
-                NSMutableString *gamesHTML = [[NSMutableString alloc] init];
-                for (NSDictionary *gameEntry in jsonResponse[@"games"]) {
-                    NSString *viewUrl = gameEntry[@"viewUrl"];
-                    NSDictionary *p1 = gameEntry[@"player1"];
-                    NSDictionary *p2 = gameEntry[@"player2"];
-                    NSString *p1Name = [p1[@"winner"] boolValue]
-                        ? [NSString stringWithFormat:@"<b>%@</b>", p1[@"name"]]
-                        : p1[@"name"];
-                    NSString *p2Name = [p2[@"winner"] boolValue]
-                        ? [NSString stringWithFormat:@"<b>%@</b>", p2[@"name"]]
-                        : p2[@"name"];
-                    [gamesHTML appendFormat:
-                        @"<a href=\"https://www.pente.org%@\">%@ vs %@"
-                        @" - %@ (%@)</a><br>",
-                        viewUrl, p1Name, p2Name,
-                        gameEntry[@"date"], gameEntry[@"event"]];
-                }
-                dashboardString = gamesHTML;
-            }
-            if ([moves count] == 0 &&
-                ![dashboardString
-                    containsString:@"https://www.pente.org/gameServer/"
-                                   @"viewLiveGame?mobile&g="]) {
-                dashboardString = NSLocalizedString(@"No search results", nil);
-            } else {
-                NSString
-                    *p1Str =
-                        [setupView.player1Cell.textField.text lowercaseString],
-                    *p2Str =
-                        [setupView.player2Cell.textField.text lowercaseString];
-                if ((p1Str || p2Str) && !([p1Str isEqualToString:@""] &&
-                                          [p2Str isEqualToString:@""])) {
-                    NSUserDefaults *defaults =
-                        [NSUserDefaults standardUserDefaults];
-                    NSMutableArray *invitedHistory =
-                        [[defaults objectForKey:@"invitedHistory"] mutableCopy];
-                    if (!invitedHistory) {
-                        invitedHistory = [[NSMutableArray alloc] init];
-                    }
-                    if (p1Str) {
-                        NSArray<NSString *> *names =
-                            [[p1Str stringByReplacingOccurrencesOfString:@" "
-                                                              withString:@""]
-                                componentsSeparatedByString:@","];
-                        for (NSString *name in names) {
-                            NSString *lowerStr = [name lowercaseString];
-                            if (![invitedHistory containsObject:lowerStr] &&
-                                ![name containsString:@"*"]) {
-                                [invitedHistory addObject:lowerStr];
-                            }
-                        }
-                    }
-                    if (p2Str) {
-                        NSArray<NSString *> *names =
-                            [[p2Str stringByReplacingOccurrencesOfString:@" "
-                                                              withString:@""]
-                                componentsSeparatedByString:@","];
-                        for (NSString *name in names) {
-                            NSString *lowerStr = [name lowercaseString];
-                            if (![invitedHistory containsObject:lowerStr] &&
-                                ![name containsString:@"*"]) {
-                                [invitedHistory addObject:lowerStr];
-                            }
-                        }
-                    }
+             dashboardString = @"";
+             NSError *jsonError = nil;
+             NSDictionary *jsonResponse =
+                 [NSJSONSerialization JSONObjectWithData:responseData
+                                                 options:0
+                                                   error:&jsonError];
+             if (!jsonError && jsonResponse &&
+                 [jsonResponse[@"access"] boolValue] &&
+                 ![jsonResponse[@"blocked"] boolValue]) {
+                 for (NSNumber *moveNum in jsonResponse[@"moves"]) {
+                     [moves addObject:moveNum];
+                 }
+                 NSArray *occurrenceList = jsonResponse[@"occurrence"];
+                 double max = 0.0, min = DBL_MAX;
+                 for (NSString *pctStr in occurrenceList) {
+                     double v = [pctStr doubleValue];
+                     if (v > max)
+                         max = v;
+                     if (v < min)
+                         min = v;
+                 }
+                 if (max == min) {
+                     max = 100.0;
+                     min = 0.0;
+                 }
+                 for (NSString *pctStr in occurrenceList) {
+                     double dblValue =
+                         ([pctStr doubleValue] - min) / (max - min);
+                     if (dblValue <= 0.5) {
+                         [colors
+                             addObject:[UIColor colorWithRed:1.0
+                                                       green:(dblValue / 0.5)
+                                                        blue:0
+                                                       alpha:1]];
+                     } else {
+                         [colors
+                             addObject:[UIColor
+                                           colorWithRed:(1.0 - dblValue) / 0.5
+                                                  green:1
+                                                   blue:0
+                                                  alpha:1]];
+                     }
+                 }
+                 NSMutableString *gamesHTML = [[NSMutableString alloc] init];
+                 for (NSDictionary *gameEntry in jsonResponse[@"games"]) {
+                     NSString *viewUrl = gameEntry[@"viewUrl"];
+                     NSDictionary *p1 = gameEntry[@"player1"];
+                     NSDictionary *p2 = gameEntry[@"player2"];
+                     NSString *p1Name =
+                         [p1[@"winner"] boolValue]
+                             ? [NSString
+                                   stringWithFormat:@"<b>%@</b>", p1[@"name"]]
+                             : p1[@"name"];
+                     NSString *p2Name =
+                         [p2[@"winner"] boolValue]
+                             ? [NSString
+                                   stringWithFormat:@"<b>%@</b>", p2[@"name"]]
+                             : p2[@"name"];
+                     [gamesHTML
+                         appendFormat:
+                             @"<a href=\"https://www.pente.org%@\">%@ vs %@"
+                             @" - %@ (%@)</a><br>",
+                             viewUrl, p1Name, p2Name, gameEntry[@"date"],
+                             gameEntry[@"event"]];
+                 }
+                 dashboardString = gamesHTML;
+             }
+             if ([moves count] == 0 &&
+                 ![dashboardString
+                     containsString:@"https://www.pente.org/gameServer/"
+                                    @"viewLiveGame?mobile&g="]) {
+                 dashboardString = NSLocalizedString(@"No search results", nil);
+             } else {
+                 NSString
+                     *p1Str =
+                         [setupView.player1Cell.textField.text lowercaseString],
+                     *p2Str =
+                         [setupView.player2Cell.textField.text lowercaseString];
+                 if ((p1Str || p2Str) && !([p1Str isEqualToString:@""] &&
+                                           [p2Str isEqualToString:@""])) {
+                     NSUserDefaults *defaults =
+                         [NSUserDefaults standardUserDefaults];
+                     NSMutableArray *invitedHistory = [[defaults
+                         objectForKey:@"invitedHistory"] mutableCopy];
+                     if (!invitedHistory) {
+                         invitedHistory = [[NSMutableArray alloc] init];
+                     }
+                     if (p1Str) {
+                         NSArray<NSString *> *names =
+                             [[p1Str stringByReplacingOccurrencesOfString:@" "
+                                                               withString:@""]
+                                 componentsSeparatedByString:@","];
+                         for (NSString *name in names) {
+                             NSString *lowerStr = [name lowercaseString];
+                             if (![invitedHistory containsObject:lowerStr] &&
+                                 ![name containsString:@"*"]) {
+                                 [invitedHistory addObject:lowerStr];
+                             }
+                         }
+                     }
+                     if (p2Str) {
+                         NSArray<NSString *> *names =
+                             [[p2Str stringByReplacingOccurrencesOfString:@" "
+                                                               withString:@""]
+                                 componentsSeparatedByString:@","];
+                         for (NSString *name in names) {
+                             NSString *lowerStr = [name lowercaseString];
+                             if (![invitedHistory containsObject:lowerStr] &&
+                                 ![name containsString:@"*"]) {
+                                 [invitedHistory addObject:lowerStr];
+                             }
+                         }
+                     }
 
-                    [invitedHistory
-                        sortUsingSelector:@selector(caseInsensitiveCompare:)];
-                    [defaults setObject:invitedHistory
-                                 forKey:@"invitedHistory"];
-                    [setupView.player1Cell setInvitedHistory:invitedHistory];
-                    [setupView.player2Cell setInvitedHistory:invitedHistory];
-                }
-            }
-            NSMutableDictionary<NSNumber *, UIColor *> *dbOptions =
-                [[NSMutableDictionary alloc] init];
-            for (int i = 0; i < [moves count]; ++i) {
-                [dbOptions setObject:[colors objectAtIndex:i]
-                              forKey:[moves objectAtIndex:i]];
-            }
+                     [invitedHistory
+                         sortUsingSelector:@selector(caseInsensitiveCompare:)];
+                     [defaults setObject:invitedHistory
+                                  forKey:@"invitedHistory"];
+                     [setupView.player1Cell setInvitedHistory:invitedHistory];
+                     [setupView.player2Cell setInvitedHistory:invitedHistory];
+                 }
+             }
+             NSMutableDictionary<NSNumber *, UIColor *> *dbOptions =
+                 [[NSMutableDictionary alloc] init];
+             for (int i = 0; i < [moves count]; ++i) {
+                 [dbOptions setObject:[colors objectAtIndex:i]
+                               forKey:[moves objectAtIndex:i]];
+             }
 
-            [playerStats
-                loadHTMLString:
-                    [HEADERSTRING
-                        stringByAppendingString:
-                            [[moveStatsString
-                                stringByAppendingString:@"</center><br>"]
-                                stringByAppendingString:dashboardString]]
-                       baseURL:nil];
-            //    dbOptions = [NSDictionary dictionaryWithObjects:colors
-            //    forKeys:moves count:[moves count]];
-            [board setDbOptions:dbOptions];
-            [zoomedBoard setDbOptions:dbOptions];
-            [board setNeedsDisplay];
-            [zoomedBoard setNeedsDisplay];
-            [self.progressView stopAnimating];
-            [self.progressView removeFromSuperview];
-            }];
+             [playerStats
+                 loadHTMLString:
+                     [HEADERSTRING
+                         stringByAppendingString:
+                             [[moveStatsString
+                                 stringByAppendingString:@"</center><br>"]
+                                 stringByAppendingString:dashboardString]]
+                        baseURL:nil];
+             //    dbOptions = [NSDictionary dictionaryWithObjects:colors
+             //    forKeys:moves count:[moves count]];
+             [board setDbOptions:dbOptions];
+             [zoomedBoard setDbOptions:dbOptions];
+             [board setNeedsDisplay];
+             [zoomedBoard setNeedsDisplay];
+             [self.progressView stopAnimating];
+             [self.progressView removeFromSuperview];
+         }];
 }
 
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
@@ -1228,6 +1190,7 @@ struct Capture {
             [self detectCaptureOfOpponent:opponentColor atPosition:rowCol];
             if ([game containsString:@"Keryo-Pente"] ||
                 [game containsString:@"DK-Pente"] ||
+                [game containsString:@"Swap2-Keryo"] ||
                 [game containsString:@"O-Pente"]) {
                 [self detectKeryoCaptureOfOpponent:opponentColor
                                         atPosition:rowCol];
@@ -1237,49 +1200,9 @@ struct Capture {
         }
     }
     if ([game containsString:@"G-Pente"] && [movesList count] == 2) {
-        for (int i = 7; i < 12; ++i) {
-            for (int j = 7; j < 12; ++j) {
-                if (abstractBoard[i][j] == 0) {
-                    abstractBoard[i][j] = -1;
-                }
-            }
-        }
-        for (int i = 1; i < 3; ++i) {
-            if (abstractBoard[9][11 + i] == 0) {
-                abstractBoard[9][11 + i] = -1;
-            }
-            if (abstractBoard[9][7 - i] == 0) {
-                abstractBoard[9][7 - i] = -1;
-            }
-            if (abstractBoard[11 + i][9] == 0) {
-                abstractBoard[11 + i][9] = -1;
-            }
-            if (abstractBoard[7 - i][9] == 0) {
-                abstractBoard[7 - i][9] = -1;
-            }
-        }
+        [penteGame maskGPenteOpening];
     } else if ([game containsString:@"G-Pente"] && [movesList count] == 3) {
-        for (int i = 7; i < 12; ++i) {
-            for (int j = 7; j < 12; ++j) {
-                if (abstractBoard[i][j] == -1) {
-                    abstractBoard[i][j] = 0;
-                }
-            }
-        }
-        for (int i = 1; i < 3; ++i) {
-            if (abstractBoard[9][11 + i] == -1) {
-                abstractBoard[9][11 + i] = 0;
-            }
-            if (abstractBoard[9][7 - i] == -1) {
-                abstractBoard[9][7 - i] = 0;
-            }
-            if (abstractBoard[11 + i][9] == -1) {
-                abstractBoard[11 + i][9] = 0;
-            }
-            if (abstractBoard[7 - i][9] == -1) {
-                abstractBoard[7 - i][9] = 0;
-            }
-        }
+        [penteGame unmaskGPenteOpening];
     }
 
     [board setAbstractBoard:abstractBoard];
@@ -1330,753 +1253,45 @@ struct Capture {
 }
 
 - (void)detectCaptureOfOpponent:(int)opponentColor atPosition:(int)rowCol {
-    int i = rowCol / 19, j = rowCol % 19,
-        myColor = (opponentColor == 1) ? 2 : 1;
-    if ((i - 3) > -1) {
-        if (abstractBoard[i - 3][j] == myColor) {
-            if ((abstractBoard[i - 1][j] == opponentColor) &&
-                (abstractBoard[i - 2][j] == opponentColor)) {
-                abstractBoard[i - 1][j] = 0;
-                abstractBoard[i - 2][j] = 0;
-                if (opponentColor == 1) {
-                    whiteCaptures += 2;
-                } else {
-                    blackCaptures += 2;
-                }
-            }
-        }
-    }
-    if (((i - 3) > -1) && ((j - 3) > -1)) {
-        if (abstractBoard[i - 3][j - 3] == myColor) {
-            if ((abstractBoard[i - 1][j - 1] == opponentColor) &&
-                (abstractBoard[i - 2][j - 2] == opponentColor)) {
-                abstractBoard[i - 1][j - 1] = 0;
-                abstractBoard[i - 2][j - 2] = 0;
-                if (opponentColor == 1) {
-                    whiteCaptures += 2;
-                } else {
-                    blackCaptures += 2;
-                }
-            }
-        }
-    }
-    if ((j - 3) > -1) {
-        if (abstractBoard[i][j - 3] == myColor) {
-            if ((abstractBoard[i][j - 1] == opponentColor) &&
-                (abstractBoard[i][j - 2] == opponentColor)) {
-                abstractBoard[i][j - 1] = 0;
-                abstractBoard[i][j - 2] = 0;
-                if (opponentColor == 1) {
-                    whiteCaptures += 2;
-                } else {
-                    blackCaptures += 2;
-                }
-            }
-        }
-    }
-    if (((i + 3) < 19) && ((j - 3) > -1)) {
-        if (abstractBoard[i + 3][j - 3] == myColor) {
-            if ((abstractBoard[i + 1][j - 1] == opponentColor) &&
-                (abstractBoard[i + 2][j - 2] == opponentColor)) {
-                abstractBoard[i + 1][j - 1] = 0;
-                abstractBoard[i + 2][j - 2] = 0;
-                if (opponentColor == 1) {
-                    whiteCaptures += 2;
-                } else {
-                    blackCaptures += 2;
-                }
-            }
-        }
-    }
-    if ((i + 3) < 19) {
-        if (abstractBoard[i + 3][j] == myColor) {
-            if ((abstractBoard[i + 1][j] == opponentColor) &&
-                (abstractBoard[i + 2][j] == opponentColor)) {
-                abstractBoard[i + 1][j] = 0;
-                abstractBoard[i + 2][j] = 0;
-                if (opponentColor == 1) {
-                    whiteCaptures += 2;
-                } else {
-                    blackCaptures += 2;
-                }
-            }
-        }
-    }
-    if (((i + 3) < 19) && ((j + 3) < 19)) {
-        if (abstractBoard[i + 3][j + 3] == myColor) {
-            if ((abstractBoard[i + 1][j + 1] == opponentColor) &&
-                (abstractBoard[i + 2][j + 2] == opponentColor)) {
-                abstractBoard[i + 1][j + 1] = 0;
-                abstractBoard[i + 2][j + 2] = 0;
-                if (opponentColor == 1) {
-                    whiteCaptures += 2;
-                } else {
-                    blackCaptures += 2;
-                }
-            }
-        }
-    }
-    if ((j + 3) < 19) {
-        if (abstractBoard[i][j + 3] == myColor) {
-            if ((abstractBoard[i][j + 1] == opponentColor) &&
-                (abstractBoard[i][j + 2] == opponentColor)) {
-                abstractBoard[i][j + 1] = 0;
-                abstractBoard[i][j + 2] = 0;
-                if (opponentColor == 1) {
-                    whiteCaptures += 2;
-                } else {
-                    blackCaptures += 2;
-                }
-            }
-        }
-    }
-    if (((i - 3) > -1) && ((j + 3) < 19)) {
-        if (abstractBoard[i - 3][j + 3] == myColor) {
-            if ((abstractBoard[i - 1][j + 1] == opponentColor) &&
-                (abstractBoard[i - 2][j + 2] == opponentColor)) {
-                abstractBoard[i - 1][j + 1] = 0;
-                abstractBoard[i - 2][j + 2] = 0;
-                if (opponentColor == 1) {
-                    whiteCaptures += 2;
-                } else {
-                    blackCaptures += 2;
-                }
-            }
-        }
-    }
+    penteGame.captures = nil;
+    penteGame.whiteCaptures = whiteCaptures;
+    penteGame.blackCaptures = blackCaptures;
+    [penteGame detectCaptureOfOpponent:opponentColor atPosition:rowCol];
+    whiteCaptures = penteGame.whiteCaptures;
+    blackCaptures = penteGame.blackCaptures;
 }
 
 - (void)detectKeryoCaptureOfOpponent:(int)opponentColor atPosition:(int)rowCol {
-    int i = rowCol / 19, j = rowCol % 19,
-        myColor = (opponentColor == 1) ? 2 : 1;
-    if ((i - 4) > -1) {
-        if (abstractBoard[i - 4][j] == myColor) {
-            if ((abstractBoard[i - 1][j] == opponentColor) &&
-                (abstractBoard[i - 2][j] == opponentColor) &&
-                (abstractBoard[i - 3][j] == opponentColor)) {
-                abstractBoard[i - 1][j] = 0;
-                abstractBoard[i - 2][j] = 0;
-                abstractBoard[i - 3][j] = 0;
-                if (opponentColor == 1) {
-                    whiteCaptures += 3;
-                } else {
-                    blackCaptures += 3;
-                }
-            }
-        }
-    }
-    if (((i - 4) > -1) && ((j - 4) > -1)) {
-        if (abstractBoard[i - 4][j - 4] == myColor) {
-            if ((abstractBoard[i - 1][j - 1] == opponentColor) &&
-                (abstractBoard[i - 2][j - 2] == opponentColor) &&
-                (abstractBoard[i - 3][j - 3] == opponentColor)) {
-                abstractBoard[i - 1][j - 1] = 0;
-                abstractBoard[i - 2][j - 2] = 0;
-                abstractBoard[i - 3][j - 3] = 0;
-                if (opponentColor == 1) {
-                    whiteCaptures += 3;
-                } else {
-                    blackCaptures += 3;
-                }
-            }
-        }
-    }
-    if ((j - 4) > -1) {
-        if (abstractBoard[i][j - 4] == myColor) {
-            if ((abstractBoard[i][j - 1] == opponentColor) &&
-                (abstractBoard[i][j - 2] == opponentColor) &&
-                (abstractBoard[i][j - 3] == opponentColor)) {
-                abstractBoard[i][j - 1] = 0;
-                abstractBoard[i][j - 2] = 0;
-                abstractBoard[i][j - 3] = 0;
-                if (opponentColor == 1) {
-                    whiteCaptures += 3;
-                } else {
-                    blackCaptures += 3;
-                }
-            }
-        }
-    }
-    if (((i + 4) < 19) && ((j - 4) > -1)) {
-        if (abstractBoard[i + 4][j - 4] == myColor) {
-            if ((abstractBoard[i + 1][j - 1] == opponentColor) &&
-                (abstractBoard[i + 2][j - 2] == opponentColor) &&
-                (abstractBoard[i + 3][j - 3] == opponentColor)) {
-                abstractBoard[i + 1][j - 1] = 0;
-                abstractBoard[i + 2][j - 2] = 0;
-                abstractBoard[i + 3][j - 3] = 0;
-                if (opponentColor == 1) {
-                    whiteCaptures += 3;
-                } else {
-                    blackCaptures += 3;
-                }
-            }
-        }
-    }
-    if ((i + 4) < 19) {
-        if (abstractBoard[i + 4][j] == myColor) {
-            if ((abstractBoard[i + 1][j] == opponentColor) &&
-                (abstractBoard[i + 2][j] == opponentColor) &&
-                (abstractBoard[i + 3][j] == opponentColor)) {
-                abstractBoard[i + 1][j] = 0;
-                abstractBoard[i + 2][j] = 0;
-                abstractBoard[i + 3][j] = 0;
-                if (opponentColor == 1) {
-                    whiteCaptures += 3;
-                } else {
-                    blackCaptures += 3;
-                }
-            }
-        }
-    }
-    if (((i + 4) < 19) && ((j + 4) < 19)) {
-        if (abstractBoard[i + 4][j + 4] == myColor) {
-            if ((abstractBoard[i + 1][j + 1] == opponentColor) &&
-                (abstractBoard[i + 2][j + 2] == opponentColor) &&
-                (abstractBoard[i + 3][j + 3] == opponentColor)) {
-                abstractBoard[i + 1][j + 1] = 0;
-                abstractBoard[i + 2][j + 2] = 0;
-                abstractBoard[i + 3][j + 3] = 0;
-                if (opponentColor == 1) {
-                    whiteCaptures += 3;
-                } else {
-                    blackCaptures += 3;
-                }
-            }
-        }
-    }
-    if ((j + 4) < 19) {
-        if (abstractBoard[i][j + 4] == myColor) {
-            if ((abstractBoard[i][j + 1] == opponentColor) &&
-                (abstractBoard[i][j + 2] == opponentColor) &&
-                (abstractBoard[i][j + 3] == opponentColor)) {
-                abstractBoard[i][j + 1] = 0;
-                abstractBoard[i][j + 2] = 0;
-                abstractBoard[i][j + 3] = 0;
-                if (opponentColor == 1) {
-                    whiteCaptures += 3;
-                } else {
-                    blackCaptures += 3;
-                }
-            }
-        }
-    }
-    if (((i - 4) > -1) && ((j + 4) < 19)) {
-        if (abstractBoard[i - 4][j + 4] == myColor) {
-            if ((abstractBoard[i - 1][j + 1] == opponentColor) &&
-                (abstractBoard[i - 2][j + 2] == opponentColor) &&
-                (abstractBoard[i - 3][j + 3] == opponentColor)) {
-                abstractBoard[i - 1][j + 1] = 0;
-                abstractBoard[i - 2][j + 2] = 0;
-                abstractBoard[i - 3][j + 3] = 0;
-                if (opponentColor == 1) {
-                    whiteCaptures += 3;
-                } else {
-                    blackCaptures += 3;
-                }
-            }
-        }
-    }
+    penteGame.captures = nil;
+    penteGame.whiteCaptures = whiteCaptures;
+    penteGame.blackCaptures = blackCaptures;
+    [penteGame detectKeryoCaptureOfOpponent:opponentColor atPosition:rowCol];
+    whiteCaptures = penteGame.whiteCaptures;
+    blackCaptures = penteGame.blackCaptures;
 }
 
 - (BOOL)detectPoof:(int)myColor atPosition:(int)rowCol {
-    BOOL poof = NO;
-    struct Capture capture;
-    int i = rowCol / 19, j = rowCol % 19,
-        opponentColor = (myColor == 1) ? 2 : 1,
-        capturesLength = (int)[captures count];
-    if (((i - 2) > -1) && ((i + 1) < 19)) {
-        if (abstractBoard[i - 1][j] == myColor) {
-            if ((abstractBoard[i - 2][j] == opponentColor) &&
-                (abstractBoard[i + 1][j] == opponentColor)) {
-                poof = YES;
-                abstractBoard[i - 1][j] = 0;
-                abstractBoard[i][j] = 0;
-                if (myColor == 1) {
-                    ++whiteCaptures;
-                } else {
-                    ++blackCaptures;
-                }
-                capture.color = myColor;
-                capture.position = (i - 1) * 19 + (j);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-            }
-        }
-    }
-    if (((i - 2) > -1) && ((j - 2) > -1) && ((i + 1) < 19) && ((j + 1) < 19)) {
-        if (abstractBoard[i - 1][j - 1] == myColor) {
-            if ((abstractBoard[i - 2][j - 2] == opponentColor) &&
-                (abstractBoard[i + 1][j + 1] == opponentColor)) {
-                poof = YES;
-                abstractBoard[i - 1][j - 1] = 0;
-                abstractBoard[i][j] = 0;
-                if (myColor == 1) {
-                    ++whiteCaptures;
-                } else {
-                    ++blackCaptures;
-                }
-                capture.color = myColor;
-                capture.position = (i - 1) * 19 + (j - 1);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-            }
-        }
-    }
-    if (((j - 2) > -1) && ((j + 1) < 19)) {
-        if (abstractBoard[i][j - 1] == myColor) {
-            if ((abstractBoard[i][j - 2] == opponentColor) &&
-                (abstractBoard[i][j + 1] == opponentColor)) {
-                poof = YES;
-                abstractBoard[i][j - 1] = 0;
-                abstractBoard[i][j] = 0;
-                if (myColor == 1) {
-                    ++whiteCaptures;
-                } else {
-                    ++blackCaptures;
-                }
-                capture.color = myColor;
-                capture.position = (i) * 19 + (j - 1);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-            }
-        }
-    }
-    if (((i - 1) > -1) && ((j - 2) > -1) && ((i + 2) < 19) && ((j + 1) < 19)) {
-        if (abstractBoard[i + 1][j - 1] == myColor) {
-            if ((abstractBoard[i - 1][j + 1] == opponentColor) &&
-                (abstractBoard[i + 2][j - 2] == opponentColor)) {
-                poof = YES;
-                abstractBoard[i + 1][j - 1] = 0;
-                abstractBoard[i][j] = 0;
-                if (myColor == 1) {
-                    ++whiteCaptures;
-                } else {
-                    ++blackCaptures;
-                }
-                capture.color = myColor;
-                capture.position = (i + 1) * 19 + (j - 1);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-            }
-        }
-    }
-    if (((i + 2) < 19) && ((i - 1) > -1)) {
-        if (abstractBoard[i + 1][j] == myColor) {
-            if ((abstractBoard[i + 2][j] == opponentColor) &&
-                (abstractBoard[i - 1][j] == opponentColor)) {
-                poof = YES;
-                abstractBoard[i + 1][j] = 0;
-                abstractBoard[i][j] = 0;
-                if (myColor == 1) {
-                    ++whiteCaptures;
-                } else {
-                    ++blackCaptures;
-                }
-                capture.color = myColor;
-                capture.position = (i + 1) * 19 + (j);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-            }
-        }
-    }
-    if (((i - 1) > -1) && ((j - 1) > -1) && ((i + 2) < 19) && ((j + 2) < 19)) {
-        if (abstractBoard[i + 1][j + 1] == myColor) {
-            if ((abstractBoard[i - 1][j - 1] == opponentColor) &&
-                (abstractBoard[i + 2][j + 2] == opponentColor)) {
-                poof = YES;
-                abstractBoard[i + 1][j + 1] = 0;
-                abstractBoard[i][j] = 0;
-                if (myColor == 1) {
-                    ++whiteCaptures;
-                } else {
-                    ++blackCaptures;
-                }
-                capture.color = myColor;
-                capture.position = (i + 1) * 19 + (j + 1);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-            }
-        }
-    }
-    if (((j + 2) < 19) && ((j - 1) > -1)) {
-        if (abstractBoard[i][j + 1] == myColor) {
-            if ((abstractBoard[i][j - 1] == opponentColor) &&
-                (abstractBoard[i][j + 2] == opponentColor)) {
-                poof = YES;
-                abstractBoard[i][j + 1] = 0;
-                abstractBoard[i][j] = 0;
-                if (myColor == 1) {
-                    ++whiteCaptures;
-                } else {
-                    ++blackCaptures;
-                }
-                capture.color = myColor;
-                capture.position = (i) * 19 + (j + 1);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-            }
-        }
-    }
-    if (((i - 2) > -1) && ((j - 1) > -1) && ((i + 1) < 19) && ((j + 2) < 19)) {
-        if (abstractBoard[i - 1][j + 1] == myColor) {
-            if ((abstractBoard[i + 1][j - 1] == opponentColor) &&
-                (abstractBoard[i - 2][j + 2] == opponentColor)) {
-                poof = YES;
-                abstractBoard[i - 1][j + 1] = 0;
-                abstractBoard[i][j] = 0;
-                if (myColor == 1) {
-                    ++whiteCaptures;
-                } else {
-                    ++blackCaptures;
-                }
-                capture.color = myColor;
-                capture.position = (i - 1) * 19 + (j + 1);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-            }
-        }
-    }
-
-    if (poof) {
-        if (myColor == 1) {
-            ++whiteCaptures;
-        } else {
-            ++blackCaptures;
-        }
-        capture.color = myColor;
-        capture.position = i * 19 + j;
-        [captures insertObject:[NSValue value:&capture
-                                   withObjCType:@encode(struct Capture)]
-                       atIndex:capturesLength];
-    }
+    penteGame.captures = captures;
+    penteGame.whiteCaptures = whiteCaptures;
+    penteGame.blackCaptures = blackCaptures;
+    BOOL poof = [penteGame detectPoof:myColor atPosition:rowCol];
+    whiteCaptures = penteGame.whiteCaptures;
+    blackCaptures = penteGame.blackCaptures;
     return poof;
 }
 
 - (BOOL)detectKeryoPoof:(int)myColor atPosition:(int)rowCol {
-    BOOL poof = NO;
-    struct Capture capture;
-    int i = rowCol / 19, j = rowCol % 19,
-        opponentColor = (myColor == 1) ? 2 : 1,
-        capturesLength = (int)[captures count];
-    if (((i - 3) > -1) && ((i + 1) < 19)) { // left
-        if (abstractBoard[i - 1][j] == myColor &&
-            abstractBoard[i - 2][j] == myColor) {
-            if ((abstractBoard[i - 3][j] == opponentColor) &&
-                (abstractBoard[i + 1][j] == opponentColor)) {
-                abstractBoard[i - 2][j] = 0;
-                abstractBoard[i - 1][j] = 0;
-                abstractBoard[i][j] = 0;
-                if (myColor == 1) {
-                    whiteCaptures += 2;
-                } else {
-                    blackCaptures += 2;
-                }
-                capture.color = myColor;
-                capture.position = (i - 2) * 19 + (j);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                capture.position = (i - 1) * 19 + (j);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                poof = true;
-            }
-        }
-    }
-    if (((i - 3) > -1) && ((j - 3) > -1) && ((i + 1) < 19) &&
-        ((j + 1) < 19)) { // up left
-        if (abstractBoard[i - 1][j - 1] == myColor &&
-            abstractBoard[i - 2][j - 2] == myColor) {
-            if ((abstractBoard[i - 3][j - 3] == opponentColor) &&
-                (abstractBoard[i + 1][j + 1] == opponentColor)) {
-                abstractBoard[i - 2][j - 2] = 0;
-                abstractBoard[i - 1][j - 1] = 0;
-                abstractBoard[i][j] = 0;
-                if (myColor == 1) {
-                    whiteCaptures += 2;
-                } else {
-                    blackCaptures += 2;
-                }
-                capture.color = myColor;
-                capture.position = (i - 2) * 19 + (j - 2);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                capture.position = (i - 1) * 19 + (j - 1);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                poof = true;
-            }
-        }
-    }
-    if (((j - 3) > -1) && ((j + 1) < 19)) { // up
-        if (abstractBoard[i][j - 1] == myColor &&
-            abstractBoard[i][j - 2] == myColor) {
-            if ((abstractBoard[i][j - 3] == opponentColor) &&
-                (abstractBoard[i][j + 1] == opponentColor)) {
-                abstractBoard[i][j - 2] = 0;
-                abstractBoard[i][j - 1] = 0;
-                abstractBoard[i][j] = 0;
-                if (myColor == 1) {
-                    whiteCaptures += 2;
-                } else {
-                    blackCaptures += 2;
-                }
-                capture.color = myColor;
-                capture.position = (i) * 19 + (j - 2);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                capture.position = (i) * 19 + (j - 1);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                poof = true;
-            }
-        }
-    }
-    if (((i - 1) > -1) && ((j - 3) > -1) && ((i + 3) < 19) &&
-        ((j + 1) < 19)) { // up right
-        if (abstractBoard[i + 1][j - 1] == myColor &&
-            abstractBoard[i + 2][j - 2] == myColor) {
-            if ((abstractBoard[i - 1][j + 1] == opponentColor) &&
-                (abstractBoard[i + 3][j - 3] == opponentColor)) {
-                abstractBoard[i + 2][j - 2] = 0;
-                abstractBoard[i + 1][j - 1] = 0;
-                abstractBoard[i][j] = 0;
-                if (myColor == 1) {
-                    whiteCaptures += 2;
-                } else {
-                    blackCaptures += 2;
-                }
-                capture.color = myColor;
-                capture.position = (i + 2) * 19 + (j - 2);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                capture.position = (i + 1) * 19 + (j - 1);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                poof = true;
-            }
-        }
-    }
-    if (((i + 3) < 19) && ((i - 1) > -1)) { // right
-        if (abstractBoard[i + 1][j] == myColor &&
-            abstractBoard[i + 2][j] == myColor) {
-            if ((abstractBoard[i + 3][j] == opponentColor) &&
-                (abstractBoard[i - 1][j] == opponentColor)) {
-                abstractBoard[i + 2][j] = 0;
-                abstractBoard[i + 1][j] = 0;
-                abstractBoard[i][j] = 0;
-                if (myColor == 1) {
-                    whiteCaptures += 2;
-                } else {
-                    blackCaptures += 2;
-                }
-                capture.color = myColor;
-                capture.position = (i + 2) * 19 + (j);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                capture.position = (i + 1) * 19 + (j);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                poof = true;
-            }
-        }
-    }
-    if (((i - 1) > -1) && ((j - 1) > -1) && ((i + 3) < 19) &&
-        ((j + 3) < 19)) { // down right
-        if (abstractBoard[i + 1][j + 1] == myColor &&
-            abstractBoard[i + 2][j + 2] == myColor) {
-            if ((abstractBoard[i - 1][j - 1] == opponentColor) &&
-                (abstractBoard[i + 3][j + 3] == opponentColor)) {
-                abstractBoard[i + 2][j + 2] = 0;
-                abstractBoard[i + 1][j + 1] = 0;
-                abstractBoard[i][j] = 0;
-                if (myColor == 1) {
-                    whiteCaptures += 2;
-                } else {
-                    blackCaptures += 2;
-                }
-                capture.color = myColor;
-                capture.position = (i + 2) * 19 + (j + 2);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                capture.position = (i + 1) * 19 + (j + 1);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                poof = true;
-            }
-        }
-    }
-    if (((j + 2) < 19) && ((j - 1) > -1)) { // down
-        if (abstractBoard[i][j + 1] == myColor &&
-            abstractBoard[i][j + 2] == myColor) {
-            if ((abstractBoard[i][j - 1] == opponentColor) &&
-                (abstractBoard[i][j + 3] == opponentColor)) {
-                abstractBoard[i][j + 1] = 0;
-                abstractBoard[i][j + 2] = 0;
-                abstractBoard[i][j] = 0;
-                if (myColor == 1) {
-                    whiteCaptures += 2;
-                } else {
-                    blackCaptures += 2;
-                }
-                capture.color = myColor;
-                capture.position = (i) * 19 + (j + 1);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                capture.position = (i) * 19 + (j + 2);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                poof = true;
-            }
-        }
-    }
-    if (((i - 3) > -1) && ((j - 1) > -1) && ((i + 1) < 19) &&
-        ((j + 3) < 19)) { // down left
-        if (abstractBoard[i - 1][j + 1] == myColor &&
-            abstractBoard[i - 2][j + 2] == myColor) {
-            if ((abstractBoard[i + 1][j - 1] == opponentColor) &&
-                (abstractBoard[i - 3][j + 3] == opponentColor)) {
-                abstractBoard[i - 2][j + 2] = 0;
-                abstractBoard[i - 1][j + 1] = 0;
-                abstractBoard[i][j] = 0;
-                if (myColor == 1) {
-                    whiteCaptures += 2;
-                } else {
-                    blackCaptures += 2;
-                }
-                capture.color = myColor;
-                capture.position = (i - 2) * 19 + (j + 2);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                capture.position = (i - 1) * 19 + (j + 1);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                poof = true;
-            }
-        }
-    }
-
-    // 4 directions with center of 3 stones placed to poof
-    if (((i - 2) > -1) && ((i + 2) < 19)) { // horizontal
-        if (abstractBoard[i - 1][j] == myColor &&
-            abstractBoard[i + 1][j] == myColor) {
-            if ((abstractBoard[i - 2][j] == opponentColor) &&
-                (abstractBoard[i + 2][j] == opponentColor)) {
-                abstractBoard[i + 1][j] = 0;
-                abstractBoard[i - 1][j] = 0;
-                abstractBoard[i][j] = 0;
-                if (myColor == 1) {
-                    whiteCaptures += 2;
-                } else {
-                    blackCaptures += 2;
-                }
-                capture.color = myColor;
-                capture.position = (i + 1) * 19 + (j);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                capture.position = (i - 1) * 19 + (j);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                poof = true;
-            }
-        }
-    }
-    if (((i - 2) > -1) && ((j - 2) > -1) && ((i + 2) < 19) &&
-        ((j + 2) < 19)) { // up left
-        if (abstractBoard[i - 1][j - 1] == myColor &&
-            abstractBoard[i + 1][j + 1] == myColor) {
-            if ((abstractBoard[i - 2][j - 2] == opponentColor) &&
-                (abstractBoard[i + 2][j + 2] == opponentColor)) {
-                abstractBoard[i + 1][j + 1] = 0;
-                abstractBoard[i - 1][j - 1] = 0;
-                abstractBoard[i][j] = 0;
-                if (myColor == 1) {
-                    whiteCaptures += 2;
-                } else {
-                    blackCaptures += 2;
-                }
-                capture.color = myColor;
-                capture.position = (i + 1) * 19 + (j + 1);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                capture.position = (i - 1) * 19 + (j - 1);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                poof = true;
-            }
-        }
-    }
-    if (((j - 2) > -1) && ((j + 2) < 19)) { // vertical
-        if (abstractBoard[i][j - 1] == myColor &&
-            abstractBoard[i][j + 1] == myColor) {
-            if ((abstractBoard[i][j - 2] == opponentColor) &&
-                (abstractBoard[i][j + 2] == opponentColor)) {
-                abstractBoard[i][j + 1] = 0;
-                abstractBoard[i][j - 1] = 0;
-                abstractBoard[i][j] = 0;
-                if (myColor == 1) {
-                    whiteCaptures += 2;
-                } else {
-                    blackCaptures += 2;
-                }
-                capture.color = myColor;
-                capture.position = (i) * 19 + (j + 1);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                capture.position = (i) * 19 + (j - 1);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                poof = true;
-            }
-        }
-    }
-    if (((i - 2) > -1) && ((j - 2) > -1) && ((i + 2) < 19) &&
-        ((j + 2) < 19)) { // up right
-        if (abstractBoard[i + 1][j - 1] == myColor &&
-            abstractBoard[i + 1][j - 1] == myColor) {
-            if ((abstractBoard[i - 2][j + 2] == opponentColor) &&
-                (abstractBoard[i + 2][j - 2] == opponentColor)) {
-                abstractBoard[i + 1][j - 1] = 0;
-                abstractBoard[i - 1][j + 1] = 0;
-                abstractBoard[i][j] = 0;
-                if (myColor == 1) {
-                    whiteCaptures += 2;
-                } else {
-                    blackCaptures += 2;
-                }
-                capture.color = myColor;
-                capture.position = (i + 1) * 19 + (j - 1);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                capture.position = (i - 1) * 19 + (j + 1);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                poof = true;
-            }
-        }
-    }
-
-    if (poof) {
-        if (myColor == 1) {
-            ++whiteCaptures;
-        } else {
-            ++blackCaptures;
-        }
-        capture.color = myColor;
-        capture.position = i * 19 + j;
-        [captures insertObject:[NSValue value:&capture
-                                   withObjCType:@encode(struct Capture)]
-                       atIndex:capturesLength];
-    }
+    penteGame.captures = captures;
+    penteGame.whiteCaptures = whiteCaptures;
+    penteGame.blackCaptures = blackCaptures;
+    BOOL poof = [penteGame detectKeryoPoof:myColor atPosition:rowCol];
+    whiteCaptures = penteGame.whiteCaptures;
+    blackCaptures = penteGame.blackCaptures;
     return poof;
 }
 
 - (void)resetBoard {
-    for (int i = 0; i < 19; ++i) {
-        for (int j = 0; j < 19; ++j) {
-            abstractBoard[i][j] = 0;
-        }
-    }
+    [penteGame resetBoard];
     [captures removeAllObjects];
     whiteCaptures = 0;
     blackCaptures = 0;

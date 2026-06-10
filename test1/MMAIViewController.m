@@ -23,6 +23,7 @@
 #import "MMAIViewController.h"
 #import "BoardView.h"
 #import "MMAI.h"
+#import "PenteGame.h"
 #import "PopoverView.h"
 #import "TSMessage.h"
 #import "TSMessageView.h"
@@ -35,6 +36,7 @@
     int finalMove, whiteCaptures, blackCaptures, lastMove;
     char coordinateLetters[19];
     BOOL aiThinking;
+    PenteGame *penteGame;
 }
 @synthesize aiPlayer;
 @synthesize board;
@@ -59,6 +61,9 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view, typically from a nib.
+
+    penteGame = [[PenteGame alloc] init];
+    penteGame.abstractBoard = abstractBoard;
 
     aiThinking = NO;
 
@@ -176,9 +181,9 @@
     //    playerStats.contentInset = UIEdgeInsetsMake(-5.0,0.0,0,0.0);
     [self.view addSubview:playerStats];
 
-    setupView = [[AISetupView alloc]
-                 init];
-    [setupView setFrame:CGRectMake(0, 0, self.view.bounds.size.width * 2 / 3, 3*55)];
+    setupView = [[AISetupView alloc] init];
+    [setupView
+        setFrame:CGRectMake(0, 0, self.view.bounds.size.width * 2 / 3, 3 * 55)];
     setupView.layer.cornerRadius = 5.0f;
     setupView.layer.borderWidth = 1.0f;
     [setupView setScrollEnabled:NO];
@@ -473,15 +478,11 @@
 }
 
 - (void)replayPenteGame:(unsigned long)untilMove {
-    [self resetBoard];
-    whiteCaptures = 0;
-    blackCaptures = 0;
-    for (int i = 0; i < untilMove; ++i) {
-        int rowCol = [[[aiPlayer moves] objectAtIndex:i] intValue];
-        int color = (i % 2) + 1, opponentColor = (color == 2) ? 1 : 2;
-        abstractBoard[rowCol / 19][rowCol % 19] = color;
-        [self detectCaptureOfOpponent:opponentColor atPosition:rowCol];
-    }
+    [penteGame replayMoves:[aiPlayer moves]
+                   variant:PenteGameVariantPente
+                 untilMove:untilMove];
+    whiteCaptures = penteGame.whiteCaptures;
+    blackCaptures = penteGame.blackCaptures;
 
     [board setAbstractBoard:abstractBoard];
     [board
@@ -497,17 +498,12 @@
 
     NSString *message = nil;
     BOOL iWin = YES;
-    if ([self detectPenteOf:2 - ([[aiPlayer moves] count] % 2)
-                 atPosition:[[[aiPlayer moves] lastObject] intValue]]) {
-        if (2 - ([[aiPlayer moves] count] % 2) == 1) {
-            message = NSLocalizedString(@"White wins", nil);
-        } else {
-            message = NSLocalizedString(@"Black wins", nil);
-        }
-    } else if (whiteCaptures == 10) {
-        message = NSLocalizedString(@"Black wins", nil);
-    } else if (blackCaptures == 10) {
+    int winner = [penteGame winnerForVariant:PenteGameVariantPente
+                                       moves:[aiPlayer moves]];
+    if (winner == 1) {
         message = NSLocalizedString(@"White wins", nil);
+    } else if (winner == 2) {
+        message = NSLocalizedString(@"Black wins", nil);
     }
     if (message) {
         activeGame = NO;
@@ -583,28 +579,12 @@
 }
 
 - (void)replayKeryoPenteGame:(unsigned long)untilMove {
-    [self resetBoard];
-    whiteCaptures = 0;
-    blackCaptures = 0;
-    for (int i = 0; i < untilMove; ++i) {
-        int rowCol = [[[aiPlayer moves] objectAtIndex:i] intValue];
-        int color = (i % 2) + 1, opponentColor = (color == 2) ? 1 : 2;
-        abstractBoard[rowCol / 19][rowCol % 19] = color;
-        [self detectCaptureOfOpponent:opponentColor atPosition:rowCol];
-        [self detectKeryoCaptureOfOpponent:opponentColor atPosition:rowCol];
-    }
-    //    if ([[game ratedNot] isEqualToString:@"Rated"] && ([movesList count]
-    //    == 2)) {
-    //        for(int i = 7; i < 12; ++i) {
-    //            for(int j = 7; j < 12; ++j) {
-    //                if (abstractBoard[i][j] == 0) {
-    //                    abstractBoard[i][j] = -1;
-    //                }
-    //            }
-    //        }
-    //    }
+    [penteGame replayMoves:[aiPlayer moves]
+                   variant:PenteGameVariantKeryoPente
+                 untilMove:untilMove];
+    whiteCaptures = penteGame.whiteCaptures;
+    blackCaptures = penteGame.blackCaptures;
 
-    // NSLog(@" kitty moves %i",abstractBoard[0][0]);
     [board setAbstractBoard:abstractBoard];
     [board setAbstractBoard:abstractBoard];
     [board
@@ -620,17 +600,12 @@
 
     NSString *message = nil;
     BOOL iWin = YES;
-    if ([self detectPenteOf:2 - ([[aiPlayer moves] count] % 2)
-                 atPosition:[[[aiPlayer moves] lastObject] intValue]]) {
-        if (2 - ([[aiPlayer moves] count] % 2) == 1) {
-            message = NSLocalizedString(@"White wins", nil);
-        } else {
-            message = NSLocalizedString(@"Black wins", nil);
-        }
-    } else if (whiteCaptures >= 15) {
-        message = NSLocalizedString(@"Black wins", nil);
-    } else if (blackCaptures >= 15) {
+    int winner = [penteGame winnerForVariant:PenteGameVariantKeryoPente
+                                       moves:[aiPlayer moves]];
+    if (winner == 1) {
         message = NSLocalizedString(@"White wins", nil);
+    } else if (winner == 2) {
+        message = NSLocalizedString(@"Black wins", nil);
     }
     if (message) {
         activeGame = NO;
@@ -715,376 +690,6 @@
                            return;
                        }];
          }];
-}
-
-- (void)detectCaptureOfOpponent:(int)opponentColor atPosition:(int)rowCol {
-    int i = rowCol / 19, j = rowCol % 19,
-        myColor = (opponentColor == 1) ? 2 : 1;
-    if ((i - 3) > -1) {
-        if (abstractBoard[i - 3][j] == myColor) {
-            if ((abstractBoard[i - 1][j] == opponentColor) &&
-                (abstractBoard[i - 2][j] == opponentColor)) {
-                abstractBoard[i - 1][j] = 0;
-                abstractBoard[i - 2][j] = 0;
-                if (opponentColor == 1) {
-                    whiteCaptures += 2;
-                } else {
-                    blackCaptures += 2;
-                }
-            }
-        }
-    }
-    if (((i - 3) > -1) && ((j - 3) > -1)) {
-        if (abstractBoard[i - 3][j - 3] == myColor) {
-            if ((abstractBoard[i - 1][j - 1] == opponentColor) &&
-                (abstractBoard[i - 2][j - 2] == opponentColor)) {
-                abstractBoard[i - 1][j - 1] = 0;
-                abstractBoard[i - 2][j - 2] = 0;
-                if (opponentColor == 1) {
-                    whiteCaptures += 2;
-                } else {
-                    blackCaptures += 2;
-                }
-            }
-        }
-    }
-    if ((j - 3) > -1) {
-        if (abstractBoard[i][j - 3] == myColor) {
-            if ((abstractBoard[i][j - 1] == opponentColor) &&
-                (abstractBoard[i][j - 2] == opponentColor)) {
-                abstractBoard[i][j - 1] = 0;
-                abstractBoard[i][j - 2] = 0;
-                if (opponentColor == 1) {
-                    whiteCaptures += 2;
-                } else {
-                    blackCaptures += 2;
-                }
-            }
-        }
-    }
-    if (((i + 3) < 19) && ((j - 3) > -1)) {
-        if (abstractBoard[i + 3][j - 3] == myColor) {
-            if ((abstractBoard[i + 1][j - 1] == opponentColor) &&
-                (abstractBoard[i + 2][j - 2] == opponentColor)) {
-                abstractBoard[i + 1][j - 1] = 0;
-                abstractBoard[i + 2][j - 2] = 0;
-                if (opponentColor == 1) {
-                    whiteCaptures += 2;
-                } else {
-                    blackCaptures += 2;
-                }
-            }
-        }
-    }
-    if ((i + 3) < 19) {
-        if (abstractBoard[i + 3][j] == myColor) {
-            if ((abstractBoard[i + 1][j] == opponentColor) &&
-                (abstractBoard[i + 2][j] == opponentColor)) {
-                abstractBoard[i + 1][j] = 0;
-                abstractBoard[i + 2][j] = 0;
-                if (opponentColor == 1) {
-                    whiteCaptures += 2;
-                } else {
-                    blackCaptures += 2;
-                }
-            }
-        }
-    }
-    if (((i + 3) < 19) && ((j + 3) < 19)) {
-        if (abstractBoard[i + 3][j + 3] == myColor) {
-            if ((abstractBoard[i + 1][j + 1] == opponentColor) &&
-                (abstractBoard[i + 2][j + 2] == opponentColor)) {
-                abstractBoard[i + 1][j + 1] = 0;
-                abstractBoard[i + 2][j + 2] = 0;
-                if (opponentColor == 1) {
-                    whiteCaptures += 2;
-                } else {
-                    blackCaptures += 2;
-                }
-            }
-        }
-    }
-    if ((j + 3) < 19) {
-        if (abstractBoard[i][j + 3] == myColor) {
-            if ((abstractBoard[i][j + 1] == opponentColor) &&
-                (abstractBoard[i][j + 2] == opponentColor)) {
-                abstractBoard[i][j + 1] = 0;
-                abstractBoard[i][j + 2] = 0;
-                if (opponentColor == 1) {
-                    whiteCaptures += 2;
-                } else {
-                    blackCaptures += 2;
-                }
-            }
-        }
-    }
-    if (((i - 3) > -1) && ((j + 3) < 19)) {
-        if (abstractBoard[i - 3][j + 3] == myColor) {
-            if ((abstractBoard[i - 1][j + 1] == opponentColor) &&
-                (abstractBoard[i - 2][j + 2] == opponentColor)) {
-                abstractBoard[i - 1][j + 1] = 0;
-                abstractBoard[i - 2][j + 2] = 0;
-                if (opponentColor == 1) {
-                    whiteCaptures += 2;
-                } else {
-                    blackCaptures += 2;
-                }
-            }
-        }
-    }
-}
-
-- (BOOL)detectPenteOf:(int)color atPosition:(int)rowCol {
-    BOOL pente = NO;
-    int penteCounter = 1;
-    int row = rowCol / 19, col = rowCol % 19, i, j;
-    i = row - 1;
-    j = col;
-    while (i > 0 && i < 19 && j > 0 && j < 19 && !pente) {
-        if (color == abstractBoard[i][j]) {
-            penteCounter += 1;
-            pente = (penteCounter > 4);
-        } else {
-            break;
-        }
-        i -= 1;
-    }
-    i = row + 1;
-    j = col;
-    while (i > 0 && i < 19 && j > 0 && j < 19 && !pente) {
-        if (color == abstractBoard[i][j]) {
-            penteCounter += 1;
-            pente = (penteCounter > 4);
-        } else {
-            break;
-        }
-        i += 1;
-    }
-    if (pente) {
-        return pente;
-    }
-    penteCounter = 1;
-    i = row;
-    j = col - 1;
-    while (i > 0 && i < 19 && j > 0 && j < 19 && !pente) {
-        if (color == abstractBoard[i][j]) {
-            penteCounter += 1;
-            pente = (penteCounter > 4);
-        } else {
-            break;
-        }
-        j -= 1;
-    }
-    i = row;
-    j = col + 1;
-    while (i > 0 && i < 19 && j > 0 && j < 19 && !pente) {
-        if (color == abstractBoard[i][j]) {
-            penteCounter += 1;
-            pente = (penteCounter > 4);
-        } else {
-            break;
-        }
-        j += 1;
-    }
-    if (pente) {
-        return pente;
-    }
-    penteCounter = 1;
-    i = row - 1;
-    j = col - 1;
-    while (i > 0 && i < 19 && j > 0 && j < 19 && !pente) {
-        if (color == abstractBoard[i][j]) {
-            penteCounter += 1;
-            pente = (penteCounter > 4);
-        } else {
-            break;
-        }
-        j -= 1;
-        i -= 1;
-    }
-    i = row + 1;
-    j = col + 1;
-    while (i > 0 && i < 19 && j > 0 && j < 19 && !pente) {
-        if (color == abstractBoard[i][j]) {
-            penteCounter += 1;
-            pente = (penteCounter > 4);
-        } else {
-            break;
-        }
-        i += 1;
-        j += 1;
-    }
-    if (pente) {
-        return pente;
-    }
-    penteCounter = 1;
-    i = row - 1;
-    j = col + 1;
-    while (i > 0 && i < 19 && j > 0 && j < 19 && !pente) {
-        if (color == abstractBoard[i][j]) {
-            penteCounter += 1;
-            pente = (penteCounter > 4);
-        } else {
-            break;
-        }
-        j += 1;
-        i -= 1;
-    }
-    i = row + 1;
-    j = col - 1;
-    while (i > 0 && i < 19 && j > 0 && j < 19 && !pente) {
-        if (color == abstractBoard[i][j]) {
-            penteCounter += 1;
-            pente = (penteCounter > 4);
-        } else {
-            break;
-        }
-        i += 1;
-        j -= 1;
-    }
-
-    return pente;
-}
-
-- (void)detectKeryoCaptureOfOpponent:(int)opponentColor atPosition:(int)rowCol {
-    int i = rowCol / 19, j = rowCol % 19,
-        myColor = (opponentColor == 1) ? 2 : 1;
-    if ((i - 4) > -1) {
-        if (abstractBoard[i - 4][j] == myColor) {
-            if ((abstractBoard[i - 1][j] == opponentColor) &&
-                (abstractBoard[i - 2][j] == opponentColor) &&
-                (abstractBoard[i - 3][j] == opponentColor)) {
-                abstractBoard[i - 1][j] = 0;
-                abstractBoard[i - 2][j] = 0;
-                abstractBoard[i - 3][j] = 0;
-                if (opponentColor == 1) {
-                    whiteCaptures += 3;
-                } else {
-                    blackCaptures += 3;
-                }
-            }
-        }
-    }
-    if (((i - 4) > -1) && ((j - 4) > -1)) {
-        if (abstractBoard[i - 4][j - 4] == myColor) {
-            if ((abstractBoard[i - 1][j - 1] == opponentColor) &&
-                (abstractBoard[i - 2][j - 2] == opponentColor) &&
-                (abstractBoard[i - 3][j - 3] == opponentColor)) {
-                abstractBoard[i - 1][j - 1] = 0;
-                abstractBoard[i - 2][j - 2] = 0;
-                abstractBoard[i - 3][j - 3] = 0;
-                if (opponentColor == 1) {
-                    whiteCaptures += 3;
-                } else {
-                    blackCaptures += 3;
-                }
-            }
-        }
-    }
-    if ((j - 4) > -1) {
-        if (abstractBoard[i][j - 4] == myColor) {
-            if ((abstractBoard[i][j - 1] == opponentColor) &&
-                (abstractBoard[i][j - 2] == opponentColor) &&
-                (abstractBoard[i][j - 3] == opponentColor)) {
-                abstractBoard[i][j - 1] = 0;
-                abstractBoard[i][j - 2] = 0;
-                abstractBoard[i][j - 3] = 0;
-                if (opponentColor == 1) {
-                    whiteCaptures += 3;
-                } else {
-                    blackCaptures += 3;
-                }
-            }
-        }
-    }
-    if (((i + 4) < 19) && ((j - 4) > -1)) {
-        if (abstractBoard[i + 4][j - 4] == myColor) {
-            if ((abstractBoard[i + 1][j - 1] == opponentColor) &&
-                (abstractBoard[i + 2][j - 2] == opponentColor) &&
-                (abstractBoard[i + 3][j - 3] == opponentColor)) {
-                abstractBoard[i + 1][j - 1] = 0;
-                abstractBoard[i + 2][j - 2] = 0;
-                abstractBoard[i + 3][j - 3] = 0;
-                if (opponentColor == 1) {
-                    whiteCaptures += 3;
-                } else {
-                    blackCaptures += 3;
-                }
-            }
-        }
-    }
-    if ((i + 4) < 19) {
-        if (abstractBoard[i + 4][j] == myColor) {
-            if ((abstractBoard[i + 1][j] == opponentColor) &&
-                (abstractBoard[i + 2][j] == opponentColor) &&
-                (abstractBoard[i + 3][j] == opponentColor)) {
-                abstractBoard[i + 1][j] = 0;
-                abstractBoard[i + 2][j] = 0;
-                abstractBoard[i + 3][j] = 0;
-                if (opponentColor == 1) {
-                    whiteCaptures += 3;
-                } else {
-                    blackCaptures += 3;
-                }
-            }
-        }
-    }
-    if (((i + 4) < 19) && ((j + 4) < 19)) {
-        if (abstractBoard[i + 4][j + 4] == myColor) {
-            if ((abstractBoard[i + 1][j + 1] == opponentColor) &&
-                (abstractBoard[i + 2][j + 2] == opponentColor) &&
-                (abstractBoard[i + 3][j + 3] == opponentColor)) {
-                abstractBoard[i + 1][j + 1] = 0;
-                abstractBoard[i + 2][j + 2] = 0;
-                abstractBoard[i + 3][j + 3] = 0;
-                if (opponentColor == 1) {
-                    whiteCaptures += 3;
-                } else {
-                    blackCaptures += 3;
-                }
-            }
-        }
-    }
-    if ((j + 4) < 19) {
-        if (abstractBoard[i][j + 4] == myColor) {
-            if ((abstractBoard[i][j + 1] == opponentColor) &&
-                (abstractBoard[i][j + 2] == opponentColor) &&
-                (abstractBoard[i][j + 3] == opponentColor)) {
-                abstractBoard[i][j + 1] = 0;
-                abstractBoard[i][j + 2] = 0;
-                abstractBoard[i][j + 3] = 0;
-                if (opponentColor == 1) {
-                    whiteCaptures += 3;
-                } else {
-                    blackCaptures += 3;
-                }
-            }
-        }
-    }
-    if (((i - 4) > -1) && ((j + 4) < 19)) {
-        if (abstractBoard[i - 4][j + 4] == myColor) {
-            if ((abstractBoard[i - 1][j + 1] == opponentColor) &&
-                (abstractBoard[i - 2][j + 2] == opponentColor) &&
-                (abstractBoard[i - 3][j + 3] == opponentColor)) {
-                abstractBoard[i - 1][j + 1] = 0;
-                abstractBoard[i - 2][j + 2] = 0;
-                abstractBoard[i - 3][j + 3] = 0;
-                if (opponentColor == 1) {
-                    whiteCaptures += 3;
-                } else {
-                    blackCaptures += 3;
-                }
-            }
-        }
-    }
-}
-
-- (void)resetBoard {
-    for (int i = 0; i < 19; ++i) {
-        for (int j = 0; j < 19; ++j) {
-            abstractBoard[i][j] = 0;
-        }
-    }
 }
 
 - (void)showSetup {

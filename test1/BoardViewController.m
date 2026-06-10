@@ -23,6 +23,7 @@
 #import "BoardViewController.h"
 #import "BoardView.h"
 #import "DatabaseViewController.h"
+#import "PenteGame.h"
 #import "PopoverView.h"
 #import "TSMessage.h"
 #import "penteLive-Swift.h"
@@ -93,10 +94,7 @@ BOOL canUnHide = NO;
 char coordinateLetters[19] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J', 'K',
                               'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T'};
 NSString *hideString, *cancelMsg;
-struct Capture {
-    int color;
-    int position;
-};
+PenteGame *penteGame;
 
 NSMutableDictionary<NSNumber *, NSMutableDictionary<NSNumber *, NSNumber *> *>
     *goStoneGroupIDsByPlayer;
@@ -112,6 +110,9 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+
+    penteGame = [[PenteGame alloc] init];
+    penteGame.abstractBoard = abstractBoard;
 
     finalMove = -1;
     connect6Move1 = -1;
@@ -1304,22 +1305,29 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
     //    [request setHTTPShouldUsePipelining: YES];
 
     __weak typeof(self) weakSelf = self;
-    [PenteHTTPClient sendRequest:request completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
-        __strong typeof(weakSelf) strongSelf = weakSelf;
-        if (!strongSelf) return;
-        [strongSelf->spinner stopAnimating];
-        if (error) {
-            UIAlertView *alert = [[UIAlertView alloc]
-                    initWithTitle:NSLocalizedString(@"Error", nil)
-                          message:[NSString stringWithFormat:NSLocalizedString(@"Reason: %@", nil), error.localizedDescription]
-                         delegate:nil
-                cancelButtonTitle:@"OK"
-                otherButtonTitles:nil];
-            [alert show];
-            return;
-        }
-        [strongSelf cleanUp];
-    }];
+    [PenteHTTPClient
+        sendRequest:request
+         completion:^(NSData *responseData, NSURLResponse *response,
+                      NSError *error) {
+             __strong typeof(weakSelf) strongSelf = weakSelf;
+             if (!strongSelf)
+                 return;
+             [strongSelf->spinner stopAnimating];
+             if (error) {
+                 UIAlertView *alert = [[UIAlertView alloc]
+                         initWithTitle:NSLocalizedString(@"Error", nil)
+                               message:[NSString stringWithFormat:
+                                                     NSLocalizedString(
+                                                         @"Reason: %@", nil),
+                                                     error.localizedDescription]
+                              delegate:nil
+                     cancelButtonTitle:@"OK"
+                     otherButtonTitles:nil];
+                 [alert show];
+                 return;
+             }
+             [strongSelf cleanUp];
+         }];
 }
 
 - (void)cleanUp {
@@ -1370,7 +1378,8 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
 }
 
 - (void)replayGame {
-//    initialize all the global variables to the default values, then replay the game up to lastMove.
+    //    initialize all the global variables to the default values, then replay
+    //    the game up to lastMove.
     gridSize = 19;
     isGoGame = NO;
     self->movesList = [[NSMutableArray alloc] init];
@@ -1381,7 +1390,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
         }
     }
     lastMove = -1;
-    
+
     [board setLastConnect6Move:-1];
     [zoomedBoard setLastConnect6Move:-1];
     whiteCaptures = 0;
@@ -1428,629 +1437,715 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
     //    NSString *htmlString = [NSString stringWithContentsOfURL:url
     //    encoding:NSUTF8StringEncoding error:&error];
     __weak typeof(self) weakSelf = self;
-    [PenteHTTPClient sendRequest:request completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
-        __strong typeof(weakSelf) strongSelf = weakSelf;
-        if (!strongSelf) return;
+    [PenteHTTPClient
+        sendRequest:request
+         completion:^(NSData *responseData, NSURLResponse *response,
+                      NSError *error) {
+             __strong typeof(weakSelf) strongSelf = weakSelf;
+             if (!strongSelf)
+                 return;
 
-    if (error) {
-        [strongSelf showAlertWithMessage:error.localizedDescription];
-        return;
-    }
+             if (error) {
+                 [strongSelf showAlertWithMessage:error.localizedDescription];
+                 return;
+             }
 
-    NSDictionary *jsonResponse =
-        [NSJSONSerialization JSONObjectWithData:responseData
-                                        options:NSJSONReadingMutableContainers
-                                          error:&error];
-    if (error) {
-        [strongSelf showAlertWithMessage:error.localizedDescription];
-        return;
-    }
+             NSDictionary *jsonResponse = [NSJSONSerialization
+                 JSONObjectWithData:responseData
+                            options:NSJSONReadingMutableContainers
+                              error:&error];
+             if (error) {
+                 [strongSelf showAlertWithMessage:error.localizedDescription];
+                 return;
+             }
 
-    //    NSLog(@"kitty %@", htmlString);
-    //    NSLog(@"kitty %@", jsonResponse);
+             //    NSLog(@"kitty %@", htmlString);
+             //    NSLog(@"kitty %@", jsonResponse);
 
-    canHide = [jsonResponse[@"canHide"] boolValue];
-    canUnHide = [jsonResponse[@"canUnHide"] boolValue];
+             canHide = [jsonResponse[@"canHide"] boolValue];
+             canUnHide = [jsonResponse[@"canUnHide"] boolValue];
 
-    NSMutableArray *messages, *atMoves;
-    BOOL cancelRequest = NO;
+             NSMutableArray *messages, *atMoves;
+             BOOL cancelRequest = NO;
 
-    NSString *myUsername = [[[NSUserDefaults standardUserDefaults]
-        objectForKey:@"username"] lowercaseString];
-    NSString *p1Name = jsonResponse[@"player1"][@"name"],
-             *p2Name = jsonResponse[@"player2"][@"name"];
-    NSString *currentPlayer = jsonResponse[@"currentPlayer"];
-    BOOL undoRequest = [jsonResponse[@"undoRequested"] boolValue];
-    [strongSelf.game setSetID:[jsonResponse[@"sid"] stringValue]];
-    if ([jsonResponse[@"moves"] length] > 0) {
-        strongSelf->movesList = [NSMutableArray arrayWithArray:[jsonResponse[@"moves"] componentsSeparatedByString:@","]];
-    } else {
-        strongSelf->movesList = [[NSMutableArray alloc] init];
-    }
-    [strongSelf.game setRatedNot:jsonResponse[@"rated"]];
-    [strongSelf.game setPrivateGame:jsonResponse[@"privateGame"]];
-    iAmP1 = [myUsername isEqualToString:p1Name];
-    [strongSelf.game setGameType:jsonResponse[@"gameName"]];
-    isGoGame = ([strongSelf.game.gameType hasPrefix:@"Go"] &&
-                ![strongSelf.game.gameType hasPrefix:@"Gomoku"]) ||
-               ([strongSelf.game.gameType hasPrefix:@"Speed Go"] &&
-                ![strongSelf.game.gameType hasPrefix:@"Speed Gomoku"]);
-    [strongSelf setTitle:[strongSelf.game gameType]];
-    if (iAmP1) {
-        [strongSelf.game setOpponentName:p2Name];
-        [strongSelf.game setOpponentRating:[jsonResponse[@"player2"][@"rating"]
-                                         stringValue]];
-        [strongSelf.game setMyColor:isGoGame ? @"black" : @"white"];
-    } else {
-        [strongSelf.game setOpponentName:p1Name];
-        [strongSelf.game setOpponentRating:[jsonResponse[@"player1"][@"rating"]
-                                         stringValue]];
-        [strongSelf.game setMyColor:isGoGame ? @"white" : @"black"];
-    }
+             NSString *myUsername = [[[NSUserDefaults standardUserDefaults]
+                 objectForKey:@"username"] lowercaseString];
+             NSString *p1Name = jsonResponse[@"player1"][@"name"],
+                      *p2Name = jsonResponse[@"player2"][@"name"];
+             NSString *currentPlayer = jsonResponse[@"currentPlayer"];
+             BOOL undoRequest = [jsonResponse[@"undoRequested"] boolValue];
+             [strongSelf.game setSetID:[jsonResponse[@"sid"] stringValue]];
+             if ([jsonResponse[@"moves"] length] > 0) {
+                 strongSelf->movesList = [NSMutableArray
+                     arrayWithArray:[jsonResponse[@"moves"]
+                                        componentsSeparatedByString:@","]];
+             } else {
+                 strongSelf->movesList = [[NSMutableArray alloc] init];
+             }
+             [strongSelf.game setRatedNot:jsonResponse[@"rated"]];
+             [strongSelf.game setPrivateGame:jsonResponse[@"privateGame"]];
+             iAmP1 = [myUsername isEqualToString:p1Name];
+             [strongSelf.game setGameType:jsonResponse[@"gameName"]];
+             isGoGame = ([strongSelf.game.gameType hasPrefix:@"Go"] &&
+                         ![strongSelf.game.gameType hasPrefix:@"Gomoku"]) ||
+                        ([strongSelf.game.gameType hasPrefix:@"Speed Go"] &&
+                         ![strongSelf.game.gameType hasPrefix:@"Speed Gomoku"]);
+             [strongSelf setTitle:[strongSelf.game gameType]];
+             if (iAmP1) {
+                 [strongSelf.game setOpponentName:p2Name];
+                 [strongSelf.game
+                     setOpponentRating:[jsonResponse[@"player2"][@"rating"]
+                                           stringValue]];
+                 [strongSelf.game setMyColor:isGoGame ? @"black" : @"white"];
+             } else {
+                 [strongSelf.game setOpponentName:p1Name];
+                 [strongSelf.game
+                     setOpponentRating:[jsonResponse[@"player1"][@"rating"]
+                                           stringValue]];
+                 [strongSelf.game setMyColor:isGoGame ? @"white" : @"black"];
+             }
 
-    atMoves =
-        [NSMutableArray arrayWithArray:[jsonResponse[@"messageNums"]
-                                           componentsSeparatedByString:@","]];
-    messages =
-        [NSMutableArray arrayWithArray:[jsonResponse[@"messages"]
-                                           componentsSeparatedByString:@","]];
+             atMoves = [NSMutableArray
+                 arrayWithArray:[jsonResponse[@"messageNums"]
+                                    componentsSeparatedByString:@","]];
+             messages = [NSMutableArray
+                 arrayWithArray:[jsonResponse[@"messages"]
+                                    componentsSeparatedByString:@","]];
 
-    cancelMsg = @"";
-    if (jsonResponse[@"cancel"]) {
-        if (![myUsername isEqualToString:jsonResponse[@"cancel"][@"name"]]) {
-            cancelRequest = YES;
-            cancelMsg = [NSString
-                stringWithFormat:@"/n and writes: %@",
-                                 jsonResponse[@"cancel"][@"message"]];
-        }
-    }
+             cancelMsg = @"";
+             if (jsonResponse[@"cancel"]) {
+                 if (![myUsername
+                         isEqualToString:jsonResponse[@"cancel"][@"name"]]) {
+                     cancelRequest = YES;
+                     cancelMsg = [NSString
+                         stringWithFormat:@"/n and writes: %@",
+                                          jsonResponse[@"cancel"][@"message"]];
+                 }
+             }
 
-    for (int i = 0; i < [messages count]; ++i) {
-        NSString *tmpStr = [Message replaceSmileys:[messages objectAtIndex:i]];
-        [strongSelf->messagesHistory setObject:tmpStr forKey:[atMoves objectAtIndex:i]];
-    }
+             for (int i = 0; i < [messages count]; ++i) {
+                 NSString *tmpStr =
+                     [Message replaceSmileys:[messages objectAtIndex:i]];
+                 [strongSelf->messagesHistory
+                     setObject:tmpStr
+                        forKey:[atMoves objectAtIndex:i]];
+             }
 
-    [strongSelf->receivedMessageView setFont:[UIFont fontWithName:@"HelveticaNeue-Bold"
+             [strongSelf->receivedMessageView
+                 setFont:[UIFont fontWithName:@"HelveticaNeue-Bold"
+                                         size:15.35f]];
+             if ([strongSelf->messagesHistory
+                     objectForKey:[NSString
+                                      stringWithFormat:
+                                          @"%lu",
+                                          (unsigned long)
+                                              [strongSelf->movesList count]]]) {
+                 if (([[strongSelf.game myColor] isEqualToString:@"white"] &&
+                      (([strongSelf->movesList count] % 2) == 1)) ||
+                     ([[strongSelf.game myColor] isEqualToString:@"black"] &&
+                      (([strongSelf->movesList count] % 2) == 0))) {
+                     [strongSelf->receivedMessageView
+                         setFont:[UIFont fontWithName:@"HelveticaNeue"
                                                  size:15.35f]];
-    if ([strongSelf->messagesHistory
-            objectForKey:[NSString stringWithFormat:@"%lu",
-                                                    (unsigned long)
-                                                        [strongSelf->movesList count]]]) {
-        if (([[strongSelf.game myColor] isEqualToString:@"white"] &&
-             (([strongSelf->movesList count] % 2) == 1)) ||
-            ([[strongSelf.game myColor] isEqualToString:@"black"] &&
-             (([strongSelf->movesList count] % 2) == 0))) {
-            [strongSelf->receivedMessageView setFont:[UIFont fontWithName:@"HelveticaNeue"
-                                                         size:15.35f]];
-            strongSelf->receivedMessage = [NSString
-                stringWithFormat:
-                    @" me: %@",
-                    [strongSelf->messagesHistory
-                        objectForKey:[NSString
-                                         stringWithFormat:@"%lu",
-                                                          (unsigned long)
-                                                              [strongSelf->movesList
+                     strongSelf->receivedMessage = [NSString
+                         stringWithFormat:
+                             @" me: %@",
+                             [strongSelf->messagesHistory
+                                 objectForKey:[NSString
+                                                  stringWithFormat:
+                                                      @"%lu",
+                                                      (unsigned long)
+                                                          [strongSelf->movesList
                                                                   count]]]];
-        } else {
-            [strongSelf->receivedMessageView
-                setFont:[UIFont fontWithName:@"HelveticaNeue-Bold"
-                                        size:15.35f]];
-            strongSelf->receivedMessage = [NSString
-                stringWithFormat:
-                    @" %@: %@", [strongSelf.game opponentName],
-                    [strongSelf->messagesHistory
-                        objectForKey:[NSString
-                                         stringWithFormat:@"%lu",
-                                                          (unsigned long)
-                                                              [strongSelf->movesList
+                 } else {
+                     [strongSelf->receivedMessageView
+                         setFont:[UIFont fontWithName:@"HelveticaNeue-Bold"
+                                                 size:15.35f]];
+                     strongSelf->receivedMessage = [NSString
+                         stringWithFormat:
+                             @" %@: %@", [strongSelf.game opponentName],
+                             [strongSelf->messagesHistory
+                                 objectForKey:[NSString
+                                                  stringWithFormat:
+                                                      @"%lu",
+                                                      (unsigned long)
+                                                          [strongSelf->movesList
                                                                   count]]]];
-        }
-        if (([[strongSelf.game gameType] isEqualToString:@"Connect6"] &&
-             [[strongSelf.game myColor] isEqualToString:@"white"] &&
-             (([strongSelf->movesList count] % 4) == 1)) ||
-            ([[strongSelf.game gameType] isEqualToString:@"Connect6"] &&
-             [[strongSelf.game myColor] isEqualToString:@"black"] &&
-             (([strongSelf->movesList count] % 4) == 3))) {
-            [strongSelf->receivedMessageView setFont:[UIFont fontWithName:@"HelveticaNeue"
-                                                         size:15.35f]];
-            strongSelf->receivedMessage = [NSString
-                stringWithFormat:
-                    @" me: %@",
-                    [strongSelf->messagesHistory
-                        objectForKey:[NSString
-                                         stringWithFormat:@"%lu",
-                                                          (unsigned long)
-                                                              [strongSelf->movesList
+                 }
+                 if (([[strongSelf.game gameType]
+                          isEqualToString:@"Connect6"] &&
+                      [[strongSelf.game myColor] isEqualToString:@"white"] &&
+                      (([strongSelf->movesList count] % 4) == 1)) ||
+                     ([[strongSelf.game gameType]
+                          isEqualToString:@"Connect6"] &&
+                      [[strongSelf.game myColor] isEqualToString:@"black"] &&
+                      (([strongSelf->movesList count] % 4) == 3))) {
+                     [strongSelf->receivedMessageView
+                         setFont:[UIFont fontWithName:@"HelveticaNeue"
+                                                 size:15.35f]];
+                     strongSelf->receivedMessage = [NSString
+                         stringWithFormat:
+                             @" me: %@",
+                             [strongSelf->messagesHistory
+                                 objectForKey:[NSString
+                                                  stringWithFormat:
+                                                      @"%lu",
+                                                      (unsigned long)
+                                                          [strongSelf->movesList
                                                                   count]]]];
-        } else if ([[strongSelf.game gameType] isEqualToString:@"Connect6"]) {
-            [strongSelf->receivedMessageView
-                setFont:[UIFont fontWithName:@"HelveticaNeue-Bold"
-                                        size:15.35f]];
-            strongSelf->receivedMessage = [NSString
-                stringWithFormat:
-                    @" %@: %@", [strongSelf.game opponentName],
-                    [strongSelf->messagesHistory
-                        objectForKey:[NSString
-                                         stringWithFormat:@"%lu",
-                                                          (unsigned long)
-                                                              [strongSelf->movesList
+                 } else if ([[strongSelf.game gameType]
+                                isEqualToString:@"Connect6"]) {
+                     [strongSelf->receivedMessageView
+                         setFont:[UIFont fontWithName:@"HelveticaNeue-Bold"
+                                                 size:15.35f]];
+                     strongSelf->receivedMessage = [NSString
+                         stringWithFormat:
+                             @" %@: %@", [strongSelf.game opponentName],
+                             [strongSelf->messagesHistory
+                                 objectForKey:[NSString
+                                                  stringWithFormat:
+                                                      @"%lu",
+                                                      (unsigned long)
+                                                          [strongSelf->movesList
                                                                   count]]]];
-        }
-        if (isGoGame) {
-            if (([[strongSelf.game myColor] isEqualToString:@"black"] &&
-                 (([strongSelf->movesList count] % 2) == 1)) ||
-                ([[strongSelf.game myColor] isEqualToString:@"white"] &&
-                 (([strongSelf->movesList count] % 2) == 0))) {
-                [strongSelf->receivedMessageView
-                    setFont:[UIFont fontWithName:@"HelveticaNeue" size:15.35f]];
-                strongSelf->receivedMessage = [NSString
-                    stringWithFormat:
-                        @" me: %@",
-                        [strongSelf->messagesHistory
-                            objectForKey:[NSString
-                                             stringWithFormat:@"%lu",
-                                                              (unsigned long)
-                                                                  [strongSelf->movesList
-                                                                      count]]]];
-            } else {
-                [strongSelf->receivedMessageView
-                    setFont:[UIFont fontWithName:@"HelveticaNeue-Bold"
-                                            size:15.35f]];
-                strongSelf->receivedMessage = [NSString
-                    stringWithFormat:
-                        @" %@: %@", [strongSelf.game opponentName],
-                        [strongSelf->messagesHistory
-                            objectForKey:[NSString
-                                             stringWithFormat:@"%lu",
-                                                              (unsigned long)
-                                                                  [strongSelf->movesList
-                                                                      count]]]];
-            }
-        }
-    } else {
-        strongSelf->receivedMessage = @"";
-        [strongSelf->replyMessageView
-            setFrame:CGRectMake(0, 0, strongSelf.view.bounds.size.width - 40, 88)];
-    }
+                 }
+                 if (isGoGame) {
+                     if (([[strongSelf.game myColor]
+                              isEqualToString:@"black"] &&
+                          (([strongSelf->movesList count] % 2) == 1)) ||
+                         ([[strongSelf.game myColor]
+                              isEqualToString:@"white"] &&
+                          (([strongSelf->movesList count] % 2) == 0))) {
+                         [strongSelf->receivedMessageView
+                             setFont:[UIFont fontWithName:@"HelveticaNeue"
+                                                     size:15.35f]];
+                         strongSelf->receivedMessage = [NSString
+                             stringWithFormat:
+                                 @" me: %@",
+                                 [strongSelf->messagesHistory
+                                     objectForKey:
+                                         [NSString
+                                             stringWithFormat:
+                                                 @"%lu",
+                                                 (unsigned long)
+                                                     [strongSelf->movesList
+                                                             count]]]];
+                     } else {
+                         [strongSelf->receivedMessageView
+                             setFont:[UIFont fontWithName:@"HelveticaNeue-Bold"
+                                                     size:15.35f]];
+                         strongSelf->receivedMessage = [NSString
+                             stringWithFormat:
+                                 @" %@: %@", [strongSelf.game opponentName],
+                                 [strongSelf->messagesHistory
+                                     objectForKey:
+                                         [NSString
+                                             stringWithFormat:
+                                                 @"%lu",
+                                                 (unsigned long)
+                                                     [strongSelf->movesList
+                                                             count]]]];
+                     }
+                 }
+             } else {
+                 strongSelf->receivedMessage = @"";
+                 [strongSelf->replyMessageView
+                     setFrame:CGRectMake(0, 0,
+                                         strongSelf.view.bounds.size.width - 40,
+                                         88)];
+             }
 
-    [strongSelf->receivedMessageView setEditable:NO];
-    [strongSelf->receivedMessageView setAlpha:0.90];
-    //    [strongSelf->receivedMessageView setBackgroundColor:[UIColor colorWithRed:0.98f
-    //    green:0.98f blue:0.98f alpha:0.95]];
-    strongSelf->receivedMessageView.clipsToBounds = YES;
-    strongSelf->receivedMessageView.layer.cornerRadius = 5.0f;
-    strongSelf->receivedMessageView.contentInset = UIEdgeInsetsMake(-10.0, 0.0, 0, 0.0);
-    [strongSelf->receivedMessageView setText:strongSelf->receivedMessage];
-    CGRect frame = strongSelf->receivedMessageView.frame;
-    frame.origin.y = 568;
+             [strongSelf->receivedMessageView setEditable:NO];
+             [strongSelf->receivedMessageView setAlpha:0.90];
+             //    [strongSelf->receivedMessageView setBackgroundColor:[UIColor
+             //    colorWithRed:0.98f green:0.98f blue:0.98f alpha:0.95]];
+             strongSelf->receivedMessageView.clipsToBounds = YES;
+             strongSelf->receivedMessageView.layer.cornerRadius = 5.0f;
+             strongSelf->receivedMessageView.contentInset =
+                 UIEdgeInsetsMake(-10.0, 0.0, 0, 0.0);
+             [strongSelf->receivedMessageView
+                 setText:strongSelf->receivedMessage];
+             CGRect frame = strongSelf->receivedMessageView.frame;
+             frame.origin.y = 568;
 
-    NSDictionary *fontAttributes =
-        [NSDictionary dictionaryWithObject:[strongSelf->receivedMessageView font]
-                                    forKey:NSFontAttributeName];
-    [strongSelf.view addSubview:strongSelf->receivedMessageView];
-    CGRect textFrame = [strongSelf->receivedMessage
-        boundingRectWithSize:CGSizeMake(
-                                 strongSelf->receivedMessageView.contentSize.width +
-                                     strongSelf->receivedMessageView.contentOffset.x -
-                                     strongSelf->receivedMessageView.contentInset.left -
-                                     strongSelf->receivedMessageView.contentInset.right,
-                                 strongSelf->receivedMessageView.font.lineHeight * 5)
-                     options:(NSStringDrawingUsesLineFragmentOrigin |
-                              NSLineBreakByWordWrapping)
-                  attributes:fontAttributes
-                     context:nil];
-    [strongSelf->receivedMessageView setText:strongSelf->receivedMessage];
-    //    CGFloat fontLineHeight = [[strongSelf->receivedMessageView font] lineHeight];
-    [strongSelf->receivedMessageView setFrame:frame];
-    //    [strongSelf.view addSubview: strongSelf->receivedMessageView];
+             NSDictionary *fontAttributes = [NSDictionary
+                 dictionaryWithObject:[strongSelf->receivedMessageView font]
+                               forKey:NSFontAttributeName];
+             [strongSelf.view addSubview:strongSelf->receivedMessageView];
+             CGRect textFrame = [strongSelf->receivedMessage
+                 boundingRectWithSize:
+                     CGSizeMake(
+                         strongSelf->receivedMessageView.contentSize.width +
+                             strongSelf->receivedMessageView.contentOffset.x -
+                             strongSelf->receivedMessageView.contentInset.left -
+                             strongSelf->receivedMessageView.contentInset.right,
+                         strongSelf->receivedMessageView.font.lineHeight * 5)
+                              options:(NSStringDrawingUsesLineFragmentOrigin |
+                                       NSLineBreakByWordWrapping)
+                           attributes:fontAttributes
+                              context:nil];
+             [strongSelf->receivedMessageView
+                 setText:strongSelf->receivedMessage];
+             //    CGFloat fontLineHeight = [[strongSelf->receivedMessageView
+             //    font] lineHeight];
+             [strongSelf->receivedMessageView setFrame:frame];
+             //    [strongSelf.view addSubview:
+             //    strongSelf->receivedMessageView];
 
-    //    if (strongSelf->receivedMessageView.contentSize.height <
-    //    (3*strongSelf->receivedMessageView.font.lineHeight)) {
-    if (textFrame.size.height < (3 * strongSelf->receivedMessageView.font.lineHeight)) {
-        //        frame.size.height = strongSelf->receivedMessageView.contentSize.height;
-        frame.size.height = textFrame.size.height;
-    } else {
-        frame.size.height =
-            MIN((strongSelf->receivedMessageView.font.lineHeight * 5),
-                textFrame.size.height - strongSelf->receivedMessageView.contentInset.top);
-    }
-    [strongSelf->receivedMessageView removeFromSuperview];
-    [strongSelf->receivedMessageView setFrame:frame];
+             //    if (strongSelf->receivedMessageView.contentSize.height <
+             //    (3*strongSelf->receivedMessageView.font.lineHeight)) {
+             if (textFrame.size.height <
+                 (3 * strongSelf->receivedMessageView.font.lineHeight)) {
+                 //        frame.size.height =
+                 //        strongSelf->receivedMessageView.contentSize.height;
+                 frame.size.height = textFrame.size.height;
+             } else {
+                 frame.size.height =
+                     MIN((strongSelf->receivedMessageView.font.lineHeight * 5),
+                         textFrame.size.height -
+                             strongSelf->receivedMessageView.contentInset.top);
+             }
+             [strongSelf->receivedMessageView removeFromSuperview];
+             [strongSelf->receivedMessageView setFrame:frame];
 
-    [strongSelf->replyMessageView setFont:[UIFont systemFontOfSize:15]];
-    frame = strongSelf->replyMessageView.frame;
-    frame.size.height = strongSelf->replyMessageView.font.lineHeight * 3;
-    [strongSelf->replyMessageView setAlpha:0.90];
-    [strongSelf->replyMessageView setEditable:YES];
-    strongSelf->replyMessageView.clipsToBounds = YES;
-    strongSelf->replyMessageView.layer.cornerRadius = 5.0f;
-    strongSelf->replyMessageView.contentInset = UIEdgeInsetsMake(-7.0, 0.0, 0, 0.0);
-    [strongSelf->replyMessageView setFrame:frame];
-    //    [strongSelf->replyMessageView
-    //    setAutocapitalizationType:UITextAutocapitalizationTypeNone];
-    //    [strongSelf->replyMessageView setAutocorrectionType:UITextAutocorrectionTypeNo];
-    [strongSelf->replyMessageView setReturnKeyType:UIReturnKeyDone];
-    [strongSelf->replyMessageView setDelegate:self];
-    strongSelf->replyMessageView.layer.borderWidth = 2.0f;
-    strongSelf->replyMessageView.layer.borderColor = [[UIColor grayColor] CGColor];
+             [strongSelf->replyMessageView
+                 setFont:[UIFont systemFontOfSize:15]];
+             frame = strongSelf->replyMessageView.frame;
+             frame.size.height =
+                 strongSelf->replyMessageView.font.lineHeight * 3;
+             [strongSelf->replyMessageView setAlpha:0.90];
+             [strongSelf->replyMessageView setEditable:YES];
+             strongSelf->replyMessageView.clipsToBounds = YES;
+             strongSelf->replyMessageView.layer.cornerRadius = 5.0f;
+             strongSelf->replyMessageView.contentInset =
+                 UIEdgeInsetsMake(-7.0, 0.0, 0, 0.0);
+             [strongSelf->replyMessageView setFrame:frame];
+             //    [strongSelf->replyMessageView
+             //    setAutocapitalizationType:UITextAutocapitalizationTypeNone];
+             //    [strongSelf->replyMessageView
+             //    setAutocorrectionType:UITextAutocorrectionTypeNo];
+             [strongSelf->replyMessageView setReturnKeyType:UIReturnKeyDone];
+             [strongSelf->replyMessageView setDelegate:self];
+             strongSelf->replyMessageView.layer.borderWidth = 2.0f;
+             strongSelf->replyMessageView.layer.borderColor =
+                 [[UIColor grayColor] CGColor];
 
-    NSString *locRating = NSLocalizedString(@"rating:", nil);
-    NSString *remTime = NSLocalizedString(@"Remaining time:", nil);
-    NSString *ratedPrivate = [NSString
-        stringWithFormat:NSLocalizedString(@"This game is %@ and %@", nil),
-                         [strongSelf.game localizedRatedNot],
-                         [strongSelf.game privateGame]];
+             NSString *locRating = NSLocalizedString(@"rating:", nil);
+             NSString *remTime = NSLocalizedString(@"Remaining time:", nil);
+             NSString *ratedPrivate = [NSString
+                 stringWithFormat:NSLocalizedString(@"This game is %@ and %@",
+                                                    nil),
+                                  [strongSelf.game localizedRatedNot],
+                                  [strongSelf.game privateGame]];
 
-    if (![myUsername isEqualToString:p1Name] &&
-        ![myUsername isEqualToString:p2Name]) {
-        playerStatsBaseString = [NSString
-            stringWithFormat:
-                @"<font size=\"3.5\"><a "
-                @"href=\"https://www.pente.org/gameServer/"
-                @"profile?viewName=%@\">%@</a> vs <a "
-                @"href=\"https://www.pente.org/gameServer/"
-                @"profile?viewName=%@\">%@</a>, %@ %@ <br> %@ %@ <br> "
-                @"%@ </font><hr>",
-                p1Name, p1Name, p2Name, p2Name, locRating,
-                [strongSelf.game opponentRating], remTime,
-                [strongSelf.game localizedTimeString], ratedPrivate];
-    } else {
-        playerStatsBaseString = [NSString
-            stringWithFormat:
-                @"<font size=\"3.5\">Opponent: <a "
-                @"href=\"https://www.pente.org/gameServer/"
-                @"profile?viewName=%@\">%@</a>, %@ %@ <br> %@ %@ <br> "
-                @"%@</font><hr>",
-                [strongSelf.game opponentName], [strongSelf.game opponentName], locRating,
-                [strongSelf.game opponentRating], remTime, [strongSelf.game remainingTime],
-                ratedPrivate];
-    }
+             if (![myUsername isEqualToString:p1Name] &&
+                 ![myUsername isEqualToString:p2Name]) {
+                 playerStatsBaseString = [NSString
+                     stringWithFormat:
+                         @"<font size=\"3.5\"><a "
+                         @"href=\"https://www.pente.org/gameServer/"
+                         @"profile?viewName=%@\">%@</a> vs <a "
+                         @"href=\"https://www.pente.org/gameServer/"
+                         @"profile?viewName=%@\">%@</a>, %@ %@ <br> %@ %@ <br> "
+                         @"%@ </font><hr>",
+                         p1Name, p1Name, p2Name, p2Name, locRating,
+                         [strongSelf.game opponentRating], remTime,
+                         [strongSelf.game localizedTimeString], ratedPrivate];
+             } else {
+                 playerStatsBaseString = [NSString
+                     stringWithFormat:
+                         @"<font size=\"3.5\">Opponent: <a "
+                         @"href=\"https://www.pente.org/gameServer/"
+                         @"profile?viewName=%@\">%@</a>, %@ %@ <br> %@ %@ <br> "
+                         @"%@</font><hr>",
+                         [strongSelf.game opponentName],
+                         [strongSelf.game opponentName], locRating,
+                         [strongSelf.game opponentRating], remTime,
+                         [strongSelf.game remainingTime], ratedPrivate];
+             }
 
-    int dPenteState = jsonResponse[@"dPenteState"] != nil
-                          ? [jsonResponse[@"dPenteState"] intValue]
-                          : 0;
+             int dPenteState = jsonResponse[@"dPenteState"] != nil
+                                   ? [jsonResponse[@"dPenteState"] intValue]
+                                   : 0;
 
-    //    NSLog(@"kitty message %@", message);
-    dPenteOpening = NO;
-    whiteCaptures = 0;
-    blackCaptures = 0;
-    [strongSelf resetBoard];
+             //    NSLog(@"kitty message %@", message);
+             dPenteOpening = NO;
+             whiteCaptures = 0;
+             blackCaptures = 0;
+             [strongSelf resetBoard];
 
-    lastMove = (int)[strongSelf->movesList count];
+             lastMove = (int)[strongSelf->movesList count];
 
-    if ([[strongSelf.game gameType] isEqualToString:@"Pente"] ||
-        [[strongSelf.game gameType] isEqualToString:@"Boat-Pente"] ||
-        [[strongSelf.game gameType] isEqualToString:@"Speed Pente"] ||
-        [[strongSelf.game gameType] isEqualToString:@"Speed Boat-Pente"]) {
-        [strongSelf replayPenteGame:lastMove];
-    }
-    if ([[strongSelf.game gameType] isEqualToString:@"Keryo-Pente"] ||
-        [[strongSelf.game gameType] isEqualToString:@"Speed Keryo-Pente"]) {
-        [strongSelf replayKeryoPenteGame:lastMove];
-    }
-    if ([[strongSelf.game gameType] isEqualToString:@"O-Pente"] ||
-        [[strongSelf.game gameType] isEqualToString:@"Speed O-Pente"]) {
-        [strongSelf replayOPenteGame:lastMove];
-    }
-    if ([[strongSelf.game gameType] isEqualToString:@"G-Pente"] ||
-        [[strongSelf.game gameType] isEqualToString:@"Speed G-Pente"]) {
-        [strongSelf replayGPenteGame:lastMove];
-    }
-    if ([[strongSelf.game gameType] isEqualToString:@"D-Pente"] ||
-        [[strongSelf.game gameType] isEqualToString:@"Speed D-Pente"] ||
-        [[strongSelf.game gameType] isEqualToString:@"DK-Pente"] ||
-        [[strongSelf.game gameType] isEqualToString:@"Speed DK-Pente"]) {
-        if ([[strongSelf.game gameType] isEqualToString:@"DK-Pente"] ||
-            [[strongSelf.game gameType] isEqualToString:@"Speed DK-Pente"]) {
-            [strongSelf replayDKPenteGame:lastMove];
-        } else {
-            [strongSelf replayDPenteGame:lastMove];
-        }
+             if ([[strongSelf.game gameType] isEqualToString:@"Pente"] ||
+                 [[strongSelf.game gameType] isEqualToString:@"Boat-Pente"] ||
+                 [[strongSelf.game gameType] isEqualToString:@"Speed Pente"] ||
+                 [[strongSelf.game gameType]
+                     isEqualToString:@"Speed Boat-Pente"]) {
+                 [strongSelf replayPenteGame:lastMove];
+             }
+             if ([[strongSelf.game gameType] isEqualToString:@"Keryo-Pente"] ||
+                 [[strongSelf.game gameType]
+                     isEqualToString:@"Speed Keryo-Pente"]) {
+                 [strongSelf replayKeryoPenteGame:lastMove];
+             }
+             if ([[strongSelf.game gameType] isEqualToString:@"O-Pente"] ||
+                 [[strongSelf.game gameType]
+                     isEqualToString:@"Speed O-Pente"]) {
+                 [strongSelf replayOPenteGame:lastMove];
+             }
+             if ([[strongSelf.game gameType] isEqualToString:@"G-Pente"] ||
+                 [[strongSelf.game gameType]
+                     isEqualToString:@"Speed G-Pente"]) {
+                 [strongSelf replayGPenteGame:lastMove];
+             }
+             if ([[strongSelf.game gameType] isEqualToString:@"D-Pente"] ||
+                 [[strongSelf.game gameType]
+                     isEqualToString:@"Speed D-Pente"] ||
+                 [[strongSelf.game gameType] isEqualToString:@"DK-Pente"] ||
+                 [[strongSelf.game gameType]
+                     isEqualToString:@"Speed DK-Pente"]) {
+                 if ([[strongSelf.game gameType] isEqualToString:@"DK-Pente"] ||
+                     [[strongSelf.game gameType]
+                         isEqualToString:@"Speed DK-Pente"]) {
+                     [strongSelf replayDKPenteGame:lastMove];
+                 } else {
+                     [strongSelf replayDPenteGame:lastMove];
+                 }
 
-        dPenteChoice = NO;
-        if ([strongSelf->movesList count] == 4) {
-            //            NSLog(@"kitty %@", htmlString);
-            if (dPenteState == 2 && strongSelf->activeGame) {
-                dPenteChoice = YES;
-                [strongSelf->submitButton setHidden:YES];
-                [player2Button setHidden:NO];
-                [player1Button setHidden:NO];
-                [strongSelf.view bringSubviewToFront:player1Button];
-                [dPenteChoiceLabel setHidden:NO];
-                [whiteStoneCaptures setHidden:YES];
-                [whiteCapturesCountLabel setHidden:YES];
-                [blackStoneCaptures setHidden:YES];
-                [blackCapturesCountLabel setHidden:YES];
-                [lockButton setHidden:YES];
-            } else {
-                [player1Button setHidden:YES];
-                [player2Button setHidden:YES];
-                [dPenteChoiceLabel setHidden:YES];
-            }
-        }
-    }
-    if ([strongSelf.game.gameType containsString:@"Swap2-"]) {
-        swap2Opening = [strongSelf->movesList count] == 0;
-        swap2Choice = dPenteState == 2 &&
-                      ([strongSelf->movesList count] == 3 || [strongSelf->movesList count] == 5);
-        if ([strongSelf.game.gameType containsString:@"Swap2-Pente"]) {
-            [strongSelf replaySwap2PenteGame:lastMove];
-        } else if ([strongSelf.game.gameType containsString:@"Swap2-Keryo"]) {
-            [strongSelf replaySwap2KeryoGame:lastMove];
-        }
+                 dPenteChoice = NO;
+                 if ([strongSelf->movesList count] == 4) {
+                     //            NSLog(@"kitty %@", htmlString);
+                     if (dPenteState == 2 && strongSelf->activeGame) {
+                         dPenteChoice = YES;
+                         [strongSelf->submitButton setHidden:YES];
+                         [player2Button setHidden:NO];
+                         [player1Button setHidden:NO];
+                         [strongSelf.view bringSubviewToFront:player1Button];
+                         [dPenteChoiceLabel setHidden:NO];
+                         [whiteStoneCaptures setHidden:YES];
+                         [whiteCapturesCountLabel setHidden:YES];
+                         [blackStoneCaptures setHidden:YES];
+                         [blackCapturesCountLabel setHidden:YES];
+                         [lockButton setHidden:YES];
+                     } else {
+                         [player1Button setHidden:YES];
+                         [player2Button setHidden:YES];
+                         [dPenteChoiceLabel setHidden:YES];
+                     }
+                 }
+             }
+             if ([strongSelf.game.gameType containsString:@"Swap2-"]) {
+                 swap2Opening = [strongSelf->movesList count] == 0;
+                 swap2Choice =
+                     dPenteState == 2 && ([strongSelf->movesList count] == 3 ||
+                                          [strongSelf->movesList count] == 5);
+                 if ([strongSelf.game.gameType containsString:@"Swap2-Pente"]) {
+                     [strongSelf replaySwap2PenteGame:lastMove];
+                 } else if ([strongSelf.game.gameType
+                                containsString:@"Swap2-Keryo"]) {
+                     [strongSelf replaySwap2KeryoGame:lastMove];
+                 }
 
-        if (swap2Choice) {
-            if ([strongSelf->movesList count] == 3) {
-                dPenteChoice = YES;
-                [strongSelf->submitButton setHidden:YES];
-                [player2Button setHidden:NO];
-                [player1Button setHidden:NO];
-                [strongSelf.view bringSubviewToFront:player1Button];
-                [dPenteChoiceLabel setHidden:NO];
-                [whiteStoneCaptures setHidden:YES];
-                [whiteCapturesCountLabel setHidden:YES];
-                [blackStoneCaptures setHidden:YES];
-                [blackCapturesCountLabel setHidden:YES];
-                [lockButton setHidden:YES];
-                [passButton setHidden:NO];
+                 if (swap2Choice) {
+                     if ([strongSelf->movesList count] == 3) {
+                         dPenteChoice = YES;
+                         [strongSelf->submitButton setHidden:YES];
+                         [player2Button setHidden:NO];
+                         [player1Button setHidden:NO];
+                         [strongSelf.view bringSubviewToFront:player1Button];
+                         [dPenteChoiceLabel setHidden:NO];
+                         [whiteStoneCaptures setHidden:YES];
+                         [whiteCapturesCountLabel setHidden:YES];
+                         [blackStoneCaptures setHidden:YES];
+                         [blackCapturesCountLabel setHidden:YES];
+                         [lockButton setHidden:YES];
+                         [passButton setHidden:NO];
 
-            } else if ([strongSelf->movesList count] == 5) {
-                dPenteChoice = YES;
-                [strongSelf->submitButton setHidden:YES];
-                [player2Button setHidden:NO];
-                [player1Button setHidden:NO];
-                [strongSelf.view bringSubviewToFront:player1Button];
-                [dPenteChoiceLabel setHidden:NO];
-                [whiteStoneCaptures setHidden:YES];
-                [whiteCapturesCountLabel setHidden:YES];
-                [blackStoneCaptures setHidden:YES];
-                [blackCapturesCountLabel setHidden:YES];
-                [lockButton setHidden:YES];
-            }
-        } else {
-        }
-    }
-    if ([[strongSelf.game gameType] containsString:@"Poof-Pente"]) {
-        [strongSelf replayPoofPenteGame:lastMove];
-    }
-    go = NO;
-    goMarkStones = NO;
-    goEvaluateDeadStones = NO;
-    if (isGoGame) {
-        if ([strongSelf.game.gameType containsString:@"(9x9)"]) {
-            gridSize = 9;
-        } else if ([strongSelf.game.gameType containsString:@"(13x13)"]) {
-            gridSize = 13;
-        }
-        goMarkStones =
-            [jsonResponse[@"goState"] isEqualToString:@"MARK_DEAD_STONES"];
-        goEvaluateDeadStones =
-            [jsonResponse[@"goState"] isEqualToString:@"EVALUATE_DEAD_STONES"];
-        [strongSelf replayGoGame:lastMove];
-        [strongSelf->board setGo:YES];
-        [strongSelf->zoomedBoard setGo:YES];
-        if (!goMarkStones && !goEvaluateDeadStones) {
-            [strongSelf copyGoBoard];
-            [strongSelf->zoomedBoard setAbstractBoard:abstractGoBoard];
-            go = YES;
-        } else if (goMarkStones) {
-            [strongSelf showTerritory:nil];
-        } else if (goEvaluateDeadStones && strongSelf->activeGame) {
-            [strongSelf evaluateDeadStones];
-        }
-    }
-    if ([[strongSelf.game gameType] containsString:@"Connect6"]) {
-        [strongSelf replayConnect6Game:lastMove];
-    }
-    [strongSelf updateCaptures];
+                     } else if ([strongSelf->movesList count] == 5) {
+                         dPenteChoice = YES;
+                         [strongSelf->submitButton setHidden:YES];
+                         [player2Button setHidden:NO];
+                         [player1Button setHidden:NO];
+                         [strongSelf.view bringSubviewToFront:player1Button];
+                         [dPenteChoiceLabel setHidden:NO];
+                         [whiteStoneCaptures setHidden:YES];
+                         [whiteCapturesCountLabel setHidden:YES];
+                         [blackStoneCaptures setHidden:YES];
+                         [blackCapturesCountLabel setHidden:YES];
+                         [lockButton setHidden:YES];
+                     }
+                 } else {
+                 }
+             }
+             if ([[strongSelf.game gameType] containsString:@"Poof-Pente"]) {
+                 [strongSelf replayPoofPenteGame:lastMove];
+             }
+             go = NO;
+             goMarkStones = NO;
+             goEvaluateDeadStones = NO;
+             if (isGoGame) {
+                 if ([strongSelf.game.gameType containsString:@"(9x9)"]) {
+                     gridSize = 9;
+                 } else if ([strongSelf.game.gameType
+                                containsString:@"(13x13)"]) {
+                     gridSize = 13;
+                 }
+                 goMarkStones = [jsonResponse[@"goState"]
+                     isEqualToString:@"MARK_DEAD_STONES"];
+                 goEvaluateDeadStones = [jsonResponse[@"goState"]
+                     isEqualToString:@"EVALUATE_DEAD_STONES"];
+                 [strongSelf replayGoGame:lastMove];
+                 [strongSelf->board setGo:YES];
+                 [strongSelf->zoomedBoard setGo:YES];
+                 if (!goMarkStones && !goEvaluateDeadStones) {
+                     [strongSelf copyGoBoard];
+                     [strongSelf->zoomedBoard setAbstractBoard:abstractGoBoard];
+                     go = YES;
+                 } else if (goMarkStones) {
+                     [strongSelf showTerritory:nil];
+                 } else if (goEvaluateDeadStones && strongSelf->activeGame) {
+                     [strongSelf evaluateDeadStones];
+                 }
+             }
+             if ([[strongSelf.game gameType] containsString:@"Connect6"]) {
+                 [strongSelf replayConnect6Game:lastMove];
+             }
+             [strongSelf updateCaptures];
 
-    if ([[strongSelf.game gameType] containsString:@"Gomoku"]) {
-        [strongSelf replayGomokuGame:lastMove];
-    }
+             if ([[strongSelf.game gameType] containsString:@"Gomoku"]) {
+                 [strongSelf replayGomokuGame:lastMove];
+             }
 
-    // Find out your color
-    if ([[strongSelf.game myColor] isEqualToString:@"white"]) {
-        [strongSelf->stone setStoneColor:WHITE];
-    } else {
-        [strongSelf->stone setStoneColor:BLACK];
-    }
-    [strongSelf->zoomedStone setStoneColor:[strongSelf->stone stoneColor]];
-    if (goMarkStones) {
-        [strongSelf->zoomedStone setStoneColor:RED];
-        [strongSelf->zoomedStone setAlpha:0.7];
-    }
+             // Find out your color
+             if ([[strongSelf.game myColor] isEqualToString:@"white"]) {
+                 [strongSelf->stone setStoneColor:WHITE];
+             } else {
+                 [strongSelf->stone setStoneColor:BLACK];
+             }
+             [strongSelf->zoomedStone
+                 setStoneColor:[strongSelf->stone stoneColor]];
+             if (goMarkStones) {
+                 [strongSelf->zoomedStone setStoneColor:RED];
+                 [strongSelf->zoomedStone setAlpha:0.7];
+             }
 
-    moveStatsString = [[NSMutableString alloc] init];
-    for (int i = 0; i < lastMove; ++i) {
-        int rowCol = [strongSelf parseMove:[strongSelf->movesList objectAtIndex:i]];
-        if (i == 0) {
-            [moveStatsString appendString:@"<b>1.</b> "];
-        } else if ([[strongSelf.game gameType] containsString:@"Connect6"]) {
-            if (((i - 3) % 4) == 0) {
-                [moveStatsString
-                    appendString:[NSString
-                                     stringWithFormat:@"&nbsp; <b>%i.</b> ",
-                                                      (i >> 2) + 2]];
-            } else if (((i - 3) % 4) == 2 || i == 1) {
-                [moveStatsString appendString:@" - "];
-            } else {
-                [moveStatsString appendString:@"-"];
-            }
-        } else {
-            if ((i % 2) == 0) {
-                [moveStatsString
-                    appendString:[NSString
-                                     stringWithFormat:@"&nbsp; <b>%i.</b> ",
-                                                      (i >> 1) + 1]];
-            } else {
-                [moveStatsString appendString:@" - "];
-            }
-        }
-        if (rowCol < gridSize * gridSize) {
-            [moveStatsString
-                appendString:[NSString
-                                 stringWithFormat:@"%c%d",
-                                                  coordinateLetters[rowCol %
-                                                                    gridSize],
-                                                  gridSize -
-                                                      (rowCol / gridSize)]];
-        } else {
-            [moveStatsString appendString:@"PASS"];
-        }
-    }
-    [strongSelf->playerStats
-        loadHTMLString:[HEADERSTRING
-                           stringByAppendingString:
-                               [playerStatsBaseString
-                                   stringByAppendingString:moveStatsString]]
-               baseURL:nil];
+             moveStatsString = [[NSMutableString alloc] init];
+             for (int i = 0; i < lastMove; ++i) {
+                 int rowCol = [strongSelf
+                     parseMove:[strongSelf->movesList objectAtIndex:i]];
+                 if (i == 0) {
+                     [moveStatsString appendString:@"<b>1.</b> "];
+                 } else if ([[strongSelf.game gameType]
+                                containsString:@"Connect6"]) {
+                     if (((i - 3) % 4) == 0) {
+                         [moveStatsString
+                             appendString:[NSString stringWithFormat:
+                                                        @"&nbsp; <b>%i.</b> ",
+                                                        (i >> 2) + 2]];
+                     } else if (((i - 3) % 4) == 2 || i == 1) {
+                         [moveStatsString appendString:@" - "];
+                     } else {
+                         [moveStatsString appendString:@"-"];
+                     }
+                 } else {
+                     if ((i % 2) == 0) {
+                         [moveStatsString
+                             appendString:[NSString stringWithFormat:
+                                                        @"&nbsp; <b>%i.</b> ",
+                                                        (i >> 1) + 1]];
+                     } else {
+                         [moveStatsString appendString:@" - "];
+                     }
+                 }
+                 if (rowCol < gridSize * gridSize) {
+                     [moveStatsString
+                         appendString:[NSString
+                                          stringWithFormat:
+                                              @"%c%d",
+                                              coordinateLetters[rowCol %
+                                                                gridSize],
+                                              gridSize - (rowCol / gridSize)]];
+                 } else {
+                     [moveStatsString appendString:@"PASS"];
+                 }
+             }
+             [strongSelf->playerStats
+                 loadHTMLString:[HEADERSTRING stringByAppendingString:
+                                                  [playerStatsBaseString
+                                                      stringByAppendingString:
+                                                          moveStatsString]]
+                        baseURL:nil];
 
-    [strongSelf->board setGridSize:gridSize];
-    [strongSelf->zoomedBoard setGridSize:gridSize];
-    [strongSelf->board setNeedsDisplay];
-    [strongSelf->zoomedBoard setNeedsDisplay];
+             [strongSelf->board setGridSize:gridSize];
+             [strongSelf->zoomedBoard setGridSize:gridSize];
+             [strongSelf->board setNeedsDisplay];
+             [strongSelf->zoomedBoard setNeedsDisplay];
 
-    if (cancelRequest) {
-        [strongSelf presentCancelReply];
-    }
+             if (cancelRequest) {
+                 [strongSelf presentCancelReply];
+             }
 
-    if (![strongSelf->receivedMessage isEqualToString:@""]) {
-        [strongSelf notifyNewMessage];
-    }
+             if (![strongSelf->receivedMessage isEqualToString:@""]) {
+                 [strongSelf notifyNewMessage];
+             }
 
-    strongSelf->activeGame = [currentPlayer isEqualToString:myUsername];
+             strongSelf->activeGame =
+                 [currentPlayer isEqualToString:myUsername];
 
-    if ([[strongSelf.game opponentName] isEqualToString:@"computer"]) {
-        NSString *message = nil;
-        BOOL iWin = YES;
-        if ([strongSelf detectPenteOf:2 - ([strongSelf->movesList count] % 2)
-                     atPosition:[[strongSelf->movesList lastObject] intValue]]) {
-            if (2 - ([strongSelf->movesList count] % 2) == 1) {
-                message = NSLocalizedString(@"White wins", nil);
-            } else {
-                message = NSLocalizedString(@"Black wins", nil);
-            }
-        } else if (whiteCaptures == 10) {
-            message = NSLocalizedString(@"Black wins", nil);
-        } else if (blackCaptures == 10) {
-            message = NSLocalizedString(@"White wins", nil);
-        }
-        if (message) {
-            strongSelf->activeGame = NO;
-            if ([message isEqualToString:@"White wins"]) {
-                if ([[strongSelf.game myColor] isEqualToString:@"black"]) {
-                    iWin = NO;
-                }
-            } else {
-                if ([[strongSelf.game myColor] isEqualToString:@"white"]) {
-                    iWin = NO;
-                }
-            }
-            [TSMessage
-                showNotificationInViewController:strongSelf.navigationController
-                                           title:NSLocalizedString(@"Game Over",
-                                                                   nil)
-                                        subtitle:message
-                                           image:nil
-                                            type:
-                                                (iWin
-                                                     ? TSMessageNotificationTypeSuccess
-                                                     : TSMessageNotificationTypeError)
-                                            duration:
-                                                TSMessageNotificationDurationAutomatic
-                                        callback:^{
-                                            [TSMessage
-                                                dismissActiveNotification];
-                                        }
-                                     buttonTitle:nil
-                                  buttonCallback:nil
-                                      atPosition:
-                                          TSMessageNotificationPositionBottom
-                            canBeDismissedByUser:YES];
-        }
-    }
-    if ([jsonResponse[@"state"] isEqualToString:@"inactive"]) {
-        strongSelf->activeGame = NO;
-        PenteNavigationViewController *navC =
-            (PenteNavigationViewController *)strongSelf.navigationController;
-        if (navC.player.dbAccess) {
-            [strongSelf->submitButton setImage:[UIImage imageNamed:@"database.png"]
-                          forState:UIControlStateNormal];
-            [strongSelf->submitButton removeTarget:self
-                                action:@selector(submitMove:)
-                      forControlEvents:UIControlEventTouchUpInside];
-            [strongSelf->submitButton addTarget:self
-                             action:@selector(toDB)
-                   forControlEvents:UIControlEventTouchUpInside];
-            [strongSelf->submitButton setTitle:NSLocalizedString(@"   search", nil)
-                          forState:UIControlStateNormal];
-            [strongSelf->submitButton setAlpha:1.0f];
-            [strongSelf->submitButton setEnabled:YES];
-            [strongSelf->submitButton setNeedsDisplay];
-            [lockButton removeFromSuperview];
-        }
-    }
-    if (undoRequest && strongSelf->activeGame) {
-        [strongSelf presentUndoOptions];
-    }
-    if (goMarkStones && strongSelf->activeGame &&
-        ![[NSUserDefaults standardUserDefaults] boolForKey:@"doublePassInfo"]) {
-        [strongSelf presentDoublePass];
-    }
-    if (([myUsername isEqualToString:p1Name] ||
-         [myUsername isEqualToString:p2Name]) &&
-        !strongSelf->activeGame && [jsonResponse[@"state"] isEqualToString:@"active"] &&
-        dPenteState != 2 &&
-        ([strongSelf->movesList count] > 1 ||
-         ([strongSelf->movesList count] > 0 &&
-          (isGoGame || [[strongSelf.game gameType] isEqualToString:@"D-Pente"] ||
-           [[strongSelf.game gameType] isEqualToString:@"DK-Pente"])))) {
-        [strongSelf->submitButton removeTarget:nil
-                            action:NULL
-                  forControlEvents:UIControlEventAllEvents];
-        if (undoRequest) {
-            [strongSelf->submitButton setTitle:NSLocalizedString(@"undo requested", nil)
-                          forState:UIControlStateDisabled];
-            [strongSelf->submitButton setEnabled:NO];
-            [strongSelf->submitButton setAlpha:0.85];
-        } else {
-            [strongSelf->submitButton setTitle:NSLocalizedString(@"request undo", nil)
-                          forState:UIControlStateNormal];
-            [strongSelf->submitButton setEnabled:YES];
-            [strongSelf->submitButton setAlpha:1];
-            [strongSelf->submitButton addTarget:self
-                             action:@selector(requestUndo:)
-                   forControlEvents:UIControlEventTouchUpInside];
-        }
-    } else if (([myUsername isEqualToString:p1Name] ||
-                [myUsername isEqualToString:p2Name]) &&
-               strongSelf->activeGame) {
-        [strongSelf->submitButton removeTarget:nil
-                            action:NULL
-                  forControlEvents:UIControlEventAllEvents];
-        [strongSelf->submitButton addTarget:self
-                         action:@selector(submitMove:)
-               forControlEvents:UIControlEventTouchUpInside];
-        if (isGoGame) {
-            if (goMarkStones) {
-                [strongSelf->submitButton setTitle:NSLocalizedString(@"submit", nil)
-                              forState:UIControlStateNormal];
-                [strongSelf->submitButton setEnabled:YES];
-                [strongSelf->submitButton setAlpha:1.0];
-            } else {
-                [strongSelf->submitButton setTitle:NSLocalizedString(@"PASS", nil)
-                              forState:UIControlStateNormal];
-                [strongSelf->submitButton setEnabled:YES];
-                [strongSelf->submitButton setAlpha:1.0];
-            }
-        } else {
-            [strongSelf->submitButton setTitle:NSLocalizedString(@"submit", nil)
-                          forState:UIControlStateDisabled];
-            [strongSelf->submitButton setEnabled:NO];
-            [strongSelf->submitButton setAlpha:0.85];
-        }
-    }
-    }]; // end sendRequest completion
+             if ([[strongSelf.game opponentName] isEqualToString:@"computer"]) {
+                 NSString *message = nil;
+                 BOOL iWin = YES;
+                 if ([strongSelf
+                         detectPenteOf:2 - ([strongSelf->movesList count] % 2)
+                            atPosition:[[strongSelf->movesList lastObject]
+                                           intValue]]) {
+                     if (2 - ([strongSelf->movesList count] % 2) == 1) {
+                         message = NSLocalizedString(@"White wins", nil);
+                     } else {
+                         message = NSLocalizedString(@"Black wins", nil);
+                     }
+                 } else if (whiteCaptures == 10) {
+                     message = NSLocalizedString(@"Black wins", nil);
+                 } else if (blackCaptures == 10) {
+                     message = NSLocalizedString(@"White wins", nil);
+                 }
+                 if (message) {
+                     strongSelf->activeGame = NO;
+                     if ([message isEqualToString:@"White wins"]) {
+                         if ([[strongSelf.game myColor]
+                                 isEqualToString:@"black"]) {
+                             iWin = NO;
+                         }
+                     } else {
+                         if ([[strongSelf.game myColor]
+                                 isEqualToString:@"white"]) {
+                             iWin = NO;
+                         }
+                     }
+                     [TSMessage
+                         showNotificationInViewController:
+                             strongSelf.navigationController
+                                                    title:NSLocalizedString(
+                                                              @"Game Over", nil)
+                                                 subtitle:message
+                                                    image:nil
+                                                     type:
+                                                         (iWin
+                                                              ? TSMessageNotificationTypeSuccess
+                                                              : TSMessageNotificationTypeError)
+                                                     duration:
+                                                         TSMessageNotificationDurationAutomatic
+                                                 callback:^{
+                                                     [TSMessage
+                                                         dismissActiveNotification];
+                                                 }
+                                              buttonTitle:nil
+                                           buttonCallback:nil
+                                               atPosition:
+                                                   TSMessageNotificationPositionBottom
+                                     canBeDismissedByUser:YES];
+                 }
+             }
+             if ([jsonResponse[@"state"] isEqualToString:@"inactive"]) {
+                 strongSelf->activeGame = NO;
+                 PenteNavigationViewController *navC =
+                     (PenteNavigationViewController *)
+                         strongSelf.navigationController;
+                 if (navC.player.dbAccess) {
+                     [strongSelf->submitButton
+                         setImage:[UIImage imageNamed:@"database.png"]
+                         forState:UIControlStateNormal];
+                     [strongSelf->submitButton
+                             removeTarget:self
+                                   action:@selector(submitMove:)
+                         forControlEvents:UIControlEventTouchUpInside];
+                     [strongSelf->submitButton
+                                addTarget:self
+                                   action:@selector(toDB)
+                         forControlEvents:UIControlEventTouchUpInside];
+                     [strongSelf->submitButton
+                         setTitle:NSLocalizedString(@"   search", nil)
+                         forState:UIControlStateNormal];
+                     [strongSelf->submitButton setAlpha:1.0f];
+                     [strongSelf->submitButton setEnabled:YES];
+                     [strongSelf->submitButton setNeedsDisplay];
+                     [lockButton removeFromSuperview];
+                 }
+             }
+             if (undoRequest && strongSelf->activeGame) {
+                 [strongSelf presentUndoOptions];
+             }
+             if (goMarkStones && strongSelf->activeGame &&
+                 ![[NSUserDefaults standardUserDefaults]
+                     boolForKey:@"doublePassInfo"]) {
+                 [strongSelf presentDoublePass];
+             }
+             if (([myUsername isEqualToString:p1Name] ||
+                  [myUsername isEqualToString:p2Name]) &&
+                 !strongSelf->activeGame &&
+                 [jsonResponse[@"state"] isEqualToString:@"active"] &&
+                 dPenteState != 2 &&
+                 ([strongSelf->movesList count] > 1 ||
+                  ([strongSelf->movesList count] > 0 &&
+                   (isGoGame ||
+                    [[strongSelf.game gameType] isEqualToString:@"D-Pente"] ||
+                    [[strongSelf.game gameType]
+                        isEqualToString:@"DK-Pente"])))) {
+                 [strongSelf->submitButton
+                         removeTarget:nil
+                               action:NULL
+                     forControlEvents:UIControlEventAllEvents];
+                 if (undoRequest) {
+                     [strongSelf->submitButton
+                         setTitle:NSLocalizedString(@"undo requested", nil)
+                         forState:UIControlStateDisabled];
+                     [strongSelf->submitButton setEnabled:NO];
+                     [strongSelf->submitButton setAlpha:0.85];
+                 } else {
+                     [strongSelf->submitButton
+                         setTitle:NSLocalizedString(@"request undo", nil)
+                         forState:UIControlStateNormal];
+                     [strongSelf->submitButton setEnabled:YES];
+                     [strongSelf->submitButton setAlpha:1];
+                     [strongSelf->submitButton
+                                addTarget:self
+                                   action:@selector(requestUndo:)
+                         forControlEvents:UIControlEventTouchUpInside];
+                 }
+             } else if (([myUsername isEqualToString:p1Name] ||
+                         [myUsername isEqualToString:p2Name]) &&
+                        strongSelf->activeGame) {
+                 [strongSelf->submitButton
+                         removeTarget:nil
+                               action:NULL
+                     forControlEvents:UIControlEventAllEvents];
+                 [strongSelf->submitButton
+                            addTarget:self
+                               action:@selector(submitMove:)
+                     forControlEvents:UIControlEventTouchUpInside];
+                 if (isGoGame) {
+                     if (goMarkStones) {
+                         [strongSelf->submitButton
+                             setTitle:NSLocalizedString(@"submit", nil)
+                             forState:UIControlStateNormal];
+                         [strongSelf->submitButton setEnabled:YES];
+                         [strongSelf->submitButton setAlpha:1.0];
+                     } else {
+                         [strongSelf->submitButton
+                             setTitle:NSLocalizedString(@"PASS", nil)
+                             forState:UIControlStateNormal];
+                         [strongSelf->submitButton setEnabled:YES];
+                         [strongSelf->submitButton setAlpha:1.0];
+                     }
+                 } else {
+                     [strongSelf->submitButton
+                         setTitle:NSLocalizedString(@"submit", nil)
+                         forState:UIControlStateDisabled];
+                     [strongSelf->submitButton setEnabled:NO];
+                     [strongSelf->submitButton setAlpha:0.85];
+                 }
+             }
+         }]; // end sendRequest completion
 }
 
 - (void)requestUndo:(UIButton *)sender {
@@ -2106,19 +2201,33 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                         [request setHTTPShouldUsePipelining:YES];
 
                         __weak typeof(self) weakSelf = self;
-                        [PenteHTTPClient sendRequest:request completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
-                            if (error) {
-                                UIAlertView *alert = [[UIAlertView alloc]
-                                        initWithTitle:NSLocalizedString(@"Error", nil)
-                                              message:[NSString stringWithFormat:NSLocalizedString(@"Reason: %@", nil), error.localizedDescription]
-                                             delegate:nil
-                                    cancelButtonTitle:@"OK"
-                                    otherButtonTitles:nil];
-                                [alert show];
-                                return;
-                            }
-                            [weakSelf.navigationController popToRootViewControllerAnimated:YES];
-                        }];
+                        [PenteHTTPClient
+                            sendRequest:request
+                             completion:^(NSData *responseData,
+                                          NSURLResponse *response,
+                                          NSError *error) {
+                                 if (error) {
+                                     UIAlertView *alert = [[UIAlertView alloc]
+                                             initWithTitle:NSLocalizedString(
+                                                               @"Error", nil)
+                                                   message:
+                                                       [NSString
+                                                           stringWithFormat:
+                                                               NSLocalizedString(
+                                                                   @"Reason: "
+                                                                   @"%@",
+                                                                   nil),
+                                                               error
+                                                                   .localizedDescription]
+                                                  delegate:nil
+                                         cancelButtonTitle:@"OK"
+                                         otherButtonTitles:nil];
+                                     [alert show];
+                                     return;
+                                 }
+                                 [weakSelf.navigationController
+                                     popToRootViewControllerAnimated:YES];
+                             }];
                     }];
         [confirmController addAction:cancelAction];
         [confirmController addAction:confirmAction];
@@ -2222,20 +2331,32 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                     [request setHTTPShouldUsePipelining:YES];
 
                     __weak typeof(self) weakSelf = self;
-                    [PenteHTTPClient sendRequest:request completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
-                        if (error) {
-                            UIAlertView *alert = [[UIAlertView alloc]
-                                    initWithTitle:NSLocalizedString(@"Error", nil)
-                                          message:[NSString stringWithFormat:NSLocalizedString(@"Reason: %@", nil), error.localizedDescription]
-                                         delegate:nil
-                                cancelButtonTitle:@"OK"
-                                otherButtonTitles:nil];
-                            [alert show];
-                            return;
-                        }
-                        [navControllor setDidMove:YES];
-                        [weakSelf.navigationController popToRootViewControllerAnimated:YES];
-                    }];
+                    [PenteHTTPClient
+                        sendRequest:request
+                         completion:^(NSData *responseData,
+                                      NSURLResponse *response, NSError *error) {
+                             if (error) {
+                                 UIAlertView *alert = [[UIAlertView alloc]
+                                         initWithTitle:NSLocalizedString(
+                                                           @"Error", nil)
+                                               message:
+                                                   [NSString
+                                                       stringWithFormat:
+                                                           NSLocalizedString(
+                                                               @"Reason: %@",
+                                                               nil),
+                                                           error
+                                                               .localizedDescription]
+                                              delegate:nil
+                                     cancelButtonTitle:@"OK"
+                                     otherButtonTitles:nil];
+                                 [alert show];
+                                 return;
+                             }
+                             [navControllor setDidMove:YES];
+                             [weakSelf.navigationController
+                                 popToRootViewControllerAnimated:YES];
+                         }];
                 }];
     UIAlertAction *declineAction = [UIAlertAction
         actionWithTitle:NSLocalizedString(@"Decline", nil)
@@ -2277,19 +2398,30 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                     [request setHTTPShouldUsePipelining:YES];
 
                     __weak typeof(self) weakSelf = self;
-                    [PenteHTTPClient sendRequest:request completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
-                        if (error) {
-                            UIAlertView *alert = [[UIAlertView alloc]
-                                    initWithTitle:NSLocalizedString(@"Error", nil)
-                                          message:[NSString stringWithFormat:NSLocalizedString(@"Reason: %@", nil), error.localizedDescription]
-                                         delegate:nil
-                                cancelButtonTitle:@"OK"
-                                otherButtonTitles:nil];
-                            [alert show];
-                            return;
-                        }
-                        [weakSelf replayGame];
-                    }];
+                    [PenteHTTPClient
+                        sendRequest:request
+                         completion:^(NSData *responseData,
+                                      NSURLResponse *response, NSError *error) {
+                             if (error) {
+                                 UIAlertView *alert = [[UIAlertView alloc]
+                                         initWithTitle:NSLocalizedString(
+                                                           @"Error", nil)
+                                               message:
+                                                   [NSString
+                                                       stringWithFormat:
+                                                           NSLocalizedString(
+                                                               @"Reason: %@",
+                                                               nil),
+                                                           error
+                                                               .localizedDescription]
+                                              delegate:nil
+                                     cancelButtonTitle:@"OK"
+                                     otherButtonTitles:nil];
+                                 [alert show];
+                                 return;
+                             }
+                             [weakSelf replayGame];
+                         }];
                 }];
 
     [alert addAction:acceptAction];
@@ -2316,6 +2448,23 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                          mutableCopy]];
     [vc setGame:[self.game gameType]];
     [self.navigationController pushViewController:vc animated:YES];
+}
+
+- (void)syncCapturesToEngine {
+    penteGame.captures = captures;
+    penteGame.whiteCaptures = whiteCaptures;
+    penteGame.blackCaptures = blackCaptures;
+}
+
+- (void)syncCapturesFromEngine {
+    whiteCaptures = penteGame.whiteCaptures;
+    blackCaptures = penteGame.blackCaptures;
+}
+
+- (void)replayWithEngine:(PenteGameVariant)variant untilMove:(int)untilMove {
+    [self syncCapturesToEngine];
+    [penteGame replayMoves:movesList variant:variant untilMove:untilMove];
+    [self syncCapturesFromEngine];
 }
 
 - (void)replayGame:(int)untilMove {
@@ -2538,23 +2687,11 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
 }
 
 - (void)replayPenteGame:(int)untilMove {
-    // NSLog(@"list %@",movesList);
-    for (int i = 0; i < untilMove; ++i) {
-        int rowCol = [self parseMove:[movesList objectAtIndex:i]];
-        int color = (i % 2) + 1, opponentColor = (color == 2) ? 1 : 2;
-        abstractBoard[rowCol / 19][rowCol % 19] = color;
-        [self detectCaptureOfOpponent:opponentColor atPosition:rowCol];
-    }
+    [self replayWithEngine:PenteGameVariantPente untilMove:untilMove];
     if ([[self.game ratedNot] rangeOfString:@"Not Rated"].location ==
             NSNotFound &&
         ([movesList count] == 2)) {
-        for (int i = 7; i < 12; ++i) {
-            for (int j = 7; j < 12; ++j) {
-                if (abstractBoard[i][j] == 0) {
-                    abstractBoard[i][j] = -1;
-                }
-            }
-        }
+        [penteGame maskTournamentOpening];
     }
     [captures removeAllObjects];
 
@@ -2590,34 +2727,9 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
 }
 
 - (void)replayGPenteGame:(int)untilMove {
-    for (int i = 0; i < untilMove; ++i) {
-        int rowCol = [self parseMove:[movesList objectAtIndex:i]];
-        int color = (i % 2) + 1, opponentColor = (color == 2) ? 1 : 2;
-        abstractBoard[rowCol / 19][rowCol % 19] = color;
-        [self detectCaptureOfOpponent:opponentColor atPosition:rowCol];
-    }
+    [self replayWithEngine:PenteGameVariantGPente untilMove:untilMove];
     if ([movesList count] == 2) {
-        for (int i = 7; i < 12; ++i) {
-            for (int j = 7; j < 12; ++j) {
-                if (abstractBoard[i][j] == 0) {
-                    abstractBoard[i][j] = -1;
-                }
-            }
-        }
-        for (int i = 1; i < 3; ++i) {
-            if (abstractBoard[9][11 + i] == 0) {
-                abstractBoard[9][11 + i] = -1;
-            }
-            if (abstractBoard[9][7 - i] == 0) {
-                abstractBoard[9][7 - i] = -1;
-            }
-            if (abstractBoard[11 + i][9] == 0) {
-                abstractBoard[11 + i][9] = -1;
-            }
-            if (abstractBoard[7 - i][9] == 0) {
-                abstractBoard[7 - i][9] = -1;
-            }
-        }
+        [penteGame maskGPenteOpening];
     }
 
     [captures removeAllObjects];
@@ -2643,23 +2755,11 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
 }
 
 - (void)replayKeryoPenteGame:(int)untilMove {
-    for (int i = 0; i < untilMove; ++i) {
-        int rowCol = [self parseMove:[movesList objectAtIndex:i]];
-        int color = (i % 2) + 1, opponentColor = (color == 2) ? 1 : 2;
-        abstractBoard[rowCol / 19][rowCol % 19] = color;
-        [self detectCaptureOfOpponent:opponentColor atPosition:rowCol];
-        [self detectKeryoCaptureOfOpponent:opponentColor atPosition:rowCol];
-    }
+    [self replayWithEngine:PenteGameVariantKeryoPente untilMove:untilMove];
     if ([[self.game ratedNot] rangeOfString:@"Not Rated"].location ==
             NSNotFound &&
         ([movesList count] == 2)) {
-        for (int i = 7; i < 12; ++i) {
-            for (int j = 7; j < 12; ++j) {
-                if (abstractBoard[i][j] == 0) {
-                    abstractBoard[i][j] = -1;
-                }
-            }
-        }
+        [penteGame maskTournamentOpening];
     }
 
     [captures removeAllObjects];
@@ -2684,25 +2784,11 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
     }
 }
 - (void)replayOPenteGame:(int)untilMove {
-    for (int i = 0; i < untilMove; ++i) {
-        int rowCol = [self parseMove:[movesList objectAtIndex:i]];
-        int color = (i % 2) + 1, opponentColor = (color == 2) ? 1 : 2;
-        abstractBoard[rowCol / 19][rowCol % 19] = color;
-        [self detectPoof:color atPosition:rowCol];
-        [self detectKeryoPoof:color atPosition:rowCol];
-        [self detectCaptureOfOpponent:opponentColor atPosition:rowCol];
-        [self detectKeryoCaptureOfOpponent:opponentColor atPosition:rowCol];
-    }
+    [self replayWithEngine:PenteGameVariantOPente untilMove:untilMove];
     if ([[self.game ratedNot] rangeOfString:@"Not Rated"].location ==
             NSNotFound &&
         ([movesList count] == 2)) {
-        for (int i = 7; i < 12; ++i) {
-            for (int j = 7; j < 12; ++j) {
-                if (abstractBoard[i][j] == 0) {
-                    abstractBoard[i][j] = -1;
-                }
-            }
-        }
+        [penteGame maskTournamentOpening];
     }
 
     [captures removeAllObjects];
@@ -2733,13 +2819,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
     } else {
         dPenteOpening = NO;
     }
-    for (int i = 0; i < untilMove; ++i) {
-        int rowCol = [self parseMove:[movesList objectAtIndex:i]];
-        int color = (i % 2) + 1, opponentColor = (color == 2) ? 1 : 2;
-        abstractBoard[rowCol / 19][rowCol % 19] = color;
-        [self detectCaptureOfOpponent:opponentColor atPosition:rowCol];
-        [self detectKeryoCaptureOfOpponent:opponentColor atPosition:rowCol];
-    }
+    [self replayWithEngine:PenteGameVariantDKPente untilMove:untilMove];
     [captures removeAllObjects];
 
     [board setBackgroundColor:[UIColor colorWithRed:1
@@ -2771,11 +2851,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
 }
 
 - (void)replayGomokuGame:(int)untilMove {
-    for (int i = 0; i < untilMove; ++i) {
-        int rowCol = [self parseMove:[movesList objectAtIndex:i]];
-        int color = (i % 2) + 1;
-        abstractBoard[rowCol / 19][rowCol % 19] = color;
-    }
+    [self replayWithEngine:PenteGameVariantGomoku untilMove:untilMove];
 
     [board setBackgroundColor:[UIColor colorWithRed:0.612
                                               green:1
@@ -2801,11 +2877,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
 }
 
 - (void)replayConnect6Game:(int)untilMove {
-    for (int i = 0; i < untilMove; ++i) {
-        int rowCol = [self parseMove:[movesList objectAtIndex:i]];
-        int color = (((i % 4) == 0) || ((i % 4) == 3)) ? 1 : 2;
-        abstractBoard[rowCol / 19][rowCol % 19] = color;
-    }
+    [self replayWithEngine:PenteGameVariantConnect6 untilMove:untilMove];
 
     [board setBackgroundColor:[UIColor colorWithRed:0.929
                                               green:0.639
@@ -2848,12 +2920,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
     } else {
         dPenteOpening = NO;
     }
-    for (int i = 0; i < untilMove; ++i) {
-        int rowCol = [self parseMove:[movesList objectAtIndex:i]];
-        int color = (i % 2) + 1, opponentColor = (color == 2) ? 1 : 2;
-        abstractBoard[rowCol / 19][rowCol % 19] = color;
-        [self detectCaptureOfOpponent:opponentColor atPosition:rowCol];
-    }
+    [self replayWithEngine:PenteGameVariantDPente untilMove:untilMove];
     [captures removeAllObjects];
 
     [board setBackgroundColor:[UIColor colorWithRed:0.584
@@ -2890,12 +2957,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
     } else {
         swap2Opening = NO;
     }
-    for (int i = 0; i < untilMove; ++i) {
-        int rowCol = [self parseMove:[movesList objectAtIndex:i]];
-        int color = (i % 2) + 1, opponentColor = (color == 2) ? 1 : 2;
-        abstractBoard[rowCol / 19][rowCol % 19] = color;
-        [self detectCaptureOfOpponent:opponentColor atPosition:rowCol];
-    }
+    [self replayWithEngine:PenteGameVariantSwap2Pente untilMove:untilMove];
     [captures removeAllObjects];
 
     [board setBackgroundColor:[UIColor colorWithRed:0.90
@@ -2932,13 +2994,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
     } else {
         swap2Opening = NO;
     }
-    for (int i = 0; i < untilMove; ++i) {
-        int rowCol = [self parseMove:[movesList objectAtIndex:i]];
-        int color = (i % 2) + 1, opponentColor = (color == 2) ? 1 : 2;
-        abstractBoard[rowCol / 19][rowCol % 19] = color;
-        [self detectCaptureOfOpponent:opponentColor atPosition:rowCol];
-        [self detectKeryoCaptureOfOpponent:opponentColor atPosition:rowCol];
-    }
+    [self replayWithEngine:PenteGameVariantSwap2Keryo untilMove:untilMove];
     [captures removeAllObjects];
 
     [board setBackgroundColor:[UIColor colorWithRed:0.31
@@ -2970,23 +3026,11 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
 }
 
 - (void)replayPoofPenteGame:(int)untilMove {
-    for (int i = 0; i < untilMove; ++i) {
-        int rowCol = [self parseMove:[movesList objectAtIndex:i]];
-        int color = (i % 2) + 1, opponentColor = (color == 2) ? 1 : 2;
-        abstractBoard[rowCol / 19][rowCol % 19] = color;
-        [self detectPoof:color atPosition:rowCol];
-        [self detectCaptureOfOpponent:opponentColor atPosition:rowCol];
-    }
+    [self replayWithEngine:PenteGameVariantPoofPente untilMove:untilMove];
     if ([[self.game ratedNot] rangeOfString:@"Not Rated"].location ==
             NSNotFound &&
         ([movesList count] == 2)) {
-        for (int i = 7; i < 12; ++i) {
-            for (int j = 7; j < 12; ++j) {
-                if (abstractBoard[i][j] == 0) {
-                    abstractBoard[i][j] = -1;
-                }
-            }
-        }
+        [penteGame maskTournamentOpening];
     }
     [captures removeAllObjects];
 
@@ -3633,995 +3677,33 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
 }
 
 - (void)detectCaptureOfOpponent:(int)opponentColor atPosition:(int)rowCol {
-    struct Capture capture;
-    int i = rowCol / 19, j = rowCol % 19,
-        myColor = (opponentColor == 1) ? 2 : 1;
-    if ((i - 3) > -1) {
-        if (abstractBoard[i - 3][j] == myColor) {
-            if ((abstractBoard[i - 1][j] == opponentColor) &&
-                (abstractBoard[i - 2][j] == opponentColor)) {
-                abstractBoard[i - 1][j] = 0;
-                abstractBoard[i - 2][j] = 0;
-                capture.color = opponentColor;
-                capture.position = (i - 1) * 19 + (j);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                capture.position = (i - 2) * 19 + (j);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                if (opponentColor == 1) {
-                    whiteCaptures += 2;
-                } else {
-                    blackCaptures += 2;
-                }
-            }
-        }
-    }
-    if (((i - 3) > -1) && ((j - 3) > -1)) {
-        if (abstractBoard[i - 3][j - 3] == myColor) {
-            if ((abstractBoard[i - 1][j - 1] == opponentColor) &&
-                (abstractBoard[i - 2][j - 2] == opponentColor)) {
-                abstractBoard[i - 1][j - 1] = 0;
-                abstractBoard[i - 2][j - 2] = 0;
-                capture.color = opponentColor;
-                capture.position = (i - 1) * 19 + (j - 1);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                capture.position = (i - 2) * 19 + (j - 2);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                if (opponentColor == 1) {
-                    whiteCaptures += 2;
-                } else {
-                    blackCaptures += 2;
-                }
-            }
-        }
-    }
-    if ((j - 3) > -1) {
-        if (abstractBoard[i][j - 3] == myColor) {
-            if ((abstractBoard[i][j - 1] == opponentColor) &&
-                (abstractBoard[i][j - 2] == opponentColor)) {
-                abstractBoard[i][j - 1] = 0;
-                abstractBoard[i][j - 2] = 0;
-                capture.color = opponentColor;
-                capture.position = (i) * 19 + (j - 1);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                capture.position = (i) * 19 + (j - 2);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                if (opponentColor == 1) {
-                    whiteCaptures += 2;
-                } else {
-                    blackCaptures += 2;
-                }
-            }
-        }
-    }
-    if (((i + 3) < 19) && ((j - 3) > -1)) {
-        if (abstractBoard[i + 3][j - 3] == myColor) {
-            if ((abstractBoard[i + 1][j - 1] == opponentColor) &&
-                (abstractBoard[i + 2][j - 2] == opponentColor)) {
-                abstractBoard[i + 1][j - 1] = 0;
-                abstractBoard[i + 2][j - 2] = 0;
-                capture.color = opponentColor;
-                capture.position = (i + 1) * 19 + (j - 1);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                capture.position = (i + 2) * 19 + (j - 2);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                if (opponentColor == 1) {
-                    whiteCaptures += 2;
-                } else {
-                    blackCaptures += 2;
-                }
-            }
-        }
-    }
-    if ((i + 3) < 19) {
-        if (abstractBoard[i + 3][j] == myColor) {
-            if ((abstractBoard[i + 1][j] == opponentColor) &&
-                (abstractBoard[i + 2][j] == opponentColor)) {
-                abstractBoard[i + 1][j] = 0;
-                abstractBoard[i + 2][j] = 0;
-                capture.color = opponentColor;
-                capture.position = (i + 1) * 19 + (j);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                capture.position = (i + 2) * 19 + (j);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                if (opponentColor == 1) {
-                    whiteCaptures += 2;
-                } else {
-                    blackCaptures += 2;
-                }
-            }
-        }
-    }
-    if (((i + 3) < 19) && ((j + 3) < 19)) {
-        if (abstractBoard[i + 3][j + 3] == myColor) {
-            if ((abstractBoard[i + 1][j + 1] == opponentColor) &&
-                (abstractBoard[i + 2][j + 2] == opponentColor)) {
-                abstractBoard[i + 1][j + 1] = 0;
-                abstractBoard[i + 2][j + 2] = 0;
-                capture.color = opponentColor;
-                capture.position = (i + 1) * 19 + (j + 1);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                capture.position = (i + 2) * 19 + (j + 2);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                if (opponentColor == 1) {
-                    whiteCaptures += 2;
-                } else {
-                    blackCaptures += 2;
-                }
-            }
-        }
-    }
-    if ((j + 3) < 19) {
-        if (abstractBoard[i][j + 3] == myColor) {
-            if ((abstractBoard[i][j + 1] == opponentColor) &&
-                (abstractBoard[i][j + 2] == opponentColor)) {
-                abstractBoard[i][j + 1] = 0;
-                abstractBoard[i][j + 2] = 0;
-                capture.color = opponentColor;
-                capture.position = (i) * 19 + (j + 1);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                capture.position = (i) * 19 + (j + 2);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                if (opponentColor == 1) {
-                    whiteCaptures += 2;
-                } else {
-                    blackCaptures += 2;
-                }
-            }
-        }
-    }
-    if (((i - 3) > -1) && ((j + 3) < 19)) {
-        if (abstractBoard[i - 3][j + 3] == myColor) {
-            if ((abstractBoard[i - 1][j + 1] == opponentColor) &&
-                (abstractBoard[i - 2][j + 2] == opponentColor)) {
-                abstractBoard[i - 1][j + 1] = 0;
-                abstractBoard[i - 2][j + 2] = 0;
-                capture.color = opponentColor;
-                capture.position = (i - 1) * 19 + (j + 1);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                capture.position = (i - 2) * 19 + (j + 2);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                if (opponentColor == 1) {
-                    whiteCaptures += 2;
-                } else {
-                    blackCaptures += 2;
-                }
-            }
-        }
-    }
+    [self syncCapturesToEngine];
+    [penteGame detectCaptureOfOpponent:opponentColor atPosition:rowCol];
+    [self syncCapturesFromEngine];
 }
 
 - (void)detectKeryoCaptureOfOpponent:(int)opponentColor atPosition:(int)rowCol {
-    struct Capture capture;
-    int i = rowCol / 19, j = rowCol % 19,
-        myColor = (opponentColor == 1) ? 2 : 1;
-    if ((i - 4) > -1) {
-        if (abstractBoard[i - 4][j] == myColor) {
-            if ((abstractBoard[i - 1][j] == opponentColor) &&
-                (abstractBoard[i - 2][j] == opponentColor) &&
-                (abstractBoard[i - 3][j] == opponentColor)) {
-                abstractBoard[i - 1][j] = 0;
-                abstractBoard[i - 2][j] = 0;
-                abstractBoard[i - 3][j] = 0;
-                capture.color = opponentColor;
-                capture.position = (i - 1) * 19 + (j);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                capture.position = (i - 2) * 19 + (j);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                capture.position = (i - 3) * 19 + (j);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                if (opponentColor == 1) {
-                    whiteCaptures += 3;
-                } else {
-                    blackCaptures += 3;
-                }
-            }
-        }
-    }
-    if (((i - 4) > -1) && ((j - 4) > -1)) {
-        if (abstractBoard[i - 4][j - 4] == myColor) {
-            if ((abstractBoard[i - 1][j - 1] == opponentColor) &&
-                (abstractBoard[i - 2][j - 2] == opponentColor) &&
-                (abstractBoard[i - 3][j - 3] == opponentColor)) {
-                abstractBoard[i - 1][j - 1] = 0;
-                abstractBoard[i - 2][j - 2] = 0;
-                abstractBoard[i - 3][j - 3] = 0;
-                capture.color = opponentColor;
-                capture.position = (i - 1) * 19 + (j - 1);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                capture.position = (i - 2) * 19 + (j - 2);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                capture.position = (i - 3) * 19 + (j - 3);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                if (opponentColor == 1) {
-                    whiteCaptures += 3;
-                } else {
-                    blackCaptures += 3;
-                }
-            }
-        }
-    }
-    if ((j - 4) > -1) {
-        if (abstractBoard[i][j - 4] == myColor) {
-            if ((abstractBoard[i][j - 1] == opponentColor) &&
-                (abstractBoard[i][j - 2] == opponentColor) &&
-                (abstractBoard[i][j - 3] == opponentColor)) {
-                abstractBoard[i][j - 1] = 0;
-                abstractBoard[i][j - 2] = 0;
-                abstractBoard[i][j - 3] = 0;
-                capture.color = opponentColor;
-                capture.position = (i) * 19 + (j - 1);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                capture.position = (i) * 19 + (j - 2);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                capture.position = (i) * 19 + (j - 3);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                if (opponentColor == 1) {
-                    whiteCaptures += 3;
-                } else {
-                    blackCaptures += 3;
-                }
-            }
-        }
-    }
-    if (((i + 4) < 19) && ((j - 4) > -1)) {
-        if (abstractBoard[i + 4][j - 4] == myColor) {
-            if ((abstractBoard[i + 1][j - 1] == opponentColor) &&
-                (abstractBoard[i + 2][j - 2] == opponentColor) &&
-                (abstractBoard[i + 3][j - 3] == opponentColor)) {
-                abstractBoard[i + 1][j - 1] = 0;
-                abstractBoard[i + 2][j - 2] = 0;
-                abstractBoard[i + 3][j - 3] = 0;
-                capture.color = opponentColor;
-                capture.position = (i + 1) * 19 + (j - 1);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                capture.position = (i + 2) * 19 + (j - 2);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                capture.position = (i + 3) * 19 + (j - 3);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                if (opponentColor == 1) {
-                    whiteCaptures += 3;
-                } else {
-                    blackCaptures += 3;
-                }
-            }
-        }
-    }
-    if ((i + 4) < 19) {
-        if (abstractBoard[i + 4][j] == myColor) {
-            if ((abstractBoard[i + 1][j] == opponentColor) &&
-                (abstractBoard[i + 2][j] == opponentColor) &&
-                (abstractBoard[i + 3][j] == opponentColor)) {
-                abstractBoard[i + 1][j] = 0;
-                abstractBoard[i + 2][j] = 0;
-                abstractBoard[i + 3][j] = 0;
-                capture.color = opponentColor;
-                capture.position = (i + 1) * 19 + (j);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                capture.position = (i + 2) * 19 + (j);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                capture.position = (i + 3) * 19 + (j);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                if (opponentColor == 1) {
-                    whiteCaptures += 3;
-                } else {
-                    blackCaptures += 3;
-                }
-            }
-        }
-    }
-    if (((i + 4) < 19) && ((j + 4) < 19)) {
-        if (abstractBoard[i + 4][j + 4] == myColor) {
-            if ((abstractBoard[i + 1][j + 1] == opponentColor) &&
-                (abstractBoard[i + 2][j + 2] == opponentColor) &&
-                (abstractBoard[i + 3][j + 3] == opponentColor)) {
-                abstractBoard[i + 1][j + 1] = 0;
-                abstractBoard[i + 2][j + 2] = 0;
-                abstractBoard[i + 3][j + 3] = 0;
-                capture.color = opponentColor;
-                capture.position = (i + 1) * 19 + (j + 1);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                capture.position = (i + 2) * 19 + (j + 2);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                capture.position = (i + 3) * 19 + (j + 3);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                if (opponentColor == 1) {
-                    whiteCaptures += 3;
-                } else {
-                    blackCaptures += 3;
-                }
-            }
-        }
-    }
-    if ((j + 4) < 19) {
-        if (abstractBoard[i][j + 4] == myColor) {
-            if ((abstractBoard[i][j + 1] == opponentColor) &&
-                (abstractBoard[i][j + 2] == opponentColor) &&
-                (abstractBoard[i][j + 3] == opponentColor)) {
-                abstractBoard[i][j + 1] = 0;
-                abstractBoard[i][j + 2] = 0;
-                abstractBoard[i][j + 3] = 0;
-                capture.color = opponentColor;
-                capture.position = (i) * 19 + (j + 1);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                capture.position = (i) * 19 + (j + 2);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                capture.position = (i) * 19 + (j + 3);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                if (opponentColor == 1) {
-                    whiteCaptures += 3;
-                } else {
-                    blackCaptures += 3;
-                }
-            }
-        }
-    }
-    if (((i - 4) > -1) && ((j + 4) < 19)) {
-        if (abstractBoard[i - 4][j + 4] == myColor) {
-            if ((abstractBoard[i - 1][j + 1] == opponentColor) &&
-                (abstractBoard[i - 2][j + 2] == opponentColor) &&
-                (abstractBoard[i - 3][j + 3] == opponentColor)) {
-                abstractBoard[i - 1][j + 1] = 0;
-                abstractBoard[i - 2][j + 2] = 0;
-                abstractBoard[i - 3][j + 3] = 0;
-                capture.color = opponentColor;
-                capture.position = (i - 1) * 19 + (j + 1);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                capture.position = (i - 2) * 19 + (j + 2);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                capture.position = (i - 3) * 19 + (j + 3);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                if (opponentColor == 1) {
-                    whiteCaptures += 3;
-                } else {
-                    blackCaptures += 3;
-                }
-            }
-        }
-    }
+    [self syncCapturesToEngine];
+    [penteGame detectKeryoCaptureOfOpponent:opponentColor atPosition:rowCol];
+    [self syncCapturesFromEngine];
 }
 
 - (BOOL)detectPoof:(int)myColor atPosition:(int)rowCol {
-    BOOL poof = NO;
-    struct Capture capture;
-    int i = rowCol / 19, j = rowCol % 19,
-        opponentColor = (myColor == 1) ? 2 : 1,
-        capturesLength = (int)[captures count];
-    if (((i - 2) > -1) && ((i + 1) < 19)) {
-        if (abstractBoard[i - 1][j] == myColor) {
-            if ((abstractBoard[i - 2][j] == opponentColor) &&
-                (abstractBoard[i + 1][j] == opponentColor)) {
-                poof = YES;
-                abstractBoard[i - 1][j] = 0;
-                abstractBoard[i][j] = 0;
-                if (myColor == 1) {
-                    ++whiteCaptures;
-                } else {
-                    ++blackCaptures;
-                }
-                capture.color = myColor;
-                capture.position = (i - 1) * 19 + (j);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-            }
-        }
-    }
-    if (((i - 2) > -1) && ((j - 2) > -1) && ((i + 1) < 19) && ((j + 1) < 19)) {
-        if (abstractBoard[i - 1][j - 1] == myColor) {
-            if ((abstractBoard[i - 2][j - 2] == opponentColor) &&
-                (abstractBoard[i + 1][j + 1] == opponentColor)) {
-                poof = YES;
-                abstractBoard[i - 1][j - 1] = 0;
-                abstractBoard[i][j] = 0;
-                if (myColor == 1) {
-                    ++whiteCaptures;
-                } else {
-                    ++blackCaptures;
-                }
-                capture.color = myColor;
-                capture.position = (i - 1) * 19 + (j - 1);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-            }
-        }
-    }
-    if (((j - 2) > -1) && ((j + 1) < 19)) {
-        if (abstractBoard[i][j - 1] == myColor) {
-            if ((abstractBoard[i][j - 2] == opponentColor) &&
-                (abstractBoard[i][j + 1] == opponentColor)) {
-                poof = YES;
-                abstractBoard[i][j - 1] = 0;
-                abstractBoard[i][j] = 0;
-                if (myColor == 1) {
-                    ++whiteCaptures;
-                } else {
-                    ++blackCaptures;
-                }
-                capture.color = myColor;
-                capture.position = (i) * 19 + (j - 1);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-            }
-        }
-    }
-    if (((i - 1) > -1) && ((j - 2) > -1) && ((i + 2) < 19) && ((j + 1) < 19)) {
-        if (abstractBoard[i + 1][j - 1] == myColor) {
-            if ((abstractBoard[i - 1][j + 1] == opponentColor) &&
-                (abstractBoard[i + 2][j - 2] == opponentColor)) {
-                poof = YES;
-                abstractBoard[i + 1][j - 1] = 0;
-                abstractBoard[i][j] = 0;
-                if (myColor == 1) {
-                    ++whiteCaptures;
-                } else {
-                    ++blackCaptures;
-                }
-                capture.color = myColor;
-                capture.position = (i + 1) * 19 + (j - 1);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-            }
-        }
-    }
-    if (((i + 2) < 19) && ((i - 1) > -1)) {
-        if (abstractBoard[i + 1][j] == myColor) {
-            if ((abstractBoard[i + 2][j] == opponentColor) &&
-                (abstractBoard[i - 1][j] == opponentColor)) {
-                poof = YES;
-                abstractBoard[i + 1][j] = 0;
-                abstractBoard[i][j] = 0;
-                if (myColor == 1) {
-                    ++whiteCaptures;
-                } else {
-                    ++blackCaptures;
-                }
-                capture.color = myColor;
-                capture.position = (i + 1) * 19 + (j);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-            }
-        }
-    }
-    if (((i - 1) > -1) && ((j - 1) > -1) && ((i + 2) < 19) && ((j + 2) < 19)) {
-        if (abstractBoard[i + 1][j + 1] == myColor) {
-            if ((abstractBoard[i - 1][j - 1] == opponentColor) &&
-                (abstractBoard[i + 2][j + 2] == opponentColor)) {
-                poof = YES;
-                abstractBoard[i + 1][j + 1] = 0;
-                abstractBoard[i][j] = 0;
-                if (myColor == 1) {
-                    ++whiteCaptures;
-                } else {
-                    ++blackCaptures;
-                }
-                capture.color = myColor;
-                capture.position = (i + 1) * 19 + (j + 1);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-            }
-        }
-    }
-    if (((j + 2) < 19) && ((j - 1) > -1)) {
-        if (abstractBoard[i][j + 1] == myColor) {
-            if ((abstractBoard[i][j - 1] == opponentColor) &&
-                (abstractBoard[i][j + 2] == opponentColor)) {
-                poof = YES;
-                abstractBoard[i][j + 1] = 0;
-                abstractBoard[i][j] = 0;
-                if (myColor == 1) {
-                    ++whiteCaptures;
-                } else {
-                    ++blackCaptures;
-                }
-                capture.color = myColor;
-                capture.position = (i) * 19 + (j + 1);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-            }
-        }
-    }
-    if (((i - 2) > -1) && ((j - 1) > -1) && ((i + 1) < 19) && ((j + 2) < 19)) {
-        if (abstractBoard[i - 1][j + 1] == myColor) {
-            if ((abstractBoard[i + 1][j - 1] == opponentColor) &&
-                (abstractBoard[i - 2][j + 2] == opponentColor)) {
-                poof = YES;
-                abstractBoard[i - 1][j + 1] = 0;
-                abstractBoard[i][j] = 0;
-                if (myColor == 1) {
-                    ++whiteCaptures;
-                } else {
-                    ++blackCaptures;
-                }
-                capture.color = myColor;
-                capture.position = (i - 1) * 19 + (j + 1);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-            }
-        }
-    }
-
-    if (poof) {
-        if (myColor == 1) {
-            ++whiteCaptures;
-        } else {
-            ++blackCaptures;
-        }
-        capture.color = myColor;
-        capture.position = i * 19 + j;
-        [captures insertObject:[NSValue value:&capture
-                                   withObjCType:@encode(struct Capture)]
-                       atIndex:capturesLength];
-    }
+    [self syncCapturesToEngine];
+    BOOL poof = [penteGame detectPoof:myColor atPosition:rowCol];
+    [self syncCapturesFromEngine];
     return poof;
 }
 
 - (BOOL)detectKeryoPoof:(int)myColor atPosition:(int)rowCol {
-    BOOL poof = NO;
-    struct Capture capture;
-    int i = rowCol / 19, j = rowCol % 19,
-        opponentColor = (myColor == 1) ? 2 : 1,
-        capturesLength = (int)[captures count];
-    if (((i - 3) > -1) && ((i + 1) < 19)) { // left
-        if (abstractBoard[i - 1][j] == myColor &&
-            abstractBoard[i - 2][j] == myColor) {
-            if ((abstractBoard[i - 3][j] == opponentColor) &&
-                (abstractBoard[i + 1][j] == opponentColor)) {
-                abstractBoard[i - 2][j] = 0;
-                abstractBoard[i - 1][j] = 0;
-                abstractBoard[i][j] = 0;
-                if (myColor == 1) {
-                    whiteCaptures += 2;
-                } else {
-                    blackCaptures += 2;
-                }
-                capture.color = myColor;
-                capture.position = (i - 2) * 19 + (j);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                capture.position = (i - 1) * 19 + (j);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                poof = true;
-            }
-        }
-    }
-    if (((i - 3) > -1) && ((j - 3) > -1) && ((i + 1) < 19) &&
-        ((j + 1) < 19)) { // up left
-        if (abstractBoard[i - 1][j - 1] == myColor &&
-            abstractBoard[i - 2][j - 2] == myColor) {
-            if ((abstractBoard[i - 3][j - 3] == opponentColor) &&
-                (abstractBoard[i + 1][j + 1] == opponentColor)) {
-                abstractBoard[i - 2][j - 2] = 0;
-                abstractBoard[i - 1][j - 1] = 0;
-                abstractBoard[i][j] = 0;
-                if (myColor == 1) {
-                    whiteCaptures += 2;
-                } else {
-                    blackCaptures += 2;
-                }
-                capture.color = myColor;
-                capture.position = (i - 2) * 19 + (j - 2);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                capture.position = (i - 1) * 19 + (j - 1);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                poof = true;
-            }
-        }
-    }
-    if (((j - 3) > -1) && ((j + 1) < 19)) { // up
-        if (abstractBoard[i][j - 1] == myColor &&
-            abstractBoard[i][j - 2] == myColor) {
-            if ((abstractBoard[i][j - 3] == opponentColor) &&
-                (abstractBoard[i][j + 1] == opponentColor)) {
-                abstractBoard[i][j - 2] = 0;
-                abstractBoard[i][j - 1] = 0;
-                abstractBoard[i][j] = 0;
-                if (myColor == 1) {
-                    whiteCaptures += 2;
-                } else {
-                    blackCaptures += 2;
-                }
-                capture.color = myColor;
-                capture.position = (i) * 19 + (j - 2);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                capture.position = (i) * 19 + (j - 1);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                poof = true;
-            }
-        }
-    }
-    if (((i - 1) > -1) && ((j - 3) > -1) && ((i + 3) < 19) &&
-        ((j + 1) < 19)) { // up right
-        if (abstractBoard[i + 1][j - 1] == myColor &&
-            abstractBoard[i + 2][j - 2] == myColor) {
-            if ((abstractBoard[i - 1][j + 1] == opponentColor) &&
-                (abstractBoard[i + 3][j - 3] == opponentColor)) {
-                abstractBoard[i + 2][j - 2] = 0;
-                abstractBoard[i + 1][j - 1] = 0;
-                abstractBoard[i][j] = 0;
-                if (myColor == 1) {
-                    whiteCaptures += 2;
-                } else {
-                    blackCaptures += 2;
-                }
-                capture.color = myColor;
-                capture.position = (i + 2) * 19 + (j - 2);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                capture.position = (i + 1) * 19 + (j - 1);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                poof = true;
-            }
-        }
-    }
-    if (((i + 3) < 19) && ((i - 1) > -1)) { // right
-        if (abstractBoard[i + 1][j] == myColor &&
-            abstractBoard[i + 2][j] == myColor) {
-            if ((abstractBoard[i + 3][j] == opponentColor) &&
-                (abstractBoard[i - 1][j] == opponentColor)) {
-                abstractBoard[i + 2][j] = 0;
-                abstractBoard[i + 1][j] = 0;
-                abstractBoard[i][j] = 0;
-                if (myColor == 1) {
-                    whiteCaptures += 2;
-                } else {
-                    blackCaptures += 2;
-                }
-                capture.color = myColor;
-                capture.position = (i + 2) * 19 + (j);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                capture.position = (i + 1) * 19 + (j);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                poof = true;
-            }
-        }
-    }
-    if (((i - 1) > -1) && ((j - 1) > -1) && ((i + 3) < 19) &&
-        ((j + 3) < 19)) { // down right
-        if (abstractBoard[i + 1][j + 1] == myColor &&
-            abstractBoard[i + 2][j + 2] == myColor) {
-            if ((abstractBoard[i - 1][j - 1] == opponentColor) &&
-                (abstractBoard[i + 3][j + 3] == opponentColor)) {
-                abstractBoard[i + 2][j + 2] = 0;
-                abstractBoard[i + 1][j + 1] = 0;
-                abstractBoard[i][j] = 0;
-                if (myColor == 1) {
-                    whiteCaptures += 2;
-                } else {
-                    blackCaptures += 2;
-                }
-                capture.color = myColor;
-                capture.position = (i + 2) * 19 + (j + 2);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                capture.position = (i + 1) * 19 + (j + 1);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                poof = true;
-            }
-        }
-    }
-    if (((j + 2) < 19) && ((j - 1) > -1)) { // down
-        if (abstractBoard[i][j + 1] == myColor &&
-            abstractBoard[i][j + 2] == myColor) {
-            if ((abstractBoard[i][j - 1] == opponentColor) &&
-                (abstractBoard[i][j + 3] == opponentColor)) {
-                abstractBoard[i][j + 1] = 0;
-                abstractBoard[i][j + 2] = 0;
-                abstractBoard[i][j] = 0;
-                if (myColor == 1) {
-                    whiteCaptures += 2;
-                } else {
-                    blackCaptures += 2;
-                }
-                capture.color = myColor;
-                capture.position = (i) * 19 + (j + 1);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                capture.position = (i) * 19 + (j + 2);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                poof = true;
-            }
-        }
-    }
-    if (((i - 3) > -1) && ((j - 1) > -1) && ((i + 1) < 19) &&
-        ((j + 3) < 19)) { // down left
-        if (abstractBoard[i - 1][j + 1] == myColor &&
-            abstractBoard[i - 2][j + 2] == myColor) {
-            if ((abstractBoard[i + 1][j - 1] == opponentColor) &&
-                (abstractBoard[i - 3][j + 3] == opponentColor)) {
-                abstractBoard[i - 2][j + 2] = 0;
-                abstractBoard[i - 1][j + 1] = 0;
-                abstractBoard[i][j] = 0;
-                if (myColor == 1) {
-                    whiteCaptures += 2;
-                } else {
-                    blackCaptures += 2;
-                }
-                capture.color = myColor;
-                capture.position = (i - 2) * 19 + (j + 2);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                capture.position = (i - 1) * 19 + (j + 1);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                poof = true;
-            }
-        }
-    }
-
-    // 4 directions with center of 3 stones placed to poof
-    if (((i - 2) > -1) && ((i + 2) < 19)) { // horizontal
-        if (abstractBoard[i - 1][j] == myColor &&
-            abstractBoard[i + 1][j] == myColor) {
-            if ((abstractBoard[i - 2][j] == opponentColor) &&
-                (abstractBoard[i + 2][j] == opponentColor)) {
-                abstractBoard[i + 1][j] = 0;
-                abstractBoard[i - 1][j] = 0;
-                abstractBoard[i][j] = 0;
-                if (myColor == 1) {
-                    whiteCaptures += 2;
-                } else {
-                    blackCaptures += 2;
-                }
-                capture.color = myColor;
-                capture.position = (i + 1) * 19 + (j);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                capture.position = (i - 1) * 19 + (j);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                poof = true;
-            }
-        }
-    }
-    if (((i - 2) > -1) && ((j - 2) > -1) && ((i + 2) < 19) &&
-        ((j + 2) < 19)) { // up left
-        if (abstractBoard[i - 1][j - 1] == myColor &&
-            abstractBoard[i + 1][j + 1] == myColor) {
-            if ((abstractBoard[i - 2][j - 2] == opponentColor) &&
-                (abstractBoard[i + 2][j + 2] == opponentColor)) {
-                abstractBoard[i + 1][j + 1] = 0;
-                abstractBoard[i - 1][j - 1] = 0;
-                abstractBoard[i][j] = 0;
-                if (myColor == 1) {
-                    whiteCaptures += 2;
-                } else {
-                    blackCaptures += 2;
-                }
-                capture.color = myColor;
-                capture.position = (i + 1) * 19 + (j + 1);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                capture.position = (i - 1) * 19 + (j - 1);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                poof = true;
-            }
-        }
-    }
-    if (((j - 2) > -1) && ((j + 2) < 19)) { // vertical
-        if (abstractBoard[i][j - 1] == myColor &&
-            abstractBoard[i][j + 1] == myColor) {
-            if ((abstractBoard[i][j - 2] == opponentColor) &&
-                (abstractBoard[i][j + 2] == opponentColor)) {
-                abstractBoard[i][j + 1] = 0;
-                abstractBoard[i][j - 1] = 0;
-                abstractBoard[i][j] = 0;
-                if (myColor == 1) {
-                    whiteCaptures += 2;
-                } else {
-                    blackCaptures += 2;
-                }
-                capture.color = myColor;
-                capture.position = (i) * 19 + (j + 1);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                capture.position = (i) * 19 + (j - 1);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                poof = true;
-            }
-        }
-    }
-    if (((i - 2) > -1) && ((j - 2) > -1) && ((i + 2) < 19) &&
-        ((j + 2) < 19)) { // up right
-        if (abstractBoard[i + 1][j - 1] == myColor &&
-            abstractBoard[i + 1][j - 1] == myColor) {
-            if ((abstractBoard[i - 2][j + 2] == opponentColor) &&
-                (abstractBoard[i + 2][j - 2] == opponentColor)) {
-                abstractBoard[i + 1][j - 1] = 0;
-                abstractBoard[i - 1][j + 1] = 0;
-                abstractBoard[i][j] = 0;
-                if (myColor == 1) {
-                    whiteCaptures += 2;
-                } else {
-                    blackCaptures += 2;
-                }
-                capture.color = myColor;
-                capture.position = (i + 1) * 19 + (j - 1);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                capture.position = (i - 1) * 19 + (j + 1);
-                [captures addObject:[NSValue value:&capture
-                                        withObjCType:@encode(struct Capture)]];
-                poof = true;
-            }
-        }
-    }
-
-    if (poof) {
-        if (myColor == 1) {
-            ++whiteCaptures;
-        } else {
-            ++blackCaptures;
-        }
-        capture.color = myColor;
-        capture.position = i * 19 + j;
-        [captures insertObject:[NSValue value:&capture
-                                   withObjCType:@encode(struct Capture)]
-                       atIndex:capturesLength];
-    }
+    [self syncCapturesToEngine];
+    BOOL poof = [penteGame detectKeryoPoof:myColor atPosition:rowCol];
+    [self syncCapturesFromEngine];
     return poof;
 }
 
 - (BOOL)detectPenteOf:(int)color atPosition:(int)rowCol {
-    BOOL pente = NO;
-    int penteCounter = 1;
-    int row = rowCol / 19, col = rowCol % 19, i, j;
-    i = row - 1;
-    j = col;
-    while (i > 0 && i < 19 && j > 0 && j < 19 && !pente) {
-        if (color == abstractBoard[i][j]) {
-            penteCounter += 1;
-            pente = (penteCounter > 4);
-        } else {
-            break;
-        }
-        i -= 1;
-    }
-    i = row + 1;
-    j = col;
-    while (i > 0 && i < 19 && j > 0 && j < 19 && !pente) {
-        if (color == abstractBoard[i][j]) {
-            penteCounter += 1;
-            pente = (penteCounter > 4);
-        } else {
-            break;
-        }
-        i += 1;
-    }
-    if (pente) {
-        return pente;
-    }
-    penteCounter = 1;
-    i = row;
-    j = col - 1;
-    while (i > 0 && i < 19 && j > 0 && j < 19 && !pente) {
-        if (color == abstractBoard[i][j]) {
-            penteCounter += 1;
-            pente = (penteCounter > 4);
-        } else {
-            break;
-        }
-        j -= 1;
-    }
-    i = row;
-    j = col + 1;
-    while (i > 0 && i < 19 && j > 0 && j < 19 && !pente) {
-        if (color == abstractBoard[i][j]) {
-            penteCounter += 1;
-            pente = (penteCounter > 4);
-        } else {
-            break;
-        }
-        j += 1;
-    }
-    if (pente) {
-        return pente;
-    }
-    penteCounter = 1;
-    i = row - 1;
-    j = col - 1;
-    while (i > 0 && i < 19 && j > 0 && j < 19 && !pente) {
-        if (color == abstractBoard[i][j]) {
-            penteCounter += 1;
-            pente = (penteCounter > 4);
-        } else {
-            break;
-        }
-        j -= 1;
-        i -= 1;
-    }
-    i = row + 1;
-    j = col + 1;
-    while (i > 0 && i < 19 && j > 0 && j < 19 && !pente) {
-        if (color == abstractBoard[i][j]) {
-            penteCounter += 1;
-            pente = (penteCounter > 4);
-        } else {
-            break;
-        }
-        i += 1;
-        j += 1;
-    }
-    if (pente) {
-        return pente;
-    }
-    penteCounter = 1;
-    i = row - 1;
-    j = col + 1;
-    while (i > 0 && i < 19 && j > 0 && j < 19 && !pente) {
-        if (color == abstractBoard[i][j]) {
-            penteCounter += 1;
-            pente = (penteCounter > 4);
-        } else {
-            break;
-        }
-        j += 1;
-        i -= 1;
-    }
-    i = row + 1;
-    j = col - 1;
-    while (i > 0 && i < 19 && j > 0 && j < 19 && !pente) {
-        if (color == abstractBoard[i][j]) {
-            penteCounter += 1;
-            pente = (penteCounter > 4);
-        } else {
-            break;
-        }
-        i += 1;
-        j -= 1;
-    }
-
-    return pente;
+    return [penteGame detectPenteOf:color atPosition:rowCol];
 }
 
 - (int)parseMove:(NSString *)move {
@@ -4634,11 +3716,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
 
 - (void)resetBoard {
     finalMove = -1;
-    for (int i = 0; i < 19; ++i) {
-        for (int j = 0; j < 19; ++j) {
-            abstractBoard[i][j] = 0;
-        }
-    }
+    [penteGame resetBoard];
 }
 
 - (void)notifyNewMessage {
@@ -4779,23 +3857,67 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                                         [request setHTTPBody:postData];
                                         [request setTimeoutInterval:7.0];
                                         __weak typeof(self) weakSelf = self;
-                                        [PenteHTTPClient sendRequest:request completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
-                                            NSString *dashboardString = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
-                                            if ([dashboardString containsString:@"Error: Cancel request already exists."]) {
-                                                UIAlertView *alert = [[UIAlertView alloc]
-                                                        initWithTitle:NSLocalizedString(@"Error", nil)
-                                                              message:NSLocalizedString(@"A cancel request already exists.", nil)
-                                                             delegate:nil
-                                                    cancelButtonTitle:NSLocalizedString(@"OK", nil)
-                                                    otherButtonTitles:nil];
-                                                [alert show];
-                                            } else {
-                                                PenteNavigationViewController *navControllor =
-                                                    (PenteNavigationViewController *)weakSelf.navigationController;
-                                                [navControllor setDidMove:YES];
-                                            }
-                                            [weakSelf.navigationController popToRootViewControllerAnimated:YES];
-                                        }];
+                                        [PenteHTTPClient
+                                            sendRequest:request
+                                             completion:^(
+                                                 NSData *responseData,
+                                                 NSURLResponse *response,
+                                                 NSError *error) {
+                                                 NSString *dashboardString = [[NSString
+                                                     alloc]
+                                                     initWithData:responseData
+                                                         encoding:
+                                                             NSUTF8StringEncoding];
+                                                 if ([dashboardString
+                                                         containsString:
+                                                             @"Error: Cancel "
+                                                             @"request already "
+                                                             @"exists."]) {
+                                                     UIAlertView *alert = [[UIAlertView
+                                                         alloc]
+                                                             initWithTitle:
+                                                                 NSLocalizedString(
+                                                                     @"Error",
+                                                                     nil)
+                                                                   message:
+                                                                       NSLocalizedString(
+                                                                           @"A "
+                                                                           @"ca"
+                                                                           @"nc"
+                                                                           @"el"
+                                                                           @" r"
+                                                                           @"eq"
+                                                                           @"ue"
+                                                                           @"st"
+                                                                           @" a"
+                                                                           @"lr"
+                                                                           @"ea"
+                                                                           @"dy"
+                                                                           @" e"
+                                                                           @"xi"
+                                                                           @"st"
+                                                                           @"s"
+                                                                           @".",
+                                                                           nil)
+                                                                  delegate:nil
+                                                         cancelButtonTitle:
+                                                             NSLocalizedString(
+                                                                 @"OK", nil)
+                                                         otherButtonTitles:nil];
+                                                     [alert show];
+                                                 } else {
+                                                     PenteNavigationViewController
+                                                         *navControllor =
+                                                             (PenteNavigationViewController
+                                                                  *)weakSelf
+                                                                 .navigationController;
+                                                     [navControllor
+                                                         setDidMove:YES];
+                                                 }
+                                                 [weakSelf.navigationController
+                                                     popToRootViewControllerAnimated:
+                                                         YES];
+                                             }];
                                     }];
                         [confirmController addAction:cancelAction];
                         [confirmController addAction:confirmAction];
@@ -4880,12 +4002,22 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                                             setHTTPShouldUsePipelining:YES];
 
                                         __weak typeof(self) weakSelf = self;
-                                        [PenteHTTPClient sendRequest:request completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
-                                            PenteNavigationViewController *navControllor =
-                                                (PenteNavigationViewController *)weakSelf.navigationController;
-                                            [navControllor setDidMove:YES];
-                                            [navControllor popToRootViewControllerAnimated:YES];
-                                        }];
+                                        [PenteHTTPClient
+                                            sendRequest:request
+                                             completion:^(
+                                                 NSData *responseData,
+                                                 NSURLResponse *response,
+                                                 NSError *error) {
+                                                 PenteNavigationViewController
+                                                     *navControllor =
+                                                         (PenteNavigationViewController
+                                                              *)weakSelf
+                                                             .navigationController;
+                                                 [navControllor setDidMove:YES];
+                                                 [navControllor
+                                                     popToRootViewControllerAnimated:
+                                                         YES];
+                                             }];
                                     }];
                         [confirmController addAction:cancelAction];
                         [confirmController addAction:confirmAction];
@@ -5014,12 +4146,16 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
     [request setHTTPShouldUsePipelining:YES];
 
     __weak typeof(self) weakSelf = self;
-    [PenteHTTPClient sendRequest:request completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
-        PenteNavigationViewController *navControllor =
-            (PenteNavigationViewController *)weakSelf.navigationController;
-        [navControllor setDidMove:YES];
-        [weakSelf.navigationController popToRootViewControllerAnimated:YES];
-    }];
+    [PenteHTTPClient
+        sendRequest:request
+         completion:^(NSData *responseData, NSURLResponse *response,
+                      NSError *error) {
+             PenteNavigationViewController *navControllor =
+                 (PenteNavigationViewController *)weakSelf.navigationController;
+             [navControllor setDidMove:YES];
+             [weakSelf.navigationController
+                 popToRootViewControllerAnimated:YES];
+         }];
 }
 
 - (void)presentDoublePass {
