@@ -79,4 +79,82 @@ final class ScanTests: XCTestCase {
         let captures = Scan.captures(on: board, at: rc(9, 9), color: 1, run: 3)
         XCTAssertTrue(captures.isEmpty)
     }
+
+    // MARK: - poof (run = 2)
+
+    func testPoofSelfCapture() {
+        var board = emptyBoard()
+        // white pair (8,9) + (9,9 placed) flanked by black ends at (7,9) and (10,9).
+        board[7][9] = 2
+        board[8][9] = 1
+        board[9][9] = 1   // placed
+        board[10][9] = 2
+        let poofed = Scan.poof(on: board, at: rc(9, 9), color: 1, run: 2)
+        XCTAssertEqual(poofed.count, 2)
+        // placed stone recorded first, then its partner.
+        XCTAssertEqual(poofed.map { $0.position }, [rc(9, 9), rc(8, 9)])
+        XCTAssertEqual(poofed.map { $0.color }, [1, 1])
+        // purity
+        XCTAssertEqual(board[8][9], 1)
+        XCTAssertEqual(board[9][9], 1)
+    }
+
+    func testNoPoofWithoutBothOpponentEnds() {
+        var board = emptyBoard()
+        board[7][9] = 2   // one end is opponent
+        board[8][9] = 1
+        board[9][9] = 1   // placed
+        board[10][9] = 0  // other end is EMPTY -> no poof
+        let poofed = Scan.poof(on: board, at: rc(9, 9), color: 1, run: 2)
+        XCTAssertTrue(poofed.isEmpty)
+    }
+
+    // MARK: - keryo-poof (run = 3)
+
+    func testKeryoPoofThreeInLine() {
+        var board = emptyBoard()
+        // Three white in a column from the placed stone: (9,9),(8,9),(7,9),
+        // flanked by black at (6,9) [far end] and (10,9) [opposite end].
+        board[6][9] = 2
+        board[7][9] = 1
+        board[8][9] = 1
+        board[9][9] = 1   // placed
+        board[10][9] = 2
+        let poofed = Scan.poof(on: board, at: rc(9, 9), color: 1, run: 3)
+        XCTAssertEqual(poofed.count, 3)
+        // placed first, then far partner (7,9), then near partner (8,9).
+        XCTAssertEqual(poofed.map { $0.position }, [rc(9, 9), rc(7, 9), rc(8, 9)])
+        XCTAssertEqual(poofed.map { $0.color }, [1, 1, 1])
+    }
+
+    func testKeryoPoofCentredBothPartnersPresent() {
+        var board = emptyBoard()
+        // placed (9,9) centred between partners (10,8) & (8,10), opponent ends
+        // at (11,7) & (7,11) — the centred anti-diagonal case.
+        board[9][9] = 1
+        board[10][8] = 1
+        board[8][10] = 1
+        board[11][7] = 2
+        board[7][11] = 2
+        let poofed = Scan.poof(on: board, at: rc(9, 9), color: 1, run: 3)
+        XCTAssertEqual(poofed.count, 3)
+        XCTAssertEqual(poofed.map { $0.position }, [rc(9, 9), rc(10, 8), rc(8, 10)])
+        XCTAssertEqual(poofed.map { $0.color }, [1, 1, 1])
+    }
+
+    func testKeryoPoofRequiresBothEndsNotOnePartnerTwice() {
+        // Regression guard for commit 63986f7: the centred anti-diagonal case once
+        // checked board[i+1][j-1] (one partner) twice instead of also checking the
+        // other partner board[i-1][j+1]. Here that other partner (8,10) is MISSING,
+        // so the buggy single-partner logic would still poof. Correct logic requires
+        // BOTH partners present -> no poof.
+        var board = emptyBoard()
+        board[9][9] = 1
+        board[10][8] = 1
+        // board[8][10] intentionally left empty
+        board[11][7] = 2
+        board[7][11] = 2
+        let poofed = Scan.poof(on: board, at: rc(9, 9), color: 1, run: 3)
+        XCTAssertTrue(poofed.isEmpty)
+    }
 }
