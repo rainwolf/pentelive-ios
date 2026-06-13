@@ -1995,15 +1995,10 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
              if ([[strongSelf.game opponentName] isEqualToString:@"computer"]) {
                  NSString *message = nil;
                  BOOL iWin = YES;
-                 if ([strongSelf
-                         detectPenteOf:2 - ([strongSelf->movesList count] % 2)
-                            atPosition:[[strongSelf->movesList lastObject]
-                                           intValue]]) {
-                     if (2 - ([strongSelf->movesList count] % 2) == 1) {
-                         message = NSLocalizedString(@"White wins", nil);
-                     } else {
-                         message = NSLocalizedString(@"Black wins", nil);
-                     }
+                 if (strongSelf->lastReplayWinner == 1) {
+                     message = NSLocalizedString(@"White wins", nil);
+                 } else if (strongSelf->lastReplayWinner == 2) {
+                     message = NSLocalizedString(@"Black wins", nil);
                  } else if (whiteCaptures == 10) {
                      message = NSLocalizedString(@"Black wins", nil);
                  } else if (blackCaptures == 10) {
