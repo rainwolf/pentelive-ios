@@ -2755,53 +2755,21 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
 }
 
 - (void)replayGoGame:(int)untilMove {
-    [self initGoStructures];
-    BOOL hasPass = NO, doublePass = NO;
-    int passMove = gridSize * gridSize;
-
-    for (int i = 0; i < untilMove; ++i) {
-        int currentPlayer = (i % 2) + 1, opponent = 3 - currentPlayer;
-        int move = [self parseMove:[movesList objectAtIndex:i]];
-        if (doublePass) {
-            if (move != passMove) {
-                if ([self getBoardValue:move] == 1) {
-                    [deadWhiteStones addObject:[NSNumber numberWithInt:move]];
-                } else if ([self getBoardValue:move] == 2) {
-                    [deadBlackStones addObject:[NSNumber numberWithInt:move]];
-                }
-                [self setValue:0 forPosition:move];
-            }
-            continue;
-        }
-        if (move == passMove) {
-            if (hasPass) {
-                doublePass = YES;
-            } else {
-                hasPass = YES;
-            }
-            continue;
-        } else {
-            hasPass = NO;
-        }
-        int color = 3 - currentPlayer; // , opponentColor = 3 - color;
-        NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *>
-            *groupsByID = [goStoneGroupsByPlayerAndID
-                objectForKey:[NSNumber numberWithInt:currentPlayer]];
-        NSMutableDictionary<NSNumber *, NSNumber *> *stoneGroupIDs =
-            [goStoneGroupIDsByPlayer
-                objectForKey:[NSNumber numberWithInt:currentPlayer]];
-        [self setValue:color forPosition:move];
-        [self settleGroups:groupsByID andIDs:stoneGroupIDs forMove:move];
-
-        groupsByID = [goStoneGroupsByPlayerAndID
-            objectForKey:[NSNumber numberWithInt:opponent]];
-        stoneGroupIDs = [goStoneGroupIDsByPlayer
-            objectForKey:[NSNumber numberWithInt:opponent]];
-        [self makeCapturesWithMove:move
-                        withGroups:groupsByID
-                            andIDs:stoneGroupIDs
-                    andAlterGroups:YES];
+    GoGame *goGame = [[GoGame alloc] initWithGridSize:gridSize];
+    NSMutableArray<NSNumber *> *moveInts = [NSMutableArray array];
+    for (int i = 0; i < [movesList count]; ++i) {
+        [moveInts addObject:@([self parseMove:[movesList objectAtIndex:i]])];
     }
+    [goGame replay:moveInts until:untilMove];
+
+    deadBlackStones = [[goGame blackDeadStones] mutableCopy];
+    deadWhiteStones = [[goGame whiteDeadStones] mutableCopy];
+
+    for (int pos = 0; pos < gridSize * gridSize; ++pos) {
+        [self setValue:(int)[goGame stoneAt:pos] forPosition:pos];
+    }
+    koMove = (int)[goGame koMove];
+
     [board setBlackDeadStones:deadBlackStones];
     [board setWhiteDeadStones:deadWhiteStones];
     [zoomedBoard setBlackDeadStones:deadBlackStones];
