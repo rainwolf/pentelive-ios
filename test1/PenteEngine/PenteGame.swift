@@ -1,0 +1,151 @@
+import Foundation
+
+/// Stateful game engine. Owns the board, capture counters, move index, and opening
+/// mask. Drives the pure `Scan` primitives via the variant's `RuleSet` recipe.
+/// `@objc`-exposed so ObjC callers reach it through the generated `penteLive-Swift.h`.
+@objc(SwiftPenteGame) final class PenteGame: NSObject {
+    private let rules: RuleSet
+    private var board: [[Int]]
+    private var moveCount: Int = 0
+    @objc private(set) var whiteCaptures: Int = 0
+    @objc private(set) var blackCaptures: Int = 0
+
+    @objc init(variant: PenteVariant) {
+        self.rules = ruleSet(for: variant)
+        self.board = Array(repeating: Array(repeating: 0, count: 19), count: 19)
+        super.init()
+    }
+
+    @objc func reset() {
+        board = Array(repeating: Array(repeating: 0, count: 19), count: 19)
+        moveCount = 0
+        whiteCaptures = 0
+        blackCaptures = 0
+    }
+
+    /// Read-only accessor for renderers. Returns 0 empty, 1 white, 2 black, -1 masked.
+    @objc func stone(at rowCol: Int) -> Int {
+        return board[rowCol / 19][rowCol % 19]
+    }
+
+    @objc func play(_ move: Int) -> MoveResult {
+        let placedColor = colorForMove(moveCount)
+
+        // Masks are a render-only overlay; clear any before placing so scans never
+        // see -1 (legacy replayMoves operated on a mask-free board).
+        clearOpeningMask()
+        board[move / 19][move % 19] = placedColor
+
+        var captured: [Capture] = []
+        var poofed = false
+
+        // Poofs first (ascending run), matching legacy PoofPente/OPente order.
+        if rules.poof != .none {
+            let poofRuns = (rules.poof == .keryo) ? [2, 3] : [2]
+            for run in poofRuns {
+                let removed = Scan.poof(on: board, at: move, color: placedColor, run: run)
+                apply(removed)
+                captured.append(contentsOf: removed)
+                if !removed.isEmpty { poofed = true }
+            }
+        }
+
+        // Captures: run 2 up to capture.run (Keryo/OPente also run 3).
+        if let cap = rules.capture {
+            var run = 2
+            while run <= cap.run {
+                let removed = Scan.captures(on: board, at: move, color: placedColor, run: run)
+                apply(removed)
+                captured.append(contentsOf: removed)
+                run += 1
+            }
+        }
+
+        moveCount += 1
+        let winner = computeWinner(lastMove: move, color: placedColor)
+        applyOpeningMask()  // overlay applied last, on the snapshot returned to renderers
+        return MoveResult(captured: captured, poofed: poofed, winner: winner, placed: placedColor)
+    }
+
+    @objc func replay(_ moves: [Int], until: Int) -> MoveResult {
+        reset()
+        var last = MoveResult(captured: [], poofed: false, winner: 0, placed: 0)
+        var i = 0
+        while i < until {
+            last = play(moves[i])
+            i += 1
+        }
+        return last
+    }
+
+    // MARK: - Internals
+
+    private func colorForMove(_ index: Int) -> Int {
+        switch rules.cadence {
+        case .alternating:
+            return (index % 2) + 1
+        case .connect6:
+            return (((index % 4) == 0) || ((index % 4) == 3)) ? 1 : 2
+        }
+    }
+
+    /// Remove each captured/poofed stone and bump that colour's loss counter by one.
+    private func apply(_ removed: [Capture]) {
+        for cap in removed {
+            board[cap.position / 19][cap.position % 19] = 0
+            if cap.color == 1 { whiteCaptures += 1 } else { blackCaptures += 1 }
+        }
+    }
+
+    private func computeWinner(lastMove: Int, color: Int) -> Int {
+        if Scan.winLine(on: board, at: lastMove, color: color, length: rules.winLength) {
+            return color
+        }
+        if let cap = rules.capture {
+            if cap.threshold == 15 {                 // Keryo family: >= 15
+                if whiteCaptures >= 15 { return 2 }
+                if blackCaptures >= 15 { return 1 }
+            } else {                                 // Pente family: == 10
+                if whiteCaptures == 10 { return 2 }
+                if blackCaptures == 10 { return 1 }
+            }
+        }
+        return 0
+    }
+
+    private func applyOpeningMask() {
+        guard moveCount == 2 else { return }
+        switch rules.opening {
+        case .tournament: maskTournamentOpening()
+        case .gpente:     maskGPenteOpening()
+        case .none, .swap2: break
+        }
+    }
+
+    private func clearOpeningMask() {
+        guard rules.opening == .tournament || rules.opening == .gpente else { return }
+        for r in 0..<19 {
+            for c in 0..<19 where board[r][c] == -1 {
+                board[r][c] = 0
+            }
+        }
+    }
+
+    private func maskTournamentOpening() {
+        for i in 7..<12 {
+            for j in 7..<12 where board[i][j] == 0 {
+                board[i][j] = -1
+            }
+        }
+    }
+
+    private func maskGPenteOpening() {
+        maskTournamentOpening()
+        for i in 1..<3 {
+            if board[9][11 + i] == 0 { board[9][11 + i] = -1 }
+            if board[9][7 - i] == 0 { board[9][7 - i] = -1 }
+            if board[11 + i][9] == 0 { board[11 + i][9] = -1 }
+            if board[7 - i][9] == 0 { board[7 - i][9] = -1 }
+        }
+    }
+}
