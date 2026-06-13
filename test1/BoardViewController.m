@@ -3737,6 +3737,12 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
 
 - (void)resetBoard {
     finalMove = -1;
+    // Zero the abstractBoard ivar so reset is behavior-neutral for ALL
+    // variants. The legacy [penteGame resetBoard] aliased and zeroed this
+    // 19x19 board; [engine reset] only clears the Swift engine's internal
+    // state, so without this the Go replay path (which never re-zeros
+    // abstractBoard) would leave ghost stones when stepping backward.
+    memset(abstractBoard, 0, sizeof(abstractBoard));
     [engine reset];
 }
 
