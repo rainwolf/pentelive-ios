@@ -59,4 +59,19 @@ import UIKit
             return UIColor(red: 0.929, green: 0.639, blue: 0.992, alpha: 1)
         }
     }
+
+    /// Gomoku/Connect6 never show capture counts; D/DK/Swap2 hide them during the opening.
+    /// The four opening-gated variants all keyed off the `dPenteOpening` flag in the
+    /// legacy code, so the caller passes `dPenteOpening` for `opening`.
+    @objc(hidesCaptureLabelsForVariant:opening:)
+    static func hidesCaptureLabels(for variant: PenteVariant, opening: Bool) -> Bool {
+        switch variant {
+        case .gomoku, .connect6:
+            return true
+        case .dPente, .dkPente, .swap2Pente, .swap2Keryo:
+            return opening
+        default:
+            return false
+        }
+    }
 }

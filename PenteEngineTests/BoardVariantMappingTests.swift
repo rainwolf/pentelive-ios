@@ -73,3 +73,18 @@ extension BoardVariantMappingTests {
                     0.929, 0.639, 0.992, 1)
     }
 }
+
+extension BoardVariantMappingTests {
+    func testHidesCaptureLabels() {
+        XCTAssertTrue(BoardVariantMapping.hidesCaptureLabels(for: .gomoku, opening: false))
+        XCTAssertTrue(BoardVariantMapping.hidesCaptureLabels(for: .connect6, opening: false))
+        XCTAssertFalse(BoardVariantMapping.hidesCaptureLabels(for: .pente, opening: false))
+        XCTAssertFalse(BoardVariantMapping.hidesCaptureLabels(for: .keryoPente, opening: true))
+        XCTAssertTrue(BoardVariantMapping.hidesCaptureLabels(for: .dPente, opening: true))
+        XCTAssertFalse(BoardVariantMapping.hidesCaptureLabels(for: .dPente, opening: false))
+        XCTAssertTrue(BoardVariantMapping.hidesCaptureLabels(for: .dkPente, opening: true))
+        XCTAssertTrue(BoardVariantMapping.hidesCaptureLabels(for: .swap2Pente, opening: true))
+        XCTAssertFalse(BoardVariantMapping.hidesCaptureLabels(for: .swap2Pente, opening: false))
+        XCTAssertTrue(BoardVariantMapping.hidesCaptureLabels(for: .swap2Keryo, opening: true))
+    }
+}
