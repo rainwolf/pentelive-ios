@@ -157,4 +157,52 @@ final class ScanTests: XCTestCase {
         let poofed = Scan.poof(on: board, at: rc(9, 9), color: 1, run: 3)
         XCTAssertTrue(poofed.isEmpty)
     }
+
+    // MARK: - winLine (length = 5 Pente, length = 6 Connect6)
+
+    func testWinLineHorizontalFive() {
+        var board = emptyBoard()
+        for c in 5...9 { board[9][c] = 1 }   // (9,5)..(9,9)
+        XCTAssertTrue(Scan.winLine(on: board, at: rc(9, 9), color: 1, length: 5))
+    }
+
+    func testWinLineVerticalFive() {
+        var board = emptyBoard()
+        for r in 5...9 { board[r][9] = 2 }   // (5,9)..(9,9)
+        XCTAssertTrue(Scan.winLine(on: board, at: rc(9, 9), color: 2, length: 5))
+    }
+
+    func testWinLineMainDiagonalFive() {
+        var board = emptyBoard()
+        for d in 0..<5 { board[5 + d][5 + d] = 1 }   // (5,5)..(9,9)
+        XCTAssertTrue(Scan.winLine(on: board, at: rc(9, 9), color: 1, length: 5))
+    }
+
+    func testWinLineAntiDiagonalFiveCountingBothSides() {
+        var board = emptyBoard()
+        // Anti-diagonal through (9,9); placed in the MIDDLE so the win is only
+        // found by accumulating both scan directions of one axis.
+        board[7][11] = 1
+        board[8][10] = 1
+        board[9][9] = 1   // placed (middle of the five)
+        board[10][8] = 1
+        board[11][7] = 1
+        XCTAssertTrue(Scan.winLine(on: board, at: rc(9, 9), color: 1, length: 5))
+    }
+
+    func testFourInARowIsNotAWin() {
+        var board = emptyBoard()
+        for c in 6...9 { board[9][c] = 1 }   // only four
+        XCTAssertFalse(Scan.winLine(on: board, at: rc(9, 9), color: 1, length: 5))
+    }
+
+    func testConnect6NeedsSix() {
+        var board = emptyBoard()
+        for c in 4...9 { board[9][c] = 1 }   // six in a row, placed at (9,9)
+        XCTAssertTrue(Scan.winLine(on: board, at: rc(9, 9), color: 1, length: 6))
+        // five is not enough for connect6
+        var five = emptyBoard()
+        for c in 5...9 { five[9][c] = 1 }
+        XCTAssertFalse(Scan.winLine(on: five, at: rc(9, 9), color: 1, length: 6))
+    }
 }

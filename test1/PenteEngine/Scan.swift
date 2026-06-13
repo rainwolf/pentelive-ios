@@ -138,4 +138,40 @@ enum Scan {
         result.append(contentsOf: directional)
         return result
     }
+
+    // MARK: - Win line (length = 5 Pente, length = 6 Connect6)
+    //
+    // Ports detectPenteOf:atPosition:. Along each of the 4 axes, count starts at 1
+    // (the placed stone) and accumulates over BOTH directions of that axis before
+    // resetting for the next axis; a win is reported as soon as the run reaches
+    // `length` (legacy `penteCounter > 4` generalised to `count > length - 1`).
+    // The strict bounds `> 0` / `< 19` are preserved verbatim from the legacy code,
+    // which intentionally never scans into row 0 or column 0.
+    static func winLine(on board: [[Int]], at move: Int, color: Int, length: Int) -> Bool {
+        let row = move / 19, col = move % 19
+        let axes: [((Int, Int), (Int, Int))] = [
+            ((-1, 0), (1, 0)),    // vertical
+            ((0, -1), (0, 1)),    // horizontal
+            ((-1, -1), (1, 1)),   // main diagonal
+            ((-1, 1), (1, -1)),   // anti-diagonal
+        ]
+        for (d1, d2) in axes {
+            var count = 1
+            for (di, dj) in [d1, d2] {
+                var i = row + di
+                var j = col + dj
+                while i > 0, i < 19, j > 0, j < 19 {
+                    if board[i][j] == color {
+                        count += 1
+                        if count > length - 1 { return true }
+                    } else {
+                        break
+                    }
+                    i += di
+                    j += dj
+                }
+            }
+        }
+        return false
+    }
 }
