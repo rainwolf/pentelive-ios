@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		14FE00FB473FBD53DA6200A3 /* PenteGame.m in Sources */ = {isa = PBXBuildFile; fileRef = 636163A62019E5AA00D5E176 /* PenteGame.m */; };
+		1B66D9F7FD1817D9F3E20072 /* CorpusSnapshotGeneratorTests.m in Sources */ = {isa = PBXBuildFile; fileRef = E4BA6089918203FB8F929268 /* CorpusSnapshotGeneratorTests.m */; };
 		5B6CDFB315BE503E8B691AC2 /* HarnessSmokeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74EB9EDFFC23705419419557 /* HarnessSmokeTests.swift */; };
 		63052FBB1D047F9000F78B30 /* unlock.png in Resources */ = {isa = PBXBuildFile; fileRef = 63052FB71D047F9000F78B30 /* unlock.png */; };
 		63052FBC1D047F9000F78B30 /* unlock@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 63052FB81D047F9000F78B30 /* unlock@2x.png */; };
@@ -464,6 +465,7 @@
 		74EB9EDFFC23705419419557 /* HarnessSmokeTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = HarnessSmokeTests.swift; path = HarnessSmokeTests.swift; sourceTree = "<group>"; };
 		8F67AC8BE4C73FF7390EB742 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
 		AC57360A41A0C0C3E0E0BD99 /* PenteEngineTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PenteEngineTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		E4BA6089918203FB8F929268 /* CorpusSnapshotGeneratorTests.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = CorpusSnapshotGeneratorTests.m; path = CorpusSnapshotGeneratorTests.m; sourceTree = "<group>"; };
 		EC2523E9488B160980129A1F /* Pods-penteLive.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-penteLive.release.xcconfig"; path = "Pods/Target Support Files/Pods-penteLive/Pods-penteLive.release.xcconfig"; sourceTree = "<group>"; };
 		FEAB9DAD17D481D8D59FE453 /* Pods_penteLive.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_penteLive.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -837,6 +839,7 @@
 			isa = PBXGroup;
 			children = (
 				74EB9EDFFC23705419419557 /* HarnessSmokeTests.swift */,
+				E4BA6089918203FB8F929268 /* CorpusSnapshotGeneratorTests.m */,
 			);
 			name = PenteEngineTests;
 			path = PenteEngineTests;
@@ -1165,6 +1168,7 @@
 			files = (
 				5B6CDFB315BE503E8B691AC2 /* HarnessSmokeTests.swift in Sources */,
 				14FE00FB473FBD53DA6200A3 /* PenteGame.m in Sources */,
+				1B66D9F7FD1817D9F3E20072 /* CorpusSnapshotGeneratorTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
