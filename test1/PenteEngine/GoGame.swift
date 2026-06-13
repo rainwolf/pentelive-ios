@@ -364,6 +364,9 @@ import Foundation
     @objc func scoreString() -> String {
         getTerritories()
         let p1Stones = getMoves(value: 2).count, p2Stones = getMoves(value: 1).count, p1Territory = territoryByPlayer[1]!.count, p2Territory = territoryByPlayer[2]!.count
+        // Komi 7.5 is encoded as integer `(... + 7)` then a literal ".5" string — this is
+        // verbatim from the legacy Table.getGoScoreString and is intentional, not a truncation
+        // bug. Do NOT "fix" it to Float arithmetic; the integer + ".5" reproduces the exact display.
         return "black score is \(p1Territory) + \(p1Stones) = \(p1Stones + p1Territory)\nwhite score is \(p2Territory) + \(p2Stones) + 7.5 = \(p2Stones + p2Territory + 7).5"
     }
 
