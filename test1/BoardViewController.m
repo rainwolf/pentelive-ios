@@ -2462,10 +2462,14 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
 // Legacy only ever SHOWED that mask when the game was rated or (speed) G-Pente,
 // and only while it stood at exactly two moves (the deleted replay* methods gated
 // on `[[self.game ratedNot] ... != "Not Rated"] && [movesList count] == 2`, with
-// G-Pente masking on the move count alone). Mirror that gate here — matching the
-// Phase 3 `Table.syncFromEngine` policy (rated || (speed)gPente) plus the
-// move-count guard that legacy applied during replay — so unrated, non-gPente
-// Pente/Keryo/Poof/O-Pente games no longer surface the centre restriction.
+// G-Pente masking on the move count alone). The rated/(speed)gPente half of this
+// gate is the SAME policy as `Table.syncFromEngine`. The `&& [movesList count] == 2`
+// half is ADDITIONAL here and intentionally NOT in Table: this view replays arbitrary
+// history positions (stepping back through a finished game), so it must suppress the
+// mask except at the 2-move position to reproduce legacy; `Table` is live-play only
+// (it always renders the latest position), so the engine's own `moveCount == 2`
+// mask guard already covers it without an explicit count check. Net effect: unrated,
+// non-gPente Pente/Keryo/Poof/O-Pente games no longer surface the centre restriction.
 - (void)loadEngineIntoAbstractBoard {
     BOOL rated = [[self.game ratedNot] rangeOfString:@"Not Rated"].location ==
                  NSNotFound;
