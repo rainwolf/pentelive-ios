@@ -75,7 +75,6 @@
 @synthesize moveStatsString;
 @synthesize playerStatsBaseString;
 
-int abstractBoard[19][19];
 int abstractGoBoard[19][19];
 int finalMove = -1, connect6Move1 = -1, connect6Move2 = -1, dPenteMove1 = -1,
     dPenteMove2 = -1, dPenteMove3 = -1, dPenteMove4 = -1, whiteCaptures,
@@ -112,7 +111,8 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
     [super viewDidLoad];
 
     penteGame = [[LegacyPenteGame alloc] init];
-    penteGame.abstractBoard = abstractBoard;
+    engine = [[SwiftPenteGame alloc] initWithVariant:PenteVariantPente];
+    lastReplayWinner = 0;
 
     finalMove = -1;
     connect6Move1 = -1;
@@ -2451,9 +2451,30 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
 }
 
 - (void)syncCapturesToEngine {
+    // Legacy ObjC PenteGame drives the interactive tentative-placement capture
+    // preview only; point it at the controller's abstractBoard ivar here (the
+    // viewDidLoad alias was removed in this phase). Removed entirely in Phase 5.
+    penteGame.abstractBoard = abstractBoard;
     penteGame.captures = captures;
     penteGame.whiteCaptures = whiteCaptures;
     penteGame.blackCaptures = blackCaptures;
+}
+
+// Fills the abstractBoard ivar from the Swift engine (the render seam, scope (c)).
+- (void)loadEngineIntoAbstractBoard {
+    for (int rc = 0; rc < gridSize * gridSize; ++rc) {
+        abstractBoard[rc / gridSize][rc % gridSize] = (int)[engine stoneAt:rc];
+    }
+}
+
+// Parses the full move list into rowCol ints for SwiftPenteGame replay:until:.
+- (NSArray<NSNumber *> *)parsedMoves {
+    NSMutableArray<NSNumber *> *parsed =
+        [NSMutableArray arrayWithCapacity:[movesList count]];
+    for (NSString *m in movesList) {
+        [parsed addObject:@([self parseMove:m])];
+    }
+    return parsed;
 }
 
 - (void)syncCapturesFromEngine {
@@ -3716,7 +3737,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
 
 - (void)resetBoard {
     finalMove = -1;
-    [penteGame resetBoard];
+    [engine reset];
 }
 
 - (void)notifyNewMessage {
