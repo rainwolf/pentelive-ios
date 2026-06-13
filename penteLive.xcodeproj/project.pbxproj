@@ -17,6 +17,8 @@
 		23D406DC7B60ACE1F3879C92 /* BoardVariantMapping.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50436E8B3C992E62FFFC15D7 /* BoardVariantMapping.swift */; };
 		32A66A1A6CD3DA16C0CEFF89 /* PenteVariantTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86AC1A8A05D560A06454D468 /* PenteVariantTests.swift */; };
 		4117A5C99CA99A275BFEB2CC /* ScanTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDB76AE2B389F2859CE0C808 /* ScanTests.swift */; };
+		4B107A0AC64E386CA34E53FA /* GoGameTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5FF3D6A4D1F70E68CC42981 /* GoGameTests.swift */; };
+		54E432E2A60A9125B7BCAB8E /* GoGame.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF08F02CC6ACC370781E5AA6 /* GoGame.swift */; };
 		5B6CDFB315BE503E8B691AC2 /* HarnessSmokeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74EB9EDFFC23705419419557 /* HarnessSmokeTests.swift */; };
 		63052FBB1D047F9000F78B30 /* unlock.png in Resources */ = {isa = PBXBuildFile; fileRef = 63052FB71D047F9000F78B30 /* unlock.png */; };
 		63052FBC1D047F9000F78B30 /* unlock@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 63052FB81D047F9000F78B30 /* unlock@2x.png */; };
@@ -225,6 +227,7 @@
 		CEF7661E709823AE2A325338 /* PenteGame.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8314997135E2AC0910B84356 /* PenteGame.swift */; };
 		D31C13F16F5DA54AFE50F435 /* RuleSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0D2331507464E3A0A3E4DEC /* RuleSet.swift */; };
 		D5EEBF69DF3319F594473C96 /* PenteGameEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C04A941E308F1CBC0804C1A6 /* PenteGameEngineTests.swift */; };
+		D836BAEE88141DCF9CE02CBB /* GoGame.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF08F02CC6ACC370781E5AA6 /* GoGame.swift */; };
 		EA27C537CC33E627C9C290E0 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8F67AC8BE4C73FF7390EB742 /* Foundation.framework */; };
 		FC94E43192D837205DC1411F /* BoardVariantMappingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BB7D9EDC42A7C21CE614BEB /* BoardVariantMappingTests.swift */; };
 /* End PBXBuildFile section */
@@ -496,6 +499,8 @@
 		A43C60A3066249BC1D49D05D /* PenteGameCorpusTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PenteGameCorpusTests.swift; sourceTree = "<group>"; };
 		A639685AFB848EDF3272E550 /* CorpusSupport.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CorpusSupport.swift; path = CorpusSupport.swift; sourceTree = "<group>"; };
 		AC57360A41A0C0C3E0E0BD99 /* PenteEngineTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PenteEngineTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		AF08F02CC6ACC370781E5AA6 /* GoGame.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GoGame.swift; sourceTree = "<group>"; };
+		B5FF3D6A4D1F70E68CC42981 /* GoGameTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GoGameTests.swift; sourceTree = "<group>"; };
 		BDB76AE2B389F2859CE0C808 /* ScanTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ScanTests.swift; sourceTree = "<group>"; };
 		BF08D052C94A67CE7B1A2ABE /* Capture.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Capture.swift; sourceTree = "<group>"; };
 		C04A941E308F1CBC0804C1A6 /* PenteGameEngineTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PenteGameEngineTests.swift; sourceTree = "<group>"; };
@@ -890,6 +895,7 @@
 				9B9AA0E8424F26F770E4D9CD /* MoveResult.swift */,
 				D0D2331507464E3A0A3E4DEC /* RuleSet.swift */,
 				8314997135E2AC0910B84356 /* PenteGame.swift */,
+				AF08F02CC6ACC370781E5AA6 /* GoGame.swift */,
 			);
 			name = PenteEngine;
 			path = test1/PenteEngine;
@@ -911,6 +917,7 @@
 				0DAA75D2D52B843143873591 /* TableEngineRoutingTests.swift */,
 				7640F6E2282BC20AFCD185F3 /* LiveBoardCaptureAnimationTests.swift */,
 				0BB7D9EDC42A7C21CE614BEB /* BoardVariantMappingTests.swift */,
+				B5FF3D6A4D1F70E68CC42981 /* GoGameTests.swift */,
 			);
 			name = PenteEngineTests;
 			path = PenteEngineTests;
@@ -1251,6 +1258,8 @@
 				0F517DEF255BDD9409111928 /* TableEngineRoutingTests.swift in Sources */,
 				1E188CB8EB8CB955EA072521 /* LiveBoardCaptureAnimationTests.swift in Sources */,
 				FC94E43192D837205DC1411F /* BoardVariantMappingTests.swift in Sources */,
+				54E432E2A60A9125B7BCAB8E /* GoGame.swift in Sources */,
+				4B107A0AC64E386CA34E53FA /* GoGameTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1309,6 +1318,7 @@
 				D31C13F16F5DA54AFE50F435 /* RuleSet.swift in Sources */,
 				CEF7661E709823AE2A325338 /* PenteGame.swift in Sources */,
 				23D406DC7B60ACE1F3879C92 /* BoardVariantMapping.swift in Sources */,
+				D836BAEE88141DCF9CE02CBB /* GoGame.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
