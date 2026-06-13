@@ -3090,22 +3090,6 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
     }
 }
 
-- (void)initGoStructures {
-    koMove = -1;
-    goStoneGroupIDsByPlayer = [[NSMutableDictionary alloc] init];
-    goStoneGroupsByPlayerAndID = [[NSMutableDictionary alloc] init];
-    [goStoneGroupIDsByPlayer setObject:[[NSMutableDictionary alloc] init]
-                                forKey:[NSNumber numberWithInt:1]];
-    [goStoneGroupIDsByPlayer setObject:[[NSMutableDictionary alloc] init]
-                                forKey:[NSNumber numberWithInt:2]];
-    [goStoneGroupsByPlayerAndID setObject:[[NSMutableDictionary alloc] init]
-                                   forKey:[NSNumber numberWithInt:1]];
-    [goStoneGroupsByPlayerAndID setObject:[[NSMutableDictionary alloc] init]
-                                   forKey:[NSNumber numberWithInt:2]];
-    deadBlackStones = [[NSMutableArray alloc] init];
-    deadWhiteStones = [[NSMutableArray alloc] init];
-}
-
 - (void)copyGoBoard {
     int currentOpponent = 2 - [movesList count] % 2;
     goStoneGroups = [[NSMutableDictionary alloc]
@@ -3133,6 +3117,9 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
     }
 }
 
+// NOTE (Go migration): replayGoGame: routes through the Swift GoGame engine, but this
+// interactive path still uses the ObjC Go helpers below (makeCapturesWithMove:/settleGroups:/etc.).
+// Fully migrating interactive Go to GoGame is a future follow-up.
 - (void)addGoMove:(int)move {
     int currentPlayer = 1 + [movesList count] % 2;
     int color = 3 - currentPlayer;
