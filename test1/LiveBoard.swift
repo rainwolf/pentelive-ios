@@ -56,8 +56,8 @@ class LiveBoard: UIView {
         guard !captures.isEmpty, bounds.size.width > 0 else { return }
         let margin = bounds.size.width / (2 * CGFloat(gridSize))
         for capture in captures {
-            let i = capture.position / 19
-            let j = capture.position % 19
+            let i = capture.position / gridSize
+            let j = capture.position % gridSize
             let frame = CGRect(x: CGFloat(j) * 2 * margin,
                                y: CGFloat(i) * 2 * margin,
                                width: 2 * margin,
