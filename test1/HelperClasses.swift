@@ -321,7 +321,6 @@ class Table: NSObject {
         }
     }
     
-    var hasPass = false, doublePass = false
     var gridSize = 19, passMove = 19 * 19
     
     func addGoMove(move: Int) {
@@ -555,7 +554,6 @@ class Table: NSObject {
     }
     
     func getGoScoreString() -> String {
-        getTerritories()
         return goGame.scoreString()
     }
 
