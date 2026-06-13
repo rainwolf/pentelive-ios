@@ -1,4 +1,5 @@
 import XCTest
+@testable import penteLive
 
 final class GoGameTests: XCTestCase {
 

@@ -173,6 +173,9 @@ import Foundation
                 captures = getCaptures(move: move, groupsByID: &groupsByID, stoneGroupIDs: &stoneGroupIDs, captures: captures, neighborStone: neighborStone, neighborStoneID: neighborStoneID)
             }
         }
+        // Dead accumulator: this running total is discarded. It is kept only for
+        // verbatim fidelity with the legacy Table.makeCaptures; the actual per-colour
+        // capture counting happens inside captureGroup (blackCaptures/whiteCaptures).
         _ = captures
     }
 

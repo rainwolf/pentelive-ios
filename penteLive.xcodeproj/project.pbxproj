@@ -18,7 +18,6 @@
 		32A66A1A6CD3DA16C0CEFF89 /* PenteVariantTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86AC1A8A05D560A06454D468 /* PenteVariantTests.swift */; };
 		4117A5C99CA99A275BFEB2CC /* ScanTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDB76AE2B389F2859CE0C808 /* ScanTests.swift */; };
 		4B107A0AC64E386CA34E53FA /* GoGameTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5FF3D6A4D1F70E68CC42981 /* GoGameTests.swift */; };
-		54E432E2A60A9125B7BCAB8E /* GoGame.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF08F02CC6ACC370781E5AA6 /* GoGame.swift */; };
 		5B6CDFB315BE503E8B691AC2 /* HarnessSmokeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74EB9EDFFC23705419419557 /* HarnessSmokeTests.swift */; };
 		63052FBB1D047F9000F78B30 /* unlock.png in Resources */ = {isa = PBXBuildFile; fileRef = 63052FB71D047F9000F78B30 /* unlock.png */; };
 		63052FBC1D047F9000F78B30 /* unlock@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 63052FB81D047F9000F78B30 /* unlock@2x.png */; };
@@ -1258,7 +1257,6 @@
 				0F517DEF255BDD9409111928 /* TableEngineRoutingTests.swift in Sources */,
 				1E188CB8EB8CB955EA072521 /* LiveBoardCaptureAnimationTests.swift in Sources */,
 				FC94E43192D837205DC1411F /* BoardVariantMappingTests.swift in Sources */,
-				54E432E2A60A9125B7BCAB8E /* GoGame.swift in Sources */,
 				4B107A0AC64E386CA34E53FA /* GoGameTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
