@@ -51,4 +51,14 @@ final class GoGameTests: XCTestCase {
         XCTAssertEqual(go.stone(at: 40), 0, "dead stone removed from board")
         XCTAssertEqual(go.blackDeadStones, [40], "black stone recorded as dead")
     }
+
+    // Black stones at 1 and 9 enclose the corner point 0, which only black can reach.
+    func testTerritoryEnclosedCorner() {
+        let go = GoGame(gridSize: 9)
+        go.play(1)    // m0 black at (0,1)
+        go.play(80)   // m1 white far corner
+        go.play(9)    // m2 black at (1,0)
+        XCTAssertEqual(go.territory(forPlayer: 1), [0], "corner is black-exclusive territory")
+        XCTAssertEqual(go.territory(forPlayer: 2), [], "white has no exclusive territory")
+    }
 }

@@ -353,4 +353,116 @@ import Foundation
             stoneGroupIDs[stone] = newGroupID
         }
     }
+
+    // MARK: - territory (ported from Table.getTerritories / floodFill / floodFillWorker / getEmptyNeighbor / getMoves / resetGoBeforeFlood / getGoScoreString)
+
+    @objc func territory(forPlayer player: Int) -> [Int] {
+        getTerritories()
+        return territoryByPlayer[player] ?? []
+    }
+
+    @objc func scoreString() -> String {
+        getTerritories()
+        let p1Stones = getMoves(value: 2).count, p2Stones = getMoves(value: 1).count, p1Territory = territoryByPlayer[1]!.count, p2Territory = territoryByPlayer[2]!.count
+        return "black score is \(p1Territory) + \(p1Stones) = \(p1Stones + p1Territory)\nwhite score is \(p2Territory) + \(p2Stones) + 7.5 = \(p2Stones + p2Territory + 7).5"
+    }
+
+    private func getTerritories() {
+        floodFill(player: 1)
+        var p1Territory = getMoves(value: 3)
+        resetGoBeforeFlood()
+        floodFill(player: 2)
+        var p2Territory = getMoves(value: 4)
+        resetGoBeforeFlood()
+        var i1 = p1Territory.count - 1, i2 = p2Territory.count - 1
+        while i1 > -1, i2 > -1 {
+            let p1 = p1Territory[i1], p2 = p2Territory[i2]
+            if p1 == p2 {
+                p1Territory.remove(at: i1); p2Territory.remove(at: i2)
+                i1 -= 1; i2 -= 1
+            } else if p1 < p2 {
+                i2 -= 1
+            } else {
+                i1 -= 1
+            }
+        }
+        territoryByPlayer[1] = p1Territory; territoryByPlayer[2] = p2Territory
+    }
+
+    private func resetGoBeforeFlood() {
+        for i in 0 ..< gridSize {
+            for j in 0 ..< gridSize {
+                let pos = board[i][j]
+                if pos != 1, pos != 2 {
+                    board[i][j] = 0
+                }
+            }
+        }
+    }
+
+    private func getEmptyNeighbor(move: Int) -> Int {
+        if move % gridSize != 0 {
+            let neighborStone = move - 1
+            if getBoardValue(move: neighborStone) == 0 {
+                return neighborStone
+            }
+        }
+        if move % gridSize != gridSize - 1 {
+            let neighborStone = move + 1
+            if getBoardValue(move: neighborStone) == 0 {
+                return neighborStone
+            }
+        }
+        if move / gridSize != 0 {
+            let neighborStone = move - gridSize
+            if getBoardValue(move: neighborStone) == 0 {
+                return neighborStone
+            }
+        }
+        if move / gridSize != gridSize - 1 {
+            let neighborStone = move + gridSize
+            if getBoardValue(move: neighborStone) == 0 {
+                return neighborStone
+            }
+        }
+        return -1
+    }
+
+    private func getMoves(value: Int) -> [Int] {
+        var result = [Int]()
+        for i in 0 ..< gridSize {
+            for j in 0 ..< gridSize {
+                let pos = board[i][j]
+                if pos == value {
+                    result.append(i * gridSize + j)
+                }
+            }
+        }
+        return result
+    }
+
+    private func floodFillWorker(move: Int, value: Int) {
+        setBoardValue(move: move, value: value)
+        var neighbor = getEmptyNeighbor(move: move)
+        while neighbor > -1 {
+            floodFillWorker(move: neighbor, value: value)
+            neighbor = getEmptyNeighbor(move: move)
+        }
+    }
+
+    private func floodFill(player: Int) {
+        for i in 0 ..< gridSize {
+            for j in 0 ..< gridSize {
+                let pos = board[i][j]
+                if pos == 3 - player {
+                    let move = i * gridSize + j
+                    var neighbor = getEmptyNeighbor(move: move)
+                    while neighbor > -1 {
+                        floodFillWorker(move: neighbor, value: player + 2)
+                        neighbor = getEmptyNeighbor(move: move)
+                    }
+                }
+            }
+        }
+    }
 }
