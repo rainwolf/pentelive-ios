@@ -13,6 +13,7 @@
 		14FE00FB473FBD53DA6200A3 /* PenteGame.m in Sources */ = {isa = PBXBuildFile; fileRef = 636163A62019E5AA00D5E176 /* PenteGame.m */; };
 		1B5F60CB3000FD275A9797D4 /* Scan.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7050AD4ABDB95FF4BBC49527 /* Scan.swift */; };
 		1B66D9F7FD1817D9F3E20072 /* CorpusSnapshotGeneratorTests.m in Sources */ = {isa = PBXBuildFile; fileRef = E4BA6089918203FB8F929268 /* CorpusSnapshotGeneratorTests.m */; };
+		1E188CB8EB8CB955EA072521 /* LiveBoardCaptureAnimationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7640F6E2282BC20AFCD185F3 /* LiveBoardCaptureAnimationTests.swift */; };
 		32A66A1A6CD3DA16C0CEFF89 /* PenteVariantTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86AC1A8A05D560A06454D468 /* PenteVariantTests.swift */; };
 		4117A5C99CA99A275BFEB2CC /* ScanTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDB76AE2B389F2859CE0C808 /* ScanTests.swift */; };
 		5B6CDFB315BE503E8B691AC2 /* HarnessSmokeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74EB9EDFFC23705419419557 /* HarnessSmokeTests.swift */; };
@@ -481,6 +482,7 @@
 		6FFDDFE4BFE3714BE2BCC000 /* Pods-penteLive.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-penteLive.debug.xcconfig"; path = "Pods/Target Support Files/Pods-penteLive/Pods-penteLive.debug.xcconfig"; sourceTree = "<group>"; };
 		7050AD4ABDB95FF4BBC49527 /* Scan.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Scan.swift; sourceTree = "<group>"; };
 		74EB9EDFFC23705419419557 /* HarnessSmokeTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = HarnessSmokeTests.swift; path = HarnessSmokeTests.swift; sourceTree = "<group>"; };
+		7640F6E2282BC20AFCD185F3 /* LiveBoardCaptureAnimationTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LiveBoardCaptureAnimationTests.swift; sourceTree = "<group>"; };
 		8314997135E2AC0910B84356 /* PenteGame.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PenteGame.swift; sourceTree = "<group>"; };
 		86AC1A8A05D560A06454D468 /* PenteVariantTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PenteVariantTests.swift; sourceTree = "<group>"; };
 		8715B8F87E8325A61F04D700 /* CorpusHelperTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CorpusHelperTests.swift; path = CorpusHelperTests.swift; sourceTree = "<group>"; };
@@ -902,6 +904,7 @@
 				C04A941E308F1CBC0804C1A6 /* PenteGameEngineTests.swift */,
 				A43C60A3066249BC1D49D05D /* PenteGameCorpusTests.swift */,
 				0DAA75D2D52B843143873591 /* TableEngineRoutingTests.swift */,
+				7640F6E2282BC20AFCD185F3 /* LiveBoardCaptureAnimationTests.swift */,
 			);
 			name = PenteEngineTests;
 			path = PenteEngineTests;
@@ -1240,6 +1243,7 @@
 				D5EEBF69DF3319F594473C96 /* PenteGameEngineTests.swift in Sources */,
 				06B4B494FB3A1DBAF1123B09 /* PenteGameCorpusTests.swift in Sources */,
 				0F517DEF255BDD9409111928 /* TableEngineRoutingTests.swift in Sources */,
+				1E188CB8EB8CB955EA072521 /* LiveBoardCaptureAnimationTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -57,6 +57,10 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
         self.socket = socket
         board = LiveBoard(table: table)
         zoomedBoard = LiveBoard(table: table)
+        table.onCaptures = { [weak board, weak zoomedBoard] captures in
+            board?.animateCaptures(captures)
+            zoomedBoard?.animateCaptures(captures)
+        }
         if isArenaTable {
             arenaJoinRequestView = ArenaJoinRequestList(socket: socket, me: me, tableAndPlayers: tablesAndPlayers, tableId: table.table, gameId: table.game)
         } else {
