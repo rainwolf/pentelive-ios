@@ -66,4 +66,17 @@ final class ScanTests: XCTestCase {
         let captures = Scan.captures(on: board, at: rc(9, 9), color: 1, run: 3)
         XCTAssertTrue(captures.isEmpty)
     }
+
+    func testNoCaptureWhenFarFlankerIsOpponentColour() {
+        var board = emptyBoard()
+        // white places at (9,9); three black at (10,9),(11,9),(12,9);
+        // far flanker (13,9) is ALSO black (opponent) — keryo run must NOT capture.
+        board[9][9] = 1
+        board[10][9] = 2
+        board[11][9] = 2
+        board[12][9] = 2
+        board[13][9] = 2   // far flanker is opponent (not white) — must NOT capture
+        let captures = Scan.captures(on: board, at: rc(9, 9), color: 1, run: 3)
+        XCTAssertTrue(captures.isEmpty)
+    }
 }
