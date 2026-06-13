@@ -219,11 +219,14 @@ class Table: NSObject {
         state.goState = .play
         blackCaptures = 0
         whiteCaptures = 0
+        // The Pente-family engine is stateful: reset it before any full replay so the
+        // re-applied moves start from an empty board (Go never touches the engine).
+        engine.reset()
         for move in moves {
             addMove(move: move)
         }
     }
-    
+
     func showMarkStones(player: String) -> Bool {
         //        return false
         //        print(isGo())
@@ -283,9 +286,17 @@ class Table: NSObject {
 
     // Mirror the engine board + counters into the stored arrays the renderers read.
     private func syncFromEngine() {
+        // Legacy applied the tournament opening mask (the centre -1 cells) only when
+        // `rated || (speed)gPente`. The engine now masks intrinsically for every
+        // Pente/Keryo/Poof/OPente variant, so for unrated non-gPente games we must
+        // drop those -1 cells back to empty — otherwise the renderer / tap-gating
+        // (TableViewController: `hideStone = abstractBoard != 0`) would wrongly block
+        // the centre. Rated games and (speed)gPente keep the mask, matching legacy.
+        let maskAllowed = rated || game == GameEnum.gPente.rawValue || game == GameEnum.speedGPente.rawValue
         for r in 0 ..< 19 {
             for c in 0 ..< 19 {
-                abstractBoard[r][c] = engine.stone(at: r * 19 + c)
+                let value = engine.stone(at: r * 19 + c)
+                abstractBoard[r][c] = (value == -1 && !maskAllowed) ? 0 : value
             }
         }
         whiteCaptures = engine.whiteCaptures
@@ -439,6 +450,9 @@ class Table: NSObject {
         koMove = -1
         state.dPenteState = .noChoice
         state.goState = .play
+        // The Pente-family engine is stateful: reset it before replaying the surviving
+        // moves so undone stones/captures don't persist (Go never touches the engine).
+        engine.reset()
         for move in newMoves {
             addMove(move: move)
         }

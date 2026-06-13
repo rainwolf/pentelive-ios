@@ -39,4 +39,90 @@ final class TableEngineRoutingTests: XCTestCase {
         XCTAssertEqual(Set(animated.map { $0.position }), [9 * 19 + 6, 9 * 19 + 7])
         XCTAssertTrue(animated.allSatisfy { $0.color == 2 })
     }
+
+    // Undo must reset the stateful engine before replaying the surviving moves.
+    // Without the reset the engine accumulates stale state (undone stones persist,
+    // colours invert, captures double-count). The undone Table must therefore match
+    // a fresh Table that played only the remaining moves.
+    func testUndoLastMoveReplaysThroughEngine() {
+        // Same 1-3-1 sequence as above: the 5th move (9,8) captures (9,6) and (9,7).
+        let full = [9 * 19 + 5, 9 * 19 + 6, 0, 9 * 19 + 7, 9 * 19 + 8]
+
+        let table = Table(table: 1)
+        table.game = GameEnum.pente.rawValue
+        for move in full { table.addMove(move: move) }
+
+        // Sanity: the capturing move removed the two black stones.
+        XCTAssertEqual(table.blackCaptures, 2)
+        XCTAssertEqual(table.stone(at: 9 * 19 + 6), 0)
+        XCTAssertEqual(table.stone(at: 9 * 19 + 7), 0)
+
+        // Undo the capturing move.
+        table.undoLastMove()
+
+        // Reference: a fresh Table that only ever played the first four moves.
+        let reference = Table(table: 1)
+        reference.game = GameEnum.pente.rawValue
+        for move in full[0 ..< 4] { reference.addMove(move: move) }
+
+        assertBoardsMatch(table, reference)
+        XCTAssertEqual(table.moves.count, 4)
+        XCTAssertEqual(table.blackCaptures, reference.blackCaptures)   // back to 0
+        XCTAssertEqual(table.whiteCaptures, reference.whiteCaptures)
+        XCTAssertEqual(table.blackCaptures, 0)
+        // The previously-captured stones are back on the board.
+        XCTAssertEqual(table.stone(at: 9 * 19 + 6), 2)
+        XCTAssertEqual(table.stone(at: 9 * 19 + 7), 2)
+
+        // A second undo still works (engine reset again, not corrupted).
+        table.undoLastMove()
+        let reference2 = Table(table: 1)
+        reference2.game = GameEnum.pente.rawValue
+        for move in full[0 ..< 3] { reference2.addMove(move: move) }
+        assertBoardsMatch(table, reference2)
+        XCTAssertEqual(table.moves.count, 3)
+    }
+
+    // Legacy surfaced the centre opening mask (-1 cells) only when `rated ||
+    // (speed)gPente`. The engine masks intrinsically, so syncFromEngine must drop
+    // those -1 cells for unrated non-gPente games — keeping the centre tappable.
+    func testOpeningMaskGatedByRatedFlag() {
+        // Two played moves trigger the engine's tournament mask (moveCount == 2).
+        // The first stone takes the centre (9,9); (8,8) stays empty -> would be masked.
+        func playTwo(_ table: Table) {
+            table.addMove(move: 9 * 19 + 9)   // centre (kept, never masked)
+            table.addMove(move: 0)            // corner (far from centre)
+        }
+
+        // Unrated Pente: the mask must NOT surface -> no -1 anywhere.
+        let unrated = Table(table: 1)
+        unrated.game = GameEnum.pente.rawValue
+        unrated.rated = false
+        playTwo(unrated)
+        XCTAssertEqual(unrated.abstractBoard[8][8], 0)
+        XCTAssertFalse(unrated.abstractBoard.contains { $0.contains(-1) })
+
+        // Rated Pente: the mask DOES surface.
+        let rated = Table(table: 1)
+        rated.game = GameEnum.pente.rawValue
+        rated.rated = true
+        playTwo(rated)
+        XCTAssertEqual(rated.abstractBoard[8][8], -1)
+        XCTAssertTrue(rated.abstractBoard.contains { $0.contains(-1) })
+
+        // gPente surfaces the mask even when unrated (the `|| (speed)gPente` term).
+        let gpente = Table(table: 1)
+        gpente.game = GameEnum.gPente.rawValue
+        gpente.rated = false
+        playTwo(gpente)
+        XCTAssertEqual(gpente.abstractBoard[8][8], -1)
+    }
+
+    private func assertBoardsMatch(_ a: Table, _ b: Table,
+                                   file: StaticString = #filePath, line: UInt = #line) {
+        for cell in 0 ..< 361 {
+            XCTAssertEqual(a.stone(at: cell), b.stone(at: cell),
+                           "board mismatch at cell \(cell)", file: file, line: line)
+        }
+    }
 }
