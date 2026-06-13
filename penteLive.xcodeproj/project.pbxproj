@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		14FE00FB473FBD53DA6200A3 /* PenteGame.m in Sources */ = {isa = PBXBuildFile; fileRef = 636163A62019E5AA00D5E176 /* PenteGame.m */; };
+		5B6CDFB315BE503E8B691AC2 /* HarnessSmokeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74EB9EDFFC23705419419557 /* HarnessSmokeTests.swift */; };
 		63052FBB1D047F9000F78B30 /* unlock.png in Resources */ = {isa = PBXBuildFile; fileRef = 63052FB71D047F9000F78B30 /* unlock.png */; };
 		63052FBC1D047F9000F78B30 /* unlock@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 63052FB81D047F9000F78B30 /* unlock@2x.png */; };
 		63052FBD1D047F9000F78B30 /* lock.png in Resources */ = {isa = PBXBuildFile; fileRef = 63052FB91D047F9000F78B30 /* lock.png */; };
@@ -205,7 +207,18 @@
 		63FEFD7216931A970070E9AA /* StringInputTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 63FEFD7016931A960070E9AA /* StringInputTableViewCell.m */; };
 		63FEFD751693200C0070E9AA /* SimplePickerInputTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 63FEFD741693200B0070E9AA /* SimplePickerInputTableViewCell.m */; };
 		63FEFD78169320AB0070E9AA /* PickerInputTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 63FEFD77169320AA0070E9AA /* PickerInputTableViewCell.m */; };
+		EA27C537CC33E627C9C290E0 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8F67AC8BE4C73FF7390EB742 /* Foundation.framework */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		F8E51BA52EE79DFDA4691BF2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 633C9D0F15BD5B98009AD00A /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 633C9D1715BD5B98009AD00A;
+			remoteInfo = penteLive;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		63052FB71D047F9000F78B30 /* unlock.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = unlock.png; sourceTree = "<group>"; };
@@ -448,6 +461,9 @@
 		63FEFD76169320AA0070E9AA /* PickerInputTableViewCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PickerInputTableViewCell.h; sourceTree = "<group>"; };
 		63FEFD77169320AA0070E9AA /* PickerInputTableViewCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PickerInputTableViewCell.m; sourceTree = "<group>"; };
 		6FFDDFE4BFE3714BE2BCC000 /* Pods-penteLive.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-penteLive.debug.xcconfig"; path = "Pods/Target Support Files/Pods-penteLive/Pods-penteLive.debug.xcconfig"; sourceTree = "<group>"; };
+		74EB9EDFFC23705419419557 /* HarnessSmokeTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = HarnessSmokeTests.swift; path = HarnessSmokeTests.swift; sourceTree = "<group>"; };
+		8F67AC8BE4C73FF7390EB742 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
+		AC57360A41A0C0C3E0E0BD99 /* PenteEngineTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PenteEngineTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		EC2523E9488B160980129A1F /* Pods-penteLive.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-penteLive.release.xcconfig"; path = "Pods/Target Support Files/Pods-penteLive/Pods-penteLive.release.xcconfig"; sourceTree = "<group>"; };
 		FEAB9DAD17D481D8D59FE453 /* Pods_penteLive.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_penteLive.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -475,6 +491,14 @@
 				633C9D1D15BD5B98009AD00A /* UIKit.framework in Frameworks */,
 				633C9D1F15BD5B98009AD00A /* Foundation.framework in Frameworks */,
 				633C9D2115BD5B98009AD00A /* CoreGraphics.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BAB379DBFD2AB2399CEE7536 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				EA27C537CC33E627C9C290E0 /* Foundation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -510,6 +534,7 @@
 				633C9D1B15BD5B98009AD00A /* Frameworks */,
 				633C9D1915BD5B98009AD00A /* Products */,
 				AAF29F8A875A2D274508E8DB /* Pods */,
+				A63C38451A724C3B5DB5085B /* PenteEngineTests */,
 			);
 			sourceTree = "<group>";
 		};
@@ -517,6 +542,7 @@
 			isa = PBXGroup;
 			children = (
 				633C9D1815BD5B98009AD00A /* penteLive.app */,
+				AC57360A41A0C0C3E0E0BD99 /* PenteEngineTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -545,6 +571,7 @@
 				633C9D2015BD5B98009AD00A /* CoreGraphics.framework */,
 				633C9D3A15BD5B98009AD00A /* SenTestingKit.framework */,
 				FEAB9DAD17D481D8D59FE453 /* Pods_penteLive.framework */,
+				78FB18F66F86B4678DD50326 /* iOS */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -798,6 +825,23 @@
 			path = images;
 			sourceTree = "<group>";
 		};
+		78FB18F66F86B4678DD50326 /* iOS */ = {
+			isa = PBXGroup;
+			children = (
+				8F67AC8BE4C73FF7390EB742 /* Foundation.framework */,
+			);
+			name = iOS;
+			sourceTree = "<group>";
+		};
+		A63C38451A724C3B5DB5085B /* PenteEngineTests */ = {
+			isa = PBXGroup;
+			children = (
+				74EB9EDFFC23705419419557 /* HarnessSmokeTests.swift */,
+			);
+			name = PenteEngineTests;
+			path = PenteEngineTests;
+			sourceTree = SOURCE_ROOT;
+		};
 		AAF29F8A875A2D274508E8DB /* Pods */ = {
 			isa = PBXGroup;
 			children = (
@@ -810,6 +854,24 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		0F47148383F57A310F51032B /* PenteEngineTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 9C43196D2561EA9AF1A1E4BE /* Build configuration list for PBXNativeTarget "PenteEngineTests" */;
+			buildPhases = (
+				5E021F4B67CE1AADF4689C8B /* Sources */,
+				BAB379DBFD2AB2399CEE7536 /* Frameworks */,
+				014937A1B382FA0E4324D4F2 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				1DA3611E5DDB9B13DB0FF761 /* PBXTargetDependency */,
+			);
+			name = PenteEngineTests;
+			productName = PenteEngineTests;
+			productReference = AC57360A41A0C0C3E0E0BD99 /* PenteEngineTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		633C9D1715BD5B98009AD00A /* penteLive */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 633C9D4B15BD5B98009AD00A /* Build configuration list for PBXNativeTarget "penteLive" */;
@@ -871,11 +933,19 @@
 			projectRoot = "";
 			targets = (
 				633C9D1715BD5B98009AD00A /* penteLive */,
+				0F47148383F57A310F51032B /* PenteEngineTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		014937A1B382FA0E4324D4F2 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		633C9D1615BD5B98009AD00A /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1089,6 +1159,15 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		5E021F4B67CE1AADF4689C8B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5B6CDFB315BE503E8B691AC2 /* HarnessSmokeTests.swift in Sources */,
+				14FE00FB473FBD53DA6200A3 /* PenteGame.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		633C9D1415BD5B98009AD00A /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1141,6 +1220,15 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		1DA3611E5DDB9B13DB0FF761 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = penteLive;
+			target = 633C9D1715BD5B98009AD00A /* penteLive */;
+			targetProxy = F8E51BA52EE79DFDA4691BF2 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		633C9D2515BD5B98009AD00A /* InfoPlist.strings */ = {
@@ -1293,10 +1381,12 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 2.10.1;
+				CURRENT_PROJECT_VERSION = 2.10.2;
+				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = CT6S5R75J5;
 				ENABLE_BITCODE = NO;
+				ENABLE_TESTABILITY = YES;
 				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "test1/penteLive-Prefix.pch";
@@ -1305,7 +1395,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
-				MARKETING_VERSION = 2.10.1;
+				MARKETING_VERSION = 2.10.2;
 				OTHER_LDFLAGS = (
 					"-ObjC",
 					"$(inherited)",
@@ -1335,7 +1425,8 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 2.10.1;
+				CURRENT_PROJECT_VERSION = 2.10.2;
+				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = CT6S5R75J5;
 				ENABLE_BITCODE = NO;
@@ -1347,7 +1438,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
-				MARKETING_VERSION = 2.10.1;
+				MARKETING_VERSION = 2.10.2;
 				OTHER_LDFLAGS = (
 					"-ObjC",
 					"$(inherited)",
@@ -1361,6 +1452,45 @@
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				WRAPPER_EXTENSION = app;
+			};
+			name = Release;
+		};
+		9BEEB7529E15330F67D74CBF /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = NO;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGN_IDENTITY = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = be.submanifold.PenteEngineTests;
+				PRODUCT_NAME = PenteEngineTests;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/penteLive.app/penteLive";
+			};
+			name = Debug;
+		};
+		AE6C75F021398A2DA7765435 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = NO;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGN_IDENTITY = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = be.submanifold.PenteEngineTests;
+				PRODUCT_NAME = PenteEngineTests;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/penteLive.app/penteLive";
+				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
 		};
@@ -1381,6 +1511,15 @@
 			buildConfigurations = (
 				633C9D4C15BD5B98009AD00A /* Debug */,
 				633C9D4D15BD5B98009AD00A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		9C43196D2561EA9AF1A1E4BE /* Build configuration list for PBXNativeTarget "PenteEngineTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AE6C75F021398A2DA7765435 /* Release */,
+				9BEEB7529E15330F67D74CBF /* Debug */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
