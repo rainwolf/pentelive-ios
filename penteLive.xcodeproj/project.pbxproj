@@ -14,6 +14,7 @@
 		1B5F60CB3000FD275A9797D4 /* Scan.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7050AD4ABDB95FF4BBC49527 /* Scan.swift */; };
 		1B66D9F7FD1817D9F3E20072 /* CorpusSnapshotGeneratorTests.m in Sources */ = {isa = PBXBuildFile; fileRef = E4BA6089918203FB8F929268 /* CorpusSnapshotGeneratorTests.m */; };
 		1E188CB8EB8CB955EA072521 /* LiveBoardCaptureAnimationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7640F6E2282BC20AFCD185F3 /* LiveBoardCaptureAnimationTests.swift */; };
+		23D406DC7B60ACE1F3879C92 /* BoardVariantMapping.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50436E8B3C992E62FFFC15D7 /* BoardVariantMapping.swift */; };
 		32A66A1A6CD3DA16C0CEFF89 /* PenteVariantTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86AC1A8A05D560A06454D468 /* PenteVariantTests.swift */; };
 		4117A5C99CA99A275BFEB2CC /* ScanTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDB76AE2B389F2859CE0C808 /* ScanTests.swift */; };
 		5B6CDFB315BE503E8B691AC2 /* HarnessSmokeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74EB9EDFFC23705419419557 /* HarnessSmokeTests.swift */; };
@@ -225,6 +226,7 @@
 		D31C13F16F5DA54AFE50F435 /* RuleSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0D2331507464E3A0A3E4DEC /* RuleSet.swift */; };
 		D5EEBF69DF3319F594473C96 /* PenteGameEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C04A941E308F1CBC0804C1A6 /* PenteGameEngineTests.swift */; };
 		EA27C537CC33E627C9C290E0 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8F67AC8BE4C73FF7390EB742 /* Foundation.framework */; };
+		FC94E43192D837205DC1411F /* BoardVariantMappingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BB7D9EDC42A7C21CE614BEB /* BoardVariantMappingTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -238,8 +240,10 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		0BB7D9EDC42A7C21CE614BEB /* BoardVariantMappingTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BoardVariantMappingTests.swift; sourceTree = "<group>"; };
 		0DAA75D2D52B843143873591 /* TableEngineRoutingTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TableEngineRoutingTests.swift; sourceTree = "<group>"; };
 		1195B9EE689C773DA39F77AD /* PenteVariant.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PenteVariant.swift; sourceTree = "<group>"; };
+		50436E8B3C992E62FFFC15D7 /* BoardVariantMapping.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BoardVariantMapping.swift; sourceTree = "<group>"; };
 		63052FB71D047F9000F78B30 /* unlock.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = unlock.png; sourceTree = "<group>"; };
 		63052FB81D047F9000F78B30 /* unlock@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "unlock@2x.png"; sourceTree = "<group>"; };
 		63052FB91D047F9000F78B30 /* lock.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = lock.png; sourceTree = "<group>"; };
@@ -681,6 +685,7 @@
 				637885CE1E5CCA360064DCE3 /* PenteWebViewController.swift */,
 				636163A62019E5AA00D5E176 /* PenteGame.m */,
 				636163A82019E5C100D5E176 /* PenteGame.h */,
+				50436E8B3C992E62FFFC15D7 /* BoardVariantMapping.swift */,
 			);
 			name = penteLive;
 			path = test1;
@@ -905,6 +910,7 @@
 				A43C60A3066249BC1D49D05D /* PenteGameCorpusTests.swift */,
 				0DAA75D2D52B843143873591 /* TableEngineRoutingTests.swift */,
 				7640F6E2282BC20AFCD185F3 /* LiveBoardCaptureAnimationTests.swift */,
+				0BB7D9EDC42A7C21CE614BEB /* BoardVariantMappingTests.swift */,
 			);
 			name = PenteEngineTests;
 			path = PenteEngineTests;
@@ -1244,6 +1250,7 @@
 				06B4B494FB3A1DBAF1123B09 /* PenteGameCorpusTests.swift in Sources */,
 				0F517DEF255BDD9409111928 /* TableEngineRoutingTests.swift in Sources */,
 				1E188CB8EB8CB955EA072521 /* LiveBoardCaptureAnimationTests.swift in Sources */,
+				FC94E43192D837205DC1411F /* BoardVariantMappingTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1301,6 +1308,7 @@
 				C39BBF8A4B9D391D75E63514 /* MoveResult.swift in Sources */,
 				D31C13F16F5DA54AFE50F435 /* RuleSet.swift in Sources */,
 				CEF7661E709823AE2A325338 /* PenteGame.swift in Sources */,
+				23D406DC7B60ACE1F3879C92 /* BoardVariantMapping.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
