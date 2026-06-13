@@ -106,12 +106,11 @@ class Table: NSObject {
     private var engine = PenteGame(variant: .pente)
     private(set) var lastMoveResult: MoveResult?
     var onCaptures: (([Capture]) -> Void)?
-    var goStoneGroupIDsByPlayer = [Int: [Int: Int]]()
-    var goStoneGroupsByPlayerAndID = [Int: [Int: [Int]]]()
     var goDeadStonesByPlayer = [Int: [Int]]()
     var goTerritoryByPlayer = [Int: [Int]]()
     
     var koMove = -1
+    var goGame = GoGame(gridSize: 19)
     
     static let gameNames = [1: "Pente", 2: "Speed Pente", 3: "Keryo-Pente", 4: "Speed Keryo-Pente", 5: "Gomoku",
                      6: "Speed Gomoku", 7: "D-Pente", 8: "Speed D-Pente", 9: "G-Pente", 10: "Speed G-Pente",
@@ -210,10 +209,9 @@ class Table: NSObject {
     func addMoves(moves: [Int]) {
         self.moves.removeAll()
         abstractBoard = Array(repeating: Array(repeating: 0, count: 19), count: 19)
-        goStoneGroupIDsByPlayer.removeAll(); goStoneGroupIDsByPlayer[1] = [Int: Int](); goStoneGroupIDsByPlayer[2] = [Int: Int]()
-        goStoneGroupsByPlayerAndID.removeAll(); goStoneGroupsByPlayerAndID[1] = [Int: [Int]](); goStoneGroupsByPlayerAndID[2] = [Int: [Int]]()
         goDeadStonesByPlayer.removeAll(); goDeadStonesByPlayer[1] = [Int](); goDeadStonesByPlayer[2] = [Int]()
         goTerritoryByPlayer.removeAll(); goTerritoryByPlayer[1] = [Int](); goTerritoryByPlayer[2] = [Int]()
+        goGame = GoGame(gridSize: 19)
         //        state.dPenteState = .noChoice
         //        state.swap2State = .noChoice
         state.goState = .play
@@ -331,41 +329,33 @@ class Table: NSObject {
             gridSize = 9
         } else if game == GameEnum.go13x13.rawValue || game == GameEnum.speedGo13x13.rawValue {
             gridSize = 13
+        } else {
+            gridSize = 19
         }
         passMove = gridSize * gridSize
-        let player = currentPlayer(), color = 3 - player
-        //        print("Go move ",player)
-        if move == passMove {
-            if state.goState == .markStones {
-                state.goState = .evaluateStones
-            } else if hasPass {
-                doublePass = true
-                state.goState = .markStones
-            } else {
-                hasPass = true
-            }
-        } else {
-            hasPass = false
+        if goGame.gridSize != gridSize {
+            goGame = GoGame(gridSize: gridSize)
+            goGame.replay(moves, until: moves.count)
         }
+        goGame.play(move)
         moves.append(move)
-        if state.goState == .markStones {
-            if move != passMove {
-                let p = 3 - getBoardValue(move: move)
-                goDeadStonesByPlayer[p]?.append(move)
-                setBoardValue(move: move, value: 0)
-            }
-        } else {
-            //            print("Go ",player, " ", color)
-            if move < passMove {
-                var groupsByID = goStoneGroupsByPlayerAndID[player]!, stoneGroupIDs = goStoneGroupIDsByPlayer[player]!
-                setBoardValue(move: move, value: color)
-                settleGroups(groupsByID: &groupsByID, stoneGroupIDs: &stoneGroupIDs, move: move)
-                goStoneGroupsByPlayerAndID[player] = groupsByID; goStoneGroupIDsByPlayer[player] = stoneGroupIDs
-                
-                groupsByID = goStoneGroupsByPlayerAndID[color]!; stoneGroupIDs = goStoneGroupIDsByPlayer[color]!
-                makeCaptures(move: move, groupsByID: &groupsByID, stoneGroupIDs: &stoneGroupIDs)
-                goStoneGroupsByPlayerAndID[color] = groupsByID; goStoneGroupIDsByPlayer[color] = stoneGroupIDs
-            }
+        syncFromGoGame()
+    }
+
+    func syncFromGoGame() {
+        for pos in 0 ..< (gridSize * gridSize) {
+            let i = pos / gridSize, j = pos % gridSize
+            abstractBoard[i][j] = goGame.stone(at: pos)
+        }
+        whiteCaptures = goGame.whiteCaptures
+        blackCaptures = goGame.blackCaptures
+        koMove = goGame.koMove
+        goDeadStonesByPlayer[1] = goGame.blackDeadStones
+        goDeadStonesByPlayer[2] = goGame.whiteDeadStones
+        switch goGame.phase {
+        case .play: state.goState = .play
+        case .markStones: state.goState = .markStones
+        case .evaluateStones: state.goState = .evaluateStones
         }
     }
     
@@ -381,10 +371,9 @@ class Table: NSObject {
         abstractBoard = Array(repeating: Array(repeating: 0, count: 19), count: 19)
         engine.reset()
         lastMoveResult = nil
-        goStoneGroupIDsByPlayer.removeAll(); goStoneGroupIDsByPlayer[1] = [Int: Int](); goStoneGroupIDsByPlayer[2] = [Int: Int]()
-        goStoneGroupsByPlayerAndID.removeAll(); goStoneGroupsByPlayerAndID[1] = [Int: [Int]](); goStoneGroupsByPlayerAndID[2] = [Int: [Int]]()
         goDeadStonesByPlayer.removeAll(); goDeadStonesByPlayer[1] = [Int](); goDeadStonesByPlayer[2] = [Int]()
         goTerritoryByPlayer.removeAll(); goTerritoryByPlayer[1] = [Int](); goTerritoryByPlayer[2] = [Int]()
+        goGame = GoGame(gridSize: 19)
         state.dPenteState = .noChoice
         state.swap2State = .noChoice
         state.goState = .play
@@ -452,10 +441,9 @@ class Table: NSObject {
         whiteCaptures = 0
         abstractBoard = Array(repeating: Array(repeating: 0, count: 19), count: 19)
         moves.removeAll()
-        goStoneGroupIDsByPlayer.removeAll(); goStoneGroupIDsByPlayer[1] = [Int: Int](); goStoneGroupIDsByPlayer[2] = [Int: Int]()
-        goStoneGroupsByPlayerAndID.removeAll(); goStoneGroupsByPlayerAndID[1] = [Int: [Int]](); goStoneGroupsByPlayerAndID[2] = [Int: [Int]]()
         goDeadStonesByPlayer.removeAll(); goDeadStonesByPlayer[1] = [Int](); goDeadStonesByPlayer[2] = [Int]()
         goTerritoryByPlayer.removeAll(); goTerritoryByPlayer[1] = [Int](); goTerritoryByPlayer[2] = [Int]()
+        goGame = GoGame(gridSize: 19)
         koMove = -1
         state.dPenteState = .noChoice
         state.goState = .play
@@ -566,306 +554,17 @@ class Table: NSObject {
         return game >= GameEnum.go.rawValue && game < GameEnum.oPente.rawValue
     }
     
-    func makeCaptures(move: Int, groupsByID: inout [Int: [Int]], stoneGroupIDs: inout [Int: Int]) {
-        var captures = 0
-        if move % gridSize != 0 {
-            let neighborStone = move - 1
-            if let neighborStoneID = stoneGroupIDs[neighborStone] {
-                captures = getCaptures(move: move, groupsByID: &groupsByID, stoneGroupIDs: &stoneGroupIDs, captures: captures, neighborStone: neighborStone, neighborStoneID: neighborStoneID)
-            }
-        }
-        if move % gridSize != gridSize - 1 {
-            let neighborStone = move + 1
-            if let neighborStoneID = stoneGroupIDs[neighborStone] {
-                captures = getCaptures(move: move, groupsByID: &groupsByID, stoneGroupIDs: &stoneGroupIDs, captures: captures, neighborStone: neighborStone, neighborStoneID: neighborStoneID)
-            }
-        }
-        if move / gridSize != 0 {
-            let neighborStone = move - gridSize
-            if let neighborStoneID = stoneGroupIDs[neighborStone] {
-                captures = getCaptures(move: move, groupsByID: &groupsByID, stoneGroupIDs: &stoneGroupIDs, captures: captures, neighborStone: neighborStone, neighborStoneID: neighborStoneID)
-            }
-        }
-        if move / gridSize != gridSize - 1 {
-            let neighborStone = move + gridSize
-            if let neighborStoneID = stoneGroupIDs[neighborStone] {
-                captures = getCaptures(move: move, groupsByID: &groupsByID, stoneGroupIDs: &stoneGroupIDs, captures: captures, neighborStone: neighborStone, neighborStoneID: neighborStoneID)
-            }
-        }
-    }
-    
-    func getCaptures(move: Int, groupsByID: inout [Int: [Int]], stoneGroupIDs: inout [Int: Int], captures: Int, neighborStone: Int, neighborStoneID: Int) -> Int {
-        var newCaptures = captures
-        if let neighborStoneGroup = groupsByID[neighborStoneID] {
-            if !groupHasLiberties(group: neighborStoneGroup) {
-                if koMove < 0 && neighborStoneGroup.count == 1 && checkKo(move: move) {
-                    koMove = neighborStone
-                } else {
-                    koMove = -1
-                }
-                newCaptures += neighborStoneGroup.count
-                captureGroup(groupID: neighborStoneID, groupsByID: &groupsByID, stoneGroupIDs: &stoneGroupIDs)
-            }
-        }
-        return newCaptures
-    }
-    
-    func checkKo(move: Int) -> Bool {
-        let position = getBoardValue(move: move)
-        if move % gridSize != 0 {
-            let neighborStone = move - 1
-            let neighborPosition = getBoardValue(move: neighborStone)
-            if position != 3 - neighborPosition {
-                return false
-            }
-        }
-        if move % gridSize != gridSize - 1 {
-            let neighborStone = move + 1
-            let neighborPosition = getBoardValue(move: neighborStone)
-            if position != 3 - neighborPosition {
-                return false
-            }
-        }
-        if move / gridSize != 0 {
-            let neighborStone = move - gridSize
-            let neighborPosition = getBoardValue(move: neighborStone)
-            if position != 3 - neighborPosition {
-                return false
-            }
-        }
-        if move / gridSize != gridSize - 1 {
-            let neighborStone = move + gridSize
-            let neighborPosition = getBoardValue(move: neighborStone)
-            if position != 3 - neighborPosition {
-                return false
-            }
-        }
-        return true
-    }
-    
-    func captureGroup(groupID: Int, groupsByID: inout [Int: [Int]], stoneGroupIDs: inout [Int: Int]) {
-        let group = groupsByID[groupID]!
-        let color = getBoardValue(move: group[0])
-        for stone in group {
-            setBoardValue(move: stone, value: 0)
-            stoneGroupIDs.removeValue(forKey: stone)
-        }
-        groupsByID.removeValue(forKey: groupID)
-        if color == 2 {
-            blackCaptures += group.count
-        } else if color == 1 {
-            whiteCaptures += group.count
-        }
-    }
-    
-    func groupHasLiberties(group: [Int]) -> Bool {
-        for stone in group {
-            if stoneHasLiberties(move: stone) {
-                return true
-            }
-        }
-        return false
-    }
-    
-    func stoneHasLiberties(move: Int) -> Bool {
-        if move % gridSize != 0 {
-            let neighborStone = move - 1
-            let pos = getBoardValue(move: neighborStone)
-            if pos != 1 && pos != 2 {
-                return true
-            }
-        }
-        if move % gridSize != gridSize - 1 {
-            let neighborStone = move + 1
-            let pos = getBoardValue(move: neighborStone)
-            if pos != 1 && pos != 2 {
-                return true
-            }
-        }
-        if move / gridSize != 0 {
-            let neighborStone = move - gridSize
-            let pos = getBoardValue(move: neighborStone)
-            if pos != 1 && pos != 2 {
-                return true
-            }
-        }
-        if move / gridSize != gridSize - 1 {
-            let neighborStone = move + gridSize
-            let pos = getBoardValue(move: neighborStone)
-            if pos != 1 && pos != 2 {
-                return true
-            }
-        }
-        return false
-    }
-    
-    func getBoardValue(move: Int) -> Int {
-        let i = move / gridSize
-        let j = move % gridSize
-        return abstractBoard[i][j]
-    }
-    
-    func setBoardValue(move: Int, value: Int) {
-        let i = move / gridSize
-        let j = move % gridSize
-        abstractBoard[i][j] = value
-    }
-    
-    func settleGroups(groupsByID: inout [Int: [Int]], stoneGroupIDs: inout [Int: Int], move: Int) {
-        let newGroup = [move]
-        groupsByID[move] = newGroup
-        stoneGroupIDs[move] = move
-        if move % gridSize != 0 {
-            let neighborStone = move - 1
-            if let neighborStoneID = stoneGroupIDs[neighborStone] {
-                mergeGroups(group1: move, group2: neighborStoneID, groupsByID: &groupsByID, stoneGroupIDs: &stoneGroupIDs)
-            }
-        }
-        if move % gridSize != gridSize - 1 {
-            let neighborStone = move + 1
-            if let neighborStoneID = stoneGroupIDs[neighborStone] {
-                mergeGroups(group1: stoneGroupIDs[move]!, group2: neighborStoneID, groupsByID: &groupsByID, stoneGroupIDs: &stoneGroupIDs)
-            }
-        }
-        if move / gridSize != 0 {
-            let neighborStone = move - gridSize
-            if let neighborStoneID = stoneGroupIDs[neighborStone] {
-                mergeGroups(group1: stoneGroupIDs[move]!, group2: neighborStoneID, groupsByID: &groupsByID, stoneGroupIDs: &stoneGroupIDs)
-            }
-        }
-        if move / gridSize != gridSize - 1 {
-            let neighborStone = move + gridSize
-            if let neighborStoneID = stoneGroupIDs[neighborStone] {
-                mergeGroups(group1: stoneGroupIDs[move]!, group2: neighborStoneID, groupsByID: &groupsByID, stoneGroupIDs: &stoneGroupIDs)
-            }
-        }
-    }
-    
-    func mergeGroups(group1: Int, group2: Int, groupsByID: inout [Int: [Int]], stoneGroupIDs: inout [Int: Int]) {
-        var oldGroup, newGroup: [Int]
-        var oldGroupID, newGroupID: Int
-        if group1 < group2 {
-            oldGroup = groupsByID[group1]!
-            newGroup = groupsByID[group2]!
-            oldGroupID = group1
-            newGroupID = group2
-        } else {
-            newGroup = groupsByID[group1]!
-            oldGroup = groupsByID[group2]!
-            oldGroupID = group2
-            newGroupID = group1
-        }
-        groupsByID.removeValue(forKey: oldGroupID)
-        newGroup.append(contentsOf: oldGroup)
-        groupsByID[newGroupID] = newGroup
-        for stone in oldGroup {
-            stoneGroupIDs[stone] = newGroupID
-        }
-    }
-    
     func getGoScoreString() -> String {
         getTerritories()
-        let p1Stones = getMoves(value: 2).count, p2Stones = getMoves(value: 1).count, p1Territory = goTerritoryByPlayer[1]!.count, p2Territory = goTerritoryByPlayer[2]!.count
-        return "black score is \(p1Territory) + \(p1Stones) = \(p1Stones + p1Territory)\nwhite score is \(p2Territory) + \(p2Stones) + 7.5 = \(p2Stones + p2Territory + 7).5"
+        return goGame.scoreString()
     }
-    
-    func resetGoBeforeFlood() {
-        for i in 0 ..< gridSize {
-            for j in 0 ..< gridSize {
-                let pos = abstractBoard[i][j]
-                if pos != 1, pos != 2 {
-                    abstractBoard[i][j] = 0
-                }
-            }
-        }
-    }
-    
-    func getEmptyNeighbor(move: Int) -> Int {
-        if move % gridSize != 0 {
-            let neighborStone = move - 1
-            if getBoardValue(move: neighborStone) == 0 {
-                return neighborStone
-            }
-        }
-        if move % gridSize != gridSize - 1 {
-            let neighborStone = move + 1
-            if getBoardValue(move: neighborStone) == 0 {
-                return neighborStone
-            }
-        }
-        if move / gridSize != 0 {
-            let neighborStone = move - gridSize
-            if getBoardValue(move: neighborStone) == 0 {
-                return neighborStone
-            }
-        }
-        if move / gridSize != gridSize - 1 {
-            let neighborStone = move + gridSize
-            if getBoardValue(move: neighborStone) == 0 {
-                return neighborStone
-            }
-        }
-        return -1
-    }
-    
-    func getMoves(value: Int) -> [Int] {
-        var result = [Int]()
-        for i in 0 ..< gridSize {
-            for j in 0 ..< gridSize {
-                let pos = abstractBoard[i][j]
-                if pos == value {
-                    result.append(i * gridSize + j)
-                }
-            }
-        }
-        return result
-    }
-    
-    func floodFillWorker(move: Int, value: Int) {
-        setBoardValue(move: move, value: value)
-        var neighbor = getEmptyNeighbor(move: move)
-        while neighbor > -1 {
-            floodFillWorker(move: neighbor, value: value)
-            neighbor = getEmptyNeighbor(move: move)
-        }
-    }
-    
-    func floodFill(player: Int) {
-        for i in 0 ..< gridSize {
-            for j in 0 ..< gridSize {
-                let pos = abstractBoard[i][j]
-                if pos == 3 - player {
-                    let move = i * gridSize + j
-                    var neighbor = getEmptyNeighbor(move: move)
-                    while neighbor > -1 {
-                        floodFillWorker(move: neighbor, value: player + 2)
-                        neighbor = getEmptyNeighbor(move: move)
-                    }
-                }
-            }
-        }
-    }
-    
+
+    // Mirror GoGame's territory back into goTerritoryByPlayer for the renderer.
+    // Retained (not in the plan's literal replacement) because TableViewController
+    // calls table.getTerritories() directly to refresh territory overlays.
     func getTerritories() {
-        floodFill(player: 1)
-        var p1Territory = getMoves(value: 3)
-        resetGoBeforeFlood()
-        floodFill(player: 2)
-        var p2Territory = getMoves(value: 4)
-        resetGoBeforeFlood()
-        var i1 = p1Territory.count - 1, i2 = p2Territory.count - 1
-        while i1 > -1, i2 > -1 {
-            let p1 = p1Territory[i1], p2 = p2Territory[i2]
-            if p1 == p2 {
-                p1Territory.remove(at: i1); p2Territory.remove(at: i2)
-                i1 -= 1; i2 -= 1
-            } else if p1 < p2 {
-                i2 -= 1
-            } else {
-                i1 -= 1
-            }
-        }
-        goTerritoryByPlayer[1] = p1Territory; goTerritoryByPlayer[2] = p2Territory
+        goTerritoryByPlayer[1] = goGame.territory(forPlayer: 1)
+        goTerritoryByPlayer[2] = goGame.territory(forPlayer: 2)
     }
     
     func rejectDeadStones() {
