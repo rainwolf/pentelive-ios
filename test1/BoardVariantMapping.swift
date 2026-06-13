@@ -1,5 +1,4 @@
 import Foundation
-import UIKit
 
 @objc final class BoardVariantMapping: NSObject {
 
@@ -21,6 +20,11 @@ import UIKit
         if gameType.contains("Swap2-Keryo") { return .swap2Keryo }
         if gameType.contains("Connect6") { return .connect6 }
         if gameType.contains("Gomoku") { return .gomoku }
+        // Deliberate fallback for unknown/legacy game-type strings, matching the
+        // legacy behavior in BoardViewController. This is NOT a crash path: an
+        // unexpected server game type must degrade gracefully in the live app.
+        // Callers MUST filter Go (`isGoGame`) BEFORE calling this — Go is not a
+        // Pente variant and would otherwise be silently mapped to `.pente`.
         return .pente
     }
 }

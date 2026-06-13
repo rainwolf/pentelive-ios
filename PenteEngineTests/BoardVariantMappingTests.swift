@@ -20,4 +20,11 @@ final class BoardVariantMappingTests: XCTestCase {
         XCTAssertEqual(BoardVariantMapping.variant(forGameType: "Connect6"), .connect6)
         XCTAssertEqual(BoardVariantMapping.variant(forGameType: "Gomoku"), .gomoku)
     }
+
+    func testVariantForGameTypeFallsBackToPente() {
+        // Unknown/legacy game-type strings deliberately fall back to .pente.
+        // (Go must be filtered out by callers via isGoGame before reaching here.)
+        XCTAssertEqual(BoardVariantMapping.variant(forGameType: "Go"), .pente)
+        XCTAssertEqual(BoardVariantMapping.variant(forGameType: ""), .pente)
+    }
 }
