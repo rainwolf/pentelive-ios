@@ -25,6 +25,9 @@ import Foundation
 
     /// Read-only accessor for renderers. Returns 0 empty, 1 white, 2 black, -1 masked.
     @objc func stone(at rowCol: Int) -> Int {
+        // @objc callers may pass an out-of-range index; treat it as empty rather
+        // than trapping on the array access. Board is 19x19 = 361 cells.
+        guard rowCol >= 0 && rowCol < 361 else { return 0 }
         return board[rowCol / 19][rowCol % 19]
     }
 
@@ -70,8 +73,11 @@ import Foundation
     @objc func replay(_ moves: [Int], until: Int) -> MoveResult {
         reset()
         var last = MoveResult(captured: [], poofed: false, winner: 0, placed: 0)
+        // `until` is an @objc entry point; callers (move sliders, move counts) may
+        // pass values outside 0...moves.count. Clamp so we only replay valid moves.
+        let bound = max(0, min(until, moves.count))
         var i = 0
-        while i < until {
+        while i < bound {
             last = play(moves[i])
             i += 1
         }

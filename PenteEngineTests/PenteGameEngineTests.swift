@@ -23,6 +23,34 @@ final class PenteGameEngineTests: XCTestCase {
         XCTAssertEqual(r.winner, 0)
     }
 
+    // MARK: Pente — win by reaching the 10-capture threshold (5 custodial captures)
+    func testPenteWinByTenCaptures() {
+        // Five independent horizontal brackets on well-separated rows. Each closes a
+        // W·B·B·W custodial capture (2 black stones), so white reaches 10 captures.
+        // Each block is 6 moves (anchor, B, throwaway W, B, closer, filler B) to keep
+        // parity so every closer lands on a white turn; the final block omits the
+        // trailing filler (5 moves). Total = 29 moves; the last move is the 5th closer.
+        let g = PenteGame(variant: .pente)
+        let rows = [1, 4, 7, 10, 13]
+        var moves: [Int] = []
+        for (k, r) in rows.enumerated() {
+            moves.append(r * 19 + 5)        // W anchor
+            moves.append(r * 19 + 6)        // B   (captured)
+            moves.append(18 * 19 + 2 * k)   // W throwaway (isolated, non-colinear)
+            moves.append(r * 19 + 7)        // B   (captured)
+            moves.append(r * 19 + 8)        // W closer → captures the black pair
+            if k < rows.count - 1 {
+                moves.append(17 * 19 + 2 * k)   // B filler (parity, harmless)
+            }
+        }
+        XCTAssertEqual(moves.count, 29)
+        let r = g.replay(moves, until: moves.count)
+        XCTAssertEqual(r.placed, 1)             // closing move was white
+        XCTAssertEqual(g.blackCaptures, 10)     // 5 captures × 2 black stones
+        XCTAssertEqual(g.whiteCaptures, 0)
+        XCTAssertEqual(r.winner, 1)             // white wins by reaching 10 captures
+    }
+
     // MARK: Pente — win by 5 in a row (interior cells)
     func testPenteWinByFiveInARow() {
         let g = PenteGame(variant: .pente)
