@@ -1,4 +1,4 @@
-import Foundation
+import UIKit
 
 @objc final class BoardVariantMapping: NSObject {
 
@@ -26,5 +26,37 @@ import Foundation
         // Callers MUST filter Go (`isGoGame`) BEFORE calling this — Go is not a
         // Pente variant and would otherwise be silently mapped to `.pente`.
         return .pente
+    }
+
+    /// One source of truth for the per-variant board colour; values copied verbatim
+    /// from the former per-replay-method literals in BoardViewController.m.
+    @objc(backgroundColorForVariant:boatPente:)
+    static func backgroundColor(for variant: PenteVariant, boatPente: Bool) -> UIColor {
+        switch variant {
+        case .pente:
+            return boatPente
+                ? UIColor(red: 0.145, green: 0.729, blue: 1, alpha: 1)
+                : UIColor(red: 0.984, green: 0.851, blue: 0.541, alpha: 1)
+        case .keryoPente:
+            return UIColor(red: 0.702, green: 1, blue: 0.518, alpha: 1)
+        case .oPente:
+            return UIColor(red: 0.32, green: 0.75, blue: 0.50, alpha: 1.0)
+        case .poofPente:
+            return UIColor(red: 0.929, green: 0.639, blue: 0.992, alpha: 1)
+        case .dPente:
+            return UIColor(red: 0.584, green: 0.753, blue: 0.98, alpha: 1)
+        case .dkPente:
+            return UIColor(red: 1, green: 165.0 / 255.0, blue: 0, alpha: 1)
+        case .gpente:
+            return UIColor(red: 0.616, green: 0.545, blue: 0.965, alpha: 1)
+        case .swap2Pente:
+            return UIColor(red: 0.90, green: 0.67, blue: 0.44, alpha: 1.00)
+        case .swap2Keryo:
+            return UIColor(red: 0.31, green: 0.78, blue: 0.47, alpha: 1.00)
+        case .gomoku:
+            return UIColor(red: 0.612, green: 1, blue: 0.898, alpha: 1)
+        case .connect6:
+            return UIColor(red: 0.929, green: 0.639, blue: 0.992, alpha: 1)
+        }
     }
 }
