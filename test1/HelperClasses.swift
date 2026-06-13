@@ -219,12 +219,18 @@ class Table: NSObject {
         state.goState = .play
         blackCaptures = 0
         whiteCaptures = 0
-        // The Pente-family engine is stateful: reset it before any full replay so the
-        // re-applied moves start from an empty board (Go never touches the engine).
-        engine.reset()
-        for move in moves {
-            addMove(move: move)
+        if isGo() {
+            for move in moves {
+                addMove(move: move)
+            }
+            return
         }
+        // Pente-family: rebuild the whole position in one engine call (replay resets
+        // the engine internally) and mirror it back. Unlike the per-move addMove loop
+        // this stays silent — no onCaptures animation fires during a bulk load.
+        lastMoveResult = engine.replay(moves, until: moves.count)
+        self.moves = moves
+        syncFromEngine()
     }
 
     func showMarkStones(player: String) -> Bool {
@@ -373,6 +379,8 @@ class Table: NSObject {
         blackCaptures = 0
         whiteCaptures = 0
         abstractBoard = Array(repeating: Array(repeating: 0, count: 19), count: 19)
+        engine.reset()
+        lastMoveResult = nil
         goStoneGroupIDsByPlayer.removeAll(); goStoneGroupIDsByPlayer[1] = [Int: Int](); goStoneGroupIDsByPlayer[2] = [Int: Int]()
         goStoneGroupsByPlayerAndID.removeAll(); goStoneGroupsByPlayerAndID[1] = [Int: [Int]](); goStoneGroupsByPlayerAndID[2] = [Int: [Int]]()
         goDeadStonesByPlayer.removeAll(); goDeadStonesByPlayer[1] = [Int](); goDeadStonesByPlayer[2] = [Int]()
@@ -438,7 +446,7 @@ class Table: NSObject {
     }
     
     func undoLastMove() {
-        let newMoves = moves[0 ..< (moves.count - 1)]
+        let newMoves = Array(moves[0 ..< (moves.count - 1)])
         blackCaptures = 0
         whiteCaptures = 0
         abstractBoard = Array(repeating: Array(repeating: 0, count: 19), count: 19)
@@ -450,12 +458,17 @@ class Table: NSObject {
         koMove = -1
         state.dPenteState = .noChoice
         state.goState = .play
-        // The Pente-family engine is stateful: reset it before replaying the surviving
-        // moves so undone stones/captures don't persist (Go never touches the engine).
-        engine.reset()
-        for move in newMoves {
-            addMove(move: move)
+        if isGo() {
+            for move in newMoves {
+                addMove(move: move)
+            }
+            return
         }
+        // Pente-family: rebuild the surviving position in one engine call (replay
+        // resets the engine internally) so undone stones/captures don't persist.
+        lastMoveResult = engine.replay(newMoves, until: newMoves.count)
+        moves = newMoves
+        syncFromEngine()
     }
     
     func currentPlayer() -> Int {

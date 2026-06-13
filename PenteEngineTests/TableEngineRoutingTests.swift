@@ -118,6 +118,36 @@ final class TableEngineRoutingTests: XCTestCase {
         XCTAssertEqual(gpente.abstractBoard[8][8], -1)
     }
 
+    // Undoing a NON-capturing move must rebuild via engine.replay and leave the
+    // earlier captures intact (blackCaptures stays 2, the captured cells stay empty).
+    // (The plan names this testUndoLastMoveReplaysThroughEngine; that name is already
+    // taken by the broader Task 3.1 regression above, so this carries the plan's exact
+    // assertions under a distinct name.)
+    func testUndoLastNonCapturingMoveReplaysThroughEngine() {
+        let table = Table(table: 1)
+        table.game = GameEnum.pente.rawValue
+
+        // Capture sequence, then one extra (non-capturing) black move at idx5.
+        for move in [9 * 19 + 5, 9 * 19 + 6, 0, 9 * 19 + 7, 9 * 19 + 8] {
+            table.addMove(move: move)
+        }
+        XCTAssertEqual(table.blackCaptures, 2)
+
+        table.addMove(move: 1) // black at (0,1), no capture
+        XCTAssertEqual(table.moves.count, 6)
+
+        table.undoLastMove()
+
+        // Back to the post-capture position, rebuilt by engine.replay.
+        XCTAssertEqual(table.moves, [9 * 19 + 5, 9 * 19 + 6, 0, 9 * 19 + 7, 9 * 19 + 8])
+        XCTAssertEqual(table.blackCaptures, 2)
+        XCTAssertEqual(table.whiteCaptures, 0)
+        XCTAssertEqual(table.stone(at: 9 * 19 + 6), 0)
+        XCTAssertEqual(table.stone(at: 9 * 19 + 7), 0)
+        XCTAssertEqual(table.stone(at: 9 * 19 + 8), 1)
+        XCTAssertEqual(table.stone(at: 0), 1)
+    }
+
     private func assertBoardsMatch(_ a: Table, _ b: Table,
                                    file: StaticString = #filePath, line: UInt = #line) {
         for cell in 0 ..< 361 {
