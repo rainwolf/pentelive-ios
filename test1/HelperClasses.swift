@@ -446,6 +446,7 @@ class Table: NSObject {
     }
     
     func undoLastMove() {
+        guard !moves.isEmpty else { return }
         let newMoves = Array(moves[0 ..< (moves.count - 1)])
         blackCaptures = 0
         whiteCaptures = 0

@@ -148,6 +148,24 @@ final class TableEngineRoutingTests: XCTestCase {
         XCTAssertEqual(table.stone(at: 0), 1)
     }
 
+    // Undo on a fresh Table with no moves must be a safe no-op. Without the guard,
+    // undoLastMove() computes moves[0 ..< -1] and fatal-errors at runtime.
+    func testUndoOnEmptyMovesIsSafeNoOp() {
+        let table = Table(table: 1)
+        table.game = GameEnum.pente.rawValue
+
+        // No moves played: undo must not crash.
+        table.undoLastMove()
+
+        // State stays empty.
+        XCTAssertTrue(table.moves.isEmpty)
+        XCTAssertEqual(table.whiteCaptures, 0)
+        XCTAssertEqual(table.blackCaptures, 0)
+        for cell in 0 ..< 361 {
+            XCTAssertEqual(table.stone(at: cell), 0, "board not empty at cell \(cell)")
+        }
+    }
+
     private func assertBoardsMatch(_ a: Table, _ b: Table,
                                    file: StaticString = #filePath, line: UInt = #line) {
         for cell in 0 ..< 361 {
