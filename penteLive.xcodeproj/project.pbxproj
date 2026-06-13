@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		06B4B494FB3A1DBAF1123B09 /* PenteGameCorpusTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A43C60A3066249BC1D49D05D /* PenteGameCorpusTests.swift */; };
+		0F517DEF255BDD9409111928 /* TableEngineRoutingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DAA75D2D52B843143873591 /* TableEngineRoutingTests.swift */; };
 		11624A088F5FA7A3BA8789DF /* Capture.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF08D052C94A67CE7B1A2ABE /* Capture.swift */; };
 		14FE00FB473FBD53DA6200A3 /* PenteGame.m in Sources */ = {isa = PBXBuildFile; fileRef = 636163A62019E5AA00D5E176 /* PenteGame.m */; };
 		1B5F60CB3000FD275A9797D4 /* Scan.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7050AD4ABDB95FF4BBC49527 /* Scan.swift */; };
@@ -236,6 +237,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		0DAA75D2D52B843143873591 /* TableEngineRoutingTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TableEngineRoutingTests.swift; sourceTree = "<group>"; };
 		1195B9EE689C773DA39F77AD /* PenteVariant.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PenteVariant.swift; sourceTree = "<group>"; };
 		63052FB71D047F9000F78B30 /* unlock.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = unlock.png; sourceTree = "<group>"; };
 		63052FB81D047F9000F78B30 /* unlock@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "unlock@2x.png"; sourceTree = "<group>"; };
@@ -899,6 +901,7 @@
 				8ECBCB2C27E5249A019555B9 /* RuleSetTests.swift */,
 				C04A941E308F1CBC0804C1A6 /* PenteGameEngineTests.swift */,
 				A43C60A3066249BC1D49D05D /* PenteGameCorpusTests.swift */,
+				0DAA75D2D52B843143873591 /* TableEngineRoutingTests.swift */,
 			);
 			name = PenteEngineTests;
 			path = PenteEngineTests;
@@ -1236,6 +1239,7 @@
 				6DF419D1BFAAECFD9C12D887 /* RuleSetTests.swift in Sources */,
 				D5EEBF69DF3319F594473C96 /* PenteGameEngineTests.swift in Sources */,
 				06B4B494FB3A1DBAF1123B09 /* PenteGameCorpusTests.swift in Sources */,
+				0F517DEF255BDD9409111928 /* TableEngineRoutingTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

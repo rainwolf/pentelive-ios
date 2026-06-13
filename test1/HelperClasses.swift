@@ -86,7 +86,13 @@ class Table: NSObject {
     var players = [String: LivePlayer]()
     var timed = false
     var timer = ["initialMinutes": 0, "incrementalSeconds": 0]
-    var game = 1
+    var game = 1 {
+        didSet {
+            if game != oldValue {
+                engine = PenteGame(variant: penteVariant(for: game))
+            }
+        }
+    }
     var open = true
     var rated = false
     var table = 1
@@ -97,6 +103,9 @@ class Table: NSObject {
     var abstractBoard = Array(repeating: Array(repeating: 0, count: 19), count: 19)
     var whiteCaptures = 0
     var blackCaptures = 0
+    private var engine = PenteGame(variant: .pente)
+    private(set) var lastMoveResult: MoveResult?
+    var onCaptures: (([Capture]) -> Void)?
     var goStoneGroupIDsByPlayer = [Int: [Int: Int]]()
     var goStoneGroupsByPlayerAndID = [Int: [Int: [Int]]]()
     var goDeadStonesByPlayer = [Int: [Int]]()
@@ -245,80 +254,55 @@ class Table: NSObject {
         return game != GameEnum.gomoku.rawValue && game != GameEnum.speedGomoku.rawValue && game != GameEnum.connect6.rawValue && game != GameEnum.speedConnect6.rawValue
     }
     
+    // Maps the live-room game id (GameEnum 1...30) to the engine variant.
+    // Boat-Pente shares Pente rules; Go ids never reach the engine (isGo() short-circuits).
+    private func penteVariant(for game: Int) -> PenteVariant {
+        switch GameEnum(rawValue: game) {
+        case .keryoPente, .speedKeryoPente: return .keryoPente
+        case .oPente, .speedOPente: return .oPente
+        case .poofPente, .speedPoofPente: return .poofPente
+        case .dPente, .speedDPente: return .dPente
+        case .dkPente, .speedDKPente: return .dkPente
+        case .gPente, .speedGPente: return .gpente
+        case .swap2Pente, .speedSwap2Pente: return .swap2Pente
+        case .swap2Keryo, .speedSwap2Keryo: return .swap2Keryo
+        case .gomoku, .speedGomoku: return .gomoku
+        case .connect6, .speedConnect6: return .connect6
+        default: return .pente
+        }
+    }
+
+    // Read accessor used by tests and renderers: the engine is the source of truth
+    // for Pente-family games; Go keeps its own board.
+    func stone(at rowCol: Int) -> Int {
+        if isGo() {
+            return abstractBoard[rowCol / gridSize][rowCol % gridSize]
+        }
+        return engine.stone(at: rowCol)
+    }
+
+    // Mirror the engine board + counters into the stored arrays the renderers read.
+    private func syncFromEngine() {
+        for r in 0 ..< 19 {
+            for c in 0 ..< 19 {
+                abstractBoard[r][c] = engine.stone(at: r * 19 + c)
+            }
+        }
+        whiteCaptures = engine.whiteCaptures
+        blackCaptures = engine.blackCaptures
+    }
+
     func addMove(move: Int) {
         if isGo() {
             addGoMove(move: move)
             return
         }
-        let color = currentPlayer()
+        let result = engine.play(move)
         moves.append(move)
-        let i = move / 19
-        let j = move % 19
-        abstractBoard[i][j] = color
-        if game != GameEnum.gomoku.rawValue, game != GameEnum.speedGomoku.rawValue, game != GameEnum.connect6.rawValue, game != GameEnum.speedConnect6.rawValue {
-            if game == GameEnum.poofPente.rawValue || game == GameEnum.speedPoofPente.rawValue || game == GameEnum.oPente.rawValue || game == GameEnum.speedOPente.rawValue {
-                detectPoof(move: move, color: color)
-            }
-            if game == GameEnum.oPente.rawValue || game == GameEnum.speedOPente.rawValue {
-                detectKeryoPoof(move: move, color: color)
-            }
-            detectCapture(move: move, color: color)
-            if game == GameEnum.keryoPente.rawValue || game == GameEnum.speedKeryoPente.rawValue || game == GameEnum.dkPente.rawValue || game == GameEnum.speedDKPente.rawValue || game == GameEnum.oPente.rawValue || game == GameEnum.speedOPente.rawValue || game == GameEnum.swap2Keryo.rawValue || game == GameEnum.speedSwap2Keryo.rawValue {
-                detectKeryoCapture(move: move, color: color)
-            }
-        }
-        if game != GameEnum.gomoku.rawValue, game != GameEnum.speedGomoku.rawValue, game != GameEnum.connect6.rawValue, game != GameEnum.speedConnect6.rawValue, game != GameEnum.dPente.rawValue, game != GameEnum.speedDPente.rawValue, game != GameEnum.dkPente.rawValue, game != GameEnum.speedDKPente.rawValue,
-           game != GameEnum.swap2Pente.rawValue, game != GameEnum.speedSwap2Pente.rawValue, game != GameEnum.swap2Keryo.rawValue, game != GameEnum.speedSwap2Keryo.rawValue, rated || game == GameEnum.gPente.rawValue || game == GameEnum.speedGPente.rawValue
-        {
-           if moves.count == 2 {
-               for i in 7 ..< 12 {
-                   for j in 7 ..< 12 {
-                       if abstractBoard[i][j] == 0 {
-                           abstractBoard[i][j] = -1
-                       }
-                   }
-               }
-               if game == GameEnum.gPente.rawValue || game == GameEnum.speedGPente.rawValue {
-                   for i in 1 ..< 3 {
-                       if abstractBoard[9][11 + i] == 0 {
-                           abstractBoard[9][11 + i] = -1
-                       }
-                       if abstractBoard[9][7 - i] == 0 {
-                           abstractBoard[9][7 - i] = -1
-                       }
-                       if abstractBoard[11 + i][9] == 0 {
-                           abstractBoard[11 + i][9] = -1
-                       }
-                       if abstractBoard[7 - i][9] == 0 {
-                           abstractBoard[7 - i][9] = -1
-                       }
-                   }
-               }
-           } else if moves.count == 3 {
-               for i in 7 ..< 12 {
-                   for j in 7 ..< 12 {
-                       if abstractBoard[i][j] == -1 {
-                           abstractBoard[i][j] = 0
-                       }
-                   }
-               }
-               if game == GameEnum.gPente.rawValue || game == GameEnum.speedGPente.rawValue {
-                   for i in 1 ..< 3 {
-                       if abstractBoard[9][11 + i] == -1 {
-                           abstractBoard[9][11 + i] = 0
-                       }
-                       if abstractBoard[9][7 - i] == -1 {
-                           abstractBoard[9][7 - i] = 0
-                       }
-                       if abstractBoard[11 + i][9] == -1 {
-                           abstractBoard[11 + i][9] = 0
-                       }
-                       if abstractBoard[7 - i][9] == -1 {
-                           abstractBoard[7 - i][9] = 0
-                       }
-                   }
-               }
-           }
+        syncFromEngine()
+        lastMoveResult = result
+        if !result.captured.isEmpty {
+            onCaptures?(result.captured)
         }
     }
     
