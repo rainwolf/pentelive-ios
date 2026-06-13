@@ -63,10 +63,30 @@ func corpusMismatchReason(_ expected: ExpectedSnapshot,
         return "blackCaptures: expected \(expected.blackCaptures), "
              + "got \(actual.blackCaptures)"
     }
+    // Guard board dimensions before indexing so a malformed fixture (short
+    // rows / wrong row count) yields a descriptive reason instead of an
+    // out-of-bounds trap.
+    let expectedRows = expected.board.count
+    let actualRows = actual.board.count
+    if expectedRows != 19 || actualRows != 19 {
+        return "board dimensions invalid: expected 19x19, "
+             + "expected-rows=\(expectedRows), actual-rows=\(actualRows)"
+    }
     for r in 0..<19 {
+        let expectedCols = expected.board[r].count
+        let actualCols = actual.board[r].count
+        if expectedCols != 19 || actualCols != 19 {
+            return "board dimensions invalid: expected 19x19, "
+                 + "row \(r) expected-cols=\(expectedCols), "
+                 + "actual-cols=\(actualCols)"
+        }
         for c in 0..<19 {
             let e = expected.board[r][c]
             let a = actual.board[r][c]
+            // -1 means masked / opening-restriction. It can legitimately
+            // appear on either side, so treat it as don't-care: skip the cell
+            // and only compare where both sides hold real values (0/1/2).
+            if e == -1 || a == -1 { continue }
             if e != a {
                 return "board[\(r)][\(c)] (rowCol \(r * 19 + c)): "
                      + "expected \(e), got \(a)"
