@@ -2461,9 +2461,26 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
 }
 
 // Fills the abstractBoard ivar from the Swift engine (the render seam, scope (c)).
+//
+// The engine masks the opening restriction (centre 5x5 -1 cells, emitted only at
+// exactly two played moves) intrinsically for every tournament/G-Pente variant.
+// Legacy only ever SHOWED that mask when the game was rated or (speed) G-Pente,
+// and only while it stood at exactly two moves (the deleted replay* methods gated
+// on `[[self.game ratedNot] ... != "Not Rated"] && [movesList count] == 2`, with
+// G-Pente masking on the move count alone). Mirror that gate here — matching the
+// Phase 3 `Table.syncFromEngine` policy (rated || (speed)gPente) plus the
+// move-count guard that legacy applied during replay — so unrated, non-gPente
+// Pente/Keryo/Poof/O-Pente games no longer surface the centre restriction.
 - (void)loadEngineIntoAbstractBoard {
+    BOOL rated = [[self.game ratedNot] rangeOfString:@"Not Rated"].location ==
+                 NSNotFound;
+    BOOL isGPente = [[self.game gameType] isEqualToString:@"G-Pente"] ||
+                    [[self.game gameType] isEqualToString:@"Speed G-Pente"];
+    BOOL maskAllowed = (rated || isGPente) && ([movesList count] == 2);
     for (int rc = 0; rc < gridSize * gridSize; ++rc) {
-        abstractBoard[rc / gridSize][rc % gridSize] = (int)[engine stoneAt:rc];
+        int v = (int)[engine stoneAt:rc];
+        abstractBoard[rc / gridSize][rc % gridSize] =
+            (v == -1 && !maskAllowed) ? 0 : v;
     }
 }
 
