@@ -33,7 +33,7 @@ typedef NS_ENUM(NSInteger, PenteGameVariant) {
     PenteGameVariantConnect6,
 };
 
-@interface PenteGame : NSObject {
+@interface LegacyPenteGame : NSObject {
 
     AbstractBoard *abstractBoard;
 

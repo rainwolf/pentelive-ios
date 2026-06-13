@@ -9,7 +9,7 @@
 #import "PenteGame.h"
 #import <Foundation/Foundation.h>
 
-@implementation PenteGame
+@implementation LegacyPenteGame
 @synthesize abstractBoard;
 @synthesize whiteCaptures, blackCaptures;
 @synthesize captures;

@@ -94,7 +94,7 @@ BOOL canUnHide = NO;
 char coordinateLetters[19] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J', 'K',
                               'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T'};
 NSString *hideString, *cancelMsg;
-PenteGame *penteGame;
+LegacyPenteGame *penteGame;
 
 NSMutableDictionary<NSNumber *, NSMutableDictionary<NSNumber *, NSNumber *> *>
     *goStoneGroupIDsByPlayer;
@@ -111,7 +111,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
 - (void)viewDidLoad {
     [super viewDidLoad];
 
-    penteGame = [[PenteGame alloc] init];
+    penteGame = [[LegacyPenteGame alloc] init];
     penteGame.abstractBoard = abstractBoard;
 
     finalMove = -1;

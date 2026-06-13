@@ -1,7 +1,7 @@
 //
 //  CorpusSnapshotGeneratorTests.m
 //  One-off golden-corpus generator/verifier for the CURRENT Objective-C
-//  PenteGame engine.
+//  LegacyPenteGame engine.
 //
 //  Generate-if-missing: the first run writes golden/<name>.json next to this
 //  source file; later runs re-run the engine and verify the committed golden
@@ -103,7 +103,7 @@ static NSString *GoldenDir(void) {
 
 // Runs the CURRENT ObjC engine over one case and returns its snapshot dict.
 static NSDictionary *SnapshotForCase(NSDictionary *c) {
-    PenteGame *g = [[PenteGame alloc] init];
+    LegacyPenteGame *g = [[LegacyPenteGame alloc] init];
     g.abstractBoard = gBoardStorage;
     [g resetBoard];
     NSArray *moves = c[@"moves"];

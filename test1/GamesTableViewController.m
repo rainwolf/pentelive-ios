@@ -3563,7 +3563,7 @@ array, and add a new row to the table view
                 gameInt -= 50;
                 tbHills += 1;
             }
-            NSString *gameStr = [PenteGame getGameName: gameInt];
+            NSString *gameStr = [LegacyPenteGame getGameName: gameInt];
             if (hill.gameId > 50) {
                 [hill setGame:[@"tb-" stringByAppendingString:gameStr]];
             } else if (hill.gameId % 2 == 0) {
@@ -3665,7 +3665,7 @@ array, and add a new row to the table view
                 gameInt -= 50;
                 tbRatings += 1;
             }
-            NSString *gameStr = [PenteGame getGameName:gameInt];
+            NSString *gameStr = [LegacyPenteGame getGameName:gameInt];
             if (ratingStat.gameId > 50) {
                 [ratingStat setGame:[@"tb-" stringByAppendingString:gameStr]];
             } else if (ratingStat.gameId % 2 == 0) {
