@@ -13,8 +13,6 @@
 @synthesize abstractBoard;
 @synthesize whiteCaptures, blackCaptures;
 @synthesize captures;
-@synthesize goStoneGroupsByPlayerAndID;
-@synthesize goStoneGroupIDsByPlayer;
 
 + (NSString *)getGameName:(int)gameInt {
     NSString *gameStr = @"Pente";

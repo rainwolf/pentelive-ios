@@ -38,24 +38,12 @@ typedef NS_ENUM(NSInteger, PenteGameVariant) {
     AbstractBoard *abstractBoard;
 
     int whiteCaptures, blackCaptures;
-    NSMutableDictionary<NSNumber *, NSMutableDictionary<NSNumber *, NSNumber *>
-                                        *> *goStoneGroupIDsByPlayer;
-    NSMutableDictionary<
-        NSNumber *,
-        NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *>
-        *goStoneGroupsByPlayerAndID;
 }
 @property(nonatomic) AbstractBoard *abstractBoard;
 @property(atomic, assign) int whiteCaptures, blackCaptures;
 // When set, capture/poof detection appends struct Capture NSValues for UI
 // animation. Leave nil to skip recording.
 @property(nonatomic, retain) NSMutableArray *captures;
-@property(nonatomic, retain)
-    NSMutableDictionary<NSNumber *, NSMutableDictionary<NSNumber *, NSNumber *>
-                                        *> *goStoneGroupIDsByPlayer;
-@property(nonatomic, retain) NSMutableDictionary<
-    NSNumber *, NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *>
-    *goStoneGroupsByPlayerAndID;
 
 + (NSString *)getGameName:(int)gameInt;
 
