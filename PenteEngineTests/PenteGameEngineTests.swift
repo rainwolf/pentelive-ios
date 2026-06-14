@@ -184,6 +184,66 @@ final class PenteGameEngineTests: XCTestCase {
         XCTAssertEqual(noCap.stone(at: 9*19+7), 2)
     }
 
+    // MARK: play() ignores an out-of-range move (no crash, no state mutation)
+    func testPlayOutOfRangeMoveIsNoOp() {
+        let g = PenteGame(variant: .pente)
+        _ = g.replay([9*19+5, 9*19+6, 0, 9*19+7, 9*19+8], until: 5)  // black pair captured
+        let whiteBefore = g.whiteCaptures
+        let blackBefore = g.blackCaptures
+
+        let low = g.play(-1)
+        XCTAssertEqual(low.captured.count, 0)
+        XCTAssertFalse(low.poofed)
+        XCTAssertEqual(low.winner, 0)
+        XCTAssertEqual(low.placed, 0)
+
+        let high = g.play(361)
+        XCTAssertEqual(high.captured.count, 0)
+        XCTAssertFalse(high.poofed)
+        XCTAssertEqual(high.winner, 0)
+        XCTAssertEqual(high.placed, 0)
+
+        // Counters and existing stones are untouched.
+        XCTAssertEqual(g.whiteCaptures, whiteBefore)
+        XCTAssertEqual(g.blackCaptures, blackBefore)
+        XCTAssertEqual(g.blackCaptures, 2)
+        XCTAssertEqual(g.stone(at: 9*19+5), 1)
+        XCTAssertEqual(g.stone(at: 9*19+8), 1)
+        XCTAssertEqual(g.stone(at: 9*19+6), 0)
+
+        // moveCount is untouched: the next valid move still alternates (index 5 -> black).
+        let next = g.play(1)   // (0,1), empty
+        XCTAssertEqual(next.placed, 2)
+    }
+
+    // MARK: OPente — capture count crosses 10 via a multi-removal poof (jumps 9 -> 12)
+    func testOPenteWinWhenCaptureCountJumpsPastTen() {
+        // Each keryo-poof removes 3 white stones at once, so whiteCaptures steps
+        // 3, 6, 9, 12 and never equals exactly 10. With an `== threshold` test the win
+        // was skipped; `>= threshold` catches the jump past 10. Four independent
+        // vertical poof setups in well-separated columns; each block is 6 moves
+        // (parity filler) except the last (5 moves). Total = 23 moves.
+        let g = PenteGame(variant: .oPente)
+        let cols = [2, 6, 10, 14]
+        var moves: [Int] = []
+        for (k, c) in cols.enumerated() {
+            moves.append(2 * 19 + c)        // W partner
+            moves.append(1 * 19 + c)        // B top flanker
+            moves.append(4 * 19 + c)        // W partner
+            moves.append(5 * 19 + c)        // B bottom flanker
+            moves.append(3 * 19 + c)        // W placed -> keryo-poof of (2,c),(3,c),(4,c)
+            if k < cols.count - 1 {
+                moves.append(18 * 19 + c)   // B filler (parity, isolated)
+            }
+        }
+        XCTAssertEqual(moves.count, 23)
+        let r = g.replay(moves, until: moves.count)
+        XCTAssertEqual(r.placed, 1)             // final move was white
+        XCTAssertEqual(g.whiteCaptures, 12)     // 4 poofs × 3 white stones, jumps past 10
+        XCTAssertEqual(g.blackCaptures, 0)
+        XCTAssertEqual(r.winner, 2)             // black wins: white lost >= 10 stones
+    }
+
     // MARK: reset clears board + counters
     func testReset() {
         let g = PenteGame(variant: .pente)

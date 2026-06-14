@@ -145,8 +145,10 @@ enum Scan {
     // (the placed stone) and accumulates over BOTH directions of that axis before
     // resetting for the next axis; a win is reported as soon as the run reaches
     // `length` (legacy `penteCounter > 4` generalised to `count > length - 1`).
-    // The strict bounds `> 0` / `< 19` are preserved verbatim from the legacy code,
-    // which intentionally never scans into row 0 or column 0.
+    // Bounds are `>= 0` / `< 19`: an INTENTIONAL deviation from legacy detectPenteOf,
+    // whose `> 0` low bound never scanned row 0 or column 0 and so missed 5-in-a-row
+    // wins along the top edge / left edge. Indices are 0..18, so `>= 0 && < 19` is the
+    // correct in-bounds range (like the existing Connect6 winLength correction).
     static func winLine(on board: [[Int]], at move: Int, color: Int, length: Int) -> Bool {
         let row = move / 19, col = move % 19
         let axes: [((Int, Int), (Int, Int))] = [
@@ -160,7 +162,7 @@ enum Scan {
             for (di, dj) in [d1, d2] {
                 var i = row + di
                 var j = col + dj
-                while i > 0, i < 19, j > 0, j < 19 {
+                while i >= 0, i < 19, j >= 0, j < 19 {
                     if board[i][j] == color {
                         count += 1
                         if count > length - 1 { return true }

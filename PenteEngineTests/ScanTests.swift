@@ -190,6 +190,21 @@ final class ScanTests: XCTestCase {
         XCTAssertTrue(Scan.winLine(on: board, at: rc(9, 9), color: 1, length: 5))
     }
 
+    func testWinLineAlongRowZero() {
+        // Intentional deviation from legacy: a 5-in-a-row on the TOP edge (row 0)
+        // must be detectable. The legacy `> 0` low bound never scanned row 0.
+        var board = emptyBoard()
+        for c in 0...4 { board[0][c] = 1 }   // (0,0)..(0,4)
+        XCTAssertTrue(Scan.winLine(on: board, at: rc(0, 2), color: 1, length: 5))
+    }
+
+    func testWinLineAlongColumnZero() {
+        // 5-in-a-row down the LEFT edge (column 0) must be detectable.
+        var board = emptyBoard()
+        for r in 0...4 { board[r][0] = 2 }   // (0,0)..(4,0)
+        XCTAssertTrue(Scan.winLine(on: board, at: rc(2, 0), color: 2, length: 5))
+    }
+
     func testFourInARowIsNotAWin() {
         var board = emptyBoard()
         for c in 6...9 { board[9][c] = 1 }   // only four

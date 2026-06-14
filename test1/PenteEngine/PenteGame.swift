@@ -32,6 +32,11 @@ import Foundation
     }
 
     @objc func play(_ move: Int) -> MoveResult {
+        // @objc callers may pass an out-of-range index; treat it as a no-op rather
+        // than trapping on the array access. Board is 19x19 = 361 cells.
+        guard move >= 0 && move < 361 else {
+            return MoveResult(captured: [], poofed: false, winner: 0, placed: 0)
+        }
         let placedColor = colorForMove(moveCount)
 
         // Masks are a render-only overlay; clear any before placing so scans never
@@ -108,13 +113,13 @@ import Foundation
             return color
         }
         if let cap = rules.capture {
-            if cap.threshold == 15 {                 // Keryo family: >= 15
-                if whiteCaptures >= 15 { return 2 }
-                if blackCaptures >= 15 { return 1 }
-            } else {                                 // Pente family: == 10
-                if whiteCaptures == 10 { return 2 }
-                if blackCaptures == 10 { return 1 }
-            }
+            // `>=` for BOTH families. In OPente/PoofPente a single move can remove
+            // poof + capture stones together, so the counter may JUMP past the
+            // threshold (e.g. 8 -> 12) and an `== threshold` test would miss the win.
+            // Colour mapping preserved: whiteCaptures (white stones lost) -> black (2)
+            // wins; blackCaptures -> white (1) wins.
+            if whiteCaptures >= cap.threshold { return 2 }
+            if blackCaptures >= cap.threshold { return 1 }
         }
         return 0
     }

@@ -283,6 +283,10 @@ class Table: NSObject {
     // for Pente-family games; Go keeps its own board.
     func stone(at rowCol: Int) -> Int {
         if isGo() {
+            // abstractBoard is always 19x19, but gridSize can be 9 or 13 for Go.
+            // Guard so an out-of-range rowCol returns empty instead of trapping;
+            // for valid rowCol < gridSize², rowCol/gridSize < gridSize <= 19.
+            guard rowCol >= 0 && rowCol < gridSize * gridSize else { return 0 }
             return abstractBoard[rowCol / gridSize][rowCol % gridSize]
         }
         return engine.stone(at: rowCol)
