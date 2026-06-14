@@ -247,10 +247,10 @@
     NSLog(@"penteliveee: foreground");
     if ([((PenteNavigationViewController *)self.window.rootViewController)
                 .visibleViewController
-            respondsToSelector:@selector(dashboardParse)]) {
+            respondsToSelector:@selector(refreshDashboard)]) {
         [((GamesTableViewController *)((PenteNavigationViewController *)
                                            self.window.rootViewController)
-              .visibleViewController) dashboardParse];
+              .visibleViewController) refreshDashboard];
     } else {
         [(PenteNavigationViewController *)self.window.rootViewController
             setDidMove:YES];
@@ -328,9 +328,9 @@
         PenteNavigationViewController *navController =
             (PenteNavigationViewController *)(self.window.rootViewController);
         if ([navController.visibleViewController
-                respondsToSelector:@selector(dashboardParse)]) {
+                respondsToSelector:@selector(refreshDashboard)]) {
             [((GamesTableViewController *)(navController.visibleViewController))
-                dashboardParse];
+                refreshDashboard];
         } else {
             [navController setDidMove:YES];
         }
@@ -359,10 +359,10 @@
 
     if ([((PenteNavigationViewController *)self.window.rootViewController)
                 .visibleViewController
-            respondsToSelector:@selector(dashboardParse)]) {
+            respondsToSelector:@selector(refreshDashboard)]) {
         [((GamesTableViewController *)((PenteNavigationViewController *)
                                            self.window.rootViewController)
-              .visibleViewController) dashboardParse];
+              .visibleViewController) refreshDashboard];
     } else {
         [(PenteNavigationViewController *)self.window.rootViewController
             setDidMove:YES];
@@ -441,11 +441,11 @@
                 if ([((PenteNavigationViewController *)
                           self.window.rootViewController)
                             .visibleViewController
-                        respondsToSelector:@selector(dashboardParse)]) {
+                        respondsToSelector:@selector(refreshDashboard)]) {
                     [((GamesTableViewController
                            *)((PenteNavigationViewController *)
                                   self.window.rootViewController)
-                          .visibleViewController) dashboardParse];
+                          .visibleViewController) refreshDashboard];
                 } else {
                     [(PenteNavigationViewController *)
                             self.window.rootViewController setDidMove:YES];

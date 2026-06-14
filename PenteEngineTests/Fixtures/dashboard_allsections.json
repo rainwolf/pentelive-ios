@@ -1,0 +1,141 @@
+{
+  "settings": {
+    "noAds": true,
+    "unlimitedGames": true,
+    "tbGamesLimit": -1
+  },
+  "player": {
+    "name": "rainwolf",
+    "color": 16711680,
+    "showAds": false,
+    "subscriber": true,
+    "livePlayers": 42,
+    "dbAccess": true,
+    "emailMe": true,
+    "onlineFollowing": 7,
+    "personalizeAds": false
+  },
+  "kingOfTheHill": [
+    {
+      "numPlayers": 12,
+      "amIMember": true,
+      "iAmKing": false,
+      "kingName": "somebody",
+      "canChallenge": true,
+      "gameId": 3
+    }
+  ],
+  "ratingStats": [
+    {
+      "gameName": "Pente",
+      "rating": 1847,
+      "totalGames": 532,
+      "tourneyWinner": 1,
+      "lastGameDate": "06/14/2026",
+      "gameId": 1
+    }
+  ],
+  "invitationsReceived": [
+    {
+      "setId": 50000000718737,
+      "gameName": "Pente",
+      "opponentName": "alice",
+      "opponentRating": 1723,
+      "color": "white (p1)",
+      "daysPerMove": 3,
+      "rated": "rated",
+      "opponentColor": 255,
+      "opponentTourneyWinner": 2
+    }
+  ],
+  "invitationsSent": [
+    {
+      "setId": 50000000718738,
+      "gameName": "Keryo-Pente",
+      "opponentName": "bob",
+      "opponentRating": 1601,
+      "color": "black (p2)",
+      "daysPerMove": 5,
+      "rated": "unrated",
+      "opponentColor": 65280,
+      "opponentTourneyWinner": 0
+    }
+  ],
+  "activeGamesMyTurn": [
+    {
+      "gid": 50000000900001,
+      "gameName": "Pente",
+      "opponentName": "carol",
+      "opponentRating": 1900,
+      "color": "white (p1)",
+      "numMoves": 14,
+      "timeLeft": "2 days",
+      "rated": "rated",
+      "opponentColor": 16711935,
+      "opponentTourneyWinner": 1
+    }
+  ],
+  "activeGamesOpponentTurn": [
+    {
+      "gid": 50000000900002,
+      "gameName": "Gomoku",
+      "opponentName": "dave",
+      "opponentRating": 1555,
+      "color": "black (p2)",
+      "numMoves": 9,
+      "timeLeft": "12 hours",
+      "rated": "unrated",
+      "opponentColor": 0,
+      "opponentTourneyWinner": 0
+    }
+  ],
+  "openInvitationGames": [
+    {
+      "setId": 50000000718800,
+      "gameName": "Pente",
+      "inviterName": "eve",
+      "inviterRating": 1488,
+      "color": "white (p2)",
+      "daysPerMove": 7,
+      "rated": "rated, beginner",
+      "inviterColor": 8421504,
+      "inviterTourneyWinner": 3
+    }
+  ],
+  "messages": [
+    {
+      "mid": 1001,
+      "read": true,
+      "subject": "Welcome back",
+      "from": "frank",
+      "date": "06/13/26",
+      "fromColor": 16711680,
+      "fromTourneyWinner": 1
+    },
+    {
+      "mid": 1002,
+      "read": false,
+      "subject": "Your move",
+      "from": "grace",
+      "date": "06/14/26",
+      "fromColor": 0,
+      "fromTourneyWinner": 0
+    }
+  ],
+  "tournaments": [
+    {
+      "name": "Summer Open 2026",
+      "eventId": 50000000123456,
+      "numRounds": 5,
+      "gameName": "tb-Pente",
+      "status": 1,
+      "date": "07/01/2026"
+    }
+  ],
+  "onlinePlayers": [
+    "rainwolf",
+    "alice",
+    "bob",
+    "carol"
+  ]
+}

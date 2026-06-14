@@ -1,0 +1,49 @@
+{
+  "player": {
+    "color": 1122867,
+    "showAds": true,
+    "name": "alice",
+    "subscriber": false,
+    "dbAccess": true,
+    "emailMe": true,
+    "livePlayers": 5,
+    "onlineFollowing": 3
+  },
+  "kingOfTheHill": [
+    { "gameId": 1, "numPlayers": 4, "amIMember": true, "iAmKing": false, "kingName": "kong", "canChallenge": true },
+    { "gameId": 2, "numPlayers": 2, "amIMember": false, "iAmKing": false, "kingName": "kong2", "canChallenge": false },
+    { "gameId": 53, "numPlayers": 8, "amIMember": true, "iAmKing": true, "kingName": "alice", "canChallenge": false }
+  ],
+  "ratingStats": [
+    { "rating": 1500, "totalGames": 42, "lastGameDate": 1700000000, "tourneyWinner": 1, "gameId": 1 },
+    { "gameId": 52, "rating": 1600, "totalGames": 10, "lastGameDate": 1700000001, "tourneyWinner": 0 }
+  ],
+  "invitationsSent": [
+    { "setId": 9001, "gameName": "Pente", "opponentName": "bob", "opponentRating": 1400,
+      "color": "white", "daysPerMove": 3, "rated": "rated", "opponentColor": 16711680, "opponentTourneyWinner": 0 }
+  ],
+  "invitationsReceived": [
+    { "setId": 9002, "gameName": "Keryo-Pente", "opponentName": "carol", "opponentRating": 1450,
+      "color": "black", "daysPerMove": 7, "rated": "unrated", "opponentColor": 0, "opponentTourneyWinner": 1 }
+  ],
+  "activeGamesMyTurn": [
+    { "gid": 5001, "gameName": "Pente", "opponentName": "dave", "opponentRating": 1480,
+      "color": "white_to_move", "timeLeft": "2 days", "rated": "rated", "opponentColor": 255, "opponentTourneyWinner": 0 }
+  ],
+  "activeGamesOpponentTurn": [
+    { "gid": 5002, "gameName": "Pente", "opponentName": "erin", "opponentRating": 1490,
+      "color": "black_to_move", "timeLeft": "5 hours", "rated": "rated", "opponentColor": 65280, "opponentTourneyWinner": 0 }
+  ],
+  "openInvitationGames": [
+    { "setId": 7001, "gameName": "Pente", "inviterName": "frank", "inviterRating": 1300,
+      "color": "white", "daysPerMove": 2, "rated": "rated", "inviterColor": 8388608, "inviterTourneyWinner": 2 }
+  ],
+  "messages": [
+    { "mid": 3001, "read": false, "subject": "hi", "from": "grace", "date": "2024-01-01", "fromColor": 16711680, "fromTourneyWinner": 0 },
+    { "mid": 3002, "read": true, "subject": "re: hi", "from": "heidi", "date": "2024-01-02", "fromColor": 0, "fromTourneyWinner": 1 }
+  ],
+  "tournaments": [
+    { "name": "Spring Open", "eventId": 4001, "numRounds": 5, "gameName": "Pente", "status": 2, "date": "2024-03-01" }
+  ],
+  "onlinePlayers": ["bob", "carol"]
+}
