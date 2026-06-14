@@ -36,7 +36,7 @@
   ],
   "openInvitationGames": [
     { "setId": 7001, "gameName": "Pente", "inviterName": "frank", "inviterRating": 1300,
-      "color": "white", "daysPerMove": 2, "rated": "rated", "inviterColor": 8388608, "inviterTourneyWinner": 0 }
+      "color": "white", "daysPerMove": 2, "rated": "rated", "inviterColor": 8388608, "inviterTourneyWinner": 2 }
   ],
   "messages": [
     { "mid": 3001, "read": false, "subject": "hi", "from": "grace", "date": "2024-01-01", "fromColor": 16711680, "fromTourneyWinner": 0 },

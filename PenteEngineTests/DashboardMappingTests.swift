@@ -33,6 +33,10 @@ final class DashboardMappingTests: XCTestCase {
         XCTAssertEqual(g.remainingTime, "2 days")
         XCTAssertEqual(g.ratedNot, "rated")
         XCTAssertEqual(g.crown, 0)
+        let ng = try XCTUnwrap(loadDashboard().nonActiveGames.first)
+        XCTAssertEqual(ng.gameID, "5002")
+        XCTAssertEqual(ng.myColor, "black")
+        XCTAssertEqual(ng.opponentName, "erin")
     }
 
     func testReceivedInvitationUsesRawColorAndDaysPerMove() throws {
@@ -49,6 +53,7 @@ final class DashboardMappingTests: XCTestCase {
         XCTAssertEqual(g.opponentName, "frank")
         XCTAssertEqual(g.opponentRating, "1300")
         XCTAssertEqual(g.remainingTime, "2 days per move")
+        XCTAssertEqual(g.crown, 2)
     }
 
     func testMessageReadUnread() throws {
@@ -105,5 +110,15 @@ final class DashboardMappingTests: XCTestCase {
         XCTAssertEqual(d.onlinePlayers["carol"], "")
         XCTAssertTrue(d.avatarUsernames.contains("bob"))
         XCTAssertFalse(d.avatarUsernames.contains("carol"))
+        XCTAssertTrue(d.avatarUsernames.contains("grace"))   // fromColor != black -> included
+        XCTAssertFalse(d.avatarUsernames.contains("heidi"))  // fromColor 0 (black) -> excluded
     }
+
+    func testParseStoneColor() {
+        XCTAssertEqual(DashboardMapping.parseStoneColor("white_to_move"), "white")
+        XCTAssertEqual(DashboardMapping.parseStoneColor("black (p2)"), "black")
+        XCTAssertEqual(DashboardMapping.parseStoneColor("red"), "")
+        XCTAssertEqual(DashboardMapping.parseStoneColor(nil), "")
+    }
+
 }

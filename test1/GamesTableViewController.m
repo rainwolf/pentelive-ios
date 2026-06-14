@@ -3398,11 +3398,13 @@ array, and add a new row to the table view
     [service loadDashboardWithUsername:user
                              password:pass
                     completionHandler:^(Dashboard *dashboard, NSError *error) {
+            // The Swift async bridge resumes non-@MainActor loadDashboard on the cooperative
+            // thread pool, so this ObjC completion arrives off-main; hop to main for all UI.
         dispatch_async(dispatch_get_main_queue(), ^{
             __strong typeof(weakSelf) strongSelf = weakSelf;
             if (!strongSelf) return;
             if (error) {
-                if (error.code == 4 /* DashboardErrorCode.invalidCredentials */) {
+                if (error.code == DashboardErrorCodeInvalidCredentials) {
                     strongSelf.tableView.layer.borderWidth = 0.0;
                     [strongSelf performSelector:@selector(scrollViewDidScroll:)
                                      withObject:strongSelf.tableView

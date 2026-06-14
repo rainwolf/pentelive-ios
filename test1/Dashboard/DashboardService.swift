@@ -22,7 +22,15 @@ import Foundation
     /// ObjC sees `loadDashboardWithUsername:password:completionHandler:`.
     @objc func loadDashboard(username: String, password: String) async throws -> Dashboard {
         let request = endpoint.dashboardRequest(username: username, password: password)
-        let (data, response) = try await transport.data(for: request)
+        let data: Data
+        let response: URLResponse
+        do {
+            (data, response) = try await transport.data(for: request)
+        } catch let error as NSError where error.domain == DashboardError.domain {
+            throw error // already a DashboardError (e.g. .network from the transport)
+        } catch {
+            throw DashboardError.make(.network, message: error.localizedDescription)
+        }
 
         if let http = response as? HTTPURLResponse, http.statusCode != 200 {
             throw DashboardError.make(.http, message: "HTTP \(http.statusCode)")

@@ -1,6 +1,12 @@
 import XCTest
 @testable import penteLive
 
+private struct ThrowingTransport: Transport {
+    func data(for request: URLRequest) async throws -> (Data, URLResponse) {
+        throw URLError(.notConnectedToInternet)
+    }
+}
+
 private struct StubTransport: Transport {
     let data: Data
     let status: Int
@@ -40,5 +46,17 @@ final class DashboardServiceTests: XCTestCase {
         let service = DashboardService(transport: StubTransport(data: Data("not json".utf8), status: 200))
         do { _ = try await service.loadDashboard(username: "a", password: "b"); XCTFail("expected throw") }
         catch { XCTAssertEqual((error as NSError).code, DashboardErrorCode.decoding.rawValue) }
+    }
+
+    func testTransportThrowMapsToNetworkError() async throws {
+        let service = DashboardService(transport: ThrowingTransport())
+        do { _ = try await service.loadDashboard(username: "a", password: "b"); XCTFail("expected throw") }
+        catch { XCTAssertEqual((error as NSError).code, DashboardErrorCode.network.rawValue) }
+    }
+
+    func testEmptyInvitationsReceivedDoesNotThrow() async throws {
+        let json = Data("{\"player\":{\"name\":\"x\"},\"invitationsReceived\":[]}".utf8)
+        let service = DashboardService(transport: StubTransport(data: json, status: 200))
+        _ = try await service.loadDashboard(username: "a", password: "b") // must not throw
     }
 }
