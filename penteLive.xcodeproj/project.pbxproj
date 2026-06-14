@@ -11,9 +11,11 @@
 		0F517DEF255BDD9409111928 /* TableEngineRoutingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DAA75D2D52B843143873591 /* TableEngineRoutingTests.swift */; };
 		11624A088F5FA7A3BA8789DF /* Capture.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF08D052C94A67CE7B1A2ABE /* Capture.swift */; };
 		14FE00FB473FBD53DA6200A3 /* PenteGame.m in Sources */ = {isa = PBXBuildFile; fileRef = 636163A62019E5AA00D5E176 /* PenteGame.m */; };
+		1A596BBC3B5FB8DB1B8F9210 /* DashboardMapping.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF79B5FAA47E933A0410E3FD /* DashboardMapping.swift */; };
 		1B5F60CB3000FD275A9797D4 /* Scan.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7050AD4ABDB95FF4BBC49527 /* Scan.swift */; };
 		1B66D9F7FD1817D9F3E20072 /* CorpusSnapshotGeneratorTests.m in Sources */ = {isa = PBXBuildFile; fileRef = E4BA6089918203FB8F929268 /* CorpusSnapshotGeneratorTests.m */; };
 		1E188CB8EB8CB955EA072521 /* LiveBoardCaptureAnimationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7640F6E2282BC20AFCD185F3 /* LiveBoardCaptureAnimationTests.swift */; };
+		1E9781A497DB8BFC502570C2 /* DashboardMappingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23B6987E5A29895D65B9D900 /* DashboardMappingTests.swift */; };
 		23D406DC7B60ACE1F3879C92 /* BoardVariantMapping.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50436E8B3C992E62FFFC15D7 /* BoardVariantMapping.swift */; };
 		32A66A1A6CD3DA16C0CEFF89 /* PenteVariantTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86AC1A8A05D560A06454D468 /* PenteVariantTests.swift */; };
 		4117A5C99CA99A275BFEB2CC /* ScanTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDB76AE2B389F2859CE0C808 /* ScanTests.swift */; };
@@ -251,6 +253,7 @@
 		0DAA75D2D52B843143873591 /* TableEngineRoutingTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TableEngineRoutingTests.swift; sourceTree = "<group>"; };
 		1195B9EE689C773DA39F77AD /* PenteVariant.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PenteVariant.swift; sourceTree = "<group>"; };
 		1719B0CC190A38E646A3A9D8 /* dashboard_sample.json */ = {isa = PBXFileReference; includeInIndex = 1; path = dashboard_sample.json; sourceTree = "<group>"; };
+		23B6987E5A29895D65B9D900 /* DashboardMappingTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DashboardMappingTests.swift; sourceTree = "<group>"; };
 		410191D1BEE5CCDBB1EAFD9C /* Dashboard.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Dashboard.swift; sourceTree = "<group>"; };
 		50436E8B3C992E62FFFC15D7 /* BoardVariantMapping.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BoardVariantMapping.swift; sourceTree = "<group>"; };
 		63052FB71D047F9000F78B30 /* unlock.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = unlock.png; sourceTree = "<group>"; };
@@ -513,6 +516,7 @@
 		BF08D052C94A67CE7B1A2ABE /* Capture.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Capture.swift; sourceTree = "<group>"; };
 		C04A941E308F1CBC0804C1A6 /* PenteGameEngineTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PenteGameEngineTests.swift; sourceTree = "<group>"; };
 		D0D2331507464E3A0A3E4DEC /* RuleSet.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RuleSet.swift; sourceTree = "<group>"; };
+		DF79B5FAA47E933A0410E3FD /* DashboardMapping.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DashboardMapping.swift; sourceTree = "<group>"; };
 		E4BA6089918203FB8F929268 /* CorpusSnapshotGeneratorTests.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = CorpusSnapshotGeneratorTests.m; sourceTree = "<group>"; };
 		E5F0539DA310A85158CDB99B /* MoveResultTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MoveResultTests.swift; sourceTree = "<group>"; };
 		EC2523E9488B160980129A1F /* Pods-penteLive.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-penteLive.release.xcconfig"; path = "Pods/Target Support Files/Pods-penteLive/Pods-penteLive.release.xcconfig"; sourceTree = "<group>"; };
@@ -931,6 +935,7 @@
 				F0FC944C7EBF9EE152F01111 /* DashboardResultTests.swift */,
 				F2A641ABE97489C9CBF14BE2 /* Fixtures */,
 				A838F18BBA250038D3596952 /* DashboardDecodingTests.swift */,
+				23B6987E5A29895D65B9D900 /* DashboardMappingTests.swift */,
 			);
 			path = PenteEngineTests;
 			sourceTree = SOURCE_ROOT;
@@ -940,6 +945,7 @@
 			children = (
 				410191D1BEE5CCDBB1EAFD9C /* Dashboard.swift */,
 				A1368306455C932D8D8B7E65 /* DashboardWire.swift */,
+				DF79B5FAA47E933A0410E3FD /* DashboardMapping.swift */,
 			);
 			name = Dashboard;
 			path = test1/Dashboard;
@@ -1293,6 +1299,7 @@
 				4B107A0AC64E386CA34E53FA /* GoGameTests.swift in Sources */,
 				70FAFB8857D33AA36493CB88 /* DashboardResultTests.swift in Sources */,
 				A15CB2F09376664566B7C4D7 /* DashboardDecodingTests.swift in Sources */,
+				1E9781A497DB8BFC502570C2 /* DashboardMappingTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1354,6 +1361,7 @@
 				D836BAEE88141DCF9CE02CBB /* GoGame.swift in Sources */,
 				41EC6A7DF85ADB818D28BC81 /* Dashboard.swift in Sources */,
 				8DC0EDBB4B2C756A9413992C /* DashboardWire.swift in Sources */,
+				1A596BBC3B5FB8DB1B8F9210 /* DashboardMapping.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
