@@ -222,6 +222,8 @@
 		6DF419D1BFAAECFD9C12D887 /* RuleSetTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ECBCB2C27E5249A019555B9 /* RuleSetTests.swift */; };
 		704D00F9E428E7746E4942F1 /* CorpusHelperTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8715B8F87E8325A61F04D700 /* CorpusHelperTests.swift */; };
 		70FAFB8857D33AA36493CB88 /* DashboardResultTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0FC944C7EBF9EE152F01111 /* DashboardResultTests.swift */; };
+		8DC0EDBB4B2C756A9413992C /* DashboardWire.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1368306455C932D8D8B7E65 /* DashboardWire.swift */; };
+		A15CB2F09376664566B7C4D7 /* DashboardDecodingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A838F18BBA250038D3596952 /* DashboardDecodingTests.swift */; };
 		A382731D82157006F34514E4 /* MoveResultTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5F0539DA310A85158CDB99B /* MoveResultTests.swift */; };
 		ACB8501DE77D92A9A2323746 /* PenteVariant.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1195B9EE689C773DA39F77AD /* PenteVariant.swift */; };
 		C39BBF8A4B9D391D75E63514 /* MoveResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9AA0E8424F26F770E4D9CD /* MoveResult.swift */; };
@@ -500,8 +502,10 @@
 		8ECBCB2C27E5249A019555B9 /* RuleSetTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RuleSetTests.swift; sourceTree = "<group>"; };
 		8F67AC8BE4C73FF7390EB742 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
 		9B9AA0E8424F26F770E4D9CD /* MoveResult.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MoveResult.swift; sourceTree = "<group>"; };
+		A1368306455C932D8D8B7E65 /* DashboardWire.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DashboardWire.swift; sourceTree = "<group>"; };
 		A43C60A3066249BC1D49D05D /* PenteGameCorpusTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PenteGameCorpusTests.swift; sourceTree = "<group>"; };
 		A639685AFB848EDF3272E550 /* CorpusSupport.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CorpusSupport.swift; sourceTree = "<group>"; };
+		A838F18BBA250038D3596952 /* DashboardDecodingTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DashboardDecodingTests.swift; sourceTree = "<group>"; };
 		AC57360A41A0C0C3E0E0BD99 /* PenteEngineTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PenteEngineTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		AF08F02CC6ACC370781E5AA6 /* GoGame.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GoGame.swift; sourceTree = "<group>"; };
 		B5FF3D6A4D1F70E68CC42981 /* GoGameTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GoGameTests.swift; sourceTree = "<group>"; };
@@ -926,6 +930,7 @@
 				B5FF3D6A4D1F70E68CC42981 /* GoGameTests.swift */,
 				F0FC944C7EBF9EE152F01111 /* DashboardResultTests.swift */,
 				F2A641ABE97489C9CBF14BE2 /* Fixtures */,
+				A838F18BBA250038D3596952 /* DashboardDecodingTests.swift */,
 			);
 			path = PenteEngineTests;
 			sourceTree = SOURCE_ROOT;
@@ -934,6 +939,7 @@
 			isa = PBXGroup;
 			children = (
 				410191D1BEE5CCDBB1EAFD9C /* Dashboard.swift */,
+				A1368306455C932D8D8B7E65 /* DashboardWire.swift */,
 			);
 			name = Dashboard;
 			path = test1/Dashboard;
@@ -1286,6 +1292,7 @@
 				FC94E43192D837205DC1411F /* BoardVariantMappingTests.swift in Sources */,
 				4B107A0AC64E386CA34E53FA /* GoGameTests.swift in Sources */,
 				70FAFB8857D33AA36493CB88 /* DashboardResultTests.swift in Sources */,
+				A15CB2F09376664566B7C4D7 /* DashboardDecodingTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1346,6 +1353,7 @@
 				23D406DC7B60ACE1F3879C92 /* BoardVariantMapping.swift in Sources */,
 				D836BAEE88141DCF9CE02CBB /* GoGame.swift in Sources */,
 				41EC6A7DF85ADB818D28BC81 /* Dashboard.swift in Sources */,
+				8DC0EDBB4B2C756A9413992C /* DashboardWire.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
