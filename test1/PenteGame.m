@@ -9,12 +9,10 @@
 #import "PenteGame.h"
 #import <Foundation/Foundation.h>
 
-@implementation PenteGame
+@implementation LegacyPenteGame
 @synthesize abstractBoard;
 @synthesize whiteCaptures, blackCaptures;
 @synthesize captures;
-@synthesize goStoneGroupsByPlayerAndID;
-@synthesize goStoneGroupIDsByPlayer;
 
 + (NSString *)getGameName:(int)gameInt {
     NSString *gameStr = @"Pente";

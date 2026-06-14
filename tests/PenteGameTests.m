@@ -1,6 +1,6 @@
 //
 //  PenteGameTests.m
-//  Standalone behavioral tests for the shared PenteGame engine.
+//  Standalone behavioral tests for the shared LegacyPenteGame engine.
 //
 //  Run with:
 //    clang -fobjc-arc -framework Foundation \
@@ -28,8 +28,8 @@ static int failures = 0;
 
 static int boardStorage[19][19];
 
-static PenteGame *freshGame(void) {
-    PenteGame *g = [[PenteGame alloc] init];
+static LegacyPenteGame *freshGame(void) {
+    LegacyPenteGame *g = [[LegacyPenteGame alloc] init];
     g.abstractBoard = boardStorage;
     [g resetBoard];
     g.whiteCaptures = 0;
@@ -40,7 +40,7 @@ static PenteGame *freshGame(void) {
 static int pos(int row, int col) { return row * 19 + col; }
 
 static void testPairCapture(void) {
-    PenteGame *g = freshGame();
+    LegacyPenteGame *g = freshGame();
     NSMutableArray *events = [[NSMutableArray alloc] init];
     g.captures = events;
     // white flanker, two black stones, white closes the pair
@@ -61,7 +61,7 @@ static void testPairCapture(void) {
 }
 
 static void testCaptureWithoutEventArray(void) {
-    PenteGame *g = freshGame();
+    LegacyPenteGame *g = freshGame();
     g.captures = nil; // MMAI-style consumer: no animation recording
     boardStorage[5][5] = 1;
     boardStorage[5][6] = 2;
@@ -73,7 +73,7 @@ static void testCaptureWithoutEventArray(void) {
 }
 
 static void testKeryoTripleCapture(void) {
-    PenteGame *g = freshGame();
+    LegacyPenteGame *g = freshGame();
     boardStorage[5][5] = 1;
     boardStorage[5][6] = 2;
     boardStorage[5][7] = 2;
@@ -87,7 +87,7 @@ static void testKeryoTripleCapture(void) {
 }
 
 static void testPoof(void) {
-    PenteGame *g = freshGame();
+    LegacyPenteGame *g = freshGame();
     NSMutableArray *events = [[NSMutableArray alloc] init];
     g.captures = events;
     boardStorage[5][4] = 2;
@@ -109,7 +109,7 @@ static void testKeryoPoofAntiDiagonalCenter(void) {
     // 3-stone keryo poof, placed stone in the center of the anti-diagonal:
     // black (11,7) / white (10,8) / white placed (9,9) / white (8,10) /
     // black (7,11)
-    PenteGame *g = freshGame();
+    LegacyPenteGame *g = freshGame();
     boardStorage[11][7] = 2;
     boardStorage[10][8] = 1;
     boardStorage[8][10] = 1;
@@ -124,7 +124,7 @@ static void testKeryoPoofAntiDiagonalCenter(void) {
 
     // regression for the old duplicated-condition bug: with the upper-right
     // own stone missing, no poof may fire
-    PenteGame *g2 = freshGame();
+    LegacyPenteGame *g2 = freshGame();
     boardStorage[11][7] = 2;
     boardStorage[10][8] = 1;
     boardStorage[7][11] = 2;
@@ -137,7 +137,7 @@ static void testKeryoPoofAntiDiagonalCenter(void) {
 }
 
 static void testReplayPenteFiveInARowWin(void) {
-    PenteGame *g = freshGame();
+    LegacyPenteGame *g = freshGame();
     // white builds row 9 cols 9-13; black plays far away on row 2
     NSArray *moves = @[
         @(pos(9, 9)), @(pos(2, 2)), @(pos(9, 10)), @(pos(2, 3)), @(pos(9, 11)),
@@ -151,7 +151,7 @@ static void testReplayPenteFiveInARowWin(void) {
 }
 
 static void testReplayWithStringMoves(void) {
-    PenteGame *g = freshGame();
+    LegacyPenteGame *g = freshGame();
     // BoardViewController passes moves as strings; intValue must work
     NSArray *moves = @[ @"180", @"42" ];
     [g replayMoves:moves variant:PenteGameVariantPente untilMove:2];
@@ -160,7 +160,7 @@ static void testReplayWithStringMoves(void) {
 }
 
 static void testReplayKeryoCapture(void) {
-    PenteGame *g = freshGame();
+    LegacyPenteGame *g = freshGame();
     NSArray *moves = @[
         @(pos(5, 5)), @(pos(5, 6)), @(pos(12, 12)), @(pos(5, 7)),
         @(pos(14, 14)), @(pos(5, 8)), @(pos(5, 9))
@@ -175,7 +175,7 @@ static void testReplayKeryoCapture(void) {
 }
 
 static void testCaptureWinThresholds(void) {
-    PenteGame *g = freshGame();
+    LegacyPenteGame *g = freshGame();
     NSArray *moves = @[ @(pos(9, 9)) ];
     g.whiteCaptures = 10;
     ASSERT_EQ([g winnerForVariant:PenteGameVariantPente moves:moves], 2,
@@ -193,7 +193,7 @@ static void testCaptureWinThresholds(void) {
 }
 
 static void testReplayConnect6Colors(void) {
-    PenteGame *g = freshGame();
+    LegacyPenteGame *g = freshGame();
     // Connect6 order: w, b, b, w, w, b, b, ...
     NSArray *moves = @[ @0, @1, @2, @3, @4, @5 ];
     [g replayMoves:moves
@@ -208,7 +208,7 @@ static void testReplayConnect6Colors(void) {
 }
 
 static void testMasks(void) {
-    PenteGame *g = freshGame();
+    LegacyPenteGame *g = freshGame();
     boardStorage[9][9] = 1;
     [g maskTournamentOpening];
     ASSERT_EQ(boardStorage[7][7], -1, "tournament mask set");

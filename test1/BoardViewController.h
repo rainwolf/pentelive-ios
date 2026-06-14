@@ -15,6 +15,9 @@
 // #define IS_IPHONE_5 ( fabs( ( double )[ [ UIScreen mainScreen ] bounds
 // ].size.height - ( double )568 ) < DBL_EPSILON )
 
+// Swift engine bridged to ObjC via penteLive-Swift.h (imported in the .m).
+@class SwiftPenteGame;
+
 @interface BoardViewController
     : UIViewController <UITextViewDelegate, PopoverViewDelegate,
                         WKNavigationDelegate, UIAlertViewDelegate> {
@@ -29,6 +32,9 @@
     NSMutableDictionary *messagesHistory;
     BOOL activeGame, isLastMove;
     UIButton *lockButton;
+    SwiftPenteGame *engine;
+    int abstractBoard[19][19];
+    int lastReplayWinner;
 }
 @property(nonatomic, retain, readwrite) UIButton *lockButton;
 @property(atomic) BOOL activeGame, isLastMove;

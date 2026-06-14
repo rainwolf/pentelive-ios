@@ -41,9 +41,9 @@
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "633C9D3815BD5B98009AD00A"
-               BuildableName = "test1Tests.octest"
-               BlueprintName = "test1Tests"
+               BlueprintIdentifier = "0F47148383F57A310F51032B"
+               BuildableName = "PenteEngineTests.xctest"
+               BlueprintName = "PenteEngineTests"
                ReferencedContainer = "container:penteLive.xcodeproj">
             </BuildableReference>
          </TestableReference>

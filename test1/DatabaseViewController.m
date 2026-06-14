@@ -36,7 +36,7 @@
     int finalMove, whiteCaptures, blackCaptures, lastMove;
     char coordinateLetters[19];
     BOOL aiThinking;
-    PenteGame *penteGame;
+    LegacyPenteGame *penteGame;
 }
 @synthesize aiPlayer;
 @synthesize board;
@@ -66,7 +66,7 @@ BoardViewController *boardController;
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view, typically from a nib.
-    penteGame = [[PenteGame alloc] init];
+    penteGame = [[LegacyPenteGame alloc] init];
     penteGame.abstractBoard = abstractBoard;
     aiThinking = NO;
 

@@ -22,6 +22,11 @@
 #define PERSONALIZEADSKEY @"personalizeAds"
 #define GDPRTERMSKEY @"termsAcceptedGDPR_0"
 
+// The `development` macro above is the single flip point for dev mode. Swift's
+// importer can't read a BOOL macro, so this function bridges its value: Swift
+// derives the same flag via `developmentEnabled()`. Flip the macro only.
+BOOL developmentEnabled(void);
+
 @interface Game : NSObject {
     NSString *gameID, *setID, *gameType, *opponentName, *opponentRating,
         *myColor, *remainingTime, *ratedNot, *privateGame, *localizedTime,

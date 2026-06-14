@@ -49,6 +49,34 @@ class LiveBoard: UIView {
         goDeadStones = nil
     }
 
+    // Briefly overlays each captured stone at its cell, then fades + shrinks it away.
+    // Cell geometry matches draw(_:): a stone at (i, j) occupies a 2*margin square at
+    // (j*2*margin, i*2*margin), with margin = bounds.width / (2 * gridSize).
+    func animateCaptures(_ captures: [Capture]) {
+        guard !captures.isEmpty, bounds.size.width > 0 else { return }
+        let margin = bounds.size.width / (2 * CGFloat(gridSize))
+        for capture in captures {
+            let i = capture.position / gridSize
+            let j = capture.position % gridSize
+            let frame = CGRect(x: CGFloat(j) * 2 * margin,
+                               y: CGFloat(i) * 2 * margin,
+                               width: 2 * margin,
+                               height: 2 * margin)
+            let overlay = UIView(frame: frame)
+            overlay.layer.cornerRadius = margin
+            overlay.backgroundColor = (capture.color == StoneColor.white.rawValue)
+                ? UIColor.white : UIColor.black
+            overlay.isUserInteractionEnabled = false
+            addSubview(overlay)
+            UIView.animate(withDuration: 0.4, animations: {
+                overlay.alpha = 0
+                overlay.transform = CGAffineTransform(scaleX: 0.1, y: 0.1)
+            }, completion: { _ in
+                overlay.removeFromSuperview()
+            })
+        }
+    }
+
     override func draw(_: CGRect) {
         let context = UIGraphicsGetCurrentContext()!
         context.setLineWidth(1.2)

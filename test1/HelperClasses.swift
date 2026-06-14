@@ -86,7 +86,13 @@ class Table: NSObject {
     var players = [String: LivePlayer]()
     var timed = false
     var timer = ["initialMinutes": 0, "incrementalSeconds": 0]
-    var game = 1
+    var game = 1 {
+        didSet {
+            if game != oldValue {
+                engine = PenteGame(variant: penteVariant(for: game))
+            }
+        }
+    }
     var open = true
     var rated = false
     var table = 1
@@ -97,12 +103,14 @@ class Table: NSObject {
     var abstractBoard = Array(repeating: Array(repeating: 0, count: 19), count: 19)
     var whiteCaptures = 0
     var blackCaptures = 0
-    var goStoneGroupIDsByPlayer = [Int: [Int: Int]]()
-    var goStoneGroupsByPlayerAndID = [Int: [Int: [Int]]]()
+    private var engine = PenteGame(variant: .pente)
+    private(set) var lastMoveResult: MoveResult?
+    var onCaptures: (([Capture]) -> Void)?
     var goDeadStonesByPlayer = [Int: [Int]]()
     var goTerritoryByPlayer = [Int: [Int]]()
     
     var koMove = -1
+    var goGame = GoGame(gridSize: 19)
     
     static let gameNames = [1: "Pente", 2: "Speed Pente", 3: "Keryo-Pente", 4: "Speed Keryo-Pente", 5: "Gomoku",
                      6: "Speed Gomoku", 7: "D-Pente", 8: "Speed D-Pente", 9: "G-Pente", 10: "Speed G-Pente",
@@ -201,20 +209,28 @@ class Table: NSObject {
     func addMoves(moves: [Int]) {
         self.moves.removeAll()
         abstractBoard = Array(repeating: Array(repeating: 0, count: 19), count: 19)
-        goStoneGroupIDsByPlayer.removeAll(); goStoneGroupIDsByPlayer[1] = [Int: Int](); goStoneGroupIDsByPlayer[2] = [Int: Int]()
-        goStoneGroupsByPlayerAndID.removeAll(); goStoneGroupsByPlayerAndID[1] = [Int: [Int]](); goStoneGroupsByPlayerAndID[2] = [Int: [Int]]()
         goDeadStonesByPlayer.removeAll(); goDeadStonesByPlayer[1] = [Int](); goDeadStonesByPlayer[2] = [Int]()
         goTerritoryByPlayer.removeAll(); goTerritoryByPlayer[1] = [Int](); goTerritoryByPlayer[2] = [Int]()
+        goGame = GoGame(gridSize: 19)
         //        state.dPenteState = .noChoice
         //        state.swap2State = .noChoice
         state.goState = .play
         blackCaptures = 0
         whiteCaptures = 0
-        for move in moves {
-            addMove(move: move)
+        if isGo() {
+            for move in moves {
+                addMove(move: move)
+            }
+            return
         }
+        // Pente-family: rebuild the whole position in one engine call (replay resets
+        // the engine internally) and mirror it back. Unlike the per-move addMove loop
+        // this stays silent — no onCaptures animation fires during a bulk load.
+        lastMoveResult = engine.replay(moves, until: moves.count)
+        self.moves = moves
+        syncFromEngine()
     }
-    
+
     func showMarkStones(player: String) -> Bool {
         //        return false
         //        print(isGo())
@@ -245,84 +261,70 @@ class Table: NSObject {
         return game != GameEnum.gomoku.rawValue && game != GameEnum.speedGomoku.rawValue && game != GameEnum.connect6.rawValue && game != GameEnum.speedConnect6.rawValue
     }
     
+    // Maps the live-room game id (GameEnum 1...30) to the engine variant.
+    // Boat-Pente shares Pente rules; Go ids never reach the engine (isGo() short-circuits).
+    private func penteVariant(for game: Int) -> PenteVariant {
+        switch GameEnum(rawValue: game) {
+        case .keryoPente, .speedKeryoPente: return .keryoPente
+        case .oPente, .speedOPente: return .oPente
+        case .poofPente, .speedPoofPente: return .poofPente
+        case .dPente, .speedDPente: return .dPente
+        case .dkPente, .speedDKPente: return .dkPente
+        case .gPente, .speedGPente: return .gpente
+        case .swap2Pente, .speedSwap2Pente: return .swap2Pente
+        case .swap2Keryo, .speedSwap2Keryo: return .swap2Keryo
+        case .gomoku, .speedGomoku: return .gomoku
+        case .connect6, .speedConnect6: return .connect6
+        default: return .pente
+        }
+    }
+
+    // Read accessor used by tests and renderers: the engine is the source of truth
+    // for Pente-family games; Go keeps its own board.
+    func stone(at rowCol: Int) -> Int {
+        if isGo() {
+            // abstractBoard is always 19x19, but gridSize can be 9 or 13 for Go.
+            // Guard so an out-of-range rowCol returns empty instead of trapping;
+            // for valid rowCol < gridSize², rowCol/gridSize < gridSize <= 19.
+            guard rowCol >= 0 && rowCol < gridSize * gridSize else { return 0 }
+            return abstractBoard[rowCol / gridSize][rowCol % gridSize]
+        }
+        return engine.stone(at: rowCol)
+    }
+
+    // Mirror the engine board + counters into the stored arrays the renderers read.
+    private func syncFromEngine() {
+        // Legacy applied the tournament opening mask (the centre -1 cells) only when
+        // `rated || (speed)gPente`. The engine now masks intrinsically for every
+        // Pente/Keryo/Poof/OPente variant, so for unrated non-gPente games we must
+        // drop those -1 cells back to empty — otherwise the renderer / tap-gating
+        // (TableViewController: `hideStone = abstractBoard != 0`) would wrongly block
+        // the centre. Rated games and (speed)gPente keep the mask, matching legacy.
+        let maskAllowed = rated || game == GameEnum.gPente.rawValue || game == GameEnum.speedGPente.rawValue
+        for r in 0 ..< 19 {
+            for c in 0 ..< 19 {
+                let value = engine.stone(at: r * 19 + c)
+                abstractBoard[r][c] = (value == -1 && !maskAllowed) ? 0 : value
+            }
+        }
+        whiteCaptures = engine.whiteCaptures
+        blackCaptures = engine.blackCaptures
+    }
+
     func addMove(move: Int) {
         if isGo() {
             addGoMove(move: move)
             return
         }
-        let color = currentPlayer()
+        let result = engine.play(move)
         moves.append(move)
-        let i = move / 19
-        let j = move % 19
-        abstractBoard[i][j] = color
-        if game != GameEnum.gomoku.rawValue, game != GameEnum.speedGomoku.rawValue, game != GameEnum.connect6.rawValue, game != GameEnum.speedConnect6.rawValue {
-            if game == GameEnum.poofPente.rawValue || game == GameEnum.speedPoofPente.rawValue || game == GameEnum.oPente.rawValue || game == GameEnum.speedOPente.rawValue {
-                detectPoof(move: move, color: color)
-            }
-            if game == GameEnum.oPente.rawValue || game == GameEnum.speedOPente.rawValue {
-                detectKeryoPoof(move: move, color: color)
-            }
-            detectCapture(move: move, color: color)
-            if game == GameEnum.keryoPente.rawValue || game == GameEnum.speedKeryoPente.rawValue || game == GameEnum.dkPente.rawValue || game == GameEnum.speedDKPente.rawValue || game == GameEnum.oPente.rawValue || game == GameEnum.speedOPente.rawValue || game == GameEnum.swap2Keryo.rawValue || game == GameEnum.speedSwap2Keryo.rawValue {
-                detectKeryoCapture(move: move, color: color)
-            }
-        }
-        if game != GameEnum.gomoku.rawValue, game != GameEnum.speedGomoku.rawValue, game != GameEnum.connect6.rawValue, game != GameEnum.speedConnect6.rawValue, game != GameEnum.dPente.rawValue, game != GameEnum.speedDPente.rawValue, game != GameEnum.dkPente.rawValue, game != GameEnum.speedDKPente.rawValue,
-           game != GameEnum.swap2Pente.rawValue, game != GameEnum.speedSwap2Pente.rawValue, game != GameEnum.swap2Keryo.rawValue, game != GameEnum.speedSwap2Keryo.rawValue, rated || game == GameEnum.gPente.rawValue || game == GameEnum.speedGPente.rawValue
-        {
-           if moves.count == 2 {
-               for i in 7 ..< 12 {
-                   for j in 7 ..< 12 {
-                       if abstractBoard[i][j] == 0 {
-                           abstractBoard[i][j] = -1
-                       }
-                   }
-               }
-               if game == GameEnum.gPente.rawValue || game == GameEnum.speedGPente.rawValue {
-                   for i in 1 ..< 3 {
-                       if abstractBoard[9][11 + i] == 0 {
-                           abstractBoard[9][11 + i] = -1
-                       }
-                       if abstractBoard[9][7 - i] == 0 {
-                           abstractBoard[9][7 - i] = -1
-                       }
-                       if abstractBoard[11 + i][9] == 0 {
-                           abstractBoard[11 + i][9] = -1
-                       }
-                       if abstractBoard[7 - i][9] == 0 {
-                           abstractBoard[7 - i][9] = -1
-                       }
-                   }
-               }
-           } else if moves.count == 3 {
-               for i in 7 ..< 12 {
-                   for j in 7 ..< 12 {
-                       if abstractBoard[i][j] == -1 {
-                           abstractBoard[i][j] = 0
-                       }
-                   }
-               }
-               if game == GameEnum.gPente.rawValue || game == GameEnum.speedGPente.rawValue {
-                   for i in 1 ..< 3 {
-                       if abstractBoard[9][11 + i] == -1 {
-                           abstractBoard[9][11 + i] = 0
-                       }
-                       if abstractBoard[9][7 - i] == -1 {
-                           abstractBoard[9][7 - i] = 0
-                       }
-                       if abstractBoard[11 + i][9] == -1 {
-                           abstractBoard[11 + i][9] = 0
-                       }
-                       if abstractBoard[7 - i][9] == -1 {
-                           abstractBoard[7 - i][9] = 0
-                       }
-                   }
-               }
-           }
+        syncFromEngine()
+        lastMoveResult = result
+        if !result.captured.isEmpty {
+            onCaptures?(result.captured)
         }
     }
     
-    var hasPass = false, doublePass = false
     var gridSize = 19, passMove = 19 * 19
     
     func addGoMove(move: Int) {
@@ -330,41 +332,33 @@ class Table: NSObject {
             gridSize = 9
         } else if game == GameEnum.go13x13.rawValue || game == GameEnum.speedGo13x13.rawValue {
             gridSize = 13
+        } else {
+            gridSize = 19
         }
         passMove = gridSize * gridSize
-        let player = currentPlayer(), color = 3 - player
-        //        print("Go move ",player)
-        if move == passMove {
-            if state.goState == .markStones {
-                state.goState = .evaluateStones
-            } else if hasPass {
-                doublePass = true
-                state.goState = .markStones
-            } else {
-                hasPass = true
-            }
-        } else {
-            hasPass = false
+        if goGame.gridSize != gridSize {
+            goGame = GoGame(gridSize: gridSize)
+            goGame.replay(moves, until: moves.count)
         }
+        goGame.play(move)
         moves.append(move)
-        if state.goState == .markStones {
-            if move != passMove {
-                let p = 3 - getBoardValue(move: move)
-                goDeadStonesByPlayer[p]?.append(move)
-                setBoardValue(move: move, value: 0)
-            }
-        } else {
-            //            print("Go ",player, " ", color)
-            if move < passMove {
-                var groupsByID = goStoneGroupsByPlayerAndID[player]!, stoneGroupIDs = goStoneGroupIDsByPlayer[player]!
-                setBoardValue(move: move, value: color)
-                settleGroups(groupsByID: &groupsByID, stoneGroupIDs: &stoneGroupIDs, move: move)
-                goStoneGroupsByPlayerAndID[player] = groupsByID; goStoneGroupIDsByPlayer[player] = stoneGroupIDs
-                
-                groupsByID = goStoneGroupsByPlayerAndID[color]!; stoneGroupIDs = goStoneGroupIDsByPlayer[color]!
-                makeCaptures(move: move, groupsByID: &groupsByID, stoneGroupIDs: &stoneGroupIDs)
-                goStoneGroupsByPlayerAndID[color] = groupsByID; goStoneGroupIDsByPlayer[color] = stoneGroupIDs
-            }
+        syncFromGoGame()
+    }
+
+    func syncFromGoGame() {
+        for pos in 0 ..< (gridSize * gridSize) {
+            let i = pos / gridSize, j = pos % gridSize
+            abstractBoard[i][j] = goGame.stone(at: pos)
+        }
+        whiteCaptures = goGame.whiteCaptures
+        blackCaptures = goGame.blackCaptures
+        koMove = goGame.koMove
+        goDeadStonesByPlayer[1] = goGame.blackDeadStones
+        goDeadStonesByPlayer[2] = goGame.whiteDeadStones
+        switch goGame.phase {
+        case .play: state.goState = .play
+        case .markStones: state.goState = .markStones
+        case .evaluateStones: state.goState = .evaluateStones
         }
     }
     
@@ -378,10 +372,11 @@ class Table: NSObject {
         blackCaptures = 0
         whiteCaptures = 0
         abstractBoard = Array(repeating: Array(repeating: 0, count: 19), count: 19)
-        goStoneGroupIDsByPlayer.removeAll(); goStoneGroupIDsByPlayer[1] = [Int: Int](); goStoneGroupIDsByPlayer[2] = [Int: Int]()
-        goStoneGroupsByPlayerAndID.removeAll(); goStoneGroupsByPlayerAndID[1] = [Int: [Int]](); goStoneGroupsByPlayerAndID[2] = [Int: [Int]]()
+        engine.reset()
+        lastMoveResult = nil
         goDeadStonesByPlayer.removeAll(); goDeadStonesByPlayer[1] = [Int](); goDeadStonesByPlayer[2] = [Int]()
         goTerritoryByPlayer.removeAll(); goTerritoryByPlayer[1] = [Int](); goTerritoryByPlayer[2] = [Int]()
+        goGame = GoGame(gridSize: 19)
         state.dPenteState = .noChoice
         state.swap2State = .noChoice
         state.goState = .play
@@ -443,21 +438,29 @@ class Table: NSObject {
     }
     
     func undoLastMove() {
-        let newMoves = moves[0 ..< (moves.count - 1)]
+        guard !moves.isEmpty else { return }
+        let newMoves = Array(moves[0 ..< (moves.count - 1)])
         blackCaptures = 0
         whiteCaptures = 0
         abstractBoard = Array(repeating: Array(repeating: 0, count: 19), count: 19)
         moves.removeAll()
-        goStoneGroupIDsByPlayer.removeAll(); goStoneGroupIDsByPlayer[1] = [Int: Int](); goStoneGroupIDsByPlayer[2] = [Int: Int]()
-        goStoneGroupsByPlayerAndID.removeAll(); goStoneGroupsByPlayerAndID[1] = [Int: [Int]](); goStoneGroupsByPlayerAndID[2] = [Int: [Int]]()
         goDeadStonesByPlayer.removeAll(); goDeadStonesByPlayer[1] = [Int](); goDeadStonesByPlayer[2] = [Int]()
         goTerritoryByPlayer.removeAll(); goTerritoryByPlayer[1] = [Int](); goTerritoryByPlayer[2] = [Int]()
+        goGame = GoGame(gridSize: 19)
         koMove = -1
         state.dPenteState = .noChoice
         state.goState = .play
-        for move in newMoves {
-            addMove(move: move)
+        if isGo() {
+            for move in newMoves {
+                addMove(move: move)
+            }
+            return
         }
+        // Pente-family: rebuild the surviving position in one engine call (replay
+        // resets the engine internally) so undone stones/captures don't persist.
+        lastMoveResult = engine.replay(newMoves, until: newMoves.count)
+        moves = newMoves
+        syncFromEngine()
     }
     
     func currentPlayer() -> Int {
@@ -554,306 +557,16 @@ class Table: NSObject {
         return game >= GameEnum.go.rawValue && game < GameEnum.oPente.rawValue
     }
     
-    func makeCaptures(move: Int, groupsByID: inout [Int: [Int]], stoneGroupIDs: inout [Int: Int]) {
-        var captures = 0
-        if move % gridSize != 0 {
-            let neighborStone = move - 1
-            if let neighborStoneID = stoneGroupIDs[neighborStone] {
-                captures = getCaptures(move: move, groupsByID: &groupsByID, stoneGroupIDs: &stoneGroupIDs, captures: captures, neighborStone: neighborStone, neighborStoneID: neighborStoneID)
-            }
-        }
-        if move % gridSize != gridSize - 1 {
-            let neighborStone = move + 1
-            if let neighborStoneID = stoneGroupIDs[neighborStone] {
-                captures = getCaptures(move: move, groupsByID: &groupsByID, stoneGroupIDs: &stoneGroupIDs, captures: captures, neighborStone: neighborStone, neighborStoneID: neighborStoneID)
-            }
-        }
-        if move / gridSize != 0 {
-            let neighborStone = move - gridSize
-            if let neighborStoneID = stoneGroupIDs[neighborStone] {
-                captures = getCaptures(move: move, groupsByID: &groupsByID, stoneGroupIDs: &stoneGroupIDs, captures: captures, neighborStone: neighborStone, neighborStoneID: neighborStoneID)
-            }
-        }
-        if move / gridSize != gridSize - 1 {
-            let neighborStone = move + gridSize
-            if let neighborStoneID = stoneGroupIDs[neighborStone] {
-                captures = getCaptures(move: move, groupsByID: &groupsByID, stoneGroupIDs: &stoneGroupIDs, captures: captures, neighborStone: neighborStone, neighborStoneID: neighborStoneID)
-            }
-        }
-    }
-    
-    func getCaptures(move: Int, groupsByID: inout [Int: [Int]], stoneGroupIDs: inout [Int: Int], captures: Int, neighborStone: Int, neighborStoneID: Int) -> Int {
-        var newCaptures = captures
-        if let neighborStoneGroup = groupsByID[neighborStoneID] {
-            if !groupHasLiberties(group: neighborStoneGroup) {
-                if koMove < 0 && neighborStoneGroup.count == 1 && checkKo(move: move) {
-                    koMove = neighborStone
-                } else {
-                    koMove = -1
-                }
-                newCaptures += neighborStoneGroup.count
-                captureGroup(groupID: neighborStoneID, groupsByID: &groupsByID, stoneGroupIDs: &stoneGroupIDs)
-            }
-        }
-        return newCaptures
-    }
-    
-    func checkKo(move: Int) -> Bool {
-        let position = getBoardValue(move: move)
-        if move % gridSize != 0 {
-            let neighborStone = move - 1
-            let neighborPosition = getBoardValue(move: neighborStone)
-            if position != 3 - neighborPosition {
-                return false
-            }
-        }
-        if move % gridSize != gridSize - 1 {
-            let neighborStone = move + 1
-            let neighborPosition = getBoardValue(move: neighborStone)
-            if position != 3 - neighborPosition {
-                return false
-            }
-        }
-        if move / gridSize != 0 {
-            let neighborStone = move - gridSize
-            let neighborPosition = getBoardValue(move: neighborStone)
-            if position != 3 - neighborPosition {
-                return false
-            }
-        }
-        if move / gridSize != gridSize - 1 {
-            let neighborStone = move + gridSize
-            let neighborPosition = getBoardValue(move: neighborStone)
-            if position != 3 - neighborPosition {
-                return false
-            }
-        }
-        return true
-    }
-    
-    func captureGroup(groupID: Int, groupsByID: inout [Int: [Int]], stoneGroupIDs: inout [Int: Int]) {
-        let group = groupsByID[groupID]!
-        let color = getBoardValue(move: group[0])
-        for stone in group {
-            setBoardValue(move: stone, value: 0)
-            stoneGroupIDs.removeValue(forKey: stone)
-        }
-        groupsByID.removeValue(forKey: groupID)
-        if color == 2 {
-            blackCaptures += group.count
-        } else if color == 1 {
-            whiteCaptures += group.count
-        }
-    }
-    
-    func groupHasLiberties(group: [Int]) -> Bool {
-        for stone in group {
-            if stoneHasLiberties(move: stone) {
-                return true
-            }
-        }
-        return false
-    }
-    
-    func stoneHasLiberties(move: Int) -> Bool {
-        if move % gridSize != 0 {
-            let neighborStone = move - 1
-            let pos = getBoardValue(move: neighborStone)
-            if pos != 1 && pos != 2 {
-                return true
-            }
-        }
-        if move % gridSize != gridSize - 1 {
-            let neighborStone = move + 1
-            let pos = getBoardValue(move: neighborStone)
-            if pos != 1 && pos != 2 {
-                return true
-            }
-        }
-        if move / gridSize != 0 {
-            let neighborStone = move - gridSize
-            let pos = getBoardValue(move: neighborStone)
-            if pos != 1 && pos != 2 {
-                return true
-            }
-        }
-        if move / gridSize != gridSize - 1 {
-            let neighborStone = move + gridSize
-            let pos = getBoardValue(move: neighborStone)
-            if pos != 1 && pos != 2 {
-                return true
-            }
-        }
-        return false
-    }
-    
-    func getBoardValue(move: Int) -> Int {
-        let i = move / gridSize
-        let j = move % gridSize
-        return abstractBoard[i][j]
-    }
-    
-    func setBoardValue(move: Int, value: Int) {
-        let i = move / gridSize
-        let j = move % gridSize
-        abstractBoard[i][j] = value
-    }
-    
-    func settleGroups(groupsByID: inout [Int: [Int]], stoneGroupIDs: inout [Int: Int], move: Int) {
-        let newGroup = [move]
-        groupsByID[move] = newGroup
-        stoneGroupIDs[move] = move
-        if move % gridSize != 0 {
-            let neighborStone = move - 1
-            if let neighborStoneID = stoneGroupIDs[neighborStone] {
-                mergeGroups(group1: move, group2: neighborStoneID, groupsByID: &groupsByID, stoneGroupIDs: &stoneGroupIDs)
-            }
-        }
-        if move % gridSize != gridSize - 1 {
-            let neighborStone = move + 1
-            if let neighborStoneID = stoneGroupIDs[neighborStone] {
-                mergeGroups(group1: stoneGroupIDs[move]!, group2: neighborStoneID, groupsByID: &groupsByID, stoneGroupIDs: &stoneGroupIDs)
-            }
-        }
-        if move / gridSize != 0 {
-            let neighborStone = move - gridSize
-            if let neighborStoneID = stoneGroupIDs[neighborStone] {
-                mergeGroups(group1: stoneGroupIDs[move]!, group2: neighborStoneID, groupsByID: &groupsByID, stoneGroupIDs: &stoneGroupIDs)
-            }
-        }
-        if move / gridSize != gridSize - 1 {
-            let neighborStone = move + gridSize
-            if let neighborStoneID = stoneGroupIDs[neighborStone] {
-                mergeGroups(group1: stoneGroupIDs[move]!, group2: neighborStoneID, groupsByID: &groupsByID, stoneGroupIDs: &stoneGroupIDs)
-            }
-        }
-    }
-    
-    func mergeGroups(group1: Int, group2: Int, groupsByID: inout [Int: [Int]], stoneGroupIDs: inout [Int: Int]) {
-        var oldGroup, newGroup: [Int]
-        var oldGroupID, newGroupID: Int
-        if group1 < group2 {
-            oldGroup = groupsByID[group1]!
-            newGroup = groupsByID[group2]!
-            oldGroupID = group1
-            newGroupID = group2
-        } else {
-            newGroup = groupsByID[group1]!
-            oldGroup = groupsByID[group2]!
-            oldGroupID = group2
-            newGroupID = group1
-        }
-        groupsByID.removeValue(forKey: oldGroupID)
-        newGroup.append(contentsOf: oldGroup)
-        groupsByID[newGroupID] = newGroup
-        for stone in oldGroup {
-            stoneGroupIDs[stone] = newGroupID
-        }
-    }
-    
     func getGoScoreString() -> String {
-        getTerritories()
-        let p1Stones = getMoves(value: 2).count, p2Stones = getMoves(value: 1).count, p1Territory = goTerritoryByPlayer[1]!.count, p2Territory = goTerritoryByPlayer[2]!.count
-        return "black score is \(p1Territory) + \(p1Stones) = \(p1Stones + p1Territory)\nwhite score is \(p2Territory) + \(p2Stones) + 7.5 = \(p2Stones + p2Territory + 7).5"
+        return goGame.scoreString()
     }
-    
-    func resetGoBeforeFlood() {
-        for i in 0 ..< gridSize {
-            for j in 0 ..< gridSize {
-                let pos = abstractBoard[i][j]
-                if pos != 1, pos != 2 {
-                    abstractBoard[i][j] = 0
-                }
-            }
-        }
-    }
-    
-    func getEmptyNeighbor(move: Int) -> Int {
-        if move % gridSize != 0 {
-            let neighborStone = move - 1
-            if getBoardValue(move: neighborStone) == 0 {
-                return neighborStone
-            }
-        }
-        if move % gridSize != gridSize - 1 {
-            let neighborStone = move + 1
-            if getBoardValue(move: neighborStone) == 0 {
-                return neighborStone
-            }
-        }
-        if move / gridSize != 0 {
-            let neighborStone = move - gridSize
-            if getBoardValue(move: neighborStone) == 0 {
-                return neighborStone
-            }
-        }
-        if move / gridSize != gridSize - 1 {
-            let neighborStone = move + gridSize
-            if getBoardValue(move: neighborStone) == 0 {
-                return neighborStone
-            }
-        }
-        return -1
-    }
-    
-    func getMoves(value: Int) -> [Int] {
-        var result = [Int]()
-        for i in 0 ..< gridSize {
-            for j in 0 ..< gridSize {
-                let pos = abstractBoard[i][j]
-                if pos == value {
-                    result.append(i * gridSize + j)
-                }
-            }
-        }
-        return result
-    }
-    
-    func floodFillWorker(move: Int, value: Int) {
-        setBoardValue(move: move, value: value)
-        var neighbor = getEmptyNeighbor(move: move)
-        while neighbor > -1 {
-            floodFillWorker(move: neighbor, value: value)
-            neighbor = getEmptyNeighbor(move: move)
-        }
-    }
-    
-    func floodFill(player: Int) {
-        for i in 0 ..< gridSize {
-            for j in 0 ..< gridSize {
-                let pos = abstractBoard[i][j]
-                if pos == 3 - player {
-                    let move = i * gridSize + j
-                    var neighbor = getEmptyNeighbor(move: move)
-                    while neighbor > -1 {
-                        floodFillWorker(move: neighbor, value: player + 2)
-                        neighbor = getEmptyNeighbor(move: move)
-                    }
-                }
-            }
-        }
-    }
-    
+
+    // Mirror GoGame's territory back into goTerritoryByPlayer for the renderer.
+    // Retained (not in the plan's literal replacement) because TableViewController
+    // calls table.getTerritories() directly to refresh territory overlays.
     func getTerritories() {
-        floodFill(player: 1)
-        var p1Territory = getMoves(value: 3)
-        resetGoBeforeFlood()
-        floodFill(player: 2)
-        var p2Territory = getMoves(value: 4)
-        resetGoBeforeFlood()
-        var i1 = p1Territory.count - 1, i2 = p2Territory.count - 1
-        while i1 > -1, i2 > -1 {
-            let p1 = p1Territory[i1], p2 = p2Territory[i2]
-            if p1 == p2 {
-                p1Territory.remove(at: i1); p2Territory.remove(at: i2)
-                i1 -= 1; i2 -= 1
-            } else if p1 < p2 {
-                i2 -= 1
-            } else {
-                i1 -= 1
-            }
-        }
-        goTerritoryByPlayer[1] = p1Territory; goTerritoryByPlayer[2] = p2Territory
+        goTerritoryByPlayer[1] = goGame.territory(forPlayer: 1)
+        goTerritoryByPlayer[2] = goGame.territory(forPlayer: 2)
     }
     
     func rejectDeadStones() {
@@ -932,562 +645,6 @@ class Table: NSObject {
         titleString.append(subtitleString)
         
         return titleString
-    }
-    
-    func detectCapture(move: Int, color: Int) {
-        let i = move / 19
-        let j = move % 19
-        let myColor = color
-        let opponentColor = 3 - color
-        if (i - 3) > -1 {
-            if abstractBoard[i - 3][j] == myColor {
-                if abstractBoard[i - 1][j] == opponentColor, abstractBoard[i - 2][j] == opponentColor {
-                    abstractBoard[i - 1][j] = 0
-                    abstractBoard[i - 2][j] = 0
-                    if opponentColor == 1 {
-                        whiteCaptures = whiteCaptures + 2
-                    } else {
-                        blackCaptures = blackCaptures + 2
-                    }
-                }
-            }
-        }
-        if (i - 3) > -1, (j - 3) > -1 {
-            if abstractBoard[i - 3][j - 3] == myColor {
-                if abstractBoard[i - 1][j - 1] == opponentColor, abstractBoard[i - 2][j - 2] == opponentColor {
-                    abstractBoard[i - 1][j - 1] = 0
-                    abstractBoard[i - 2][j - 2] = 0
-                    if opponentColor == 1 {
-                        whiteCaptures = whiteCaptures + 2
-                    } else {
-                        blackCaptures = blackCaptures + 2
-                    }
-                }
-            }
-        }
-        if (j - 3) > -1 {
-            if abstractBoard[i][j - 3] == myColor {
-                if abstractBoard[i][j - 1] == opponentColor, abstractBoard[i][j - 2] == opponentColor {
-                    abstractBoard[i][j - 1] = 0
-                    abstractBoard[i][j - 2] = 0
-                    if opponentColor == 1 {
-                        whiteCaptures = whiteCaptures + 2
-                    } else {
-                        blackCaptures = blackCaptures + 2
-                    }
-                }
-            }
-        }
-        if (i + 3) < 19, (j - 3) > -1 {
-            if abstractBoard[i + 3][j - 3] == myColor {
-                if abstractBoard[i + 1][j - 1] == opponentColor, abstractBoard[i + 2][j - 2] == opponentColor {
-                    abstractBoard[i + 1][j - 1] = 0
-                    abstractBoard[i + 2][j - 2] = 0
-                    if opponentColor == 1 {
-                        whiteCaptures = whiteCaptures + 2
-                    } else {
-                        blackCaptures = blackCaptures + 2
-                    }
-                }
-            }
-        }
-        if (i + 3) < 19 {
-            if abstractBoard[i + 3][j] == myColor {
-                if abstractBoard[i + 1][j] == opponentColor, abstractBoard[i + 2][j] == opponentColor {
-                    abstractBoard[i + 1][j] = 0
-                    abstractBoard[i + 2][j] = 0
-                    if opponentColor == 1 {
-                        whiteCaptures = whiteCaptures + 2
-                    } else {
-                        blackCaptures = blackCaptures + 2
-                    }
-                }
-            }
-        }
-        if (i + 3) < 19, (j + 3) < 19 {
-            if abstractBoard[i + 3][j + 3] == myColor {
-                if abstractBoard[i + 1][j + 1] == opponentColor, abstractBoard[i + 2][j + 2] == opponentColor {
-                    abstractBoard[i + 1][j + 1] = 0
-                    abstractBoard[i + 2][j + 2] = 0
-                    if opponentColor == 1 {
-                        whiteCaptures = whiteCaptures + 2
-                    } else {
-                        blackCaptures = blackCaptures + 2
-                    }
-                }
-            }
-        }
-        if (j + 3) < 19 {
-            if abstractBoard[i][j + 3] == myColor {
-                if abstractBoard[i][j + 1] == opponentColor, abstractBoard[i][j + 2] == opponentColor {
-                    abstractBoard[i][j + 1] = 0
-                    abstractBoard[i][j + 2] = 0
-                    if opponentColor == 1 {
-                        whiteCaptures = whiteCaptures + 2
-                    } else {
-                        blackCaptures = blackCaptures + 2
-                    }
-                }
-            }
-        }
-        if (i - 3) > -1, (j + 3) < 19 {
-            if abstractBoard[i - 3][j + 3] == myColor {
-                if abstractBoard[i - 1][j + 1] == opponentColor, abstractBoard[i - 2][j + 2] == opponentColor {
-                    abstractBoard[i - 1][j + 1] = 0
-                    abstractBoard[i - 2][j + 2] = 0
-                    if opponentColor == 1 {
-                        whiteCaptures = whiteCaptures + 2
-                    } else {
-                        blackCaptures = blackCaptures + 2
-                    }
-                }
-            }
-        }
-    }
-    
-    func detectKeryoCapture(move: Int, color: Int) {
-        let i = move / 19
-        let j = move % 19
-        let myColor = color
-        let opponentColor = 3 - color
-        if (i - 4) > -1 {
-            if abstractBoard[i - 4][j] == myColor {
-                if abstractBoard[i - 1][j] == opponentColor, abstractBoard[i - 2][j] == opponentColor, abstractBoard[i - 3][j] == opponentColor {
-                    abstractBoard[i - 1][j] = 0
-                    abstractBoard[i - 2][j] = 0
-                    abstractBoard[i - 3][j] = 0
-                    if opponentColor == 1 {
-                        whiteCaptures = whiteCaptures + 3
-                    } else {
-                        blackCaptures = blackCaptures + 3
-                    }
-                }
-            }
-        }
-        if (i - 4) > -1, (j - 4) > -1 {
-            if abstractBoard[i - 4][j - 4] == myColor {
-                if abstractBoard[i - 1][j - 1] == opponentColor, abstractBoard[i - 2][j - 2] == opponentColor, abstractBoard[i - 3][j - 3] == opponentColor {
-                    abstractBoard[i - 1][j - 1] = 0
-                    abstractBoard[i - 2][j - 2] = 0
-                    abstractBoard[i - 3][j - 3] = 0
-                    if opponentColor == 1 {
-                        whiteCaptures = whiteCaptures + 3
-                    } else {
-                        blackCaptures = blackCaptures + 3
-                    }
-                }
-            }
-        }
-        if (j - 4) > -1 {
-            if abstractBoard[i][j - 4] == myColor {
-                if abstractBoard[i][j - 1] == opponentColor, abstractBoard[i][j - 2] == opponentColor, abstractBoard[i][j - 3] == opponentColor {
-                    abstractBoard[i][j - 1] = 0
-                    abstractBoard[i][j - 2] = 0
-                    abstractBoard[i][j - 3] = 0
-                    if opponentColor == 1 {
-                        whiteCaptures = whiteCaptures + 3
-                    } else {
-                        blackCaptures = blackCaptures + 3
-                    }
-                }
-            }
-        }
-        if (i + 4) < 19, (j - 4) > -1 {
-            if abstractBoard[i + 4][j - 4] == myColor {
-                if abstractBoard[i + 1][j - 1] == opponentColor, abstractBoard[i + 2][j - 2] == opponentColor, abstractBoard[i + 3][j - 3] == opponentColor {
-                    abstractBoard[i + 1][j - 1] = 0
-                    abstractBoard[i + 2][j - 2] = 0
-                    abstractBoard[i + 3][j - 3] = 0
-                    if opponentColor == 1 {
-                        whiteCaptures = whiteCaptures + 3
-                    } else {
-                        blackCaptures = blackCaptures + 3
-                    }
-                }
-            }
-        }
-        if (i + 4) < 19 {
-            if abstractBoard[i + 4][j] == myColor {
-                if abstractBoard[i + 1][j] == opponentColor, abstractBoard[i + 2][j] == opponentColor, abstractBoard[i + 3][j] == opponentColor {
-                    abstractBoard[i + 1][j] = 0
-                    abstractBoard[i + 2][j] = 0
-                    abstractBoard[i + 3][j] = 0
-                    if opponentColor == 1 {
-                        whiteCaptures = whiteCaptures + 3
-                    } else {
-                        blackCaptures = blackCaptures + 3
-                    }
-                }
-            }
-        }
-        if (i + 4) < 19, (j + 4) < 19 {
-            if abstractBoard[i + 4][j + 4] == myColor {
-                if abstractBoard[i + 1][j + 1] == opponentColor, abstractBoard[i + 2][j + 2] == opponentColor, abstractBoard[i + 3][j + 3] == opponentColor {
-                    abstractBoard[i + 1][j + 1] = 0
-                    abstractBoard[i + 2][j + 2] = 0
-                    abstractBoard[i + 3][j + 3] = 0
-                    if opponentColor == 1 {
-                        whiteCaptures = whiteCaptures + 3
-                    } else {
-                        blackCaptures = blackCaptures + 3
-                    }
-                }
-            }
-        }
-        if (j + 4) < 19 {
-            if abstractBoard[i][j + 4] == myColor {
-                if abstractBoard[i][j + 1] == opponentColor, abstractBoard[i][j + 2] == opponentColor, abstractBoard[i][j + 3] == opponentColor {
-                    abstractBoard[i][j + 1] = 0
-                    abstractBoard[i][j + 2] = 0
-                    abstractBoard[i][j + 3] = 0
-                    if opponentColor == 1 {
-                        whiteCaptures = whiteCaptures + 3
-                    } else {
-                        blackCaptures = blackCaptures + 3
-                    }
-                }
-            }
-        }
-        if (i - 4) > -1, (j + 4) < 19 {
-            if abstractBoard[i - 4][j + 4] == myColor {
-                if abstractBoard[i - 1][j + 1] == opponentColor, abstractBoard[i - 2][j + 2] == opponentColor, abstractBoard[i - 3][j + 3] == opponentColor {
-                    abstractBoard[i - 1][j + 1] = 0
-                    abstractBoard[i - 2][j + 2] = 0
-                    abstractBoard[i - 3][j + 3] = 0
-                    if opponentColor == 1 {
-                        whiteCaptures = whiteCaptures + 3
-                    } else {
-                        blackCaptures = blackCaptures + 3
-                    }
-                }
-            }
-        }
-    }
-    
-    func detectPoof(move: Int, color: Int) {
-        let i = move / 19
-        let j = move % 19
-        let myColor = color
-        let opponentColor = 3 - color
-        var poof = false
-        if (i - 2) > -1, (i + 1) < 19 {
-            if abstractBoard[i - 1][j] == myColor {
-                if abstractBoard[i - 2][j] == opponentColor, abstractBoard[i + 1][j] == opponentColor {
-                    poof = true
-                    abstractBoard[i - 1][j] = 0
-                    abstractBoard[i][j] = 0
-                    if myColor == 1 {
-                        whiteCaptures = whiteCaptures + 1
-                    } else {
-                        blackCaptures = blackCaptures + 1
-                    }
-                }
-            }
-        }
-        if (i - 2) > -1, (j - 2) > -1, (i + 1) < 19, (j + 1) < 19 {
-            if abstractBoard[i - 1][j - 1] == myColor {
-                if abstractBoard[i - 2][j - 2] == opponentColor, abstractBoard[i + 1][j + 1] == opponentColor {
-                    poof = true
-                    abstractBoard[i - 1][j - 1] = 0
-                    abstractBoard[i][j] = 0
-                    if myColor == 1 {
-                        whiteCaptures = whiteCaptures + 1
-                    } else {
-                        blackCaptures = blackCaptures + 1
-                    }
-                }
-            }
-        }
-        if (j - 2) > -1, (j + 1) < 19 {
-            if abstractBoard[i][j - 1] == myColor {
-                if abstractBoard[i][j - 2] == opponentColor, abstractBoard[i][j + 1] == opponentColor {
-                    poof = true
-                    abstractBoard[i][j - 1] = 0
-                    abstractBoard[i][j] = 0
-                    if myColor == 1 {
-                        whiteCaptures = whiteCaptures + 1
-                    } else {
-                        blackCaptures = blackCaptures + 1
-                    }
-                }
-            }
-        }
-        if (i - 1) > -1, (j - 2) > -1, (i + 2) < 19, (j + 1) < 19 {
-            if abstractBoard[i + 1][j - 1] == myColor {
-                if abstractBoard[i - 1][j + 1] == opponentColor, abstractBoard[i + 2][j - 2] == opponentColor {
-                    poof = true
-                    abstractBoard[i + 1][j - 1] = 0
-                    abstractBoard[i][j] = 0
-                    if myColor == 1 {
-                        whiteCaptures = whiteCaptures + 1
-                    } else {
-                        blackCaptures = blackCaptures + 1
-                    }
-                }
-            }
-        }
-        if (i + 2) < 19, (i - 1) > -1 {
-            if abstractBoard[i + 1][j] == myColor {
-                if abstractBoard[i + 2][j] == opponentColor, abstractBoard[i - 1][j] == opponentColor {
-                    poof = true
-                    abstractBoard[i + 1][j] = 0
-                    abstractBoard[i][j] = 0
-                    if myColor == 1 {
-                        whiteCaptures = whiteCaptures + 1
-                    } else {
-                        blackCaptures = blackCaptures + 1
-                    }
-                }
-            }
-        }
-        if (i - 1) > -1, (j - 1) > -1, (i + 2) < 19, (j + 2) < 19 {
-            if abstractBoard[i + 1][j + 1] == myColor {
-                if abstractBoard[i - 1][j - 1] == opponentColor, abstractBoard[i + 2][j + 2] == opponentColor {
-                    poof = true
-                    abstractBoard[i + 1][j + 1] = 0
-                    abstractBoard[i][j] = 0
-                    if myColor == 1 {
-                        whiteCaptures = whiteCaptures + 1
-                    } else {
-                        blackCaptures = blackCaptures + 1
-                    }
-                }
-            }
-        }
-        if (j + 2) < 19, (j - 1) > -1 {
-            if abstractBoard[i][j + 1] == myColor {
-                if abstractBoard[i][j - 1] == opponentColor, abstractBoard[i][j + 2] == opponentColor {
-                    poof = true
-                    abstractBoard[i][j + 1] = 0
-                    abstractBoard[i][j] = 0
-                    if myColor == 1 {
-                        whiteCaptures = whiteCaptures + 1
-                    } else {
-                        blackCaptures = blackCaptures + 1
-                    }
-                }
-            }
-        }
-        if (i - 2) > -1, (j - 1) > -1, (i + 1) < 19, (j + 2) < 19 {
-            if abstractBoard[i - 1][j + 1] == myColor {
-                if abstractBoard[i + 1][j - 1] == opponentColor, abstractBoard[i - 2][j + 2] == opponentColor {
-                    poof = true
-                    abstractBoard[i - 1][j + 1] = 0
-                    abstractBoard[i][j] = 0
-                    if myColor == 1 {
-                        whiteCaptures = whiteCaptures + 1
-                    } else {
-                        blackCaptures = blackCaptures + 1
-                    }
-                }
-            }
-        }
-        
-        if poof {
-            if myColor == 1 {
-                whiteCaptures = whiteCaptures + 1
-            } else {
-                blackCaptures = blackCaptures + 1
-            }
-        }
-    }
-    
-    func detectKeryoPoof(move: Int, color: Int) {
-        let i = move / 19
-        let j = move % 19
-        let myColor = color
-        let opponentColor = 3 - color
-        var poofed = false
-        if (i - 3) > -1, (i + 1) < 19 { // left
-            if abstractBoard[i - 1][j] == myColor, abstractBoard[i - 2][j] == myColor {
-                if abstractBoard[i - 3][j] == opponentColor, abstractBoard[i + 1][j] == opponentColor {
-                    abstractBoard[i - 2][j] = 0
-                    abstractBoard[i - 1][j] = 0
-                    abstractBoard[i][j] = 0
-                    if myColor == 1 {
-                        whiteCaptures += 2
-                    } else {
-                        blackCaptures += 2
-                    }
-                    poofed = true
-                }
-            }
-        }
-        if (i - 3) > -1, (j - 3) > -1, (i + 1) < 19, (j + 1) < 19 { // up left
-            if abstractBoard[i - 1][j - 1] == myColor, abstractBoard[i - 2][j - 2] == myColor {
-                if abstractBoard[i - 3][j - 3] == opponentColor, abstractBoard[i + 1][j + 1] == opponentColor {
-                    abstractBoard[i - 2][j - 2] = 0
-                    abstractBoard[i - 1][j - 1] = 0
-                    abstractBoard[i][j] = 0
-                    if myColor == 1 {
-                        whiteCaptures += 2
-                    } else {
-                        blackCaptures += 2
-                    }
-                    poofed = true
-                }
-            }
-        }
-        if (j - 3) > -1, (j + 1) < 19 { // up
-            if abstractBoard[i][j - 1] == myColor, abstractBoard[i][j - 2] == myColor {
-                if abstractBoard[i][j - 3] == opponentColor, abstractBoard[i][j + 1] == opponentColor {
-                    abstractBoard[i][j - 2] = 0
-                    abstractBoard[i][j - 1] = 0
-                    abstractBoard[i][j] = 0
-                    if myColor == 1 {
-                        whiteCaptures += 2
-                    } else {
-                        blackCaptures += 2
-                    }
-                    poofed = true
-                }
-            }
-        }
-        if (i - 1) > -1, (j - 3) > -1, (i + 3) < 19, (j + 1) < 19 { // up right
-            if abstractBoard[i + 1][j - 1] == myColor, abstractBoard[i + 2][j - 2] == myColor {
-                if abstractBoard[i - 1][j + 1] == opponentColor, abstractBoard[i + 3][j - 3] == opponentColor {
-                    abstractBoard[i + 2][j - 2] = 0
-                    abstractBoard[i + 1][j - 1] = 0
-                    abstractBoard[i][j] = 0
-                    if myColor == 1 {
-                        whiteCaptures += 2
-                    } else {
-                        blackCaptures += 2
-                    }
-                    poofed = true
-                }
-            }
-        }
-        if (i + 3) < 19, (i - 1) > -1 { // right
-            if abstractBoard[i + 1][j] == myColor, abstractBoard[i + 2][j] == myColor {
-                if abstractBoard[i + 3][j] == opponentColor, abstractBoard[i - 1][j] == opponentColor {
-                    abstractBoard[i + 2][j] = 0
-                    abstractBoard[i + 1][j] = 0
-                    abstractBoard[i][j] = 0
-                    if myColor == 1 {
-                        whiteCaptures += 2
-                    } else {
-                        blackCaptures += 2
-                    }
-                    poofed = true
-                }
-            }
-        }
-        if (i - 1) > -1, (j - 1) > -1, (i + 3) < 19, (j + 3) < 19 { // down right
-            if abstractBoard[i + 1][j + 1] == myColor, abstractBoard[i + 2][j + 2] == myColor {
-                if abstractBoard[i - 1][j - 1] == opponentColor, abstractBoard[i + 3][j + 3] == opponentColor {
-                    abstractBoard[i + 2][j + 2] = 0
-                    abstractBoard[i + 1][j + 1] = 0
-                    abstractBoard[i][j] = 0
-                    if myColor == 1 {
-                        whiteCaptures += 2
-                    } else {
-                        blackCaptures += 2
-                    }
-                    poofed = true
-                }
-            }
-        }
-        if (j + 2) < 19, (j - 1) > -1 { // down
-            if abstractBoard[i][j + 1] == myColor, abstractBoard[i][j + 2] == myColor {
-                if abstractBoard[i][j - 1] == opponentColor, abstractBoard[i][j + 3] == opponentColor {
-                    abstractBoard[i][j + 1] = 0
-                    abstractBoard[i][j + 2] = 0
-                    abstractBoard[i][j] = 0
-                    if myColor == 1 {
-                        whiteCaptures += 2
-                    } else {
-                        blackCaptures += 2
-                    }
-                    poofed = true
-                }
-            }
-        }
-        if (i - 3) > -1, (j - 1) > -1, (i + 1) < 19, (j + 3) < 19 { // down left
-            if abstractBoard[i - 1][j + 1] == myColor, abstractBoard[i - 2][j + 2] == myColor {
-                if abstractBoard[i + 1][j - 1] == opponentColor, abstractBoard[i - 3][j + 3] == opponentColor {
-                    abstractBoard[i - 2][j + 2] = 0
-                    abstractBoard[i - 1][j + 1] = 0
-                    abstractBoard[i][j] = 0
-                    if myColor == 1 {
-                        whiteCaptures += 2
-                    } else {
-                        blackCaptures += 2
-                    }
-                    poofed = true
-                }
-            }
-        }
-        
-        // 4 directions with center of 3 stones placed to poof
-        if (i - 2) > -1, (i + 2) < 19 { // horizontal
-            if abstractBoard[i - 1][j] == myColor, abstractBoard[i + 1][j] == myColor {
-                if abstractBoard[i - 2][j] == opponentColor, abstractBoard[i + 2][j] == opponentColor {
-                    abstractBoard[i + 1][j] = 0
-                    abstractBoard[i - 1][j] = 0
-                    abstractBoard[i][j] = 0
-                    if myColor == 1 {
-                        whiteCaptures += 2
-                    } else {
-                        blackCaptures += 2
-                    }
-                    poofed = true
-                }
-            }
-        }
-        if (i - 2) > -1, (j - 2) > -1, (i + 2) < 19, (j + 2) < 19 { // up left
-            if abstractBoard[i - 1][j - 1] == myColor, abstractBoard[i + 1][j + 1] == myColor {
-                if abstractBoard[i - 2][j - 2] == opponentColor, abstractBoard[i + 2][j + 2] == opponentColor {
-                    abstractBoard[i + 1][j + 1] = 0
-                    abstractBoard[i - 1][j - 1] = 0
-                    abstractBoard[i][j] = 0
-                    if myColor == 1 {
-                        whiteCaptures += 2
-                    } else {
-                        blackCaptures += 2
-                    }
-                    poofed = true
-                }
-            }
-        }
-        if (j - 2) > -1, (j + 2) < 19 { // vertical
-            if abstractBoard[i][j - 1] == myColor, abstractBoard[i][j + 1] == myColor {
-                if abstractBoard[i][j - 2] == opponentColor, abstractBoard[i][j + 2] == opponentColor {
-                    abstractBoard[i][j + 1] = 0
-                    abstractBoard[i][j - 1] = 0
-                    abstractBoard[i][j] = 0
-                    if myColor == 1 {
-                        whiteCaptures += 2
-                    } else {
-                        blackCaptures += 2
-                    }
-                    poofed = true
-                }
-            }
-        }
-        if (i - 2) > -1, (j - 2) > -1, (i + 2) < 19, (j + 2) < 19 { // up right
-            if abstractBoard[i + 1][j - 1] == myColor, abstractBoard[i - 1][j + 1] == myColor {
-                if abstractBoard[i - 2][j + 2] == opponentColor, abstractBoard[i + 2][j - 2] == opponentColor {
-                    abstractBoard[i + 1][j - 1] = 0
-                    abstractBoard[i - 1][j + 1] = 0
-                    abstractBoard[i][j] = 0
-                    if myColor == 1 {
-                        whiteCaptures += 2
-                    } else {
-                        blackCaptures += 2
-                    }
-                    poofed = true
-                }
-            }
-        }
-        
-        if poofed {
-            if myColor == 1 {
-                whiteCaptures += 1
-            } else {
-                blackCaptures += 1
-            }
-        }
     }
 }
 

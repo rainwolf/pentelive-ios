@@ -75,7 +75,6 @@
 @synthesize moveStatsString;
 @synthesize playerStatsBaseString;
 
-int abstractBoard[19][19];
 int abstractGoBoard[19][19];
 int finalMove = -1, connect6Move1 = -1, connect6Move2 = -1, dPenteMove1 = -1,
     dPenteMove2 = -1, dPenteMove3 = -1, dPenteMove4 = -1, whiteCaptures,
@@ -94,7 +93,7 @@ BOOL canUnHide = NO;
 char coordinateLetters[19] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J', 'K',
                               'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T'};
 NSString *hideString, *cancelMsg;
-PenteGame *penteGame;
+LegacyPenteGame *penteGame;
 
 NSMutableDictionary<NSNumber *, NSMutableDictionary<NSNumber *, NSNumber *> *>
     *goStoneGroupIDsByPlayer;
@@ -111,8 +110,9 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
 - (void)viewDidLoad {
     [super viewDidLoad];
 
-    penteGame = [[PenteGame alloc] init];
-    penteGame.abstractBoard = abstractBoard;
+    penteGame = [[LegacyPenteGame alloc] init];
+    engine = [[SwiftPenteGame alloc] initWithVariant:PenteVariantPente];
+    lastReplayWinner = 0;
 
     finalMove = -1;
     connect6Move1 = -1;
@@ -1781,22 +1781,22 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                  [[strongSelf.game gameType] isEqualToString:@"Speed Pente"] ||
                  [[strongSelf.game gameType]
                      isEqualToString:@"Speed Boat-Pente"]) {
-                 [strongSelf replayPenteGame:lastMove];
+                 [strongSelf replayGame:lastMove];
              }
              if ([[strongSelf.game gameType] isEqualToString:@"Keryo-Pente"] ||
                  [[strongSelf.game gameType]
                      isEqualToString:@"Speed Keryo-Pente"]) {
-                 [strongSelf replayKeryoPenteGame:lastMove];
+                 [strongSelf replayGame:lastMove];
              }
              if ([[strongSelf.game gameType] isEqualToString:@"O-Pente"] ||
                  [[strongSelf.game gameType]
                      isEqualToString:@"Speed O-Pente"]) {
-                 [strongSelf replayOPenteGame:lastMove];
+                 [strongSelf replayGame:lastMove];
              }
              if ([[strongSelf.game gameType] isEqualToString:@"G-Pente"] ||
                  [[strongSelf.game gameType]
                      isEqualToString:@"Speed G-Pente"]) {
-                 [strongSelf replayGPenteGame:lastMove];
+                 [strongSelf replayGame:lastMove];
              }
              if ([[strongSelf.game gameType] isEqualToString:@"D-Pente"] ||
                  [[strongSelf.game gameType]
@@ -1807,9 +1807,9 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                  if ([[strongSelf.game gameType] isEqualToString:@"DK-Pente"] ||
                      [[strongSelf.game gameType]
                          isEqualToString:@"Speed DK-Pente"]) {
-                     [strongSelf replayDKPenteGame:lastMove];
+                     [strongSelf replayGame:lastMove];
                  } else {
-                     [strongSelf replayDPenteGame:lastMove];
+                     [strongSelf replayGame:lastMove];
                  }
 
                  dPenteChoice = NO;
@@ -1840,10 +1840,10 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                      dPenteState == 2 && ([strongSelf->movesList count] == 3 ||
                                           [strongSelf->movesList count] == 5);
                  if ([strongSelf.game.gameType containsString:@"Swap2-Pente"]) {
-                     [strongSelf replaySwap2PenteGame:lastMove];
+                     [strongSelf replayGame:lastMove];
                  } else if ([strongSelf.game.gameType
                                 containsString:@"Swap2-Keryo"]) {
-                     [strongSelf replaySwap2KeryoGame:lastMove];
+                     [strongSelf replayGame:lastMove];
                  }
 
                  if (swap2Choice) {
@@ -1878,7 +1878,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                  }
              }
              if ([[strongSelf.game gameType] containsString:@"Poof-Pente"]) {
-                 [strongSelf replayPoofPenteGame:lastMove];
+                 [strongSelf replayGame:lastMove];
              }
              go = NO;
              goMarkStones = NO;
@@ -1908,12 +1908,12 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                  }
              }
              if ([[strongSelf.game gameType] containsString:@"Connect6"]) {
-                 [strongSelf replayConnect6Game:lastMove];
+                 [strongSelf replayGame:lastMove];
              }
              [strongSelf updateCaptures];
 
              if ([[strongSelf.game gameType] containsString:@"Gomoku"]) {
-                 [strongSelf replayGomokuGame:lastMove];
+                 [strongSelf replayGame:lastMove];
              }
 
              // Find out your color
@@ -1995,15 +1995,10 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
              if ([[strongSelf.game opponentName] isEqualToString:@"computer"]) {
                  NSString *message = nil;
                  BOOL iWin = YES;
-                 if ([strongSelf
-                         detectPenteOf:2 - ([strongSelf->movesList count] % 2)
-                            atPosition:[[strongSelf->movesList lastObject]
-                                           intValue]]) {
-                     if (2 - ([strongSelf->movesList count] % 2) == 1) {
-                         message = NSLocalizedString(@"White wins", nil);
-                     } else {
-                         message = NSLocalizedString(@"Black wins", nil);
-                     }
+                 if (strongSelf->lastReplayWinner == 1) {
+                     message = NSLocalizedString(@"White wins", nil);
+                 } else if (strongSelf->lastReplayWinner == 2) {
+                     message = NSLocalizedString(@"Black wins", nil);
                  } else if (whiteCaptures == 10) {
                      message = NSLocalizedString(@"Black wins", nil);
                  } else if (blackCaptures == 10) {
@@ -2451,20 +2446,56 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
 }
 
 - (void)syncCapturesToEngine {
+    // Legacy ObjC PenteGame drives the interactive tentative-placement capture
+    // preview only; point it at the controller's abstractBoard ivar here (the
+    // viewDidLoad alias was removed in this phase). Removed entirely in Phase 5.
+    penteGame.abstractBoard = abstractBoard;
     penteGame.captures = captures;
     penteGame.whiteCaptures = whiteCaptures;
     penteGame.blackCaptures = blackCaptures;
 }
 
+// Fills the abstractBoard ivar from the Swift engine (the render seam, scope (c)).
+//
+// The engine masks the opening restriction (centre 5x5 -1 cells, emitted only at
+// exactly two played moves) intrinsically for every tournament/G-Pente variant.
+// Legacy only ever SHOWED that mask when the game was rated or (speed) G-Pente,
+// and only while it stood at exactly two moves (the deleted replay* methods gated
+// on `[[self.game ratedNot] ... != "Not Rated"] && [movesList count] == 2`, with
+// G-Pente masking on the move count alone). The rated/(speed)gPente half of this
+// gate is the SAME policy as `Table.syncFromEngine`. The `&& [movesList count] == 2`
+// half is ADDITIONAL here and intentionally NOT in Table: this view replays arbitrary
+// history positions (stepping back through a finished game), so it must suppress the
+// mask except at the 2-move position to reproduce legacy; `Table` is live-play only
+// (it always renders the latest position), so the engine's own `moveCount == 2`
+// mask guard already covers it without an explicit count check. Net effect: unrated,
+// non-gPente Pente/Keryo/Poof/O-Pente games no longer surface the centre restriction.
+- (void)loadEngineIntoAbstractBoard {
+    BOOL rated = [[self.game ratedNot] rangeOfString:@"Not Rated"].location ==
+                 NSNotFound;
+    BOOL isGPente = [[self.game gameType] isEqualToString:@"G-Pente"] ||
+                    [[self.game gameType] isEqualToString:@"Speed G-Pente"];
+    BOOL maskAllowed = (rated || isGPente) && ([movesList count] == 2);
+    for (int rc = 0; rc < gridSize * gridSize; ++rc) {
+        int v = (int)[engine stoneAt:rc];
+        abstractBoard[rc / gridSize][rc % gridSize] =
+            (v == -1 && !maskAllowed) ? 0 : v;
+    }
+}
+
+// Parses the full move list into rowCol ints for SwiftPenteGame replay:until:.
+- (NSArray<NSNumber *> *)parsedMoves {
+    NSMutableArray<NSNumber *> *parsed =
+        [NSMutableArray arrayWithCapacity:[movesList count]];
+    for (NSString *m in movesList) {
+        [parsed addObject:@([self parseMove:m])];
+    }
+    return parsed;
+}
+
 - (void)syncCapturesFromEngine {
     whiteCaptures = penteGame.whiteCaptures;
     blackCaptures = penteGame.blackCaptures;
-}
-
-- (void)replayWithEngine:(PenteGameVariant)variant untilMove:(int)untilMove {
-    [self syncCapturesToEngine];
-    [penteGame replayMoves:movesList variant:variant untilMove:untilMove];
-    [self syncCapturesFromEngine];
 }
 
 - (void)replayGame:(int)untilMove {
@@ -2475,48 +2506,89 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
     whiteCaptures = 0;
     blackCaptures = 0;
     [self resetBoard];
-    if ([[self.game gameType] isEqualToString:@"Pente"] ||
-        [[self.game gameType] isEqualToString:@"Boat-Pente"] ||
-        [[self.game gameType] isEqualToString:@"Speed Pente"] ||
-        [[self.game gameType] isEqualToString:@"Speed Boat-Pente"]) {
-        [self replayPenteGame:untilMove];
-    }
-    if ([[self.game gameType] containsString:@"Keryo-Pente"]) {
-        [self replayKeryoPenteGame:untilMove];
-    }
-    if ([[self.game gameType] containsString:@"G-Pente"]) {
-        [self replayGPenteGame:untilMove];
-    }
-    if ([[self.game gameType] containsString:@"D-Pente"]) {
-        [self replayDPenteGame:untilMove];
-    }
-    if ([[self.game gameType] containsString:@"DK-Pente"]) {
-        [self replayDKPenteGame:untilMove];
-    }
-    if ([[self.game gameType] containsString:@"Poof-Pente"]) {
-        [self replayPoofPenteGame:untilMove];
-    }
-    if ([[self.game gameType] containsString:@"O-Pente"]) {
-        [self replayOPenteGame:untilMove];
-    }
-    if ([[self.game gameType] containsString:@"Swap2-Pente"]) {
-        [self replaySwap2PenteGame:untilMove];
-    }
-    if ([[self.game gameType] containsString:@"Swap2-Keryo"]) {
-        [self replaySwap2KeryoGame:untilMove];
-    }
 
     if (isGoGame) {
+        // Go is out of scope for the engine — it keeps its own replay path.
+        lastReplayWinner = 0;
         [self replayGoGame:untilMove];
-    }
+        [self updateCaptures];
+    } else {
+        PenteVariant variant =
+            [BoardVariantMapping variantForGameType:[self.game gameType]];
 
-    [self updateCaptures];
+        // Opening flags — preserved verbatim from the deleted per-variant methods.
+        if (variant == PenteVariantDPente || variant == PenteVariantDkPente) {
+            dPenteOpening = ([movesList count] == 0);
+        } else if (variant == PenteVariantSwap2Pente ||
+                   variant == PenteVariantSwap2Keryo) {
+            swap2Opening = ([movesList count] == 0 ||
+                            ([movesList count] == 3 && swap2Pass));
+        }
 
-    if ([[self.game gameType] containsString:@"Connect6"]) {
-        [self replayConnect6Game:untilMove];
-    }
-    if ([[self.game gameType] containsString:@"Gomoku"]) {
-        [self replayGomokuGame:untilMove];
+        // RISK 1: re-create the engine for THIS variant. The engine's ruleset
+        // (captures, win threshold, opening mask, colour cadence) is fixed at
+        // init; [engine reset] only clears board/counters. Without this the
+        // viewDidLoad placeholder (PenteVariantPente) would mis-rule every other
+        // variant. Cheap to re-alloc per replay.
+        engine = [[SwiftPenteGame alloc] initWithVariant:variant];
+
+        // RISK 2: feed the move list straight through, matching legacy
+        // -replayMoves:variant:untilMove: (PenteGame.m), which placed every entry
+        // unconditionally and never filtered a pass/-1 sentinel. For all Pente
+        // engine variants movesList holds valid board coords (0..360); passes are
+        // Go-only (handled above) and Swap2's pass is an out-of-band flag, never a
+        // move-list entry. Filtering here would shift the colour cadence and
+        // diverge from legacy, so we do NOT filter.
+        MoveResult *result = [engine replay:[self parsedMoves] until:untilMove];
+        lastReplayWinner = (int)result.winner;
+        whiteCaptures = (int)engine.whiteCaptures;
+        blackCaptures = (int)engine.blackCaptures;
+        [captures removeAllObjects];
+
+        BOOL boat = [[self.game gameType] isEqualToString:@"Boat-Pente"];
+        UIColor *bg = [BoardVariantMapping backgroundColorForVariant:variant
+                                                           boatPente:boat];
+        [board setBackgroundColor:bg];
+        [zoomedBoard setBackgroundColor:bg];
+
+        // RISK 3: 19x19 engine path only — Go (gridSize 9/13) handled above.
+        [self loadEngineIntoAbstractBoard];
+        [board setAbstractBoard:abstractBoard];
+
+        [self updateCaptures];
+        if ([BoardVariantMapping hidesCaptureLabelsForVariant:variant
+                                                      opening:dPenteOpening]) {
+            [whiteStoneCaptures setHidden:YES];
+            [whiteCapturesCountLabel setHidden:YES];
+            [blackStoneCaptures setHidden:YES];
+            [blackCapturesCountLabel setHidden:YES];
+        }
+
+        BOOL atLatest = (lastMove == [movesList count]);
+        BOOL syncZoom = (variant == PenteVariantConnect6) || atLatest;
+        if (syncZoom) {
+            [zoomedBoard setAbstractBoard:abstractBoard];
+        }
+
+        if (untilMove > 0) {
+            int last = [self parseMove:[movesList objectAtIndex:untilMove - 1]];
+            [board setLastMove:last];
+            if (syncZoom) {
+                [zoomedBoard setLastMove:last];
+            }
+        }
+
+        if (variant == PenteVariantConnect6) {
+            if (untilMove > 1) {
+                int prev =
+                    [self parseMove:[movesList objectAtIndex:untilMove - 2]];
+                [board setLastConnect6Move:prev];
+                [zoomedBoard setLastConnect6Move:prev];
+            } else {
+                [board setLastConnect6Move:-1];
+                [zoomedBoard setLastConnect6Move:-1];
+            }
+        }
     }
 
     isLastMove = (untilMove == [movesList count]);
@@ -2686,421 +2758,22 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
     [zoomedBoard setNeedsDisplay];
 }
 
-- (void)replayPenteGame:(int)untilMove {
-    [self replayWithEngine:PenteGameVariantPente untilMove:untilMove];
-    if ([[self.game ratedNot] rangeOfString:@"Not Rated"].location ==
-            NSNotFound &&
-        ([movesList count] == 2)) {
-        [penteGame maskTournamentOpening];
-    }
-    [captures removeAllObjects];
-
-    // NSLog(@" kitty moves %i",abstractBoard[0][0]);
-    if ([[self.game gameType] isEqualToString:@"Boat-Pente"]) {
-        [board setBackgroundColor:[UIColor colorWithRed:0.145
-                                                  green:0.729
-                                                   blue:1
-                                                  alpha:1]];
-        [zoomedBoard setBackgroundColor:[UIColor colorWithRed:0.145
-                                                        green:0.729
-                                                         blue:1
-                                                        alpha:1]];
-    } else {
-        [board setBackgroundColor:[UIColor colorWithRed:0.984
-                                                  green:0.851
-                                                   blue:0.541
-                                                  alpha:1]];
-        [zoomedBoard setBackgroundColor:[UIColor colorWithRed:0.984
-                                                        green:0.851
-                                                         blue:0.541
-                                                        alpha:1]];
-    }
-    [board setAbstractBoard:abstractBoard];
-    [board
-        setLastMove:[self parseMove:[movesList objectAtIndex:untilMove - 1]]];
-    if (lastMove == [movesList count]) {
-        [zoomedBoard setAbstractBoard:abstractBoard];
-        [zoomedBoard
-            setLastMove:[self
-                            parseMove:[movesList objectAtIndex:untilMove - 1]]];
-    }
-}
-
-- (void)replayGPenteGame:(int)untilMove {
-    [self replayWithEngine:PenteGameVariantGPente untilMove:untilMove];
-    if ([movesList count] == 2) {
-        [penteGame maskGPenteOpening];
-    }
-
-    [captures removeAllObjects];
-
-    // NSLog(@" kitty moves %i",abstractBoard[0][0]);
-    [board setBackgroundColor:[UIColor colorWithRed:0.616
-                                              green:0.545
-                                               blue:0.965
-                                              alpha:1]];
-    [zoomedBoard setBackgroundColor:[UIColor colorWithRed:0.616
-                                                    green:0.545
-                                                     blue:0.965
-                                                    alpha:1]];
-    [board setAbstractBoard:abstractBoard];
-    [board
-        setLastMove:[self parseMove:[movesList objectAtIndex:untilMove - 1]]];
-    if (lastMove == [movesList count]) {
-        [zoomedBoard setAbstractBoard:abstractBoard];
-        [zoomedBoard
-            setLastMove:[self
-                            parseMove:[movesList objectAtIndex:untilMove - 1]]];
-    }
-}
-
-- (void)replayKeryoPenteGame:(int)untilMove {
-    [self replayWithEngine:PenteGameVariantKeryoPente untilMove:untilMove];
-    if ([[self.game ratedNot] rangeOfString:@"Not Rated"].location ==
-            NSNotFound &&
-        ([movesList count] == 2)) {
-        [penteGame maskTournamentOpening];
-    }
-
-    [captures removeAllObjects];
-
-    // NSLog(@" kitty moves %i",abstractBoard[0][0]);
-    [board setBackgroundColor:[UIColor colorWithRed:0.702
-                                              green:1
-                                               blue:0.518
-                                              alpha:1]];
-    [zoomedBoard setBackgroundColor:[UIColor colorWithRed:0.702
-                                                    green:1
-                                                     blue:0.518
-                                                    alpha:1]];
-    [board setAbstractBoard:abstractBoard];
-    [board
-        setLastMove:[self parseMove:[movesList objectAtIndex:untilMove - 1]]];
-    if (lastMove == [movesList count]) {
-        [zoomedBoard setAbstractBoard:abstractBoard];
-        [zoomedBoard
-            setLastMove:[self
-                            parseMove:[movesList objectAtIndex:untilMove - 1]]];
-    }
-}
-- (void)replayOPenteGame:(int)untilMove {
-    [self replayWithEngine:PenteGameVariantOPente untilMove:untilMove];
-    if ([[self.game ratedNot] rangeOfString:@"Not Rated"].location ==
-            NSNotFound &&
-        ([movesList count] == 2)) {
-        [penteGame maskTournamentOpening];
-    }
-
-    [captures removeAllObjects];
-
-    // NSLog(@" kitty moves %i",abstractBoard[0][0]);
-    [board setBackgroundColor:[UIColor colorWithRed:0.32
-                                              green:0.75
-                                               blue:0.50
-                                              alpha:1.0]];
-    [zoomedBoard setBackgroundColor:[UIColor colorWithRed:0.32
-                                                    green:0.75
-                                                     blue:0.50
-                                                    alpha:1.0]];
-    [board setAbstractBoard:abstractBoard];
-    [board
-        setLastMove:[self parseMove:[movesList objectAtIndex:untilMove - 1]]];
-    if (lastMove == [movesList count]) {
-        [zoomedBoard setAbstractBoard:abstractBoard];
-        [zoomedBoard
-            setLastMove:[self
-                            parseMove:[movesList objectAtIndex:untilMove - 1]]];
-    }
-}
-
-- (void)replayDKPenteGame:(int)untilMove {
-    if ([movesList count] == 0) {
-        dPenteOpening = YES;
-    } else {
-        dPenteOpening = NO;
-    }
-    [self replayWithEngine:PenteGameVariantDKPente untilMove:untilMove];
-    [captures removeAllObjects];
-
-    [board setBackgroundColor:[UIColor colorWithRed:1
-                                              green:165.0 / 255.0
-                                               blue:0
-                                              alpha:1]];
-    [zoomedBoard setBackgroundColor:[UIColor colorWithRed:1
-                                                    green:165.0 / 255.0
-                                                     blue:0
-                                                    alpha:1]];
-
-    if (dPenteOpening) {
-        [whiteStoneCaptures setHidden:YES];
-        [whiteCapturesCountLabel setHidden:YES];
-        [blackStoneCaptures setHidden:YES];
-        [blackCapturesCountLabel setHidden:YES];
-    }
-    [board setAbstractBoard:abstractBoard];
-    if ([movesList count] > 0) {
-        [board setLastMove:[self parseMove:[movesList
-                                               objectAtIndex:untilMove - 1]]];
-        if (lastMove == [movesList count]) {
-            [zoomedBoard setAbstractBoard:abstractBoard];
-            [zoomedBoard
-                setLastMove:[self parseMove:[movesList
-                                                objectAtIndex:untilMove - 1]]];
-        }
-    }
-}
-
-- (void)replayGomokuGame:(int)untilMove {
-    [self replayWithEngine:PenteGameVariantGomoku untilMove:untilMove];
-
-    [board setBackgroundColor:[UIColor colorWithRed:0.612
-                                              green:1
-                                               blue:0.898
-                                              alpha:1]];
-    [zoomedBoard setBackgroundColor:[UIColor colorWithRed:0.612
-                                                    green:1
-                                                     blue:0.898
-                                                    alpha:1]];
-    [whiteStoneCaptures setHidden:YES];
-    [whiteCapturesCountLabel setHidden:YES];
-    [blackStoneCaptures setHidden:YES];
-    [blackCapturesCountLabel setHidden:YES];
-    [board setAbstractBoard:abstractBoard];
-    [board
-        setLastMove:[self parseMove:[movesList objectAtIndex:untilMove - 1]]];
-    if (lastMove == [movesList count]) {
-        [zoomedBoard setAbstractBoard:abstractBoard];
-        [zoomedBoard
-            setLastMove:[self
-                            parseMove:[movesList objectAtIndex:untilMove - 1]]];
-    }
-}
-
-- (void)replayConnect6Game:(int)untilMove {
-    [self replayWithEngine:PenteGameVariantConnect6 untilMove:untilMove];
-
-    [board setBackgroundColor:[UIColor colorWithRed:0.929
-                                              green:0.639
-                                               blue:0.992
-                                              alpha:1]];
-    [zoomedBoard setBackgroundColor:[UIColor colorWithRed:0.929
-                                                    green:0.639
-                                                     blue:0.992
-                                                    alpha:1]];
-    [whiteStoneCaptures setHidden:YES];
-    [whiteCapturesCountLabel setHidden:YES];
-    [blackStoneCaptures setHidden:YES];
-    [blackCapturesCountLabel setHidden:YES];
-    if (untilMove > 1) {
-        [board setLastConnect6Move:[self parseMove:[movesList
-                                                       objectAtIndex:untilMove -
-                                                                     2]]];
-    } else {
-        [board setLastConnect6Move:-1];
-    }
-    [board
-        setLastMove:[self parseMove:[movesList objectAtIndex:untilMove - 1]]];
-    [board setAbstractBoard:abstractBoard];
-    [zoomedBoard setAbstractBoard:abstractBoard];
-    [zoomedBoard
-        setLastMove:[self parseMove:[movesList objectAtIndex:untilMove - 1]]];
-    if (untilMove > 1) {
-        [zoomedBoard
-            setLastConnect6Move:[self parseMove:[movesList
-                                                    objectAtIndex:untilMove -
-                                                                  2]]];
-    } else {
-        [zoomedBoard setLastConnect6Move:-1];
-    }
-}
-
-- (void)replayDPenteGame:(int)untilMove {
-    if ([movesList count] == 0) {
-        dPenteOpening = YES;
-    } else {
-        dPenteOpening = NO;
-    }
-    [self replayWithEngine:PenteGameVariantDPente untilMove:untilMove];
-    [captures removeAllObjects];
-
-    [board setBackgroundColor:[UIColor colorWithRed:0.584
-                                              green:0.753
-                                               blue:0.98
-                                              alpha:1]];
-    [zoomedBoard setBackgroundColor:[UIColor colorWithRed:0.584
-                                                    green:0.753
-                                                     blue:0.98
-                                                    alpha:1]];
-
-    if (dPenteOpening) {
-        [whiteStoneCaptures setHidden:YES];
-        [whiteCapturesCountLabel setHidden:YES];
-        [blackStoneCaptures setHidden:YES];
-        [blackCapturesCountLabel setHidden:YES];
-    }
-    [board setAbstractBoard:abstractBoard];
-    if ([movesList count] > 0) {
-        [board setLastMove:[self parseMove:[movesList
-                                               objectAtIndex:untilMove - 1]]];
-        if (lastMove == [movesList count]) {
-            [zoomedBoard setAbstractBoard:abstractBoard];
-            [zoomedBoard
-                setLastMove:[self parseMove:[movesList
-                                                objectAtIndex:untilMove - 1]]];
-        }
-    }
-}
-
-- (void)replaySwap2PenteGame:(int)untilMove {
-    if ([movesList count] == 0 || ([movesList count] == 3 && swap2Pass)) {
-        swap2Opening = YES;
-    } else {
-        swap2Opening = NO;
-    }
-    [self replayWithEngine:PenteGameVariantSwap2Pente untilMove:untilMove];
-    [captures removeAllObjects];
-
-    [board setBackgroundColor:[UIColor colorWithRed:0.90
-                                              green:0.67
-                                               blue:0.44
-                                              alpha:1.00]];
-    [zoomedBoard setBackgroundColor:[UIColor colorWithRed:0.90
-                                                    green:0.67
-                                                     blue:0.44
-                                                    alpha:1.00]];
-
-    if (dPenteOpening) {
-        [whiteStoneCaptures setHidden:YES];
-        [whiteCapturesCountLabel setHidden:YES];
-        [blackStoneCaptures setHidden:YES];
-        [blackCapturesCountLabel setHidden:YES];
-    }
-    [board setAbstractBoard:abstractBoard];
-    if ([movesList count] > 0) {
-        [board setLastMove:[self parseMove:[movesList
-                                               objectAtIndex:untilMove - 1]]];
-        if (lastMove == [movesList count]) {
-            [zoomedBoard setAbstractBoard:abstractBoard];
-            [zoomedBoard
-                setLastMove:[self parseMove:[movesList
-                                                objectAtIndex:untilMove - 1]]];
-        }
-    }
-}
-
-- (void)replaySwap2KeryoGame:(int)untilMove {
-    if ([movesList count] == 0 || ([movesList count] == 3 && swap2Pass)) {
-        swap2Opening = YES;
-    } else {
-        swap2Opening = NO;
-    }
-    [self replayWithEngine:PenteGameVariantSwap2Keryo untilMove:untilMove];
-    [captures removeAllObjects];
-
-    [board setBackgroundColor:[UIColor colorWithRed:0.31
-                                              green:0.78
-                                               blue:0.47
-                                              alpha:1.00]];
-    [zoomedBoard setBackgroundColor:[UIColor colorWithRed:0.31
-                                                    green:0.78
-                                                     blue:0.47
-                                                    alpha:1.00]];
-
-    if (dPenteOpening) {
-        [whiteStoneCaptures setHidden:YES];
-        [whiteCapturesCountLabel setHidden:YES];
-        [blackStoneCaptures setHidden:YES];
-        [blackCapturesCountLabel setHidden:YES];
-    }
-    [board setAbstractBoard:abstractBoard];
-    if ([movesList count] > 0) {
-        [board setLastMove:[self parseMove:[movesList
-                                               objectAtIndex:untilMove - 1]]];
-        if (lastMove == [movesList count]) {
-            [zoomedBoard setAbstractBoard:abstractBoard];
-            [zoomedBoard
-                setLastMove:[self parseMove:[movesList
-                                                objectAtIndex:untilMove - 1]]];
-        }
-    }
-}
-
-- (void)replayPoofPenteGame:(int)untilMove {
-    [self replayWithEngine:PenteGameVariantPoofPente untilMove:untilMove];
-    if ([[self.game ratedNot] rangeOfString:@"Not Rated"].location ==
-            NSNotFound &&
-        ([movesList count] == 2)) {
-        [penteGame maskTournamentOpening];
-    }
-    [captures removeAllObjects];
-
-    [board setBackgroundColor:[UIColor colorWithRed:0.929
-                                              green:0.639
-                                               blue:0.992
-                                              alpha:1]];
-    [zoomedBoard setBackgroundColor:[UIColor colorWithRed:0.929
-                                                    green:0.639
-                                                     blue:0.992
-                                                    alpha:1]];
-    [board setAbstractBoard:abstractBoard];
-    [board
-        setLastMove:[self parseMove:[movesList objectAtIndex:untilMove - 1]]];
-    if (lastMove == [movesList count]) {
-        [zoomedBoard setAbstractBoard:abstractBoard];
-        [zoomedBoard
-            setLastMove:[self
-                            parseMove:[movesList objectAtIndex:untilMove - 1]]];
-    }
-}
-
 - (void)replayGoGame:(int)untilMove {
-    [self initGoStructures];
-    BOOL hasPass = NO, doublePass = NO;
-    int passMove = gridSize * gridSize;
-
-    for (int i = 0; i < untilMove; ++i) {
-        int currentPlayer = (i % 2) + 1, opponent = 3 - currentPlayer;
-        int move = [self parseMove:[movesList objectAtIndex:i]];
-        if (doublePass) {
-            if (move != passMove) {
-                if ([self getBoardValue:move] == 1) {
-                    [deadWhiteStones addObject:[NSNumber numberWithInt:move]];
-                } else if ([self getBoardValue:move] == 2) {
-                    [deadBlackStones addObject:[NSNumber numberWithInt:move]];
-                }
-                [self setValue:0 forPosition:move];
-            }
-            continue;
-        }
-        if (move == passMove) {
-            if (hasPass) {
-                doublePass = YES;
-            } else {
-                hasPass = YES;
-            }
-            continue;
-        } else {
-            hasPass = NO;
-        }
-        int color = 3 - currentPlayer; // , opponentColor = 3 - color;
-        NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *>
-            *groupsByID = [goStoneGroupsByPlayerAndID
-                objectForKey:[NSNumber numberWithInt:currentPlayer]];
-        NSMutableDictionary<NSNumber *, NSNumber *> *stoneGroupIDs =
-            [goStoneGroupIDsByPlayer
-                objectForKey:[NSNumber numberWithInt:currentPlayer]];
-        [self setValue:color forPosition:move];
-        [self settleGroups:groupsByID andIDs:stoneGroupIDs forMove:move];
-
-        groupsByID = [goStoneGroupsByPlayerAndID
-            objectForKey:[NSNumber numberWithInt:opponent]];
-        stoneGroupIDs = [goStoneGroupIDsByPlayer
-            objectForKey:[NSNumber numberWithInt:opponent]];
-        [self makeCapturesWithMove:move
-                        withGroups:groupsByID
-                            andIDs:stoneGroupIDs
-                    andAlterGroups:YES];
+    GoGame *goGame = [[GoGame alloc] initWithGridSize:gridSize];
+    NSMutableArray<NSNumber *> *moveInts = [NSMutableArray array];
+    for (int i = 0; i < [movesList count]; ++i) {
+        [moveInts addObject:@([self parseMove:[movesList objectAtIndex:i]])];
     }
+    [goGame replay:moveInts until:untilMove];
+
+    deadBlackStones = [[goGame blackDeadStones] mutableCopy];
+    deadWhiteStones = [[goGame whiteDeadStones] mutableCopy];
+
+    for (int pos = 0; pos < gridSize * gridSize; ++pos) {
+        [self setValue:(int)[goGame stoneAt:pos] forPosition:pos];
+    }
+    koMove = (int)[goGame koMove];
+
     [board setBlackDeadStones:deadBlackStones];
     [board setWhiteDeadStones:deadWhiteStones];
     [zoomedBoard setBlackDeadStones:deadBlackStones];
@@ -3421,22 +3094,6 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
     }
 }
 
-- (void)initGoStructures {
-    koMove = -1;
-    goStoneGroupIDsByPlayer = [[NSMutableDictionary alloc] init];
-    goStoneGroupsByPlayerAndID = [[NSMutableDictionary alloc] init];
-    [goStoneGroupIDsByPlayer setObject:[[NSMutableDictionary alloc] init]
-                                forKey:[NSNumber numberWithInt:1]];
-    [goStoneGroupIDsByPlayer setObject:[[NSMutableDictionary alloc] init]
-                                forKey:[NSNumber numberWithInt:2]];
-    [goStoneGroupsByPlayerAndID setObject:[[NSMutableDictionary alloc] init]
-                                   forKey:[NSNumber numberWithInt:1]];
-    [goStoneGroupsByPlayerAndID setObject:[[NSMutableDictionary alloc] init]
-                                   forKey:[NSNumber numberWithInt:2]];
-    deadBlackStones = [[NSMutableArray alloc] init];
-    deadWhiteStones = [[NSMutableArray alloc] init];
-}
-
 - (void)copyGoBoard {
     int currentOpponent = 2 - [movesList count] % 2;
     goStoneGroups = [[NSMutableDictionary alloc]
@@ -3464,6 +3121,9 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
     }
 }
 
+// NOTE (Go migration): replayGoGame: routes through the Swift GoGame engine, but this
+// interactive path still uses the ObjC Go helpers below (makeCapturesWithMove:/settleGroups:/etc.).
+// Fully migrating interactive Go to GoGame is a future follow-up.
 - (void)addGoMove:(int)move {
     int currentPlayer = 1 + [movesList count] % 2;
     int color = 3 - currentPlayer;
@@ -3716,7 +3376,13 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
 
 - (void)resetBoard {
     finalMove = -1;
-    [penteGame resetBoard];
+    // Zero the abstractBoard ivar so reset is behavior-neutral for ALL
+    // variants. The legacy [penteGame resetBoard] aliased and zeroed this
+    // 19x19 board; [engine reset] only clears the Swift engine's internal
+    // state, so without this the Go replay path (which never re-zeros
+    // abstractBoard) would leave ghost stones when stepping backward.
+    memset(abstractBoard, 0, sizeof(abstractBoard));
+    [engine reset];
 }
 
 - (void)notifyNewMessage {

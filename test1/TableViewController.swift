@@ -57,6 +57,10 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
         self.socket = socket
         board = LiveBoard(table: table)
         zoomedBoard = LiveBoard(table: table)
+        table.onCaptures = { [weak board, weak zoomedBoard] captures in
+            board?.animateCaptures(captures)
+            zoomedBoard?.animateCaptures(captures)
+        }
         if isArenaTable {
             arenaJoinRequestView = ArenaJoinRequestList(socket: socket, me: me, tableAndPlayers: tablesAndPlayers, tableId: table.table, gameId: table.game)
         } else {
@@ -427,7 +431,7 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
             alertController.addAction(dismissAction)
             alertController.addAction(viewAction)
             if let popoverController = alertController.popoverPresentationController {
-                popoverController.barButtonItem = navigationItem.rightBarButtonItems?[1]
+                popoverController.barButtonItem = navigationItem.rightBarButtonItems?[isArenaTable ? 0 : 1]
             }
 
             present(alertController, animated: true)
@@ -598,7 +602,7 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
                 }
                 alertController.addAction(p2Action)
                 if let popoverController = alertController.popoverPresentationController {
-                    popoverController.barButtonItem = navigationItem.rightBarButtonItems?[1]
+                    popoverController.barButtonItem = navigationItem.rightBarButtonItems?[isArenaTable ? 0 : 1]
                 }
                 present(alertController, animated: true)
             }
@@ -622,7 +626,7 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
                 }
                 alertController.addAction(passAction)
                 if let popoverController = alertController.popoverPresentationController {
-                    popoverController.barButtonItem = navigationItem.rightBarButtonItems?[1]
+                    popoverController.barButtonItem = navigationItem.rightBarButtonItems?[isArenaTable ? 0 : 1]
                 }
                 present(alertController, animated: true)
             } else if table.isSwap2ChoiceWithoutPassOption(), table.seats[1] != nil, me == table.seats[1]?.name {
@@ -638,7 +642,7 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
                 }
                 alertController.addAction(p2Action)
                 if let popoverController = alertController.popoverPresentationController {
-                    popoverController.barButtonItem = navigationItem.rightBarButtonItems?[1]
+                    popoverController.barButtonItem = navigationItem.rightBarButtonItems?[isArenaTable ? 0 : 1]
                 }
                 present(alertController, animated: true)
             }
@@ -692,7 +696,7 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
                 }
                 waitAlertController?.addAction(dismissAction)
                 if let popoverController = waitAlertController?.popoverPresentationController {
-                    popoverController.barButtonItem = navigationItem.rightBarButtonItems?[1]
+                    popoverController.barButtonItem = navigationItem.rightBarButtonItems?[isArenaTable ? 0 : 1]
                 }
                 present(waitAlertController!, animated: true)
                 waitSeconds = 1 * 60
@@ -743,7 +747,7 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
         waitAlertController?.addAction(dismissAction)
 
         if let popoverController = waitAlertController?.popoverPresentationController {
-            popoverController.barButtonItem = navigationItem.rightBarButtonItems?[1]
+            popoverController.barButtonItem = navigationItem.rightBarButtonItems?[isArenaTable ? 0 : 1]
         }
         present(waitAlertController!, animated: true)
     }
@@ -859,7 +863,7 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
             }
             alertController.addAction(p2Action)
             if let popoverController = alertController.popoverPresentationController {
-                popoverController.barButtonItem = navigationItem.rightBarButtonItems?[1]
+                popoverController.barButtonItem = navigationItem.rightBarButtonItems?[isArenaTable ? 0 : 1]
             }
             present(alertController, animated: true)
         }
@@ -897,7 +901,7 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
             }
             alertController.addAction(declineAction)
             if let popoverController = alertController.popoverPresentationController {
-                popoverController.barButtonItem = navigationItem.rightBarButtonItems?[1]
+                popoverController.barButtonItem = navigationItem.rightBarButtonItems?[isArenaTable ? 0 : 1]
             }
             present(alertController, animated: true)
         }

@@ -8,7 +8,9 @@
 
 import UIKit
 
-let development = false
+// Derived from the single ObjC `development` macro in PentePlayer.h (bridged via
+// developmentEnabled()). Flip the macro there only — do not hardcode a value here.
+let development = developmentEnabled()
 
 @objc class LobbyViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, UIPickerViewDelegate, UIPickerViewDataSource {
     var servers: [GameRoom] = []
