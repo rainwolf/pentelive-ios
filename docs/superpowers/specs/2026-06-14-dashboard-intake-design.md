@@ -7,195 +7,207 @@
 
 ## Problem
 
-`GamesTableViewController.m` is ~5,006 lines. It does table-view UI **and** builds HTTP
-requests **and** decodes the dashboard JSON **and** mutates the shared `PentePlayer.*`
-arrays **and** owns the failure alerts. To change one feature you must hold table-view
-protocols, the wire format, `NSUserDefaults` keys, and the data model in your head at
-once. None of the parsing is unit-testable — it needs a live `UITableViewController`.
+`GamesTableViewController.m` is ~5,006 lines. It does table-view UI **and** builds the
+dashboard HTTP request **and** decodes the response JSON **and** maps it to model objects
+**and** mutates the shared `PentePlayer.*` arrays **and** owns the failure alerts — all in
+one ~540-line method (`parseDashboard`, `GamesTableViewController.m:3389-3930`). To change
+the wire format you must also understand table-view diffing, `NSUserDefaults` keys, badge
+updates, and `CATransaction`. None of the parsing is unit-testable — it needs a live
+`UITableViewController`.
 
-Concretely:
-- `parseDashboard` (`GamesTableViewController.m:3389-3940`) runs on a detached `NSThread`,
-  builds a GET to `mobile/json/index.jsp?name=&password=`, decodes it with
-  `NSJSONSerialization`, reads ~30 keys, constructs `Game`/`Message`/`Tournament`/
-  `RatingStat`/`KingOfTheHill` objects, mutates `self.player.*`, sets flags
-  (`subscriber`, `showAds`, `emailMe`, `personalizeAds`, `tbHills`), writes
-  `NSUserDefaults` (e.g. `showOnlyTB`), and finally `reloadData` on the main queue.
-- `parseMessages` (`:3941+`) is a thin second intake path.
-- ~12 `[self dashboardParse]` call sites trigger this.
-- `AppDelegate.m:250-253` and `:331-332` downcast the visible view controller to
-  `GamesTableViewController` just to poke `dashboardParse` — a view-hierarchy reach-around.
+### Verified facts about the current code
 
-### Scope clarification (verified against the code)
-
-The architecture report framed this as "30 HTTP requests + string-matching dispatch."
-In reality the **read-intake** is essentially a single JSON fetch: `parseDashboard`
-decodes active/non-active games, invitations, public invitations, tournaments,
-rating stats, and king-of-the-hill from **one** `json/index.jsp` response, plus the
-secondary `parseMessages` fetch. The `tb/replyInvitation` URLs are **write actions**
-(accept/decline), not intake, and are out of scope. Only ~8 `rangeOfString:` calls
-exist, used for status/error checks, not as the main parse mechanism (which is JSON).
+- **One intake fetch.** `parseDashboard` issues a single GET to
+  `mobile/json/index.jsp?name=&password=` via `PenteHTTPClient sendRequest:completion:`
+  (AFNetworking-backed, completion on the main queue) and decodes it with
+  `NSJSONSerialization`. That one response carries **everything**: the `player` block,
+  king-of-the-hill, rating stats, sent/received invitations, active/non-active games,
+  open invitations, messages, tournaments, and online players.
+- **`parseMessages` is NOT a fetch.** Despite the name it does push-notification
+  deep-link navigation (`receivedNotification` → segue to a game/invitation/message). It
+  stays in the view controller, unchanged. Messages themselves are parsed *inside*
+  `parseDashboard` from `jsonResponse[@"messages"]`.
+- **Parsing is interleaved with UI.** Per section the method calls a helper
+  `updateSection:newItems:oldItems:collapsed:setter:` (`:3362`) that performs incremental
+  `insertRows`/`deleteRows`, wrapped in `CATransaction`, plus badge updates and bespoke
+  KOTH/rating row diffing. The *parse → model* work is cleanly separable from this *UI
+  update* work.
+- The `tb/replyInvitation` and other action URLs are **write actions**, not intake.
 
 ## Goals
 
-- A `DashboardService` that owns request construction, the wire format, and decoding,
-  returning a typed result. UIKit-free and fully unit-testable headlessly.
-- The view controller calls one method and renders the result; it owns alerts, flag
-  application, `NSUserDefaults`, and `player.*` assignment.
-- `AppDelegate`'s foreground-refresh path calls a single `@objc` entry point instead of
-  spelunking the view hierarchy.
+- A Swift `DashboardService` that owns request construction, the wire format, and decoding,
+  returning a typed `Dashboard`. Headlessly unit-testable.
+- The view controller calls one async method and applies the result: it keeps the
+  `updateSection` diffing, badges, `NSUserDefaults`, `player.*` assignment, and alerts.
+- `AppDelegate`'s foreground-refresh path calls one `@objc` entry point instead of
+  downcasting the visible view controller.
 
 ## Non-goals
 
-- The ~18 write/action HTTP calls (invitation replies, ads-preference, tournament
-  actions, logout) stay in the view controller for now.
-- Receipt/StoreKit/purchase logic stays in the VC/AppDelegate. The service only surfaces
-  the `shouldSendReceipt` flag; it does not validate receipts.
-- No unrelated UI redesign of the games table.
+- The model classes (`Game`/`Message`/`Tournament`/`RatingStat`/`KingOfTheHill`) are **not**
+  migrated. They stay ObjC in `PentePlayer.h/.m`, including their ~250 lines of date/emoji/
+  attributed-string display logic, which is unrelated to the intake seam. The Swift service
+  constructs these existing ObjC objects directly.
+- The ~18 write/action HTTP calls (invitation replies, ads-preference, tournament actions,
+  logout) stay in the view controller.
+- Receipt/StoreKit logic stays in the VC/AppDelegate. The service only surfaces the
+  relevant flag.
+- No redesign of the games table UI, the section-diffing, or the badge logic.
 
 ## Decisions (from brainstorming)
 
 | Decision | Choice |
 |----------|--------|
-| Scope | All read-intake — which collapses to the single dashboard JSON fetch + messages fetch |
+| Scope | The single dashboard JSON intake (everything is in one response) |
 | Language | Swift |
-| Model migration | **Migrate everything** — `Game`/`Message`/`Tournament`/`RatingStat`/`KingOfTheHill` become Swift, app-wide |
-| Networking | `async`/`await` (URLSession) |
-| Errors & effects | Pure service: throws typed `DashboardError`, returns flags in the model; VC owns alerts + `NSUserDefaults` + `player.*` |
+| Model boundary | **Hybrid** — service builds the existing ObjC `Game`/`Message`/etc objects; no model migration |
+| Networking | `async`/`await`, wrapping the existing `PenteHTTPClient` behind a `Transport` protocol |
+| Errors & effects | Pure service: throws typed `DashboardError`, returns flags + avatar-usernames in the result; VC owns alerts + `NSUserDefaults` + `player.*` + UI diffing |
 | Test target | Reuse `PenteEngineTests` |
 
-### Why `@objc` Swift classes, not pure structs, for the migrated models
+### Why hybrid (not a model migration)
 
-`Game` is read in **18 files**, most of them ObjC (`.m`): `BoardViewController`,
-`AISetupView`, `ArenaTableSetupView`, `DBSetupView`, `DatabaseViewController`,
-`MessagesViewController`, `InvitationsViewController`, `MMAIViewController`, etc. Pure
-Swift structs are invisible to ObjC. To migrate the models app-wide *without* also
-rewriting all 18 consumers into Swift, the migrated types are **`@objc` Swift classes**
-(NSObject subclasses) with the **same property names/getters** as today's `@interface`
-declarations, so ObjC call sites compile unchanged. Pure `Codable` value structs are
-used **inside** the service for parsing and are mapped to these `@objc` classes.
+`Game` is read in ~18 mostly-ObjC files, and `Game`/`Message` carry ~250 lines of display
+logic (`localizedTimeString`, `attributedName`, `ratingString`, `replaceSmileys`).
+Migrating them to Swift is large churn that serves none of the intake goal. Because ObjC
+classes are fully usable from Swift, the service can `Game()` / `Message()` and set their
+properties directly — the entire testable-parse win with zero consumer changes and zero
+display-logic porting. The only thing that moves to Swift is the parse/mapping, which lives
+in `parseDashboard`, not in the model classes.
 
 ## Architecture
 
 ```
-DashboardService  (Swift, UIKit-free, async/await)
+DashboardService  (Swift, @objc, no UIKit view code; UIColor only)
   func loadDashboard() async throws -> Dashboard
-  func loadMessages()  async throws -> [Message]
+    (ObjC sees the auto-bridged loadDashboardWithCompletionHandler:)
 
-  ├─ DashboardEndpoint    builds request URLs; prod vs localhost via developmentEnabled()
-  ├─ Transport (protocol) wraps URLSession; stubbable in tests
-  ├─ Wire<…> Codable structs (internal)  ──JSON decode──┐
-  └─ map(WireX -> X)  ───────────────────────────────────►  @objc model classes
-        returns Dashboard { games, invitations, publicInvitations,
-                            tournaments, ratingStats, hills, flags, livePlayers, … }
+  ├─ DashboardEndpoint   builds the request URL; prod vs localhost via developmentEnabled()
+  ├─ Transport (protocol) async data(for:); default impl wraps PenteHTTPClient; stub in tests
+  ├─ DashboardWire (Codable, internal)  ──JSON decode──┐
+  └─ DashboardMapping  map wire -> ObjC Game/Message/… ►  Dashboard (typed result)
         or throws DashboardError
 
 GamesTableViewController (thinner)
-  • refresh():  Task { let d = try await service.loadDashboard(); apply(d) }
-  • apply(_:):  flags + NSUserDefaults, assign player.* arrays, reloadData on main
-  • owns ALL UIAlerts  (DashboardError -> alert)
-  • @objc refreshDashboard  — single entry AppDelegate calls
+  • refreshDashboard (@objc):  Task { let d = try await service.loadDashboard(); apply(d) }
+                               catch -> map DashboardError to existing alert / silent reset
+  • applyDashboard:  set flags + NSUserDefaults, badges, addUser for avatars,
+                     updateSection diffing, KOTH/rating row animations, CATransaction
 ```
 
 ### Components
 
-1. **`DashboardService`** — the deep module. Public surface is two async methods plus the
-   `Dashboard` result and `DashboardError`. Everything else (endpoints, transport, wire
-   structs, mapping) is its secret.
-2. **`DashboardEndpoint`** — resolves prod vs `localhost` base URLs (replacing the
-   duplicated `if (development)` URL pairs) via the existing `developmentEnabled()` bridge,
-   and builds the `name`/`password` query.
-3. **`Transport`** — a thin protocol over `URLSession` (`func data(for:) async throws ->
-   (Data, URLResponse)`), so service tests inject a stub.
-4. **Wire structs** (internal, `Codable`): `WireDashboard`, `WireGame`, `WireMessage`,
-   `WireTournament`, `WireRatingStat`, `WireHill`, `WireFlags`. All cross-key fields
-   **optional** — the legacy code treats missing keys (e.g. `invitationsReceived`) as
-   normal, not an error.
-5. **Mapping** (`map(WireX) -> X`) — the one place per-field reads and coercions live.
-   Faithfully preserves today's quirks: JSON-number→string coercions (e.g. `mid` →
-   `stringValue` for `messageID`), color/rated normalization, crown / tourney-winner
-   flags, time formatting inputs.
-6. **`Dashboard`** — typed aggregate: the model arrays plus a `DashboardFlags` value
-   (`subscriber`, `showAds`, `emailMe`, `personalizeAds`, `tbHills`, `showOnlyTB`,
-   `shouldSendReceipt`).
-7. **Migrated `@objc` model classes** — `Game`, `Message`, `Tournament`, `RatingStat`,
-   `KingOfTheHill` move out of `PentePlayer.h` into Swift, same property names.
+1. **`DashboardService`** (`@objc`) — the deep module. Public surface: `loadDashboard()
+   async throws -> Dashboard`. Holds a `Transport` and a `DashboardEndpoint`. Everything
+   else is its secret.
+2. **`DashboardEndpoint`** — resolves prod vs `localhost` base URL via the existing
+   `developmentEnabled()` bridge and builds the `name`/`password` GET. Replaces the
+   duplicated `if (development)` URL pair.
+3. **`Transport`** — `protocol Transport { func data(for: URLRequest) async throws ->
+   (Data, URLResponse) }`. Default `PenteHTTPClientTransport` wraps
+   `PenteHTTPClient.sendRequest:completion:` via `withCheckedThrowingContinuation`, keeping
+   the AFNetworking session/SSL behavior. Tests inject a `StubTransport`.
+4. **`DashboardWire`** (internal, `Codable`): `WireDashboard` + `WirePlayer`, `WireGame`,
+   `WireMessage`, `WireTournament`, `WireRatingStat`, `WireHill`. All cross-key fields are
+   **optional** — the legacy code treats missing keys as normal. Number-or-string fields use
+   a small `FlexibleString` decoder to reproduce today's `stringValue` coercions
+   (e.g. `mid`, `setId`, `opponentRating`).
+5. **`DashboardMapping`** — the one place per-field reads/coercions live. Builds the ObjC
+   model objects, faithfully reproducing: `parseStoneColor`, the `tb-`/`Speed ` game-name
+   prefixing via `LegacyPenteGame.getGameName`, `UIColorFromRGB` (as a Swift helper),
+   `"%@ days per move"` formatting, read/unread, crown/tourney-winner ints, and the
+   `tbHills`/`tbRatings` counts.
+6. **`Dashboard`** (`@objc` result class) — typed aggregate the ObjC VC consumes:
+   `sentInvitations`, `invitations`, `activeGames`, `nonActiveGames`, `publicInvitations`,
+   `messages`, `tournaments`, `hills` (arrays of the ObjC model objects), `ratingStats`,
+   `onlinePlayers`, plus a `DashboardFlags` value and `avatarUsernames` (names the VC should
+   `addUser:` when avatars are enabled and the name color isn't black).
+7. **`DashboardFlags`** (`@objc`) — `myColorRGB`, `playerName`, `showAds`, `subscriber`,
+   `dbAccess`, `emailMe`, `personalizeAds`, `tbHills`, `tbRatings`, `livePlayers`,
+   `onlineFollowing`. The VC applies these to `player` and `NSUserDefaults`.
+8. **`DashboardError`** (`@objc`-compatible `enum`/`NSError`) — see Error handling.
 
 ## Data flow
 
-1. A trigger (foreground, pull-to-refresh, post-action) calls VC `refresh()`.
-2. `refresh()` runs a `Task`; `await service.loadDashboard()`.
-3. Service builds the endpoint, awaits `Transport.data(for:)` off-main, checks the HTTP
-   status, decodes `WireDashboard`, maps to the `@objc` models, returns `Dashboard`.
-4. Back on the main actor the VC `apply(d)`: sets flags, writes `NSUserDefaults`, assigns
-   `player.*` arrays, `reloadData()`.
-5. On `throws`, the VC maps `DashboardError` to the existing alert for that condition.
+1. A trigger (foreground, pull-to-refresh, post-action) calls `[self refreshDashboard]`.
+2. `refreshDashboard` runs a `Task`; `await service.loadDashboard()`.
+3. Service builds the endpoint, awaits `Transport.data(for:)`, checks HTTP status, decodes
+   `WireDashboard`, and maps to a `Dashboard` of ObjC model objects + flags + avatar list.
+   Returns it, or throws `DashboardError`.
+4. On the main actor the VC `applyDashboard:` — flags, `NSUserDefaults`, badges, `addUser`,
+   the `updateSection` diffing per section, KOTH/rating row animations, `CATransaction`,
+   `reloadData`.
+5. On `throws`, the VC maps `DashboardError` to the existing alert, or — for
+   `.invalidCredentials` (the legacy "missing `invitationsReceived` key") — to the current
+   silent border-reset.
 
 ## Error handling
 
 ```swift
 enum DashboardError: Error {
-    case network(URLError)        // transport failure
-    case http(status: Int)        // non-200 (replaces rangeOfString:@"HTTP Error")
-    case decoding(Error)          // malformed JSON
-    case invalidCredentials       // server rejected name/password
-    case serverMessage(String)    // server-supplied user-facing text
+    case network(Error)            // transport failure  (legacy: showErrorAlertWithMessage)
+    case http(status: Int)         // non-200
+    case decoding(Error)           // malformed JSON     (legacy: showErrorAlertWithMessage)
+    case invalidCredentials        // missing invitationsReceived key (legacy: silent reset)
 }
 ```
 
-The service never presents UI. Each case maps to the alert the VC shows today.
-StoreKit "invalid receipt" handling stays in the VC/AppDelegate; the service only
-forwards the `shouldSendReceipt` flag.
+The service never presents UI. Receipt/StoreKit handling stays in the VC/AppDelegate.
 
 ## Threading
 
-The detached-`NSThread` + synchronous request + `performSelectorOnMainThread` pattern is
-replaced by `async`/`await`. URLSession runs off-main; UI mutation (`player.*`,
-`reloadData`, alerts) happens on the main actor after the `await`.
+`async`/`await` replaces the `dashboardParse` detached `NSThread` wrapper. `Transport` runs
+off-main (the continuation resumes from `PenteHTTPClient`'s main-queue completion, which is
+fine — decoding/mapping are cheap). All UI mutation happens on the main actor in
+`applyDashboard:`.
 
 ## Integration points
 
-- The ~12 `[self dashboardParse]` calls collapse to a single VC `refresh()`.
-- `parseMessages` → `service.loadMessages()`, same shape.
-- `AppDelegate.m:250-253` and `:331-332`: keep a thin `@objc` `-(void)refreshDashboard`
-  on the VC; AppDelegate calls it directly instead of downcasting `visibleViewController`.
-  No behavior change, no view-hierarchy reach-around.
+- The ~12 `[self dashboardParse]` calls become `[self refreshDashboard]`.
+- `AppDelegate.m:250-253` and `:331-332`: call `[vc refreshDashboard]` (keep the existing
+  `respondsToSelector:` guard) instead of `dashboardParse`. No behavior change.
+- `parseMessages` (notification navigation) is untouched.
 - `developmentEnabled()` selects prod vs `localhost` inside `DashboardEndpoint`.
 
 ## Testing
 
 Reuse the `PenteEngineTests` target.
 
-- **Golden fixtures:** capture real `json/index.jsp` and messages responses as
-  checked-in JSON. A characterization test asserts the Swift mapping reproduces the same
-  field values the legacy ObjC parse produced — the corpus discipline that de-risked the
-  engine migration.
-- **Network-free layered tests:** feed a fixture string → decode → map → assert
-  `Dashboard`. Edge cases: missing optional keys, JSON-number-as-string coercions, empty
-  arrays, malformed JSON → `DashboardError.decoding`.
-- **Service-level:** inject a stub `Transport` to drive `loadDashboard()` end-to-end
-  headlessly, including the non-200 → `DashboardError.http` path.
+- **Golden fixture:** capture a real `json/index.jsp` response as a checked-in JSON file.
+  A characterization test asserts the Swift mapping reproduces the field values the legacy
+  ObjC parse produced (same corpus discipline that de-risked the engine migration).
+- **Network-free layered tests:** fixture string → decode → map → assert the `Dashboard`
+  (game ids, colors, ratings, `tb-`/`Speed ` names, read/unread, tbHills/tbRatings, flags).
+  Edge cases: missing optional keys, number-as-string coercions, empty arrays, malformed
+  JSON → `DashboardError.decoding`, missing `invitationsReceived` → `.invalidCredentials`.
+- **Service-level:** inject a `StubTransport` to drive `loadDashboard()` end-to-end
+  headlessly, including the non-200 → `DashboardError.http` path. (`UIColor` is fine in
+  unit tests; the service has no view code.)
 
 ## Phasing
 
-Each phase ends on a green build.
+Each phase ends on a green build + green tests.
 
-1. **Models to Swift** — replace the ObjC `Game`/`Message`/`Tournament`/`RatingStat`/
-   `KingOfTheHill` `@interface`s with `@objc` Swift classes (identical property names).
-   Mechanical, app-wide (~18 files), highest churn — isolate it. Build-green checkpoint.
-2. **Service + tests** — add `DashboardService`, `DashboardEndpoint`, `Transport`, wire
-   structs, mapping, and fixtures. Not yet wired into the VC.
-3. **Cutover** — route `dashboardParse`/`parseMessages` and the AppDelegate refresh
-   through the service; VC applies flags/arrays/alerts; delete the old threading.
-4. **Delete** — remove dead ObjC parsing and the old `@interface` declarations.
+1. **Service + tests** — add `Dashboard`/`DashboardFlags`/`DashboardError`,
+   `DashboardEndpoint`, `Transport` + `PenteHTTPClientTransport`, `DashboardWire`,
+   `DashboardMapping`, `DashboardService`, and the fixture-driven tests. Not yet wired in.
+2. **Cutover** — replace `parseDashboard`'s body with `refreshDashboard` (calls the
+   service) + `applyDashboard:` (keeps the existing UI diffing). Repoint the ~12 callers
+   and the two AppDelegate sites. On-device verify.
+3. **Delete** — remove the dead parse code (the old request-building + JSON loops) and the
+   `dashboardParse` detached-thread wrapper once `refreshDashboard` fully replaces it.
 
 ## Risks & verification
 
-- Phase 1's blast radius is the **consumers** of `Game` (18 files), not the parse logic.
-  A compile error in any consumer is the main failure mode; the `@objc`-same-property
-  approach keeps call sites unchanged.
+- The mapping must be byte-faithful to the legacy field reads; the golden fixture test is
+  the guard.
+- The UI diffing stays in the VC, so the table-animation behavior is unchanged by
+  construction.
 - On-device verification after cutover (manual, by owner): live dashboard refresh,
-  messages, foreground refresh from background, database views, launching the board from
-  a game cell, tournaments and king-of-the-hill lists, invitations.
+  pull-to-reload, foreground refresh from background, messages list, launching the board
+  from a game cell, tournaments and king-of-the-hill lists, invitations (sent/received/
+  open), avatar loading, the badge counts.
 
 ## Build facts (carried from the engine migration)
 
