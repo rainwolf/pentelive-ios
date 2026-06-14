@@ -10,6 +10,9 @@ struct FlexibleString: Decodable {
         else if let i = try? c.decode(Int.self) { value = String(i) }
         else if let d = try? c.decode(Double.self) { value = String(d) }
         else if let b = try? c.decode(Bool.self) { value = b ? "1" : "0" }
+        // Unexpected shapes (nested object/array/null) collapse to "" — a lenient
+        // wire layer mirroring legacy [x stringValue]. Downstream mapping must treat
+        // an empty value as "absent", not a meaningful value.
         else { value = "" }
     }
 }
