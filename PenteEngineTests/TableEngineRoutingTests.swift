@@ -8,6 +8,35 @@ import XCTest
 
 final class TableEngineRoutingTests: XCTestCase {
 
+    // Swap2 opening: player 1 places 3 stones, then player 2 decides at move 3.
+    // Exercises the exact MODEL path a live Swap2 move-3 drives, to isolate whether
+    // a reported move-3 crash is in the Table/engine layer or the UI layer.
+    func testSwap2OpeningThirdMoveModelPathDoesNotCrash() {
+        for game in [GameEnum.swap2Pente.rawValue, GameEnum.swap2Keryo.rawValue] {
+            // Moves received one-by-one (player 2 watching player 1 play the opening).
+            let t = Table(table: 1)
+            t.game = game
+            t.addMove(move: 9 * 19 + 9)
+            t.addMove(move: 9 * 19 + 10)
+            t.addMove(move: 9 * 19 + 11)
+            XCTAssertEqual(t.moves.count, 3)
+            XCTAssertTrue(t.isSwap2ChoiceWithPassOption())      // choice presented at move 3
+            XCTAssertFalse(t.isSwap2ChoiceWithoutPassOption())
+            XCTAssertEqual(t.currentPlayer(), 2)                // player 2 is to decide
+            // Alternating colours 1,2,1 — identical to legacy addMove = currentPlayer().
+            XCTAssertEqual(t.stone(at: 9 * 19 + 9), 1)
+            XCTAssertEqual(t.stone(at: 9 * 19 + 10), 2)
+            XCTAssertEqual(t.stone(at: 9 * 19 + 11), 1)
+
+            // Moves received in bulk (player 2 joining mid-opening -> engine.replay).
+            let b = Table(table: 1)
+            b.game = game
+            b.addMoves(moves: [9 * 19 + 9, 9 * 19 + 10, 9 * 19 + 11])
+            XCTAssertEqual(b.moves.count, 3)
+            XCTAssertTrue(b.isSwap2ChoiceWithPassOption())
+        }
+    }
+
     // White plays both flanking stones of a 1-3-1 row; the two black stones between
     // them are captured. Move order alternates white, black, white, black, white.
     //   idx0 white (9,5)=176   idx1 black (9,6)=177   idx2 white (0,0)=0
