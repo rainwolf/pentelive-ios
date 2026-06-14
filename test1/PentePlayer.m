@@ -9,6 +9,10 @@
 #import "PentePlayer.h"
 @import AFNetworking;
 
+// Reads the compile-time `development` macro (PentePlayer.h) so Swift, which
+// can't import the macro, derives the same flag via `developmentEnabled()`.
+BOOL developmentEnabled(void) { return development; }
+
 @implementation Game
 @synthesize setID;
 @synthesize gameID;
