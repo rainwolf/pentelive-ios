@@ -16,10 +16,11 @@ final class DashboardResultTests: XCTestCase {
         XCTAssertEqual(dash.flags.tbHills, 2)
         XCTAssertEqual(dash.flags.playerName, "alice")
         XCTAssertEqual(dash.onlinePlayers["bob"], "")
+        XCTAssertTrue(flags.showAds)
     }
 
     func testErrorCodes() {
-        let e = DashboardError.make(.http, "HTTP 503") as NSError
+        let e = DashboardError.make(.http, message: "HTTP 503") as NSError
         XCTAssertEqual(e.code, DashboardErrorCode.http.rawValue)
         XCTAssertEqual(e.domain, DashboardError.domain)
         XCTAssertEqual(e.localizedDescription, "HTTP 503")

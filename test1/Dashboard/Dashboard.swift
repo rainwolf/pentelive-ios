@@ -9,7 +9,7 @@ enum DashboardErrorCode: Int {
 
 enum DashboardError {
     static let domain = "org.pente.DashboardError"
-    static func make(_ code: DashboardErrorCode, _ message: String) -> NSError {
+    static func make(_ code: DashboardErrorCode, message: String) -> NSError {
         NSError(domain: domain, code: code.rawValue,
                 userInfo: [NSLocalizedDescriptionKey: message])
     }
@@ -30,10 +30,16 @@ enum DashboardError {
     @objc init(myColorRGB: Int, playerName: String, showAds: Bool, subscriber: Bool,
                dbAccess: Bool, emailMe: Bool, tbHills: Int, tbRatings: Int,
                livePlayers: String, onlineFollowing: String) {
-        self.myColorRGB = myColorRGB; self.playerName = playerName
-        self.showAds = showAds; self.subscriber = subscriber; self.dbAccess = dbAccess
-        self.emailMe = emailMe; self.tbHills = tbHills; self.tbRatings = tbRatings
-        self.livePlayers = livePlayers; self.onlineFollowing = onlineFollowing
+        self.myColorRGB = myColorRGB
+        self.playerName = playerName
+        self.showAds = showAds
+        self.subscriber = subscriber
+        self.dbAccess = dbAccess
+        self.emailMe = emailMe
+        self.tbHills = tbHills
+        self.tbRatings = tbRatings
+        self.livePlayers = livePlayers
+        self.onlineFollowing = onlineFollowing
     }
 }
 
@@ -47,6 +53,7 @@ enum DashboardError {
     @objc let tournaments: [Tournament]
     @objc let hills: [KingOfTheHill]
     @objc let ratingStats: [RatingStat]
+    // keyed by username; value is reserved (currently empty string)
     @objc let onlinePlayers: [String: String]
     @objc let avatarUsernames: [String]
     @objc let flags: DashboardFlags
@@ -55,10 +62,17 @@ enum DashboardError {
                nonActiveGames: [Game], publicInvitations: [Game], messages: [Message],
                tournaments: [Tournament], hills: [KingOfTheHill], ratingStats: [RatingStat],
                onlinePlayers: [String: String], avatarUsernames: [String], flags: DashboardFlags) {
-        self.sentInvitations = sentInvitations; self.invitations = invitations
-        self.activeGames = activeGames; self.nonActiveGames = nonActiveGames
-        self.publicInvitations = publicInvitations; self.messages = messages
-        self.tournaments = tournaments; self.hills = hills; self.ratingStats = ratingStats
-        self.onlinePlayers = onlinePlayers; self.avatarUsernames = avatarUsernames; self.flags = flags
+        self.sentInvitations = sentInvitations
+        self.invitations = invitations
+        self.activeGames = activeGames
+        self.nonActiveGames = nonActiveGames
+        self.publicInvitations = publicInvitations
+        self.messages = messages
+        self.tournaments = tournaments
+        self.hills = hills
+        self.ratingStats = ratingStats
+        self.onlinePlayers = onlinePlayers
+        self.avatarUsernames = avatarUsernames
+        self.flags = flags
     }
 }
