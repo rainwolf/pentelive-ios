@@ -88,6 +88,17 @@ final class DashboardMappingTests: XCTestCase {
         XCTAssertEqual(t.date, "2024-03-01")
     }
 
+    func testSentInvitationMapping() throws {
+        let g = try XCTUnwrap(loadDashboard().sentInvitations.first)
+        XCTAssertEqual(g.gameID, "9001")
+        XCTAssertEqual(g.gameType, "Pente")
+        XCTAssertEqual(g.opponentName, "bob")
+        XCTAssertEqual(g.opponentRating, "1400")
+        XCTAssertEqual(g.myColor, "white")            // raw color, no parseStoneColor
+        XCTAssertEqual(g.remainingTime, "3 days per move")
+        XCTAssertEqual(g.crown, 0)
+    }
+
     func testOnlinePlayersAndAvatars() throws {
         let d = try loadDashboard()
         XCTAssertEqual(d.onlinePlayers["bob"], "")
