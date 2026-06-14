@@ -66,7 +66,9 @@ struct WireGame: Decodable {
 
 struct WireMessage: Decodable {
     let mid: FlexibleString?
-    let read: Int?
+    /// JSON boolean (server emits Gson(IndexResponse.MessageEntry.read), a Java `boolean`).
+    /// true = already read. Must be Bool? — a JSON bool cannot decode into Int.
+    let read: Bool?
     let subject: String?
     let from: String?
     let date: String?

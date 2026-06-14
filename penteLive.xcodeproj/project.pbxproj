@@ -227,10 +227,12 @@
 		704D00F9E428E7746E4942F1 /* CorpusHelperTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8715B8F87E8325A61F04D700 /* CorpusHelperTests.swift */; };
 		70FAFB8857D33AA36493CB88 /* DashboardResultTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0FC944C7EBF9EE152F01111 /* DashboardResultTests.swift */; };
 		8DC0EDBB4B2C756A9413992C /* DashboardWire.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1368306455C932D8D8B7E65 /* DashboardWire.swift */; };
+		93913F0D555FA9FB23C9B8BD /* DashboardRealPayloadTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 209222A884B0D807DC3B8F72 /* DashboardRealPayloadTests.swift */; };
 		990D041477F085330D7E2175 /* DashboardServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56695C43B8B3FC600459EC2F /* DashboardServiceTests.swift */; };
 		A15CB2F09376664566B7C4D7 /* DashboardDecodingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A838F18BBA250038D3596952 /* DashboardDecodingTests.swift */; };
 		A382731D82157006F34514E4 /* MoveResultTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5F0539DA310A85158CDB99B /* MoveResultTests.swift */; };
 		ACB8501DE77D92A9A2323746 /* PenteVariant.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1195B9EE689C773DA39F77AD /* PenteVariant.swift */; };
+		ADC22B02BC637F2C14B47487 /* dashboard_real_index.json in Resources */ = {isa = PBXBuildFile; fileRef = 46FF0A3E9AAF2484A5A01D4F /* dashboard_real_index.json */; };
 		BBA523D1BFE87E6E0839A7BE /* DashboardTransport.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7527ED20D5B800D46E10F91 /* DashboardTransport.swift */; };
 		C39BBF8A4B9D391D75E63514 /* MoveResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9AA0E8424F26F770E4D9CD /* MoveResult.swift */; };
 		CACA6F1D6073D24501A45B3E /* dashboard_sample.json in Resources */ = {isa = PBXBuildFile; fileRef = 1719B0CC190A38E646A3A9D8 /* dashboard_sample.json */; };
@@ -259,8 +261,10 @@
 		0ECA09C532731E03061C1308 /* DashboardEndpointTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DashboardEndpointTests.swift; sourceTree = "<group>"; };
 		1195B9EE689C773DA39F77AD /* PenteVariant.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PenteVariant.swift; sourceTree = "<group>"; };
 		1719B0CC190A38E646A3A9D8 /* dashboard_sample.json */ = {isa = PBXFileReference; includeInIndex = 1; path = dashboard_sample.json; sourceTree = "<group>"; };
+		209222A884B0D807DC3B8F72 /* DashboardRealPayloadTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DashboardRealPayloadTests.swift; sourceTree = "<group>"; };
 		23B6987E5A29895D65B9D900 /* DashboardMappingTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DashboardMappingTests.swift; sourceTree = "<group>"; };
 		410191D1BEE5CCDBB1EAFD9C /* Dashboard.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Dashboard.swift; sourceTree = "<group>"; };
+		46FF0A3E9AAF2484A5A01D4F /* dashboard_real_index.json */ = {isa = PBXFileReference; includeInIndex = 1; path = dashboard_real_index.json; sourceTree = "<group>"; };
 		50436E8B3C992E62FFFC15D7 /* BoardVariantMapping.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BoardVariantMapping.swift; sourceTree = "<group>"; };
 		56695C43B8B3FC600459EC2F /* DashboardServiceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DashboardServiceTests.swift; sourceTree = "<group>"; };
 		63052FB71D047F9000F78B30 /* unlock.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = unlock.png; sourceTree = "<group>"; };
@@ -948,6 +952,7 @@
 				23B6987E5A29895D65B9D900 /* DashboardMappingTests.swift */,
 				0ECA09C532731E03061C1308 /* DashboardEndpointTests.swift */,
 				56695C43B8B3FC600459EC2F /* DashboardServiceTests.swift */,
+				209222A884B0D807DC3B8F72 /* DashboardRealPayloadTests.swift */,
 			);
 			path = PenteEngineTests;
 			sourceTree = SOURCE_ROOT;
@@ -979,10 +984,11 @@
 			isa = PBXGroup;
 			children = (
 				1719B0CC190A38E646A3A9D8 /* dashboard_sample.json */,
+				46FF0A3E9AAF2484A5A01D4F /* dashboard_real_index.json */,
 			);
 			name = Fixtures;
-			path = Fixtures;
-			sourceTree = "<group>";
+			path = PenteEngineTests/Fixtures;
+			sourceTree = SOURCE_ROOT;
 		};
 /* End PBXGroup section */
 
@@ -1077,6 +1083,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				CACA6F1D6073D24501A45B3E /* dashboard_sample.json in Resources */,
+				ADC22B02BC637F2C14B47487 /* dashboard_real_index.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1317,6 +1324,7 @@
 				1E9781A497DB8BFC502570C2 /* DashboardMappingTests.swift in Sources */,
 				21715C319AA4E90E18E94A90 /* DashboardEndpointTests.swift in Sources */,
 				990D041477F085330D7E2175 /* DashboardServiceTests.swift in Sources */,
+				93913F0D555FA9FB23C9B8BD /* DashboardRealPayloadTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

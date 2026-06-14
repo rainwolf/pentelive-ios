@@ -84,7 +84,7 @@ enum DashboardMapping {
         let messages: [Message] = (wire.messages ?? []).map { w in
             let m = Message()
             m.messageID = w.mid?.value ?? ""
-            m.unread = (w.read ?? 0) == 0 ? "unread" : "read"
+            m.unread = (w.read ?? false) ? "read" : "unread"
             m.subject = w.subject
             m.author = w.from
             m.timeStamp = w.date
