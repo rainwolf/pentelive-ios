@@ -3875,7 +3875,7 @@ array, and add a new row to the table view
         int unreadMsgs = 0, readMsgs = 0;
         for (NSDictionary *message_dict in jsonResponse[@"messages"]) {
             Message *message = [[Message alloc] init];
-            [message setMessageID:message_dict[@"mid"]];
+            [message setMessageID:[message_dict[@"mid"] stringValue]];
             [message setUnread:[message_dict[@"read"] intValue] == 0 ? @"unread"
                                                                      : @"read"];
             [message unread] ? readMsgs++ : unreadMsgs++;
