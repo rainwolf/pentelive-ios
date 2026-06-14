@@ -264,7 +264,7 @@ CGFloat bottomOffset = 0;
         //        }
         //        if ([[NSUserDefaults standardUserDefaults] boolForKey:
         //        @"registrationSuccess"]) {
-        [self dashboardParse];
+        [self refreshDashboard];
         //        }
     } else if (navControllor.messageDeleted) {
         [navControllor setMessageDeleted:NO];
@@ -287,7 +287,7 @@ CGFloat bottomOffset = 0;
                 }
             }
             completion:^(BOOL finished) {
-                [self dashboardParse];
+                [self refreshDashboard];
                 //                [self
                 //                performSelector:@selector(scrollViewDidScroll:)
                 //                withObject: self.tableView];
@@ -399,7 +399,7 @@ CGFloat bottomOffset = 0;
                             [NSThread detachNewThreadSelector:@selector(handleDeviceToken)
                                                      toTarget:weakSelf3
                                                    withObject:nil];
-                            [weakSelf3 dashboardParse];
+                            [weakSelf3 refreshDashboard];
                         }
                     }];
                     return;
@@ -448,7 +448,7 @@ CGFloat bottomOffset = 0;
                     [NSThread detachNewThreadSelector:@selector(handleDeviceToken)
                                              toTarget:weakSelf2
                                            withObject:nil];
-                    [weakSelf2 dashboardParse];
+                    [weakSelf2 refreshDashboard];
                 }
             }];
         }];
@@ -768,7 +768,7 @@ CGFloat bottomOffset = 0;
                afterDelay:0.05];
     //    [self performSelector:@selector(pullDownToReloadActionFinished)
     //    withObject:nil afterDelay: 0.5f];
-    [self performSelectorOnMainThread:@selector(dashboardParse)
+    [self performSelectorOnMainThread:@selector(refreshDashboard)
                            withObject:nil
                         waitUntilDone:NO];
 }
@@ -2477,7 +2477,7 @@ array, and add a new row to the table view
                       withRowAnimation:UITableViewRowAnimationFade];
         }
         completion:^(BOOL finished) {
-            [self dashboardParse];
+            [self refreshDashboard];
         }];
 }
 
@@ -2560,7 +2560,7 @@ array, and add a new row to the table view
                           withRowAnimation:UITableViewRowAnimationFade];
             }
         completion:^(BOOL finished) {
-            [weakSelf dashboardParse];
+            [weakSelf refreshDashboard];
         }];
     }];
 }
@@ -2812,7 +2812,7 @@ array, and add a new row to the table view
                       withRowAnimation:UITableViewRowAnimationFade];
         }
         completion:^(BOOL finished) {
-            [self dashboardParse];
+            [self refreshDashboard];
             //        [self performSelector:@selector(scrollViewDidScroll:)
             //        withObject: self.tableView afterDelay:0.4];
         }];
@@ -3055,7 +3055,7 @@ array, and add a new row to the table view
                     //            [tableView reloadData];
                 }
                 completion:^(BOOL finished) {
-                    [weakSelf dashboardParse];
+                    [weakSelf refreshDashboard];
                     [weakSelf performSelector:@selector(scrollViewDidScroll:)
                                withObject:weakSelf.tableView
                                afterDelay:0.01];
@@ -3130,7 +3130,7 @@ array, and add a new row to the table view
                               withRowAnimation:UITableViewRowAnimationFade];
                 }
                 completion:^(BOOL finished) {
-                    [weakSelf dashboardParse];
+                    [weakSelf refreshDashboard];
                     [weakSelf performSelector:@selector(scrollViewDidScroll:)
                                withObject:weakSelf.tableView
                                afterDelay:0.01];
@@ -3208,7 +3208,7 @@ array, and add a new row to the table view
                               withRowAnimation:UITableViewRowAnimationFade];
                 }
                 completion:^(BOOL finished) {
-                    [weakSelf dashboardParse];
+                    [weakSelf refreshDashboard];
                     [weakSelf performSelector:@selector(scrollViewDidScroll:)
                                withObject:weakSelf.tableView
                                afterDelay:0.01];
@@ -3316,7 +3316,7 @@ array, and add a new row to the table view
                 strongSelf.tableView.layer.borderWidth = 0.0;
                 [strongSelf.tableView setEditing:FALSE animated:TRUE];
             } else {
-                [strongSelf dashboardParse];
+                [strongSelf refreshDashboard];
             }
         }];
     }
@@ -5159,7 +5159,7 @@ array, and add a new row to the table view
                       withRowAnimation:UITableViewRowAnimationFade];
         }
         completion:^(BOOL finished) {
-            [self dashboardParse];
+            [self refreshDashboard];
         }];
 }
 @end
