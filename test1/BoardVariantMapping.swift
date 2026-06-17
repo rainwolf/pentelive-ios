@@ -19,6 +19,7 @@ import UIKit
         if gameType.contains("Swap2-Pente") { return .swap2Pente }
         if gameType.contains("Swap2-Keryo") { return .swap2Keryo }
         if gameType.contains("Connect6") { return .connect6 }
+        if gameType.contains("Renju") { return .renju }
         if gameType.contains("Gomoku") { return .gomoku }
         // Deliberate fallback for unknown/legacy game-type strings, matching the
         // legacy behavior in BoardViewController. This is NOT a crash path: an

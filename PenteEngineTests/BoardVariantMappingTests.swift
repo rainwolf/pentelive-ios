@@ -22,6 +22,12 @@ final class BoardVariantMappingTests: XCTestCase {
         XCTAssertEqual(BoardVariantMapping.variant(forGameType: "Gomoku"), .gomoku)
     }
 
+    func testRenjuGameTypesMapToRenjuVariant() {
+        XCTAssertEqual(BoardVariantMapping.variant(forGameType: "Renju"), .renju)
+        XCTAssertEqual(BoardVariantMapping.variant(forGameType: "Speed Renju"), .renju)
+        XCTAssertEqual(BoardVariantMapping.variant(forGameType: "Turn-based Renju"), .renju)
+    }
+
     func testVariantForGameTypeFallsBackToPente() {
         // Unknown/legacy game-type strings deliberately fall back to .pente.
         // (Go must be filtered out by callers via isGoGame before reaching here.)
