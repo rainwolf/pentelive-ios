@@ -481,6 +481,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                 [submitButton setHidden:NO];
                 activeGame = YES;
                 [self updateRenjuBoxOverlay];
+                [self applyRenjuOpeningMaskIfNeeded];
             }
         } else if ([self.renjuPhase isEqualToString:@"BRANCH"]) {
             self.renjuBranchB = YES;
@@ -692,9 +693,32 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
     }
     if ([phase isEqualToString:@"SWAP"] && !self.renjuTakeOver &&
         !self.renjuMove4Decline) {
-        return MAX(1, MIN(3, placed)); // decline+place windows 1-3
+        if (placed >= 4) {
+            return 0; // move-4 window: declining triggers BRANCH, no stone placed
+        }
+        return MAX(1, MIN(3, placed)); // decline+place windows 1-3 -> 3x3/5x5/7x7
     }
     return 0; // OFFERS/BRANCH/SELECTION/COMPLETE
+}
+
+// Mark every empty cell OUTSIDE the legal central square with -1 (masked) so the
+// board's empty-cell guard rejects taps there. No-op when no box applies. The marks
+// are transient: loadEngineIntoAbstractBoard rebuilds the board (no -1 for Renju) on
+// the next server refresh, so they clear automatically.
+- (void)applyRenjuOpeningMaskIfNeeded {
+    int r = [self renjuCentralBoxRadius];
+    if (r <= 0) {
+        return;
+    }
+    for (int i = 0; i < gridSize; ++i) {
+        for (int j = 0; j < gridSize; ++j) {
+            if (abstractBoard[i][j] == 0 && (abs(j - 7) > r || abs(i - 7) > r)) {
+                abstractBoard[i][j] = -1;
+            }
+        }
+    }
+    [self.board setNeedsDisplay];
+    [self.zoomedBoard setNeedsDisplay];
 }
 
 - (void)updateRenjuBoxOverlay {
@@ -728,11 +752,19 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
 }
 
 - (void)renderRenjuOpeningUI {
-    // hide the dPente/swap2 controls first; clear any stale overlay from a prior phase
+    // Each render reflects a fresh server-shipped phase; the decision flags only carry
+    // from a button press to the immediately-following submit, so reset them here.
+    self.renjuTakeOver = NO;
+    self.renjuMove4Decline = NO;
+    self.renjuBranchB = NO;
+    // hide the dPente/swap2 controls first; clear any stale overlay from a prior phase.
+    // The submit button stays hidden during the swap/branch/offer/selection choices —
+    // those auto-submit; it is only revealed by placing a stone (MOVE / decline+place).
     [player1Button setHidden:YES];
     [player2Button setHidden:YES];
     [passButton setHidden:YES];
     [dPenteChoiceLabel setHidden:YES];
+    [submitButton setHidden:YES];
     [self renderRenjuCandidates:@[]];
     [self updateRenjuBoxOverlay];
 
@@ -771,7 +803,10 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
         [dPenteChoiceLabel setHidden:NO];
         [self.view bringSubviewToFront:dPenteChoiceLabel];
     }
-    // MOVE / COMPLETE: no buttons; placement handled by boardTap (+ box overlay for MOVE)
+    // MOVE / COMPLETE: no buttons; placement handled by boardTap.
+    // Lock out illegal cells (outside the central square) with -1 for the constrained
+    // placement phases (SWAP windows 1-3 and MOVE). No-op for the others.
+    [self applyRenjuOpeningMaskIfNeeded];
 }
 
 - (void)submitRenjuDecision {
