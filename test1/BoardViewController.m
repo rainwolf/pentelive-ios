@@ -840,6 +840,14 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
     if (dPenteChoice && [submitButton isHidden]) {
         return;
     }
+    // Renju: no board interaction while a swap/branch choice is pending. The choice
+    // buttons are visible until the player decides; declining a swap (windows 1-3)
+    // hides them and opens central-box placement.
+    if (([self.renjuPhase isEqualToString:@"SWAP"] ||
+         [self.renjuPhase isEqualToString:@"BRANCH"]) &&
+        ![player1Button isHidden]) {
+        return;
+    }
     if (dPenteOpening) {
         if (dPenteMove1 == -1) {
             [stone setStoneColor:WHITE];
