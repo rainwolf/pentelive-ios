@@ -810,6 +810,68 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
     [dPenteChoiceLabel setHidden:NO];
 }
 
+// Lay the Renju opening DECISION buttons out in a single row below the board, evenly
+// filling the width to the LEFT of the board-lock (padlock) button so none sits under it.
+// Frame-based to match this view's layout idiom (see viewDidLoad). `buttons` is 2 (swap
+// windows 1-3 / post-take-over branch) or 3 (move-4) UIButtons, ordered left-to-right.
+- (void)layoutRenjuDecisionButtons:(NSArray<UIButton *> *)buttons {
+    NSUInteger n = buttons.count;
+    if (n == 0) {
+        return;
+    }
+    CGFloat rowY = board.frame.size.height + 2; // same row as submit / lock
+    CGFloat btnH = player1Button.frame.size.height;
+    CGFloat leftX = 10.0f;
+    CGFloat gapToLock = 8.0f; // keep clear of the padlock on the right
+    CGFloat rightX = lockButton.frame.origin.x - gapToLock;
+    if (rightX <= leftX) { // degenerate safety (lock not laid out yet)
+        rightX = board.frame.size.width - 10.0f;
+    }
+    CGFloat gap = 6.0f; // inter-button gap
+    CGFloat btnW = (rightX - leftX - (CGFloat)(n - 1) * gap) / (CGFloat)n;
+    for (NSUInteger k = 0; k < n; ++k) {
+        UIButton *b = buttons[k];
+        b.frame = CGRectMake(leftX + (CGFloat)k * (btnW + gap), rowY, btnW, btnH);
+    }
+}
+
+// SELECTION: lock the board to the 10 offered cells. Mark every EMPTY cell that is NOT one
+// of self.renjuOffers with -1 (masked) — the same mechanism applyRenjuOpeningMaskIfNeeded
+// uses for the opening box — so a live stone can render/place only on an offer. The 10
+// offers stay at 0 (still drawn as translucent candidates via renderRenjuCandidates).
+// No-op (board left fully open) if there are no offers, so we never lock the whole board.
+- (void)applyRenjuSelectionMask {
+    if (self.renjuOffers.count == 0) {
+        return;
+    }
+    NSSet<NSNumber *> *offers = [NSSet setWithArray:self.renjuOffers];
+    for (int i = 0; i < gridSize; ++i) {
+        for (int j = 0; j < gridSize; ++j) {
+            if (abstractBoard[i][j] == 0 &&
+                ![offers containsObject:@(gridSize * i + j)]) {
+                abstractBoard[i][j] = -1;
+            }
+        }
+    }
+    [self.board setNeedsDisplay];
+    [self.zoomedBoard setNeedsDisplay];
+}
+
+// Restore every masked (-1) cell to empty (0). Clears the SELECTION mask (and, harmlessly,
+// any opening-box mask) so placement is unconstrained again. The -1 marks only ever come
+// from the Renju opening masks, so clearing them all is safe.
+- (void)clearRenjuOpeningMask {
+    for (int i = 0; i < gridSize; ++i) {
+        for (int j = 0; j < gridSize; ++j) {
+            if (abstractBoard[i][j] == -1) {
+                abstractBoard[i][j] = 0;
+            }
+        }
+    }
+    [self.board setNeedsDisplay];
+    [self.zoomedBoard setNeedsDisplay];
+}
+
 - (void)renderRenjuOpeningUI {
     // Each render reflects a fresh server-shipped phase; the decision flags only carry
     // from a button press to the immediately-following submit, so reset them here.
@@ -819,6 +881,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
     self.renjuMove4BranchA = NO;
     self.renjuMove4BranchB = NO;
     self.renjuSelectedPoints = [NSMutableArray array]; // clear any stale SELECTION pair
+    [self clearRenjuOpeningMask]; // drop any -1 left over from a prior SELECTION/box mask
     // hide the dPente/swap2 controls first; clear any stale overlay from a prior phase.
     // The submit button stays hidden during the swap/branch/offer/selection choices —
     // those auto-submit; it is only revealed by placing a stone (MOVE / decline+place).
@@ -833,53 +896,57 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
     NSString *phase = self.renjuPhase;
     if ([phase isEqualToString:@"SWAP"]) {
         if ([self isRenjuMove4Window]) {
-            // Move-4: three choices on one screen via the move4 fold.
-            [dPenteChoiceLabel setText:NSLocalizedString(@"Swap, play on, or offer 10?", nil)];
+            // Move-4: three choices on one screen via the move4 fold. Buttons only
+            // (no descriptive label); laid out clear of the padlock.
             [player1Button setTitle:NSLocalizedString(@"Swap", nil)
                            forState:UIControlStateNormal];
             [player2Button setTitle:NSLocalizedString(@"No swap", nil)
                            forState:UIControlStateNormal];
             [passButton setTitle:NSLocalizedString(@"Place 10", nil)
                         forState:UIControlStateNormal];
-            [dPenteChoiceLabel setHidden:NO];
+            [self layoutRenjuDecisionButtons:@[ player1Button, player2Button, passButton ]];
             [player1Button setHidden:NO];
             [player2Button setHidden:NO];
             [passButton setHidden:NO];
             [self.view bringSubviewToFront:player1Button];
             [self.view bringSubviewToFront:player2Button];
             [self.view bringSubviewToFront:passButton];
-            [self.view bringSubviewToFront:dPenteChoiceLabel];
         } else {
-            [dPenteChoiceLabel setText:NSLocalizedString(@"Swap?", nil)];
-            [player1Button setTitle:NSLocalizedString(@"Yes", nil)
+            // Swap windows 1-3: two choices. Buttons only (no "Swap?" label), so the
+            // titles must read on their own; laid out clear of the padlock.
+            [player1Button setTitle:NSLocalizedString(@"Swap", nil)
                            forState:UIControlStateNormal];
-            [player2Button setTitle:NSLocalizedString(@"No", nil)
+            [player2Button setTitle:NSLocalizedString(@"No swap", nil)
                            forState:UIControlStateNormal];
-            [dPenteChoiceLabel setHidden:NO];
+            [self layoutRenjuDecisionButtons:@[ player1Button, player2Button ]];
             [player1Button setHidden:NO];
             [player2Button setHidden:NO];
             [self.view bringSubviewToFront:player1Button];
             [self.view bringSubviewToFront:player2Button];
-            [self.view bringSubviewToFront:dPenteChoiceLabel];
         }
     } else if ([phase isEqualToString:@"BRANCH"]) {
-        [dPenteChoiceLabel setText:NSLocalizedString(@"Place 5th, or offer 10?", nil)];
+        // Post-take-over branch: two choices. Buttons only (no descriptive label);
+        // laid out clear of the padlock.
         [player1Button setTitle:NSLocalizedString(@"Place", nil)
                        forState:UIControlStateNormal];
         [player2Button setTitle:NSLocalizedString(@"Offer", nil)
                        forState:UIControlStateNormal];
-        [dPenteChoiceLabel setHidden:NO];
+        [self layoutRenjuDecisionButtons:@[ player1Button, player2Button ]];
         [player1Button setHidden:NO];
         [player2Button setHidden:NO];
         [self.view bringSubviewToFront:player1Button];
         [self.view bringSubviewToFront:player2Button];
-        [self.view bringSubviewToFront:dPenteChoiceLabel];
     } else if ([phase isEqualToString:@"OFFERS"]) {
         self.renjuPickedOffers = [NSMutableArray array];
         [self renderRenjuCandidates:@[]];
         [self showRenjuOfferCounter];
     } else if ([phase isEqualToString:@"SELECTION"]) {
         self.renjuSelectedPoints = [NSMutableArray array];
+        // Lock the board to the 10 offers (black 5th) by masking every other empty cell
+        // with -1; the offers stay drawn as translucent candidates. Restored on the first
+        // tap so the white 6th can land anywhere. This is a tap phase, so its instructional
+        // label stays (only the button-decision phases drop their label).
+        [self applyRenjuSelectionMask];
         [self renderRenjuCandidates:(self.renjuOffers ?: @[])];
         [dPenteChoiceLabel setText:NSLocalizedString(@"Tap black's 5th, then your 6th", nil)];
         [dPenteChoiceLabel setHidden:NO];
@@ -1125,17 +1192,33 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                         break; // 1st must be offered
                     }
                     [self.renjuSelectedPoints addObject:@(tapped)];
-                    [self renderRenjuCandidates:self.renjuSelectedPoints];
+                    // Black 5th picked: drop the translucent offers, unmask the board so
+                    // the white 6th may land on ANY empty cell, and show the chosen 5th as
+                    // a normal live stone.
+                    [self renderRenjuCandidates:@[]];
+                    [self clearRenjuOpeningMask];
+                    abstractBoard[i][j] = 2; // black 5th
+                    [board setNeedsDisplay];
+                    [zoomedBoard setNeedsDisplay];
                 } else if (self.renjuSelectedPoints.count == 1) {
                     if (abstractBoard[i][j] != 0 ||
                         tapped == [self.renjuSelectedPoints[0] intValue]) {
                         break; // 2nd must be empty and distinct from the 5th
                     }
                     [self.renjuSelectedPoints addObject:@(tapped)];
-                    [self renderRenjuCandidates:self.renjuSelectedPoints];
+                    abstractBoard[i][j] = 1; // white 6th
+                    [board setNeedsDisplay];
+                    [zoomedBoard setNeedsDisplay];
                     [self submitRenjuDecision]; // renjuAction=select, moves "m5,m6"
                 } else {
-                    self.renjuSelectedPoints = [NSMutableArray array]; // 3rd tap resets
+                    // 3rd tap resets the pair: undo the provisional 5th/6th stones,
+                    // re-mask to the 10 offers, and re-show them for a fresh black-5th pick.
+                    for (NSNumber *p in self.renjuSelectedPoints) {
+                        int v = [p intValue];
+                        abstractBoard[v / gridSize][v % gridSize] = 0;
+                    }
+                    self.renjuSelectedPoints = [NSMutableArray array];
+                    [self applyRenjuSelectionMask];
                     [self renderRenjuCandidates:(self.renjuOffers ?: @[])];
                 }
                 break;
