@@ -24,8 +24,8 @@ enum Scan {
         (1, 0), (1, 1), (0, 1), (-1, 1),
     ]
 
-    private static func inBounds(_ i: Int, _ j: Int) -> Bool {
-        i >= 0 && i < 19 && j >= 0 && j < 19
+    private static func inBounds(_ i: Int, _ j: Int, n: Int) -> Bool {
+        i >= 0 && i < n && j >= 0 && j < n
     }
 
     // MARK: - Custodial capture (run = 2 Pente, run = 3 Keryo)
@@ -38,13 +38,14 @@ enum Scan {
     // `abstractBoard[...] == myColor`; captured stones carry the opponent colour.
     static func captures(on board: [[Int]], at move: Int, color: Int, run: Int) -> [Capture] {
         var b = board
-        let i = move / 19, j = move % 19
+        let n = board.count
+        let i = move / n, j = move % n
         let opponent = (color == 1) ? 2 : 1
         let far = run + 1
         var result: [Capture] = []
         for (di, dj) in neighbours {
             let fi = i + far * di, fj = j + far * dj
-            guard inBounds(fi, fj), b[fi][fj] == color else { continue }
+            guard inBounds(fi, fj, n: n), b[fi][fj] == color else { continue }
             var custodial = true
             for k in 1...run {
                 if b[i + k * di][j + k * dj] != opponent {
@@ -56,7 +57,7 @@ enum Scan {
             for k in 1...run {
                 let ci = i + k * di, cj = j + k * dj
                 b[ci][cj] = 0
-                result.append(Capture(position: ci * 19 + cj, color: opponent))
+                result.append(Capture(position: ci * n + cj, color: opponent))
             }
         }
         return result
@@ -72,7 +73,8 @@ enum Scan {
     // call's records), then the partner stones in detection order.
     static func poof(on board: [[Int]], at move: Int, color: Int, run: Int) -> [Capture] {
         var b = board
-        let i = move / 19, j = move % 19
+        let n = board.count
+        let i = move / n, j = move % n
         let opponent = (color == 1) ? 2 : 1
         var directional: [Capture] = []
         var poofed = false
@@ -83,12 +85,12 @@ enum Scan {
                 let pi = i + di, pj = j + dj           // partner
                 let fi = i + 2 * di, fj = j + 2 * dj   // far end, beyond the partner
                 let oi = i - di, oj = j - dj           // opposite end, beyond the placed stone
-                guard inBounds(fi, fj), inBounds(oi, oj) else { continue }
+                guard inBounds(fi, fj, n: n), inBounds(oi, oj, n: n) else { continue }
                 if b[pi][pj] == color, b[fi][fj] == opponent, b[oi][oj] == opponent {
                     poofed = true
                     b[pi][pj] = 0
                     b[i][j] = 0
-                    directional.append(Capture(position: pi * 19 + pj, color: color))
+                    directional.append(Capture(position: pi * n + pj, color: color))
                 }
             }
         } else {
@@ -99,15 +101,15 @@ enum Scan {
                 let p2i = i + 2 * di, p2j = j + 2 * dj   // far partner
                 let fi = i + 3 * di, fj = j + 3 * dj      // far end
                 let oi = i - di, oj = j - dj              // opposite end
-                guard inBounds(fi, fj), inBounds(oi, oj) else { continue }
+                guard inBounds(fi, fj, n: n), inBounds(oi, oj, n: n) else { continue }
                 if b[p1i][p1j] == color, b[p2i][p2j] == color,
                    b[fi][fj] == opponent, b[oi][oj] == opponent {
                     poofed = true
                     b[p2i][p2j] = 0
                     b[p1i][p1j] = 0
                     b[i][j] = 0
-                    directional.append(Capture(position: p2i * 19 + p2j, color: color))
-                    directional.append(Capture(position: p1i * 19 + p1j, color: color))
+                    directional.append(Capture(position: p2i * n + p2j, color: color))
+                    directional.append(Capture(position: p1i * n + p1j, color: color))
                 }
             }
             // (b) Placed stone centred in three mover stones, flanked both ends.
@@ -119,22 +121,22 @@ enum Scan {
                 let pbi = i - di, pbj = j - dj            // partner -dir
                 let eai = i + 2 * di, eaj = j + 2 * dj    // end +2dir
                 let ebi = i - 2 * di, ebj = j - 2 * dj    // end -2dir
-                guard inBounds(eai, eaj), inBounds(ebi, ebj) else { continue }
+                guard inBounds(eai, eaj, n: n), inBounds(ebi, ebj, n: n) else { continue }
                 if b[pai][paj] == color, b[pbi][pbj] == color,
                    b[eai][eaj] == opponent, b[ebi][ebj] == opponent {
                     poofed = true
                     b[pai][paj] = 0
                     b[pbi][pbj] = 0
                     b[i][j] = 0
-                    directional.append(Capture(position: pai * 19 + paj, color: color))
-                    directional.append(Capture(position: pbi * 19 + pbj, color: color))
+                    directional.append(Capture(position: pai * n + paj, color: color))
+                    directional.append(Capture(position: pbi * n + pbj, color: color))
                 }
             }
         }
 
         guard poofed else { return [] }
         // Placed stone first, then the partner records in detection order.
-        var result: [Capture] = [Capture(position: i * 19 + j, color: color)]
+        var result: [Capture] = [Capture(position: i * n + j, color: color)]
         result.append(contentsOf: directional)
         return result
     }
@@ -150,7 +152,8 @@ enum Scan {
     // wins along the top edge / left edge. Indices are 0..18, so `>= 0 && < 19` is the
     // correct in-bounds range (like the existing Connect6 winLength correction).
     static func winLine(on board: [[Int]], at move: Int, color: Int, length: Int) -> Bool {
-        let row = move / 19, col = move % 19
+        let n = board.count
+        let row = move / n, col = move % n
         let axes: [((Int, Int), (Int, Int))] = [
             ((-1, 0), (1, 0)),    // vertical
             ((0, -1), (0, 1)),    // horizontal
@@ -162,7 +165,7 @@ enum Scan {
             for (di, dj) in [d1, d2] {
                 var i = row + di
                 var j = col + dj
-                while i >= 0, i < 19, j >= 0, j < 19 {
+                while i >= 0, i < n, j >= 0, j < n {
                     if board[i][j] == color {
                         count += 1
                         if count > length - 1 { return true }

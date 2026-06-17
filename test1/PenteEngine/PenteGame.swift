@@ -10,14 +10,19 @@ import Foundation
     @objc private(set) var whiteCaptures: Int = 0
     @objc private(set) var blackCaptures: Int = 0
 
+    /// Board edge length from the active recipe (15 for Renju, else 19).
+    private var boardSize: Int { rules.boardSize }
+
     @objc init(variant: PenteVariant) {
-        self.rules = ruleSet(for: variant)
-        self.board = Array(repeating: Array(repeating: 0, count: 19), count: 19)
+        let recipe = ruleSet(for: variant)
+        self.rules = recipe
+        self.board = Array(repeating: Array(repeating: 0, count: recipe.boardSize),
+                           count: recipe.boardSize)
         super.init()
     }
 
     @objc func reset() {
-        board = Array(repeating: Array(repeating: 0, count: 19), count: 19)
+        board = Array(repeating: Array(repeating: 0, count: boardSize), count: boardSize)
         moveCount = 0
         whiteCaptures = 0
         blackCaptures = 0
@@ -26,15 +31,17 @@ import Foundation
     /// Read-only accessor for renderers. Returns 0 empty, 1 white, 2 black, -1 masked.
     @objc func stone(at rowCol: Int) -> Int {
         // @objc callers may pass an out-of-range index; treat it as empty rather
-        // than trapping on the array access. Board is 19x19 = 361 cells.
-        guard rowCol >= 0 && rowCol < 361 else { return 0 }
-        return board[rowCol / 19][rowCol % 19]
+        // than trapping on the array access.
+        let cells = boardSize * boardSize
+        guard rowCol >= 0 && rowCol < cells else { return 0 }
+        return board[rowCol / boardSize][rowCol % boardSize]
     }
 
     @objc func play(_ move: Int) -> MoveResult {
         // @objc callers may pass an out-of-range index; treat it as a no-op rather
-        // than trapping on the array access. Board is 19x19 = 361 cells.
-        guard move >= 0 && move < 361 else {
+        // than trapping on the array access.
+        let cells = boardSize * boardSize
+        guard move >= 0 && move < cells else {
             return MoveResult(captured: [], poofed: false, winner: 0, placed: 0)
         }
         let placedColor = colorForMove(moveCount)
@@ -42,7 +49,7 @@ import Foundation
         // Masks are a render-only overlay; clear any before placing so scans never
         // see -1 (legacy replayMoves operated on a mask-free board).
         clearOpeningMask()
-        board[move / 19][move % 19] = placedColor
+        board[move / boardSize][move % boardSize] = placedColor
 
         var captured: [Capture] = []
         var poofed = false
@@ -97,13 +104,15 @@ import Foundation
             return (index % 2) + 1
         case .connect6:
             return (((index % 4) == 0) || ((index % 4) == 3)) ? 1 : 2
+        case .blackFirst:
+            return 2 - (index % 2)   // move 0 -> 2 (black), move 1 -> 1 (white)
         }
     }
 
     /// Remove each captured/poofed stone and bump that colour's loss counter by one.
     private func apply(_ removed: [Capture]) {
         for cap in removed {
-            board[cap.position / 19][cap.position % 19] = 0
+            board[cap.position / boardSize][cap.position % boardSize] = 0
             if cap.color == 1 { whiteCaptures += 1 } else { blackCaptures += 1 }
         }
     }
