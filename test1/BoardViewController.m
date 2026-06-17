@@ -466,9 +466,20 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
     if (self.renjuPhase != nil) {
         if ([self.renjuPhase isEqualToString:@"SWAP"]) {
             if ([self isRenjuMove4Window]) {
+                // "No swap" -> Branch A: place your move 5 in the 9x9, submitted with
+                // the decline together via the move4 fold.
                 self.renjuTakeOver = NO;
-                self.renjuMove4Decline = YES;
-                [self submitRenjuDecision]; // moves=0, no stone -> BRANCH next
+                self.renjuMove4Decline = NO;
+                self.renjuMove4BranchA = YES;
+                self.renjuMove4BranchB = NO;
+                [player1Button setHidden:YES];
+                [player2Button setHidden:YES];
+                [passButton setHidden:YES];
+                [dPenteChoiceLabel setHidden:YES];
+                [submitButton setAlpha:1];
+                [submitButton setHidden:NO];
+                activeGame = YES;
+                [self applyRenjuOpeningMaskIfNeeded]; // 9x9 box
             } else {
                 // decline + place: dismiss buttons, show the central box, let
                 // boardTap place, then confirm via the normal submit path.
@@ -515,6 +526,24 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
 }
 
 - (IBAction)swap2Pass:(id)sender {
+    if (self.renjuPhase != nil) {
+        // Move-4 "Place 10" -> Branch B: offer ten 5th-move candidates, submitted with
+        // the decline together via the move4 fold (auto-sends on the 10th pick).
+        self.renjuTakeOver = NO;
+        self.renjuMove4Decline = NO;
+        self.renjuMove4BranchA = NO;
+        self.renjuMove4BranchB = YES;
+        self.renjuPickedOffers = [NSMutableArray array];
+        [player1Button setHidden:YES];
+        [player2Button setHidden:YES];
+        [passButton setHidden:YES];
+        [dPenteChoiceLabel setHidden:YES];
+        [submitButton setHidden:YES];
+        [self renderRenjuCandidates:@[]];
+        [self showRenjuOfferCounter];
+        activeGame = YES;
+        return;
+    }
     [passButton setHidden:YES];
     swap2WillPass = YES;
     [player1Button setHidden:YES];
@@ -686,6 +715,12 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
     if (!activeGame) {
         return 0;
     }
+    if (self.renjuMove4BranchA) {
+        return 4; // move-4 "No swap": move 5 constrained to the 9x9
+    }
+    if (self.renjuMove4BranchB) {
+        return 0; // move-4 "Place 10": offers are whole-board
+    }
     NSString *phase = self.renjuPhase;
     int placed = (int)[movesList count];
     if ([phase isEqualToString:@"MOVE"]) {
@@ -757,6 +792,8 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
     self.renjuTakeOver = NO;
     self.renjuMove4Decline = NO;
     self.renjuBranchB = NO;
+    self.renjuMove4BranchA = NO;
+    self.renjuMove4BranchB = NO;
     // hide the dPente/swap2 controls first; clear any stale overlay from a prior phase.
     // The submit button stays hidden during the swap/branch/offer/selection choices —
     // those auto-submit; it is only revealed by placing a stone (MOVE / decline+place).
@@ -770,17 +807,36 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
 
     NSString *phase = self.renjuPhase;
     if ([phase isEqualToString:@"SWAP"]) {
-        [dPenteChoiceLabel setText:NSLocalizedString(@"Swap?", nil)];
-        [player1Button setTitle:NSLocalizedString(@"Yes", nil)
-                       forState:UIControlStateNormal];
-        [player2Button setTitle:NSLocalizedString(@"No", nil)
-                       forState:UIControlStateNormal];
-        [dPenteChoiceLabel setHidden:NO];
-        [player1Button setHidden:NO];
-        [player2Button setHidden:NO];
-        [self.view bringSubviewToFront:player1Button];
-        [self.view bringSubviewToFront:player2Button];
-        [self.view bringSubviewToFront:dPenteChoiceLabel];
+        if ([self isRenjuMove4Window]) {
+            // Move-4: three choices on one screen via the move4 fold.
+            [dPenteChoiceLabel setText:NSLocalizedString(@"Swap, play on, or offer 10?", nil)];
+            [player1Button setTitle:NSLocalizedString(@"Swap", nil)
+                           forState:UIControlStateNormal];
+            [player2Button setTitle:NSLocalizedString(@"No swap", nil)
+                           forState:UIControlStateNormal];
+            [passButton setTitle:NSLocalizedString(@"Place 10", nil)
+                        forState:UIControlStateNormal];
+            [dPenteChoiceLabel setHidden:NO];
+            [player1Button setHidden:NO];
+            [player2Button setHidden:NO];
+            [passButton setHidden:NO];
+            [self.view bringSubviewToFront:player1Button];
+            [self.view bringSubviewToFront:player2Button];
+            [self.view bringSubviewToFront:passButton];
+            [self.view bringSubviewToFront:dPenteChoiceLabel];
+        } else {
+            [dPenteChoiceLabel setText:NSLocalizedString(@"Swap?", nil)];
+            [player1Button setTitle:NSLocalizedString(@"Yes", nil)
+                           forState:UIControlStateNormal];
+            [player2Button setTitle:NSLocalizedString(@"No", nil)
+                           forState:UIControlStateNormal];
+            [dPenteChoiceLabel setHidden:NO];
+            [player1Button setHidden:NO];
+            [player2Button setHidden:NO];
+            [self.view bringSubviewToFront:player1Button];
+            [self.view bringSubviewToFront:player2Button];
+            [self.view bringSubviewToFront:dPenteChoiceLabel];
+        }
     } else if ([phase isEqualToString:@"BRANCH"]) {
         [dPenteChoiceLabel setText:NSLocalizedString(@"Place 5th, or offer 10?", nil)];
         [player1Button setTitle:NSLocalizedString(@"Place", nil)
@@ -1007,7 +1063,8 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
         finaMoveNumber = [NSNumber numberWithInt:finalMove];
         if (self.renjuPhase != nil && activeGame) {
             int tapped = gridSize * i + j;
-            if ([self.renjuPhase isEqualToString:@"OFFERS"]) {
+            if ([self.renjuPhase isEqualToString:@"OFFERS"] ||
+                self.renjuMove4BranchB) {
                 if (abstractBoard[i][j] != 0) {
                     break; // occupied
                 }
@@ -1489,6 +1546,20 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
 // Returns the renjuAction for the pending phase, or nil for a plain command=move.
 // *outMoves receives the moves payload string.
 - (NSString *)renjuActionForCurrentPhaseFillingMoves:(NSString **)outMoves {
+    // Move-4 fold: a single request that declines the move-4 swap (d=1) and bundles
+    // either the Branch-A 5th stone or the Branch-B ten offers.
+    if (self.renjuMove4BranchA) {
+        *outMoves = [NSString stringWithFormat:@"1,%d", finalMove];
+        return @"move4";
+    }
+    if (self.renjuMove4BranchB) {
+        NSMutableArray<NSString *> *toks = [NSMutableArray arrayWithObject:@"1"];
+        for (NSNumber *n in self.renjuPickedOffers) {
+            [toks addObject:[n stringValue]];
+        }
+        *outMoves = [toks componentsJoinedByString:@","];
+        return @"move4";
+    }
     NSString *phase = self.renjuPhase;
     if ([phase isEqualToString:@"SWAP"]) {
         if (self.renjuTakeOver) {
