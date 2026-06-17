@@ -970,6 +970,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
 - (void)submitRenjuDecision {
     [player1Button setHidden:YES];
     [player2Button setHidden:YES];
+    [passButton setHidden:YES];
     [dPenteChoiceLabel setHidden:YES];
     spinner.center = stone.center;
     [spinner setHidden:NO];
