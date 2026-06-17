@@ -78,7 +78,8 @@
         initWithObjects:@"Pente", @"Keryo-Pente", @"Gomoku", @"D-Pente",
                         @"G-Pente", @"Poof-Pente", @"Connect6", @"Boat-Pente",
                         @"DK-Pente", @"Go", @"Go (9x9)", @"Go (13x13)",
-                        @"O-Pente", @"Swap2-Pente", @"Swap2-Keryo", nil];
+                        @"O-Pente", @"Swap2-Pente", @"Swap2-Keryo", @"Renju",
+                        nil];
     colors =
         [[NSArray alloc] initWithObjects:NSLocalizedString(@"white", nil),
                                          NSLocalizedString(@"black", nil), nil];
@@ -563,6 +564,9 @@ array, and add a new row to the table view
     }
     if ([gameCell.detailTextLabel.text isEqualToString:@"Swap2-Keryo"]) {
         gameString = @"79";
+    }
+    if ([gameCell.detailTextLabel.text isEqualToString:@"Renju"]) {
+        gameString = @"81";
     }
 
     NSString *restrictString = @"A";
