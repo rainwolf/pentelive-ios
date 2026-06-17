@@ -832,10 +832,25 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
 
 - (void)showRenjuOfferCounter {
     NSUInteger n = self.renjuPickedOffers.count;
-    // Digits-only HUD: the running count over ten, e.g. "3/10".
-    [dPenteChoiceLabel
-        setText:[NSString stringWithFormat:@"%lu/10", (unsigned long)n]];
-    [dPenteChoiceLabel setHidden:NO];
+    // The running count over ten now rides on the submit button itself
+    // ("submit N/10"); the player-facing choice label stays hidden. Submit is
+    // kept VISIBLE but greyed/disabled until exactly ten offers are picked, and
+    // ENABLED only at "submit 10/10". This method owns the full submit styling
+    // for the 10-offer collection, so callers need not re-set it afterwards.
+    [dPenteChoiceLabel setHidden:YES];
+    NSString *title =
+        [NSString stringWithFormat:NSLocalizedString(@"submit %lu/10", nil),
+                                   (unsigned long)n];
+    [submitButton setHidden:NO];
+    if (n == 10) {
+        [submitButton setTitle:title forState:UIControlStateNormal];
+        [submitButton setEnabled:YES];
+        [submitButton setAlpha:1];
+    } else {
+        [submitButton setTitle:title forState:UIControlStateDisabled];
+        [submitButton setEnabled:NO];
+        [submitButton setAlpha:0.5];
+    }
 }
 
 // Lay the Renju opening DECISION buttons out in a single row below the board, evenly
@@ -970,15 +985,11 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
     } else if ([phase isEqualToString:@"OFFERS"]) {
         self.renjuPickedOffers = [NSMutableArray array];
         [self renderRenjuCandidates:@[]];
+        // Offer collection is not a choice phase: showRenjuOfferCounter keeps the
+        // submit button VISIBLE with the live "submit N/10" count, greyed/disabled
+        // until exactly ten offers are placed (boardTap re-calls it on every
+        // pick/removal, enabling at "submit 10/10").
         [self showRenjuOfferCounter];
-        // Offer collection is not a choice phase: keep submit VISIBLE but greyed/
-        // disabled. boardTap enables it once exactly ten offers are placed (and
-        // re-disables it if a removal drops the count below ten).
-        [submitButton setHidden:NO];
-        [submitButton setEnabled:NO];
-        [submitButton setTitle:NSLocalizedString(@"submit", nil)
-                      forState:UIControlStateDisabled];
-        [submitButton setAlpha:0.5];
     } else if ([phase isEqualToString:@"SELECTION"]) {
         self.renjuSelectedPoints = [NSMutableArray array];
         // Lock the board to the 10 offers (black 5th) by masking every other empty cell
@@ -1219,27 +1230,14 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                     [self.renjuPickedOffers addObject:cell];
                 }
                 [self renderRenjuCandidates:self.renjuPickedOffers];
+                // showRenjuOfferCounter owns the submit styling: it shows the live
+                // "submit N/10" count, keeps submit VISIBLE but greyed/disabled
+                // below ten, and ENABLES it at exactly ten (a removal that drops the
+                // count back below ten re-greys it). The 10-offer `move` is then sent
+                // MANUALLY (submitMove: -> submitMoveToServer ->
+                // renjuActionForCurrentPhaseFillingMoves, renjuMove4BranchB ->
+                // renjuAction=move). No auto-submit.
                 [self showRenjuOfferCounter];
-                if (self.renjuPickedOffers.count == 10) {
-                    // Tenth offer placed: surface the submit button so the player
-                    // sends the 10-offer `move` MANUALLY (submitMove: ->
-                    // submitMoveToServer -> renjuActionForCurrentPhaseFillingMoves,
-                    // renjuMove4BranchB -> renjuAction=move). No auto-submit.
-                    [submitButton setTitle:NSLocalizedString(@"submit", nil)
-                                  forState:UIControlStateNormal];
-                    [submitButton setHidden:NO];
-                    [submitButton setAlpha:1];
-                    [submitButton setEnabled:YES];
-                } else {
-                    // Fewer than ten offers is not a valid Branch-B submission yet
-                    // (a removal can also drop the count back below ten): keep submit
-                    // VISIBLE but greyed/disabled until exactly ten are picked.
-                    [submitButton setHidden:NO];
-                    [submitButton setEnabled:NO];
-                    [submitButton setTitle:NSLocalizedString(@"submit", nil)
-                                  forState:UIControlStateDisabled];
-                    [submitButton setAlpha:0.5];
-                }
                 break;
             }
             if ([self.renjuPhase isEqualToString:@"SELECTION"]) {
@@ -1261,6 +1259,20 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                     abstractBoard[i][j] = 2; // black 5th
                     [board setNeedsDisplay];
                     [zoomedBoard setNeedsDisplay];
+                    // Submit reflects the pick but stays DISABLED until the white
+                    // 6th is also chosen: "submit: <5th>-" (trailing dash). Reuses
+                    // the same index->coordinate formatter as the normal placement
+                    // "submit: %c%d" path.
+                    [submitButton setHidden:NO];
+                    [submitButton setEnabled:NO];
+                    [submitButton
+                        setTitle:[NSString
+                                     stringWithFormat:
+                                         NSLocalizedString(@"submit: %c%d-", nil),
+                                         coordinateLetters[tapped % gridSize],
+                                         gridSize - (tapped / gridSize)]
+                        forState:UIControlStateDisabled];
+                    [submitButton setAlpha:0.5];
                 } else if (self.renjuSelectedPoints.count == 1) {
                     if (abstractBoard[i][j] != 0 ||
                         tapped == [self.renjuSelectedPoints[0] intValue]) {
@@ -1270,12 +1282,23 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                     abstractBoard[i][j] = 1; // white 6th
                     [board setNeedsDisplay];
                     [zoomedBoard setNeedsDisplay];
-                    // Both points chosen (count == 2): enable the manual submit. No
+                    // Both points chosen (count == 2): show both picks on the button
+                    // ("submit: <5th>-<6th>") and ENABLE the manual submit. No
                     // auto-submit — tapping submit fires submitMove: ->
                     // renjuActionForCurrentPhaseFillingMoves (SELECTION) ->
                     // renjuAction=select, moves "m5,m6" (same payload as before).
-                    [submitButton setTitle:NSLocalizedString(@"submit", nil)
-                                  forState:UIControlStateNormal];
+                    int m5 = [self.renjuSelectedPoints[0] intValue];
+                    int m6 = tapped;
+                    [submitButton
+                        setTitle:[NSString
+                                     stringWithFormat:
+                                         NSLocalizedString(@"submit: %c%d-%c%d",
+                                                           nil),
+                                         coordinateLetters[m5 % gridSize],
+                                         gridSize - (m5 / gridSize),
+                                         coordinateLetters[m6 % gridSize],
+                                         gridSize - (m6 / gridSize)]
+                        forState:UIControlStateNormal];
                     [submitButton setHidden:NO];
                     [submitButton setEnabled:YES];
                     [submitButton setAlpha:1];
@@ -2793,11 +2816,22 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                          [strongSelf->submitButton setAlpha:1.0];
                      }
                  } else {
-                     [strongSelf->submitButton
-                         setTitle:NSLocalizedString(@"submit", nil)
-                         forState:UIControlStateDisabled];
-                     [strongSelf->submitButton setEnabled:NO];
-                     [strongSelf->submitButton setAlpha:0.85];
+                     // An active non-Go game defaults submit to a greyed, disabled
+                     // "submit". But an active Renju opening phase owns its submit
+                     // state via renderRenjuOpeningUI (which ran above on this same
+                     // refresh); re-greying here would clobber the "submit N/10" /
+                     // "submit: c5-c6" styling on every server refresh, so skip it
+                     // and let renderRenjuOpeningUI own the renju submit button.
+                     BOOL isRenjuOpening =
+                         [strongSelf.game.gameType containsString:@"Renju"] &&
+                         strongSelf.renjuPhase != nil && strongSelf->activeGame;
+                     if (!isRenjuOpening) {
+                         [strongSelf->submitButton
+                             setTitle:NSLocalizedString(@"submit", nil)
+                             forState:UIControlStateDisabled];
+                         [strongSelf->submitButton setEnabled:NO];
+                         [strongSelf->submitButton setAlpha:0.85];
+                     }
                  }
              }
          }]; // end sendRequest completion
