@@ -52,6 +52,7 @@
 @property (nonatomic, assign) BOOL renjuMove4Decline;   // declining the move-4 swap (no bundled stone)
 @property (nonatomic, assign) BOOL renjuBranchB;        // BRANCH choice: NO=A(1), YES=B(2)
 @property (nonatomic, strong) NSMutableArray<NSNumber *> *renjuPickedOffers; // OFFERS: the 10 picks
+@property (nonatomic, strong) CAShapeLayer *renjuBoxLayer;     // dashed central-square legal-placement overlay
 //@property(nonatomic,retain) GamesTableViewController *gamesTable;
 @property(weak, nonatomic) IBOutlet BoardView *board;
 @property(weak, nonatomic) IBOutlet BoardView *zoomedBoard;

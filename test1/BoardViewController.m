@@ -426,6 +426,17 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
 //}
 
 - (IBAction)dPentePlayer1:(id)sender {
+    if (self.renjuPhase != nil) {
+        if ([self.renjuPhase isEqualToString:@"SWAP"]) {
+            self.renjuTakeOver = YES;
+            self.renjuMove4Decline = NO;
+            [self submitRenjuDecision];
+        } else if ([self.renjuPhase isEqualToString:@"BRANCH"]) {
+            self.renjuBranchB = NO;
+            [self submitRenjuDecision];
+        }
+        return;
+    }
     if ([game.gameType hasPrefix:@"Swap2-"]) {
         dPenteChoice = NO;
         finalMove = 0;
@@ -452,6 +463,31 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
 }
 
 - (IBAction)dPentePlayer2:(id)sender {
+    if (self.renjuPhase != nil) {
+        if ([self.renjuPhase isEqualToString:@"SWAP"]) {
+            if ([self isRenjuMove4Window]) {
+                self.renjuTakeOver = NO;
+                self.renjuMove4Decline = YES;
+                [self submitRenjuDecision]; // moves=0, no stone -> BRANCH next
+            } else {
+                // decline + place: dismiss buttons, show the central box, let
+                // boardTap place, then confirm via the normal submit path.
+                self.renjuTakeOver = NO;
+                self.renjuMove4Decline = NO;
+                [player1Button setHidden:YES];
+                [player2Button setHidden:YES];
+                [dPenteChoiceLabel setHidden:YES];
+                [submitButton setAlpha:1];
+                [submitButton setHidden:NO];
+                activeGame = YES;
+                [self updateRenjuBoxOverlay];
+            }
+        } else if ([self.renjuPhase isEqualToString:@"BRANCH"]) {
+            self.renjuBranchB = YES;
+            [self submitRenjuDecision];
+        }
+        return;
+    }
     if ([game.gameType hasPrefix:@"Swap2-"]) {
         [player1Button setHidden:YES];
         [player2Button setHidden:YES];
@@ -641,6 +677,146 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
     }
 }
 
+#pragma mark - Renju turn-based opening UI
+
+// Legal central-square radius for the NEXT single-stone opening placement; 0 = no box.
+// Moves 2/3/4/5 -> radius 1/2/3/4 (3x3/5x5/7x7/9x9) about centre (7,7). placed = stones on board.
+- (int)renjuCentralBoxRadius {
+    if (!activeGame) {
+        return 0;
+    }
+    NSString *phase = self.renjuPhase;
+    int placed = (int)[movesList count];
+    if ([phase isEqualToString:@"MOVE"]) {
+        return MAX(1, MIN(4, placed)); // incl. Branch-A move 5 -> 9x9
+    }
+    if ([phase isEqualToString:@"SWAP"] && !self.renjuTakeOver &&
+        !self.renjuMove4Decline) {
+        return MAX(1, MIN(3, placed)); // decline+place windows 1-3
+    }
+    return 0; // OFFERS/BRANCH/SELECTION/COMPLETE
+}
+
+- (void)updateRenjuBoxOverlay {
+    [self.renjuBoxLayer removeFromSuperlayer];
+    self.renjuBoxLayer = nil;
+    int r = [self renjuCentralBoxRadius];
+    if (r == 0) {
+        return;
+    }
+    CGFloat margin = self.board.bounds.size.width / (2 * gridSize);
+    CGFloat origin = (CGFloat)(2 * (7 - r)) * margin; // centre col/row = 7 on 15x15
+    CGFloat side = (CGFloat)(2 * (2 * r + 1)) * margin;
+    CGRect box = CGRectMake(origin, origin, side, side);
+    CAShapeLayer *layer = [CAShapeLayer layer];
+    layer.path = [UIBezierPath bezierPathWithRect:box].CGPath;
+    layer.fillColor = [UIColor clearColor].CGColor;
+    layer.strokeColor = [UIColor colorWithWhite:0 alpha:0.6].CGColor;
+    layer.lineDashPattern = @[ @6, @4 ];
+    layer.lineWidth = 2;
+    [self.board.layer addSublayer:layer];
+    self.renjuBoxLayer = layer;
+}
+
+- (void)renderRenjuCandidates:(NSArray<NSNumber *> *)cells {
+    self.board.renjuCandidates = cells;
+    [self.board setNeedsDisplay];
+    if (self.zoomedBoard) {
+        self.zoomedBoard.renjuCandidates = cells;
+        [self.zoomedBoard setNeedsDisplay];
+    }
+}
+
+- (BOOL)isRenjuMove4Window {
+    return [self.renjuPhase isEqualToString:@"SWAP"] && [movesList count] == 4;
+}
+
+- (void)showRenjuOfferCounter {
+    NSUInteger n = self.renjuPickedOffers.count;
+    [dPenteChoiceLabel
+        setText:[NSString stringWithFormat:NSLocalizedString(@"Pick %lu of 10",
+                                                             nil),
+                                           (unsigned long)n]];
+    [dPenteChoiceLabel setHidden:NO];
+}
+
+- (void)renderRenjuOpeningUI {
+    // hide the dPente/swap2 controls first; clear any stale overlay from a prior phase
+    [player1Button setHidden:YES];
+    [player2Button setHidden:YES];
+    [passButton setHidden:YES];
+    [dPenteChoiceLabel setHidden:YES];
+    [self renderRenjuCandidates:@[]];
+    [self updateRenjuBoxOverlay];
+
+    NSString *phase = self.renjuPhase;
+    if ([phase isEqualToString:@"SWAP"]) {
+        [dPenteChoiceLabel setText:NSLocalizedString(@"Swap?", nil)];
+        [player1Button setTitle:NSLocalizedString(@"Swap (take over)", nil)
+                       forState:UIControlStateNormal];
+        [player2Button
+            setTitle:([self isRenjuMove4Window]
+                          ? NSLocalizedString(@"Don't swap", nil)
+                          : NSLocalizedString(@"Don't swap (place stone)", nil))
+            forState:UIControlStateNormal];
+        [dPenteChoiceLabel setHidden:NO];
+        [player1Button setHidden:NO];
+        [player2Button setHidden:NO];
+        [self.view bringSubviewToFront:player1Button];
+        [self.view bringSubviewToFront:player2Button];
+        [self.view bringSubviewToFront:dPenteChoiceLabel];
+    } else if ([phase isEqualToString:@"BRANCH"]) {
+        [dPenteChoiceLabel setText:NSLocalizedString(@"Choose branch", nil)];
+        [player1Button setTitle:NSLocalizedString(@"Branch A (place move 5)", nil)
+                       forState:UIControlStateNormal];
+        [player2Button setTitle:NSLocalizedString(@"Branch B (offer 10)", nil)
+                       forState:UIControlStateNormal];
+        [dPenteChoiceLabel setHidden:NO];
+        [player1Button setHidden:NO];
+        [player2Button setHidden:NO];
+        [self.view bringSubviewToFront:player1Button];
+        [self.view bringSubviewToFront:player2Button];
+        [self.view bringSubviewToFront:dPenteChoiceLabel];
+    } else if ([phase isEqualToString:@"OFFERS"]) {
+        self.renjuPickedOffers = [NSMutableArray array];
+        [self renderRenjuCandidates:@[]];
+        [self showRenjuOfferCounter];
+    } else if ([phase isEqualToString:@"SELECTION"]) {
+        [self renderRenjuCandidates:(self.renjuOffers ?: @[])];
+        [dPenteChoiceLabel setText:NSLocalizedString(@"Pick one offered move", nil)];
+        [dPenteChoiceLabel setHidden:NO];
+        [self.view bringSubviewToFront:dPenteChoiceLabel];
+    }
+    // MOVE / COMPLETE: no buttons; placement handled by boardTap (+ box overlay for MOVE)
+}
+
+- (void)submitRenjuDecision {
+    [player1Button setHidden:YES];
+    [player2Button setHidden:YES];
+    [dPenteChoiceLabel setHidden:YES];
+    spinner.center = stone.center;
+    [spinner setHidden:NO];
+    [spinner startAnimating];
+    [NSThread detachNewThreadSelector:@selector(submitMoveToServer)
+                             toTarget:self
+                           withObject:nil];
+}
+
+- (BOOL)renjuOfferWouldDuplicate:(int)move {
+    NSMutableSet<NSNumber *> *accepted = [NSMutableSet set];
+    for (NSNumber *m in self.renjuPickedOffers) {
+        for (NSNumber *img in [RenjuOfferSymmetry d4ImagesOf:m.intValue]) {
+            [accepted addObject:img];
+        }
+    }
+    for (NSNumber *img in [RenjuOfferSymmetry d4ImagesOf:move]) {
+        if ([accepted containsObject:img]) {
+            return YES;
+        }
+    }
+    return NO;
+}
+
 - (IBAction)boardTap:(UILongPressGestureRecognizer *)recognizer {
     if (dPenteChoice && [submitButton isHidden]) {
         return;
@@ -784,6 +960,58 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
 
         finalMove = gridSize * i + j;
         finaMoveNumber = [NSNumber numberWithInt:finalMove];
+        if (self.renjuPhase != nil && activeGame) {
+            int tapped = gridSize * i + j;
+            if ([self.renjuPhase isEqualToString:@"OFFERS"]) {
+                if (abstractBoard[i][j] != 0) {
+                    break; // occupied
+                }
+                NSNumber *cell = @(tapped);
+                if ([self.renjuPickedOffers containsObject:cell]) {
+                    [self.renjuPickedOffers removeObject:cell]; // tap again to remove
+                } else {
+                    if (self.renjuPickedOffers.count >= 10) {
+                        break;
+                    }
+                    if ([self renjuOfferWouldDuplicate:tapped]) {
+                        break; // D4 dedup (UX)
+                    }
+                    [self.renjuPickedOffers addObject:cell];
+                }
+                [self renderRenjuCandidates:self.renjuPickedOffers];
+                [self showRenjuOfferCounter];
+                if (self.renjuPickedOffers.count == 10) {
+                    finalMove = tapped; // unused by offer payload
+                    [self submitRenjuDecision]; // renjuAction=offer
+                }
+                break;
+            }
+            if ([self.renjuPhase isEqualToString:@"SELECTION"]) {
+                if (![self.renjuOffers containsObject:@(tapped)]) {
+                    break; // must be offered
+                }
+                finalMove = tapped;
+                [self renderRenjuCandidates:@[ @(tapped) ]];
+                [self submitRenjuDecision]; // renjuAction=select
+                break;
+            }
+            // MOVE / SWAP decline+place: gate to the central box
+            int r = [self renjuCentralBoxRadius];
+            if (r > 0) {
+                if (abs(j - 7) > r || abs(i - 7) > r) {
+                    finalMove = -1;
+                    [self replayGame:lastMove];
+                    [submitButton setEnabled:NO];
+                    [submitButton setTitle:@"submit"
+                                  forState:UIControlStateDisabled];
+                    [submitButton setAlpha:0.5];
+                    [board setNeedsDisplay];
+                    [zoomedBoard setNeedsDisplay];
+                    break; // outside legal square
+                }
+            }
+            // fall through to the normal single-stone placement/preview below
+        }
         if (goMarkStones && activeGame &&
             (abstractBoard[i][j] != 0 ||
              [deadBlackStones containsObject:finaMoveNumber] ||
@@ -2020,6 +2248,10 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                  [strongSelf replayGame:lastMove];
              }
 
+             if ([[strongSelf.game gameType] containsString:@"Renju"]) {
+                 [strongSelf replayGame:lastMove];
+             }
+
              // Find out your color
              if ([[strongSelf.game myColor] isEqualToString:@"white"]) {
                  [strongSelf->stone setStoneColor:WHITE];
@@ -2095,6 +2327,20 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
 
              strongSelf->activeGame =
                  [currentPlayer isEqualToString:myUsername];
+
+             if ([strongSelf.game.gameType containsString:@"Renju"]) {
+                 if (strongSelf.renjuPhase != nil && strongSelf->activeGame) {
+                     [strongSelf renderRenjuOpeningUI];
+                 } else {
+                     // not our turn / no opening phase: clear any stale overlay
+                     [player1Button setHidden:YES];
+                     [player2Button setHidden:YES];
+                     [passButton setHidden:YES];
+                     [dPenteChoiceLabel setHidden:YES];
+                     [strongSelf renderRenjuCandidates:@[]];
+                     [strongSelf updateRenjuBoxOverlay]; // radius 0 -> removes box
+                 }
+             }
 
              if ([[strongSelf.game opponentName] isEqualToString:@"computer"]) {
                  NSString *message = nil;

@@ -17,6 +17,7 @@
 @synthesize whiteSquare, blackSquare;
 @synthesize go;
 @synthesize gridSize;
+@synthesize renjuCandidates;
 
 - (void)setAbstractBoard:(AbstractBoard *)board {
     abstractBoard = board;
@@ -275,6 +276,15 @@
         [blackSquare setFrame:circle];
         [blackSquare.layer renderInContext:UIGraphicsGetCurrentContext()];
         CGContextRestoreGState(context);
+    }
+
+    // translucent Renju opening candidates (offers being picked / selectable / chosen)
+    for (NSNumber *cell in renjuCandidates) {
+        int idx = cell.intValue, i = idx / gridSize, j = idx % gridSize;
+        circle =
+            CGRectMake(j * 2 * margin, i * 2 * margin, 2 * margin, 2 * margin);
+        CGContextSetRGBFillColor(context, 0, 0, 0, 0.45);
+        CGContextFillEllipseInRect(context, circle);
     }
 
     CGContextSaveGState(context);
