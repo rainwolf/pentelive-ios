@@ -698,24 +698,11 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
 }
 
 - (void)updateRenjuBoxOverlay {
+    // No visible central-box overlay (per design). The legal central square is still
+    // enforced during placement in boardTap: (via renjuCentralBoxRadius), and the
+    // server is authoritative regardless — we just don't draw the dashed hint.
     [self.renjuBoxLayer removeFromSuperlayer];
     self.renjuBoxLayer = nil;
-    int r = [self renjuCentralBoxRadius];
-    if (r == 0) {
-        return;
-    }
-    CGFloat margin = self.board.bounds.size.width / (2 * gridSize);
-    CGFloat origin = (CGFloat)(2 * (7 - r)) * margin; // centre col/row = 7 on 15x15
-    CGFloat side = (CGFloat)(2 * (2 * r + 1)) * margin;
-    CGRect box = CGRectMake(origin, origin, side, side);
-    CAShapeLayer *layer = [CAShapeLayer layer];
-    layer.path = [UIBezierPath bezierPathWithRect:box].CGPath;
-    layer.fillColor = [UIColor clearColor].CGColor;
-    layer.strokeColor = [UIColor colorWithWhite:0 alpha:0.6].CGColor;
-    layer.lineDashPattern = @[ @6, @4 ];
-    layer.lineWidth = 2;
-    [self.board.layer addSublayer:layer];
-    self.renjuBoxLayer = layer;
 }
 
 - (void)renderRenjuCandidates:(NSArray<NSNumber *> *)cells {
@@ -752,13 +739,10 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
     NSString *phase = self.renjuPhase;
     if ([phase isEqualToString:@"SWAP"]) {
         [dPenteChoiceLabel setText:NSLocalizedString(@"Swap?", nil)];
-        [player1Button setTitle:NSLocalizedString(@"Swap (take over)", nil)
+        [player1Button setTitle:NSLocalizedString(@"Yes", nil)
                        forState:UIControlStateNormal];
-        [player2Button
-            setTitle:([self isRenjuMove4Window]
-                          ? NSLocalizedString(@"Don't swap", nil)
-                          : NSLocalizedString(@"Don't swap (place stone)", nil))
-            forState:UIControlStateNormal];
+        [player2Button setTitle:NSLocalizedString(@"No", nil)
+                       forState:UIControlStateNormal];
         [dPenteChoiceLabel setHidden:NO];
         [player1Button setHidden:NO];
         [player2Button setHidden:NO];
@@ -766,10 +750,10 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
         [self.view bringSubviewToFront:player2Button];
         [self.view bringSubviewToFront:dPenteChoiceLabel];
     } else if ([phase isEqualToString:@"BRANCH"]) {
-        [dPenteChoiceLabel setText:NSLocalizedString(@"Choose branch", nil)];
-        [player1Button setTitle:NSLocalizedString(@"Branch A (place move 5)", nil)
+        [dPenteChoiceLabel setText:NSLocalizedString(@"Place 5th, or offer 10?", nil)];
+        [player1Button setTitle:NSLocalizedString(@"Place", nil)
                        forState:UIControlStateNormal];
-        [player2Button setTitle:NSLocalizedString(@"Branch B (offer 10)", nil)
+        [player2Button setTitle:NSLocalizedString(@"Offer", nil)
                        forState:UIControlStateNormal];
         [dPenteChoiceLabel setHidden:NO];
         [player1Button setHidden:NO];
@@ -858,6 +842,15 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
             [stone setStoneColor:WHITE];
             [zoomedStone setStoneColor:WHITE];
         }
+        [stone setNeedsDisplay];
+        [zoomedStone setNeedsDisplay];
+    } else if (self.renjuPhase != nil) {
+        // Renju opening: black plays first (move 1 = centre). The stone the current
+        // player is placing alternates by stones-on-board parity — odd count (centre
+        // only, 3 stones, ...) places WHITE; even count places BLACK.
+        int renjuColor = (([movesList count] % 2) == 1) ? WHITE : BLACK;
+        [stone setStoneColor:renjuColor];
+        [zoomedStone setStoneColor:renjuColor];
         [stone setNeedsDisplay];
         [zoomedStone setNeedsDisplay];
     } else {
