@@ -82,4 +82,19 @@ final class RuleSetTests: XCTestCase {
         XCTAssertEqual(r.winLength, 6)
         XCTAssertEqual(r.cadence, .connect6)
     }
+
+    func testRenju() {
+        let r = ruleSet(for: .renju)
+        XCTAssertNil(r.capture)          // Gomoku-like: no captures
+        XCTAssertEqual(r.poof, .none)
+        XCTAssertEqual(r.winLength, 5)
+        XCTAssertEqual(r.opening, .none)
+        XCTAssertEqual(r.cadence, .blackFirst)
+        XCTAssertEqual(r.boardSize, 15)
+    }
+
+    func testNonRenjuBoardSizeDefaultsTo19() {
+        XCTAssertEqual(ruleSet(for: .pente).boardSize, 19)
+        XCTAssertEqual(ruleSet(for: .gomoku).boardSize, 19)
+    }
 }

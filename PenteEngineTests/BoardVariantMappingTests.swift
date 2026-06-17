@@ -72,6 +72,16 @@ extension BoardVariantMappingTests {
         assertColor(BoardVariantMapping.backgroundColor(for: .connect6, boatPente: false),
                     0.929, 0.639, 0.992, 1)
     }
+
+    func testRenjuBackgroundColorIsDustyRose() {
+        let c = BoardVariantMapping.backgroundColor(for: .renju, boatPente: false)
+        var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
+        c.getRed(&r, green: &g, blue: &b, alpha: &a)
+        XCTAssertEqual(Double(r), 0.851, accuracy: 0.001)   // #D98880
+        XCTAssertEqual(Double(g), 0.533, accuracy: 0.001)
+        XCTAssertEqual(Double(b), 0.502, accuracy: 0.001)
+        XCTAssertEqual(Double(a), 1.0, accuracy: 0.001)
+    }
 }
 
 extension BoardVariantMappingTests {

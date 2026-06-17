@@ -57,6 +57,9 @@ import UIKit
             return UIColor(red: 0.612, green: 1, blue: 0.898, alpha: 1)
         case .connect6:
             return UIColor(red: 0.929, green: 0.639, blue: 0.992, alpha: 1)
+        case .renju:
+            // #D98880 dusty rose — canonical Renju board colour, distinct from gomoku.
+            return UIColor(red: 0.851, green: 0.533, blue: 0.502, alpha: 1)
         }
     }
 

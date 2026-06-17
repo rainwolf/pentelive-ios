@@ -15,4 +15,6 @@ import Foundation
     case swap2Keryo = 8
     case gomoku = 9
     case connect6 = 10
+    /// Renju (Taraguchi-10). 15×15, black-first, no captures. Raw value 11 = next free.
+    case renju = 11
 }
