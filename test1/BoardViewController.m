@@ -1213,10 +1213,51 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
     return str;
 }
 
+// Returns the renjuAction for the pending phase, or nil for a plain command=move.
+// *outMoves receives the moves payload string.
+- (NSString *)renjuActionForCurrentPhaseFillingMoves:(NSString **)outMoves {
+    NSString *phase = self.renjuPhase;
+    if ([phase isEqualToString:@"SWAP"]) {
+        if (self.renjuTakeOver) {
+            *outMoves = @"1";
+        } else if (self.renjuMove4Decline) {
+            *outMoves = @"0";
+        } else {
+            *outMoves = [NSString stringWithFormat:@"0,%d", finalMove];
+        }
+        return @"swap";
+    }
+    if ([phase isEqualToString:@"BRANCH"]) {
+        *outMoves = self.renjuBranchB ? @"2" : @"1";
+        return @"branch";
+    }
+    if ([phase isEqualToString:@"OFFERS"]) {
+        NSMutableArray<NSString *> *toks = [NSMutableArray array];
+        for (NSNumber *n in self.renjuPickedOffers)
+            [toks addObject:[n stringValue]];
+        *outMoves = [toks componentsJoinedByString:@","];
+        return @"offer";
+    }
+    if ([phase isEqualToString:@"SELECTION"]) {
+        *outMoves = [NSString stringWithFormat:@"%d", finalMove];
+        return @"select";
+    }
+    // MOVE / COMPLETE -> plain placement, no renjuAction
+    *outMoves = [NSString stringWithFormat:@"%d", finalMove];
+    return nil;
+}
+
 - (void)submitMoveToServer {
     //    NSLog(@"kitty %d", finalMove);
 
     NSString *moveString;
+    NSString *renjuAction = nil;
+    BOOL isRenju = [self.game.gameType containsString:@"Renju"];
+    if (isRenju) {
+        NSString *renjuMoves = nil;
+        renjuAction = [self renjuActionForCurrentPhaseFillingMoves:&renjuMoves];
+        moveString = renjuMoves;
+    } else
     if ([[self.game gameType] isEqualToString:@"Connect6"] &&
         (connect6Move1 != -1) && (connect6Move2 != -1)) {
         moveString =
@@ -1265,6 +1306,11 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
 
     //    NSLog(@"kitty %@", moveString);
 
+    NSString *renjuSuffix =
+        (renjuAction != nil)
+            ? [NSString stringWithFormat:@"&renjuAction=%@", renjuAction]
+            : @"";
+
     NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
     NSString *url;
     //    NSLog(@"kittyLog %@", replyMessage);
@@ -1272,29 +1318,29 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
         url = [NSString
             stringWithFormat:
                 @"https://www.pente.org/gameServer/tb/"
-                @"game?command=move%@&mobile=&gid=%@&moves=%@&message=",
-                hideString, [self.game gameID], moveString];
-        if (development) {
-            url = [NSString
-                stringWithFormat:
-                    @"https://localhost/gameServer/tb/"
-                    @"game?command=move%@&mobile=&gid=%@&moves=%@&message=",
-                    hideString, [self.game gameID], moveString];
-        }
-    } else {
-        url = [NSString
-            stringWithFormat:
-                @"https://www.pente.org/gameServer/tb/"
                 @"game?command=move%@&mobile=&gid=%@&moves=%@&message=%@",
-                hideString, [self.game gameID], moveString,
-                [self URLEncodedString_ch:replyMessage]];
+                hideString, [self.game gameID], moveString, renjuSuffix];
         if (development) {
             url = [NSString
                 stringWithFormat:
                     @"https://localhost/gameServer/tb/"
                     @"game?command=move%@&mobile=&gid=%@&moves=%@&message=%@",
+                    hideString, [self.game gameID], moveString, renjuSuffix];
+        }
+    } else {
+        url = [NSString
+            stringWithFormat:
+                @"https://www.pente.org/gameServer/tb/"
+                @"game?command=move%@&mobile=&gid=%@&moves=%@&message=%@%@",
+                hideString, [self.game gameID], moveString,
+                [self URLEncodedString_ch:replyMessage], renjuSuffix];
+        if (development) {
+            url = [NSString
+                stringWithFormat:
+                    @"https://localhost/gameServer/tb/"
+                    @"game?command=move%@&mobile=&gid=%@&moves=%@&message=%@%@",
                     hideString, [self.game gameID], moveString,
-                    [self URLEncodedString_ch:replyMessage]];
+                    [self URLEncodedString_ch:replyMessage], renjuSuffix];
         }
     }
     //    NSLog(@"kitty %@", url);
@@ -1320,6 +1366,43 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                                                      NSLocalizedString(
                                                          @"Reason: %@", nil),
                                                      error.localizedDescription]
+                              delegate:nil
+                     cancelButtonTitle:@"OK"
+                     otherButtonTitles:nil];
+                 [alert show];
+                 return;
+             }
+             NSInteger status =
+                 [response isKindOfClass:[NSHTTPURLResponse class]]
+                     ? ((NSHTTPURLResponse *)response).statusCode
+                     : 200;
+             BOOL respIsRenju =
+                 [strongSelf.game.gameType containsString:@"Renju"];
+             NSString *body =
+                 responseData
+                     ? [[[NSString alloc] initWithData:responseData
+                                              encoding:NSUTF8StringEncoding]
+                           stringByTrimmingCharactersInSet:
+                               [NSCharacterSet whitespaceAndNewlineCharacterSet]]
+                     : @"";
+             BOOL rejected =
+                 respIsRenju &&
+                 ((status >= 400) ||
+                  (body.length > 0 && ![body hasPrefix:@"{"] &&
+                   ![body hasPrefix:@"["] &&
+                   ([body containsString:@"Renju"] ||
+                    [body containsString:@"offered"] ||
+                    [body containsString:@"swap"] ||
+                    [body containsString:@"Expected"] ||
+                    [body containsString:@"decision"] ||
+                    [body containsString:@"Selected"])));
+             if (rejected) {
+                 UIAlertView *alert = [[UIAlertView alloc]
+                         initWithTitle:NSLocalizedString(@"Move rejected", nil)
+                               message:body.length
+                                           ? body
+                                           : NSLocalizedString(
+                                                 @"Renju move rejected.", nil)
                               delegate:nil
                      cancelButtonTitle:@"OK"
                      otherButtonTitles:nil];
