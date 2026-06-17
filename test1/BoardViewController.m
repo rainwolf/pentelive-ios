@@ -946,13 +946,10 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
         self.renjuSelectedPoints = [NSMutableArray array];
         // Lock the board to the 10 offers (black 5th) by masking every other empty cell
         // with -1; the offers stay drawn as translucent candidates. Restored on the first
-        // tap so the white 6th can land anywhere. This is a tap phase, so its instructional
-        // label stays (only the button-decision phases drop their label).
+        // tap so the white 6th can land anywhere. No instructional label — the dead-stone
+        // candidates speak for themselves (the label stays hidden from the top of this method).
         [self applyRenjuSelectionMask];
         [self renderRenjuCandidates:(self.renjuOffers ?: @[])];
-        [dPenteChoiceLabel setText:NSLocalizedString(@"Tap black's 5th, then your 6th", nil)];
-        [dPenteChoiceLabel setHidden:NO];
-        [self.view bringSubviewToFront:dPenteChoiceLabel];
     } else {
         // MOVE / COMPLETE: ordinary single-stone placement, no choice buttons. Reveal
         // the submit button (disabled until a stone is placed) — it was hidden above for
