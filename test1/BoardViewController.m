@@ -443,8 +443,13 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
             [player2Button setHidden:YES];
             [passButton setHidden:YES];
             [dPenteChoiceLabel setHidden:YES];
-            [submitButton setAlpha:1];
+            // Placement phase: submit VISIBLE but greyed/disabled until the move-5
+            // stone is placed (boardTap enables it on a legal placement).
             [submitButton setHidden:NO];
+            [submitButton setEnabled:NO];
+            [submitButton setTitle:NSLocalizedString(@"submit", nil)
+                          forState:UIControlStateDisabled];
+            [submitButton setAlpha:0.5];
             activeGame = YES;
             [self applyRenjuOpeningMaskIfNeeded]; // 9x9 box
         }
@@ -489,8 +494,13 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                 [player2Button setHidden:YES];
                 [passButton setHidden:YES];
                 [dPenteChoiceLabel setHidden:YES];
-                [submitButton setAlpha:1];
+                // Placement phase: submit VISIBLE but greyed/disabled until the
+                // move-5 stone is placed (boardTap enables it on a legal placement).
                 [submitButton setHidden:NO];
+                [submitButton setEnabled:NO];
+                [submitButton setTitle:NSLocalizedString(@"submit", nil)
+                              forState:UIControlStateDisabled];
+                [submitButton setAlpha:0.5];
                 activeGame = YES;
                 [self applyRenjuOpeningMaskIfNeeded]; // 9x9 box
             } else {
@@ -501,8 +511,13 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                 [player1Button setHidden:YES];
                 [player2Button setHidden:YES];
                 [dPenteChoiceLabel setHidden:YES];
-                [submitButton setAlpha:1];
+                // Placement phase: submit VISIBLE but greyed/disabled until the
+                // stone is placed in the central box (boardTap enables it).
                 [submitButton setHidden:NO];
+                [submitButton setEnabled:NO];
+                [submitButton setTitle:NSLocalizedString(@"submit", nil)
+                              forState:UIControlStateDisabled];
+                [submitButton setAlpha:0.5];
                 activeGame = YES;
                 [self updateRenjuBoxOverlay];
                 [self applyRenjuOpeningMaskIfNeeded];
@@ -518,7 +533,13 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
             [player2Button setHidden:YES];
             [passButton setHidden:YES];
             [dPenteChoiceLabel setHidden:YES];
-            [submitButton setHidden:YES];
+            // Offer collection: submit VISIBLE but greyed/disabled until exactly ten
+            // offers are placed (boardTap enables it at ten, re-disables below ten).
+            [submitButton setHidden:NO];
+            [submitButton setEnabled:NO];
+            [submitButton setTitle:NSLocalizedString(@"submit", nil)
+                          forState:UIControlStateDisabled];
+            [submitButton setAlpha:0.5];
             [self renderRenjuCandidates:@[]];
             [self showRenjuOfferCounter];
             activeGame = YES;
@@ -564,7 +585,13 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
         [player2Button setHidden:YES];
         [passButton setHidden:YES];
         [dPenteChoiceLabel setHidden:YES];
-        [submitButton setHidden:YES];
+        // Offer collection: submit VISIBLE but greyed/disabled until exactly ten
+        // offers are placed (boardTap enables it at ten, re-disables below ten).
+        [submitButton setHidden:NO];
+        [submitButton setEnabled:NO];
+        [submitButton setTitle:NSLocalizedString(@"submit", nil)
+                      forState:UIControlStateDisabled];
+        [submitButton setAlpha:0.5];
         [self renderRenjuCandidates:@[]];
         [self showRenjuOfferCounter];
         activeGame = YES;
@@ -884,9 +911,11 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
     self.renjuSelectedPoints = [NSMutableArray array]; // clear any stale SELECTION pair
     [self clearRenjuOpeningMask]; // drop any -1 left over from a prior SELECTION/box mask
     // hide the dPente/swap2 controls first; clear any stale overlay from a prior phase.
-    // The submit button stays hidden during the swap/branch/offer/selection choices —
-    // none auto-submit; it is revealed by placing a stone (MOVE / decline+place), or for
-    // the OFFERS branch when the 10th offer is placed, then submitted MANUALLY.
+    // Submit is hidden by default here; the SWAP and BRANCH (move-4 decision) phases —
+    // where the player decides via the choice buttons — leave it hidden. Every other
+    // (non-decision) phase below re-shows it greyed/disabled: OFFERS, SELECTION, and
+    // MOVE/COMPLETE. It never auto-submits — it is ENABLED only when the current input
+    // is a complete, valid move (boardTap), then submitted MANUALLY.
     [player1Button setHidden:YES];
     [player2Button setHidden:YES];
     [passButton setHidden:YES];
@@ -942,6 +971,14 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
         self.renjuPickedOffers = [NSMutableArray array];
         [self renderRenjuCandidates:@[]];
         [self showRenjuOfferCounter];
+        // Offer collection is not a choice phase: keep submit VISIBLE but greyed/
+        // disabled. boardTap enables it once exactly ten offers are placed (and
+        // re-disables it if a removal drops the count below ten).
+        [submitButton setHidden:NO];
+        [submitButton setEnabled:NO];
+        [submitButton setTitle:NSLocalizedString(@"submit", nil)
+                      forState:UIControlStateDisabled];
+        [submitButton setAlpha:0.5];
     } else if ([phase isEqualToString:@"SELECTION"]) {
         self.renjuSelectedPoints = [NSMutableArray array];
         // Lock the board to the 10 offers (black 5th) by masking every other empty cell
@@ -950,6 +987,14 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
         // candidates speak for themselves (the label stays hidden from the top of this method).
         [self applyRenjuSelectionMask];
         [self renderRenjuCandidates:(self.renjuOffers ?: @[])];
+        // Selection is not a choice phase: keep submit VISIBLE but greyed/disabled.
+        // boardTap enables it once BOTH the black 5th and white 6th are chosen
+        // (count == 2); a third tap resets the pair and re-disables it.
+        [submitButton setHidden:NO];
+        [submitButton setEnabled:NO];
+        [submitButton setTitle:NSLocalizedString(@"submit", nil)
+                      forState:UIControlStateDisabled];
+        [submitButton setAlpha:0.5];
     } else {
         // MOVE / COMPLETE: ordinary single-stone placement, no choice buttons. Reveal
         // the submit button (disabled until a stone is placed) — it was hidden above for
@@ -1188,9 +1233,12 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                 } else {
                     // Fewer than ten offers is not a valid Branch-B submission yet
                     // (a removal can also drop the count back below ten): keep submit
-                    // unavailable until exactly ten are picked.
-                    [submitButton setHidden:YES];
+                    // VISIBLE but greyed/disabled until exactly ten are picked.
+                    [submitButton setHidden:NO];
                     [submitButton setEnabled:NO];
+                    [submitButton setTitle:NSLocalizedString(@"submit", nil)
+                                  forState:UIControlStateDisabled];
+                    [submitButton setAlpha:0.5];
                 }
                 break;
             }
@@ -1222,7 +1270,15 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                     abstractBoard[i][j] = 1; // white 6th
                     [board setNeedsDisplay];
                     [zoomedBoard setNeedsDisplay];
-                    [self submitRenjuDecision]; // renjuAction=select, moves "m5,m6"
+                    // Both points chosen (count == 2): enable the manual submit. No
+                    // auto-submit — tapping submit fires submitMove: ->
+                    // renjuActionForCurrentPhaseFillingMoves (SELECTION) ->
+                    // renjuAction=select, moves "m5,m6" (same payload as before).
+                    [submitButton setTitle:NSLocalizedString(@"submit", nil)
+                                  forState:UIControlStateNormal];
+                    [submitButton setHidden:NO];
+                    [submitButton setEnabled:YES];
+                    [submitButton setAlpha:1];
                 } else {
                     // 3rd tap resets the pair: undo the provisional 5th/6th stones,
                     // re-mask to the 10 offers, and re-show them for a fresh black-5th pick.
@@ -1233,6 +1289,13 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                     self.renjuSelectedPoints = [NSMutableArray array];
                     [self applyRenjuSelectionMask];
                     [self renderRenjuCandidates:(self.renjuOffers ?: @[])];
+                    // Pair cleared: drop submit back to greyed/disabled until both
+                    // the black 5th and white 6th are re-chosen.
+                    [submitButton setHidden:NO];
+                    [submitButton setEnabled:NO];
+                    [submitButton setTitle:NSLocalizedString(@"submit", nil)
+                                  forState:UIControlStateDisabled];
+                    [submitButton setAlpha:0.5];
                 }
                 break;
             }
