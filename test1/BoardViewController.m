@@ -533,13 +533,8 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
             [player2Button setHidden:YES];
             [passButton setHidden:YES];
             [dPenteChoiceLabel setHidden:YES];
-            // Offer collection: submit VISIBLE but greyed/disabled until exactly ten
-            // offers are placed (boardTap enables it at ten, re-disables below ten).
-            [submitButton setHidden:NO];
-            [submitButton setEnabled:NO];
-            [submitButton setTitle:NSLocalizedString(@"submit", nil)
-                          forState:UIControlStateDisabled];
-            [submitButton setAlpha:0.5];
+            // Offer collection: showRenjuOfferCounter owns the submit styling
+            // ("submit N/10", greyed until ten, enabled at "submit 10/10").
             [self renderRenjuCandidates:@[]];
             [self showRenjuOfferCounter];
             activeGame = YES;
@@ -585,13 +580,8 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
         [player2Button setHidden:YES];
         [passButton setHidden:YES];
         [dPenteChoiceLabel setHidden:YES];
-        // Offer collection: submit VISIBLE but greyed/disabled until exactly ten
-        // offers are placed (boardTap enables it at ten, re-disables below ten).
-        [submitButton setHidden:NO];
-        [submitButton setEnabled:NO];
-        [submitButton setTitle:NSLocalizedString(@"submit", nil)
-                      forState:UIControlStateDisabled];
-        [submitButton setAlpha:0.5];
+        // Offer collection: showRenjuOfferCounter owns the submit styling
+        // ("submit N/10", greyed until ten, enabled at "submit 10/10").
         [self renderRenjuCandidates:@[]];
         [self showRenjuOfferCounter];
         activeGame = YES;
