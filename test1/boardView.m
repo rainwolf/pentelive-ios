@@ -278,13 +278,18 @@
         CGContextRestoreGState(context);
     }
 
-    // translucent Renju opening candidates (offers being picked / selectable / chosen)
+    // translucent Renju opening candidates (offers being picked / selectable / chosen),
+    // drawn exactly like the translucent Go dead stones (blackStoneView at alpha 0.7).
     for (NSNumber *cell in renjuCandidates) {
         int idx = cell.intValue, i = idx / gridSize, j = idx % gridSize;
         circle =
             CGRectMake(j * 2 * margin, i * 2 * margin, 2 * margin, 2 * margin);
-        CGContextSetRGBFillColor(context, 0, 0, 0, 0.45);
-        CGContextFillEllipseInRect(context, circle);
+        CGContextSaveGState(context);
+        CGContextTranslateCTM(context, circle.origin.x, circle.origin.y);
+        [blackStoneView setFrame:circle];
+        blackStoneView.layer.cornerRadius = margin;
+        [blackStoneView.layer renderInContext:UIGraphicsGetCurrentContext()];
+        CGContextRestoreGState(context);
     }
 
     CGContextSaveGState(context);
