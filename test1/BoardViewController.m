@@ -802,6 +802,15 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
         [dPenteChoiceLabel setText:NSLocalizedString(@"Pick one offered move", nil)];
         [dPenteChoiceLabel setHidden:NO];
         [self.view bringSubviewToFront:dPenteChoiceLabel];
+    } else {
+        // MOVE / COMPLETE: ordinary single-stone placement, no choice buttons. Reveal
+        // the submit button (disabled until a stone is placed) — it was hidden above for
+        // the choice phases; the placement path only setEnabled:YES, never setHidden:NO.
+        [submitButton setHidden:NO];
+        [submitButton setEnabled:NO];
+        [submitButton setTitle:NSLocalizedString(@"submit", nil)
+                      forState:UIControlStateDisabled];
+        [submitButton setAlpha:0.5];
     }
     // MOVE / COMPLETE: no buttons; placement handled by boardTap.
     // Lock out illegal cells (outside the central square) with -1 for the constrained
