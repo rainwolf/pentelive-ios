@@ -561,7 +561,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
     } else if (dPenteOpening) {
         dPenteMove4 = -1;
         if (dPenteMove3 != -1) {
-            abstractBoard[dPenteMove3 / 19][dPenteMove3 % 19] = 0;
+            abstractBoard[dPenteMove3 / gridSize][dPenteMove3 % gridSize] = 0;
             [board setAbstractBoard:abstractBoard];
             [zoomedBoard setAbstractBoard:abstractBoard];
             dPenteMove3 = -1;
@@ -571,13 +571,13 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                 setTitle:[NSString
                              stringWithFormat:
                                  NSLocalizedString(@"submit: %c%d-%c%d", nil),
-                                 coordinateLetters[dPenteMove1 % 19],
-                                 19 - (dPenteMove1 / 19),
-                                 coordinateLetters[dPenteMove2 % 19],
-                                 19 - (dPenteMove2 / 19)]
+                                 coordinateLetters[dPenteMove1 % gridSize],
+                                 gridSize - (dPenteMove1 / gridSize),
+                                 coordinateLetters[dPenteMove2 % gridSize],
+                                 gridSize - (dPenteMove2 / gridSize)]
                 forState:UIControlStateDisabled];
         } else if (dPenteMove2 != -1) {
-            abstractBoard[dPenteMove2 / 19][dPenteMove2 % 19] = 0;
+            abstractBoard[dPenteMove2 / gridSize][dPenteMove2 % gridSize] = 0;
             [board setAbstractBoard:abstractBoard];
             [zoomedBoard setAbstractBoard:abstractBoard];
             dPenteMove2 = -1;
@@ -588,11 +588,11 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                              stringWithFormat:NSLocalizedString(@"submit: %c%d",
                                                                 nil),
                                               coordinateLetters[dPenteMove1 %
-                                                                19],
-                                              19 - (dPenteMove1 / 19)]
+                                                                gridSize],
+                                              gridSize - (dPenteMove1 / gridSize)]
                 forState:UIControlStateDisabled];
         } else if (dPenteMove1 != -1) {
-            abstractBoard[dPenteMove1 / 19][dPenteMove1 % 19] = 0;
+            abstractBoard[dPenteMove1 / gridSize][dPenteMove1 % gridSize] = 0;
             [board setAbstractBoard:abstractBoard];
             [zoomedBoard setAbstractBoard:abstractBoard];
             dPenteMove1 = -1;
@@ -602,7 +602,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
     } else if (swap2Opening) {
         swap2Move3 = -1;
         if (swap2Move2 != -1) {
-            abstractBoard[swap2Move2 / 19][swap2Move2 % 19] = 0;
+            abstractBoard[swap2Move2 / gridSize][swap2Move2 % gridSize] = 0;
             [board setAbstractBoard:abstractBoard];
             [zoomedBoard setAbstractBoard:abstractBoard];
             swap2Move2 = -1;
@@ -613,11 +613,11 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                              stringWithFormat:NSLocalizedString(@"submit: %c%d",
                                                                 nil),
                                               coordinateLetters[swap2Move1 %
-                                                                19],
-                                              19 - (swap2Move1 / 19)]
+                                                                gridSize],
+                                              gridSize - (swap2Move1 / gridSize)]
                 forState:UIControlStateDisabled];
         } else if (swap2Move1 != -1) {
-            abstractBoard[swap2Move1 / 19][swap2Move1 % 19] = 0;
+            abstractBoard[swap2Move1 / gridSize][swap2Move1 % gridSize] = 0;
             [board setAbstractBoard:abstractBoard];
             [zoomedBoard setAbstractBoard:abstractBoard];
             swap2Move1 = -1;
@@ -743,7 +743,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                 //                    }
                 if (swap2Move1 != -1) {
                     move = swap2Move1;
-                    abstractBoard[move / 19][move % 19] = 2;
+                    abstractBoard[move / gridSize][move % gridSize] = 2;
                     [self detectCaptureOfOpponent:1 atPosition:move];
                 }
                 [board setNeedsDisplay];
@@ -828,10 +828,10 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                                      stringWithFormat:
                                          NSLocalizedString(@"submit: %c%d-%c%d",
                                                            nil),
-                                         coordinateLetters[connect6Move1 % 19],
-                                         19 - (connect6Move1 / 19),
-                                         coordinateLetters[finalMove % 19],
-                                         19 - (finalMove / 19)]
+                                         coordinateLetters[connect6Move1 % gridSize],
+                                         gridSize - (connect6Move1 / gridSize),
+                                         coordinateLetters[finalMove % gridSize],
+                                         gridSize - (finalMove / gridSize)]
                         forState:UIControlStateNormal];
                 } else if (([[self.game gameType] isEqualToString:@"D-Pente"] ||
                             [[self.game gameType]
@@ -843,14 +843,14 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                                          NSLocalizedString(
                                              @"submit: %c%d-%c%d-%c%d-%c%d",
                                              nil),
-                                         coordinateLetters[dPenteMove1 % 19],
-                                         19 - (dPenteMove1 / 19),
-                                         coordinateLetters[dPenteMove2 % 19],
-                                         19 - (dPenteMove2 / 19),
-                                         coordinateLetters[dPenteMove3 % 19],
-                                         19 - (dPenteMove3 / 19),
-                                         coordinateLetters[finalMove % 19],
-                                         19 - (finalMove / 19)]
+                                         coordinateLetters[dPenteMove1 % gridSize],
+                                         gridSize - (dPenteMove1 / gridSize),
+                                         coordinateLetters[dPenteMove2 % gridSize],
+                                         gridSize - (dPenteMove2 / gridSize),
+                                         coordinateLetters[dPenteMove3 % gridSize],
+                                         gridSize - (dPenteMove3 / gridSize),
+                                         coordinateLetters[finalMove % gridSize],
+                                         gridSize - (finalMove / gridSize)]
                         forState:UIControlStateNormal];
                 } else {
                     [submitButton
@@ -890,8 +890,8 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                                      stringWithFormat:
                                          NSLocalizedString(@"submit: %c%d",
                                                            nil),
-                                         coordinateLetters[finalMove % 19],
-                                         19 - (finalMove / 19)]
+                                         coordinateLetters[finalMove % gridSize],
+                                         gridSize - (finalMove / gridSize)]
                         forState:UIControlStateDisabled];
                     [submitButton setEnabled:NO];
                     [submitButton setAlpha:0.5];
@@ -903,10 +903,10 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                                      stringWithFormat:
                                          NSLocalizedString(@"submit: %c%d-%c%d",
                                                            nil),
-                                         coordinateLetters[dPenteMove1 % 19],
-                                         19 - (dPenteMove1 / 19),
-                                         coordinateLetters[finalMove % 19],
-                                         19 - (finalMove / 19)]
+                                         coordinateLetters[dPenteMove1 % gridSize],
+                                         gridSize - (dPenteMove1 / gridSize),
+                                         coordinateLetters[finalMove % gridSize],
+                                         gridSize - (finalMove / gridSize)]
                         forState:UIControlStateDisabled];
                     [submitButton setEnabled:NO];
                     [submitButton setAlpha:0.5];
@@ -918,12 +918,12 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                                      stringWithFormat:
                                          NSLocalizedString(
                                              @"submit: %c%d-%c%d-%c%d", nil),
-                                         coordinateLetters[dPenteMove1 % 19],
-                                         19 - (dPenteMove1 / 19),
-                                         coordinateLetters[dPenteMove2 % 19],
-                                         19 - (dPenteMove2 / 19),
-                                         coordinateLetters[finalMove % 19],
-                                         19 - (finalMove / 19)]
+                                         coordinateLetters[dPenteMove1 % gridSize],
+                                         gridSize - (dPenteMove1 / gridSize),
+                                         coordinateLetters[dPenteMove2 % gridSize],
+                                         gridSize - (dPenteMove2 / gridSize),
+                                         coordinateLetters[finalMove % gridSize],
+                                         gridSize - (finalMove / gridSize)]
                         forState:UIControlStateDisabled];
                     [submitButton setEnabled:NO];
                     [submitButton setAlpha:0.5];
@@ -935,14 +935,14 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                                          NSLocalizedString(
                                              @"submit: %c%d-%c%d-%c%d-%c%d",
                                              nil),
-                                         coordinateLetters[dPenteMove1 % 19],
-                                         19 - (dPenteMove1 / 19),
-                                         coordinateLetters[dPenteMove2 % 19],
-                                         19 - (dPenteMove2 / 19),
-                                         coordinateLetters[dPenteMove3 % 19],
-                                         19 - (dPenteMove3 / 19),
-                                         coordinateLetters[finalMove % 19],
-                                         19 - (finalMove / 19)]
+                                         coordinateLetters[dPenteMove1 % gridSize],
+                                         gridSize - (dPenteMove1 / gridSize),
+                                         coordinateLetters[dPenteMove2 % gridSize],
+                                         gridSize - (dPenteMove2 / gridSize),
+                                         coordinateLetters[dPenteMove3 % gridSize],
+                                         gridSize - (dPenteMove3 / gridSize),
+                                         coordinateLetters[finalMove % gridSize],
+                                         gridSize - (finalMove / gridSize)]
                         forState:UIControlStateDisabled];
                     [self detectCaptureOfOpponent:1 atPosition:finalMove];
                 }
@@ -956,8 +956,8 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                                      stringWithFormat:
                                          NSLocalizedString(@"submit: %c%d",
                                                            nil),
-                                         coordinateLetters[finalMove % 19],
-                                         19 - (finalMove / 19)]
+                                         coordinateLetters[finalMove % gridSize],
+                                         gridSize - (finalMove / gridSize)]
                         forState:UIControlStateDisabled];
                     [submitButton setEnabled:NO];
                     [submitButton setAlpha:0.5];
@@ -969,10 +969,10 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                                      stringWithFormat:
                                          NSLocalizedString(@"submit: %c%d-%c%d",
                                                            nil),
-                                         coordinateLetters[swap2Move1 % 19],
-                                         19 - (swap2Move1 / 19),
-                                         coordinateLetters[finalMove % 19],
-                                         19 - (finalMove / 19)]
+                                         coordinateLetters[swap2Move1 % gridSize],
+                                         gridSize - (swap2Move1 / gridSize),
+                                         coordinateLetters[finalMove % gridSize],
+                                         gridSize - (finalMove / gridSize)]
                         forState:UIControlStateDisabled];
                     [submitButton setEnabled:NO];
                     [submitButton setAlpha:0.5];
@@ -983,12 +983,12 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                                      stringWithFormat:
                                          NSLocalizedString(
                                              @"submit: %c%d-%c%d-%c%d", nil),
-                                         coordinateLetters[swap2Move1 % 19],
-                                         19 - (swap2Move1 / 19),
-                                         coordinateLetters[swap2Move2 % 19],
-                                         19 - (swap2Move2 / 19),
-                                         coordinateLetters[finalMove % 19],
-                                         19 - (finalMove / 19)]
+                                         coordinateLetters[swap2Move1 % gridSize],
+                                         gridSize - (swap2Move1 / gridSize),
+                                         coordinateLetters[swap2Move2 % gridSize],
+                                         gridSize - (swap2Move2 / gridSize),
+                                         coordinateLetters[finalMove % gridSize],
+                                         gridSize - (finalMove / gridSize)]
                         forState:UIControlStateNormal];
                 }
             }
@@ -1003,8 +1003,8 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                                      stringWithFormat:
                                          NSLocalizedString(@"submit: %c%d",
                                                            nil),
-                                         coordinateLetters[finalMove % 19],
-                                         19 - (finalMove / 19)]
+                                         coordinateLetters[finalMove % gridSize],
+                                         gridSize - (finalMove / gridSize)]
                         forState:UIControlStateDisabled];
                     [submitButton setEnabled:NO];
                     [submitButton setAlpha:0.5];
@@ -1015,12 +1015,12 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                                      stringWithFormat:
                                          NSLocalizedString(@"submit: %c%d-%c%d",
                                                            nil),
-                                         coordinateLetters[swap2Move1 % 19],
-                                         19 - (swap2Move1 / 19),
-                                         coordinateLetters[finalMove % 19],
-                                         19 - (finalMove / 19)]
+                                         coordinateLetters[swap2Move1 % gridSize],
+                                         gridSize - (swap2Move1 / gridSize),
+                                         coordinateLetters[finalMove % gridSize],
+                                         gridSize - (finalMove / gridSize)]
                         forState:UIControlStateNormal];
-                    abstractBoard[swap2Move1 / 19][swap2Move1 % 19] = 2;
+                    abstractBoard[swap2Move1 / gridSize][swap2Move1 % gridSize] = 2;
                     [self detectCaptureOfOpponent:1 atPosition:swap2Move1];
                     [self detectCaptureOfOpponent:2 atPosition:finalMove];
                 }
@@ -1159,7 +1159,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
     if ([captures count] > 0) {
         for (id capturee in captures) {
             [capturee getValue:&capture];
-            int i = capture.position / 19, j = capture.position % 19,
+            int i = capture.position / gridSize, j = capture.position % gridSize,
                 color = capture.color;
             poof = poof || (color == myColor);
             if (poof && !done) {
@@ -1490,6 +1490,9 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                          ![strongSelf.game.gameType hasPrefix:@"Gomoku"]) ||
                         ([strongSelf.game.gameType hasPrefix:@"Speed Go"] &&
                          ![strongSelf.game.gameType hasPrefix:@"Speed Gomoku"]);
+             if ([strongSelf.game.gameType containsString:@"Renju"]) {
+                 gridSize = 15;
+             }
              [strongSelf setTitle:[strongSelf.game gameType]];
              if (iAmP1) {
                  [strongSelf.game setOpponentName:p2Name];
