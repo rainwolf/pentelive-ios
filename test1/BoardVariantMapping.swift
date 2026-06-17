@@ -69,7 +69,7 @@ import UIKit
     @objc(hidesCaptureLabelsForVariant:opening:)
     static func hidesCaptureLabels(for variant: PenteVariant, opening: Bool) -> Bool {
         switch variant {
-        case .gomoku, .connect6:
+        case .gomoku, .connect6, .renju:
             return true
         case .dPente, .dkPente, .swap2Pente, .swap2Keryo:
             return opening

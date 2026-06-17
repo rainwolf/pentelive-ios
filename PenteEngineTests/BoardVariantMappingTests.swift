@@ -96,5 +96,7 @@ extension BoardVariantMappingTests {
         XCTAssertTrue(BoardVariantMapping.hidesCaptureLabels(for: .swap2Pente, opening: true))
         XCTAssertFalse(BoardVariantMapping.hidesCaptureLabels(for: .swap2Pente, opening: false))
         XCTAssertTrue(BoardVariantMapping.hidesCaptureLabels(for: .swap2Keryo, opening: true))
+        XCTAssertTrue(BoardVariantMapping.hidesCaptureLabels(for: .renju, opening: false))
+        XCTAssertTrue(BoardVariantMapping.hidesCaptureLabels(for: .renju, opening: true))
     }
 }

@@ -5,7 +5,7 @@
 //  Pure directional rule primitives ported verbatim from the legacy
 //  Objective-C engine (test1/PenteGame.m). No state, no board mutation:
 //  every function takes a plain [[Int]] (board[row][col]) by value and
-//  returns its result. Coordinates use rowCol = row * 19 + col.
+//  returns its result. Coordinates use rowCol = row * n + col, where n = board.count (the board edge length).
 //
 //  Cell values: 0 empty, 1 white, 2 black, -1 masked (a masked cell never
 //  equals a colour, so it is inert in every scan).

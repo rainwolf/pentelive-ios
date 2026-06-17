@@ -144,8 +144,8 @@ import Foundation
 
     private func clearOpeningMask() {
         guard rules.opening == .tournament || rules.opening == .gpente else { return }
-        for r in 0..<19 {
-            for c in 0..<19 where board[r][c] == -1 {
+        for r in 0..<boardSize {
+            for c in 0..<boardSize where board[r][c] == -1 {
                 board[r][c] = 0
             }
         }
