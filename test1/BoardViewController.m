@@ -803,10 +803,9 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
 
 - (void)showRenjuOfferCounter {
     NSUInteger n = self.renjuPickedOffers.count;
+    // Digits-only HUD: the running count over ten, e.g. "3/10".
     [dPenteChoiceLabel
-        setText:[NSString stringWithFormat:NSLocalizedString(@"Pick %lu of 10",
-                                                             nil),
-                                           (unsigned long)n]];
+        setText:[NSString stringWithFormat:@"%lu/10", (unsigned long)n]];
     [dPenteChoiceLabel setHidden:NO];
 }
 
@@ -1177,8 +1176,19 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                 [self renderRenjuCandidates:self.renjuPickedOffers];
                 [self showRenjuOfferCounter];
                 if (self.renjuPickedOffers.count == 10) {
-                    finalMove = tapped; // unused by Branch-B payload
-                    [self submitRenjuDecision]; // renjuAction=move (10 offers)
+                    // Tenth offer placed: surface the submit button so the player
+                    // sends the 10-offer `move` MANUALLY (submitMove: ->
+                    // submitMoveToServer -> renjuActionForCurrentPhaseFillingMoves,
+                    // renjuMove4BranchB -> renjuAction=move). No auto-submit.
+                    [submitButton setHidden:NO];
+                    [submitButton setAlpha:1];
+                    [submitButton setEnabled:YES];
+                } else {
+                    // Fewer than ten offers is not a valid Branch-B submission yet
+                    // (a removal can also drop the count back below ten): keep submit
+                    // unavailable until exactly ten are picked.
+                    [submitButton setHidden:YES];
+                    [submitButton setEnabled:NO];
                 }
                 break;
             }
