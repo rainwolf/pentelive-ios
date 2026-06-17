@@ -1771,6 +1771,24 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                                    ? [jsonResponse[@"dPenteState"] intValue]
                                    : 0;
 
+             id rpVal = jsonResponse[@"renjuPhase"];
+             self.renjuPhase = [rpVal isKindOfClass:[NSString class]] ? rpVal : nil;
+
+             id roVal = jsonResponse[@"renjuOffers"];
+             if ([roVal isKindOfClass:[NSString class]] && [(NSString *)roVal length] > 0) {
+                 NSMutableArray<NSNumber *> *parsed = [NSMutableArray array];
+                 for (NSString *tok in [(NSString *)roVal componentsSeparatedByString:@","]) {
+                     NSString *t = [tok stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+                     if (t.length > 0) [parsed addObject:@([t intValue])];
+                 }
+                 self.renjuOffers = parsed;
+             } else {
+                 self.renjuOffers = nil;
+             }
+
+             id rsVal = jsonResponse[@"renjuSwaps"];
+             self.renjuSwaps = [rsVal isKindOfClass:[NSNumber class]] ? rsVal : nil;
+
              //    NSLog(@"kitty message %@", message);
              dPenteOpening = NO;
              whiteCaptures = 0;

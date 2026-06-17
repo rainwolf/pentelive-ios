@@ -45,6 +45,9 @@
     *playerStatsBaseString;
 @property(nonatomic, retain) NSMutableString *moveStatsString;
 @property(nonatomic, retain) NSDictionary *messagesHistory;
+@property (nonatomic, copy) NSString *renjuPhase;               // SWAP|BRANCH|OFFERS|SELECTION|MOVE|COMPLETE, or nil
+@property (nonatomic, strong) NSArray<NSNumber *> *renjuOffers; // parsed offered move indices, or nil
+@property (nonatomic, strong) NSNumber *renjuSwaps;            // packed opening word (opaque), or nil
 //@property(nonatomic,retain) GamesTableViewController *gamesTable;
 @property(weak, nonatomic) IBOutlet BoardView *board;
 @property(weak, nonatomic) IBOutlet BoardView *zoomedBoard;
