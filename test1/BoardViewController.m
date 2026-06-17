@@ -1109,8 +1109,8 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                 [self renderRenjuCandidates:self.renjuPickedOffers];
                 [self showRenjuOfferCounter];
                 if (self.renjuPickedOffers.count == 10) {
-                    finalMove = tapped; // unused by offer payload
-                    [self submitRenjuDecision]; // renjuAction=offer
+                    finalMove = tapped; // unused by Branch-B payload
+                    [self submitRenjuDecision]; // renjuAction=move (10 offers)
                 }
                 break;
             }
