@@ -508,8 +508,9 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                 [self applyRenjuOpeningMaskIfNeeded];
             }
         } else if ([self.renjuPhase isEqualToString:@"BRANCH"]) {
-            // Post-take-over Branch B: collect ten 5th-move offers (auto-submits on
-            // the 10th pick) as a single `move` (no standalone branch post).
+            // Post-take-over Branch B: collect ten 5th-move offers, submitted MANUALLY
+            // via the submit button (revealed when the 10th offer is placed) as a single
+            // `move` (no standalone branch post).
             self.renjuMove4BranchA = NO;
             self.renjuMove4BranchB = YES;
             self.renjuPickedOffers = [NSMutableArray array];
@@ -552,7 +553,8 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
 - (IBAction)swap2Pass:(id)sender {
     if (self.renjuPhase != nil) {
         // Move-4 "Place 10" -> Branch B: offer ten 5th-move candidates, submitted with
-        // the decline together via the move4 fold (auto-sends on the 10th pick).
+        // the decline together via the move4 fold, sent MANUALLY via the submit button
+        // (revealed when the 10th offer is placed).
         self.renjuTakeOver = NO;
         self.renjuMove4Decline = NO;
         self.renjuMove4BranchA = NO;
@@ -883,7 +885,8 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
     [self clearRenjuOpeningMask]; // drop any -1 left over from a prior SELECTION/box mask
     // hide the dPente/swap2 controls first; clear any stale overlay from a prior phase.
     // The submit button stays hidden during the swap/branch/offer/selection choices —
-    // those auto-submit; it is only revealed by placing a stone (MOVE / decline+place).
+    // none auto-submit; it is revealed by placing a stone (MOVE / decline+place), or for
+    // the OFFERS branch when the 10th offer is placed, then submitted MANUALLY.
     [player1Button setHidden:YES];
     [player2Button setHidden:YES];
     [passButton setHidden:YES];
@@ -1180,6 +1183,8 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                     // sends the 10-offer `move` MANUALLY (submitMove: ->
                     // submitMoveToServer -> renjuActionForCurrentPhaseFillingMoves,
                     // renjuMove4BranchB -> renjuAction=move). No auto-submit.
+                    [submitButton setTitle:NSLocalizedString(@"submit", nil)
+                                  forState:UIControlStateNormal];
                     [submitButton setHidden:NO];
                     [submitButton setAlpha:1];
                     [submitButton setEnabled:YES];
@@ -1655,6 +1660,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
 }
 
 - (IBAction)submitMove:(id)sender {
+    [submitButton setEnabled:NO];
     spinner.center = stone.center;
     [spinner setColor:[[self.game myColor] isEqualToString:@"white"]
                           ? [UIColor blackColor]
