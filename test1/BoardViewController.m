@@ -36,6 +36,9 @@
 // GADBannerView *bannerView_;
 
 @interface BoardViewController ()
+// SELECTION: the chosen pair [black move5, white move6]. Declared here (not the
+// .h) so the new TB-select state stays local to the implementation.
+@property (nonatomic, strong) NSMutableArray<NSNumber *> *renjuSelectedPoints;
 @end
 
 @implementation BoardViewController
@@ -432,8 +435,18 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
             self.renjuMove4Decline = NO;
             [self submitRenjuDecision];
         } else if ([self.renjuPhase isEqualToString:@"BRANCH"]) {
-            self.renjuBranchB = NO;
-            [self submitRenjuDecision];
+            // Post-take-over Branch A: reveal the 9x9 box, place move 5, then
+            // submit it as a single `move` (no standalone branch post).
+            self.renjuMove4BranchA = YES;
+            self.renjuMove4BranchB = NO;
+            [player1Button setHidden:YES];
+            [player2Button setHidden:YES];
+            [passButton setHidden:YES];
+            [dPenteChoiceLabel setHidden:YES];
+            [submitButton setAlpha:1];
+            [submitButton setHidden:NO];
+            activeGame = YES;
+            [self applyRenjuOpeningMaskIfNeeded]; // 9x9 box
         }
         return;
     }
@@ -495,8 +508,19 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                 [self applyRenjuOpeningMaskIfNeeded];
             }
         } else if ([self.renjuPhase isEqualToString:@"BRANCH"]) {
-            self.renjuBranchB = YES;
-            [self submitRenjuDecision];
+            // Post-take-over Branch B: collect ten 5th-move offers (auto-submits on
+            // the 10th pick) as a single `move` (no standalone branch post).
+            self.renjuMove4BranchA = NO;
+            self.renjuMove4BranchB = YES;
+            self.renjuPickedOffers = [NSMutableArray array];
+            [player1Button setHidden:YES];
+            [player2Button setHidden:YES];
+            [passButton setHidden:YES];
+            [dPenteChoiceLabel setHidden:YES];
+            [submitButton setHidden:YES];
+            [self renderRenjuCandidates:@[]];
+            [self showRenjuOfferCounter];
+            activeGame = YES;
         }
         return;
     }
@@ -794,6 +818,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
     self.renjuBranchB = NO;
     self.renjuMove4BranchA = NO;
     self.renjuMove4BranchB = NO;
+    self.renjuSelectedPoints = [NSMutableArray array]; // clear any stale SELECTION pair
     // hide the dPente/swap2 controls first; clear any stale overlay from a prior phase.
     // The submit button stays hidden during the swap/branch/offer/selection choices —
     // those auto-submit; it is only revealed by placing a stone (MOVE / decline+place).
@@ -854,8 +879,9 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
         [self renderRenjuCandidates:@[]];
         [self showRenjuOfferCounter];
     } else if ([phase isEqualToString:@"SELECTION"]) {
+        self.renjuSelectedPoints = [NSMutableArray array];
         [self renderRenjuCandidates:(self.renjuOffers ?: @[])];
-        [dPenteChoiceLabel setText:NSLocalizedString(@"Pick one offered move", nil)];
+        [dPenteChoiceLabel setText:NSLocalizedString(@"Tap black's 5th, then your 6th", nil)];
         [dPenteChoiceLabel setHidden:NO];
         [self.view bringSubviewToFront:dPenteChoiceLabel];
     } else {
@@ -1089,12 +1115,29 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                 break;
             }
             if ([self.renjuPhase isEqualToString:@"SELECTION"]) {
-                if (![self.renjuOffers containsObject:@(tapped)]) {
-                    break; // must be offered
+                // Two taps: 1st = the offered black 5th, 2nd = an empty white 6th
+                // distinct from the 5th. A tap beyond two resets the pair.
+                if (self.renjuSelectedPoints == nil) {
+                    self.renjuSelectedPoints = [NSMutableArray array];
                 }
-                finalMove = tapped;
-                [self renderRenjuCandidates:@[ @(tapped) ]];
-                [self submitRenjuDecision]; // renjuAction=select
+                if (self.renjuSelectedPoints.count == 0) {
+                    if (![self.renjuOffers containsObject:@(tapped)]) {
+                        break; // 1st must be offered
+                    }
+                    [self.renjuSelectedPoints addObject:@(tapped)];
+                    [self renderRenjuCandidates:self.renjuSelectedPoints];
+                } else if (self.renjuSelectedPoints.count == 1) {
+                    if (abstractBoard[i][j] != 0 ||
+                        tapped == [self.renjuSelectedPoints[0] intValue]) {
+                        break; // 2nd must be empty and distinct from the 5th
+                    }
+                    [self.renjuSelectedPoints addObject:@(tapped)];
+                    [self renderRenjuCandidates:self.renjuSelectedPoints];
+                    [self submitRenjuDecision]; // renjuAction=select, moves "m5,m6"
+                } else {
+                    self.renjuSelectedPoints = [NSMutableArray array]; // 3rd tap resets
+                    [self renderRenjuCandidates:(self.renjuOffers ?: @[])];
+                }
                 break;
             }
             // MOVE / SWAP decline+place: gate to the central box
@@ -1546,44 +1589,35 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
 // Returns the renjuAction for the pending phase, or nil for a plain command=move.
 // *outMoves receives the moves payload string.
 - (NSString *)renjuActionForCurrentPhaseFillingMoves:(NSString **)outMoves {
-    // Move-4 fold: a single request that declines the move-4 swap (d=1) and bundles
-    // either the Branch-A 5th stone or the Branch-B ten offers.
+    // Branch A (fresh move-4 decline OR post-take-over): a single `move` placing the
+    // 5th stone. The server infers "decline pending swap" from the phase; no sentinel.
     if (self.renjuMove4BranchA) {
-        *outMoves = [NSString stringWithFormat:@"1,%d", finalMove];
-        return @"move4";
+        *outMoves = [NSString stringWithFormat:@"%d", finalMove];
+        return @"move";
     }
+    // Branch B: a single `move` carrying the ten 5th-move offers (branch inferred by count).
     if (self.renjuMove4BranchB) {
-        NSMutableArray<NSString *> *toks = [NSMutableArray arrayWithObject:@"1"];
+        NSMutableArray<NSString *> *toks = [NSMutableArray array];
         for (NSNumber *n in self.renjuPickedOffers) {
             [toks addObject:[n stringValue]];
         }
         *outMoves = [toks componentsJoinedByString:@","];
-        return @"move4";
+        return @"move";
     }
     NSString *phase = self.renjuPhase;
     if ([phase isEqualToString:@"SWAP"]) {
         if (self.renjuTakeOver) {
-            *outMoves = @"1";
-        } else if (self.renjuMove4Decline) {
-            *outMoves = @"0";
-        } else {
-            *outMoves = [NSString stringWithFormat:@"0,%d", finalMove];
+            *outMoves = @"1"; // take over opponent's side; server ignores the payload
+            return @"swap";
         }
-        return @"swap";
-    }
-    if ([phase isEqualToString:@"BRANCH"]) {
-        *outMoves = self.renjuBranchB ? @"2" : @"1";
-        return @"branch";
-    }
-    if ([phase isEqualToString:@"OFFERS"]) {
-        NSMutableArray<NSString *> *toks = [NSMutableArray array];
-        for (NSNumber *n in self.renjuPickedOffers)
-            [toks addObject:[n stringValue]];
-        *outMoves = [toks componentsJoinedByString:@","];
-        return @"offer";
+        // windows 1-3 decline + place: a single `move` carrying just the stone.
+        *outMoves = [NSString stringWithFormat:@"%d", finalMove];
+        return @"move";
     }
     if ([phase isEqualToString:@"SELECTION"]) {
-        *outMoves = [NSString stringWithFormat:@"%d", finalMove];
+        // atomic 2-stone: chosen black 5th + white 6th.
+        *outMoves = [NSString stringWithFormat:@"%@,%@",
+                     self.renjuSelectedPoints[0], self.renjuSelectedPoints[1]];
         return @"select";
     }
     // MOVE / COMPLETE -> plain placement, no renjuAction
