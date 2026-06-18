@@ -1096,6 +1096,12 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
         // player is placing alternates by stones-on-board parity — odd count (centre
         // only, 3 stones, ...) places WHITE; even count places BLACK.
         int renjuColor = (([movesList count] % 2) == 1) ? WHITE : BLACK;
+        // SELECTION: at 4 stones parity yields BLACK (the offered 5th move). Once the black
+        // 5th is chosen, the next placement (and any re-placement) is the WHITE 6th, so force
+        // white — otherwise the 6th's preview/zoomed stone wrongly renders black.
+        if ([self.renjuPhase isEqualToString:@"SELECTION"] && [self.renjuSelectedPoints count] >= 1) {
+            renjuColor = WHITE;
+        }
         [stone setStoneColor:renjuColor];
         [zoomedStone setStoneColor:renjuColor];
         [stone setNeedsDisplay];
@@ -1164,6 +1170,26 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                 }
                 [board setNeedsDisplay];
             }
+        }
+        // Renju SELECTION: a new press while both the black 5th and white 6th are placed begins
+        // RE-PLACING the white 6th — lift it now (back to count==1) so the old white stone is not
+        // left on the (zoomed) board during the drag. The release re-places it (count==1 branch
+        // below); releasing on its old (now-empty) cell restores it. Drop submit to the lone-5th
+        // state so an invalid release doesn't leave a stale enabled submit.
+        if ([self.renjuPhase isEqualToString:@"SELECTION"] && self.renjuSelectedPoints.count >= 2) {
+            int six = [[self.renjuSelectedPoints lastObject] intValue];
+            abstractBoard[six / gridSize][six % gridSize] = 0;
+            [self.renjuSelectedPoints removeLastObject];
+            [board setNeedsDisplay];
+            [zoomedBoard setNeedsDisplay];
+            int m5 = [self.renjuSelectedPoints[0] intValue];
+            [submitButton setHidden:NO];
+            [submitButton setEnabled:NO];
+            [submitButton setTitle:[NSString stringWithFormat:NSLocalizedString(@"submit: %c%d-", nil),
+                                                              coordinateLetters[m5 % gridSize],
+                                                              gridSize - (m5 / gridSize)]
+                          forState:UIControlStateDisabled];
+            [submitButton setAlpha:0.5];
         }
         finalMove = -1;
         [zoomedBoard setHidden:NO];
