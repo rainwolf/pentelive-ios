@@ -7,7 +7,7 @@ enum PoofKind { case none, poof, keryo }
 enum OpeningMask { case none, tournament, gpente, swap2 }
 
 /// Move-colour cadence.
-enum Cadence { case alternating, connect6 }
+enum Cadence { case alternating, connect6, blackFirst }
 
 /// A thin recipe: PARAMETERS ONLY. Recipes contain no scan code; the engine reads
 /// these parameters and drives `Scan`.
@@ -20,7 +20,12 @@ protocol RuleSet {
     var winLength: Int { get }
     var opening: OpeningMask { get }
     var cadence: Cadence { get }
+    /// Board edge length. 19 for the Pente/Go family; 15 for Renju.
+    var boardSize: Int { get }
 }
+
+/// Default board size: every legacy variant is 19×19. Only Renju overrides.
+extension RuleSet { var boardSize: Int { 19 } }
 
 struct PenteRules: RuleSet {
     let capture: (run: Int, threshold: Int)? = (2, 10)
@@ -110,6 +115,15 @@ struct Connect6Rules: RuleSet {
     let cadence: Cadence = .connect6
 }
 
+struct RenjuRules: RuleSet {
+    let capture: (run: Int, threshold: Int)? = nil   // Gomoku-like, no captures
+    let poof: PoofKind = .none
+    let winLength: Int = 5
+    let opening: OpeningMask = .none   // central squares enforced server-side + in TB UI gate
+    let cadence: Cadence = .blackFirst
+    let boardSize: Int = 15
+}
+
 /// Factory: maps a variant to its recipe.
 func ruleSet(for variant: PenteVariant) -> RuleSet {
     switch variant {
@@ -124,5 +138,6 @@ func ruleSet(for variant: PenteVariant) -> RuleSet {
     case .swap2Keryo: return Swap2KeryoRules()
     case .gomoku:     return GomokuRules()
     case .connect6:   return Connect6Rules()
+    case .renju:      return RenjuRules()
     }
 }

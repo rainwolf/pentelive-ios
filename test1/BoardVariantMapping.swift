@@ -19,6 +19,7 @@ import UIKit
         if gameType.contains("Swap2-Pente") { return .swap2Pente }
         if gameType.contains("Swap2-Keryo") { return .swap2Keryo }
         if gameType.contains("Connect6") { return .connect6 }
+        if gameType.contains("Renju") { return .renju }
         if gameType.contains("Gomoku") { return .gomoku }
         // Deliberate fallback for unknown/legacy game-type strings, matching the
         // legacy behavior in BoardViewController. This is NOT a crash path: an
@@ -57,6 +58,9 @@ import UIKit
             return UIColor(red: 0.612, green: 1, blue: 0.898, alpha: 1)
         case .connect6:
             return UIColor(red: 0.929, green: 0.639, blue: 0.992, alpha: 1)
+        case .renju:
+            // #D98880 dusty rose — canonical Renju board colour, distinct from gomoku.
+            return UIColor(red: 0.851, green: 0.533, blue: 0.502, alpha: 1)
         }
     }
 
@@ -66,7 +70,7 @@ import UIKit
     @objc(hidesCaptureLabelsForVariant:opening:)
     static func hidesCaptureLabels(for variant: PenteVariant, opening: Bool) -> Bool {
         switch variant {
-        case .gomoku, .connect6:
+        case .gomoku, .connect6, .renju:
             return true
         case .dPente, .dkPente, .swap2Pente, .swap2Keryo:
             return opening

@@ -78,7 +78,8 @@
         initWithObjects:@"Pente", @"Keryo-Pente", @"Gomoku", @"D-Pente",
                         @"G-Pente", @"Poof-Pente", @"Connect6", @"Boat-Pente",
                         @"DK-Pente", @"Go", @"Go (9x9)", @"Go (13x13)",
-                        @"O-Pente", @"Swap2-Pente", @"Swap2-Keryo", nil];
+                        @"O-Pente", @"Swap2-Pente", @"Swap2-Keryo", @"Renju",
+                        nil];
     colors =
         [[NSArray alloc] initWithObjects:NSLocalizedString(@"white", nil),
                                          NSLocalizedString(@"black", nil), nil];
@@ -215,17 +216,23 @@
     }
     [ratedSwitch setOn:![defaults boolForKey:@"lastInvitationRated"]
               animated:YES];
-    if (!ratedSwitch.on) {
+    // playAs (color choice) is enabled for unrated games always, and for rated games only when
+    // the server honors the chosen color: Go (TB_GO/TB_GO9/TB_GO13) and Renju (TB_RENJU).
+    if (!ratedSwitch.on || [self colorChoiceGameSelected]) {
         playAsCell.userInteractionEnabled = YES;
         playAsLabel.alpha = 1;
         playAsDetailLabel.alpha = 1;
-        privateCell.userInteractionEnabled = YES;
-        privateCellLabel.alpha = 1;
-        privateSwitch.alpha = 1;
     } else {
         playAsCell.userInteractionEnabled = NO;
         playAsLabel.alpha = 0.5;
         playAsDetailLabel.alpha = 0.5;
+    }
+    // Private game stays rated-only, independent of game type.
+    if (!ratedSwitch.on) {
+        privateCell.userInteractionEnabled = YES;
+        privateCellLabel.alpha = 1;
+        privateSwitch.alpha = 1;
+    } else {
         privateCell.userInteractionEnabled = NO;
         privateCellLabel.alpha = 0.5;
         privateSwitch.alpha = 0.5;
@@ -564,6 +571,9 @@ array, and add a new row to the table view
     if ([gameCell.detailTextLabel.text isEqualToString:@"Swap2-Keryo"]) {
         gameString = @"79";
     }
+    if ([gameCell.detailTextLabel.text isEqualToString:@"Renju"]) {
+        gameString = @"81";
+    }
 
     NSString *restrictString = @"A";
     if ([restrictionCell.detailTextLabel.text
@@ -760,22 +770,38 @@ array, and add a new row to the table view
     [restrictionCell doResign];
 }
 
+// Games whose chosen color the server honors even for RATED invites (single game with the chosen
+// color): Go and Renju. Matched by the game cell's display string (no game id at gating time).
+- (BOOL)colorChoiceGameSelected {
+    NSString *g = gameCell.detailTextLabel.text;
+    return [g isEqualToString:@"Go"] ||
+           [g isEqualToString:@"Go (9x9)"] ||
+           [g isEqualToString:@"Go (13x13)"] ||
+           [g isEqualToString:@"Renju"];
+}
+
 - (IBAction)flipRatedSwitch:(id)sender {
     CGFloat insetY = -((UITableView *)self.tableView).contentInset.top;
     [self.tableView scrollRectToVisible:CGRectMake(0, insetY, 1, 1)
                                animated:YES];
     [self.tableView setScrollEnabled:NO];
-    if (!ratedSwitch.on) {
+    // playAs (color choice) is enabled for unrated games always, and for rated games only when
+    // the server honors the chosen color: Go (TB_GO/TB_GO9/TB_GO13) and Renju (TB_RENJU).
+    if (!ratedSwitch.on || [self colorChoiceGameSelected]) {
         playAsCell.userInteractionEnabled = YES;
         playAsLabel.alpha = 1;
         playAsDetailLabel.alpha = 1;
-        privateCell.userInteractionEnabled = YES;
-        privateCellLabel.alpha = 1;
-        privateSwitch.alpha = 1;
     } else {
         playAsCell.userInteractionEnabled = NO;
         playAsLabel.alpha = 0.5;
         playAsDetailLabel.alpha = 0.5;
+    }
+    // Private game stays rated-only, independent of game type.
+    if (!ratedSwitch.on) {
+        privateCell.userInteractionEnabled = YES;
+        privateCellLabel.alpha = 1;
+        privateSwitch.alpha = 1;
+    } else {
         privateCell.userInteractionEnabled = NO;
         privateCellLabel.alpha = 0.5;
         privateSwitch.alpha = 0.5;

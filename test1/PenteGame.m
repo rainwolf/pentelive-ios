@@ -44,8 +44,10 @@
         gameStr = @"O-Pente";
     } else if (gameInt < 29) {
         gameStr = @"Swap2-Pente";
-    } else {
+    } else if (gameInt < 31) {
         gameStr = @"Swap2-Keryo";
+    } else {
+        gameStr = @"Renju";
     }
     return gameStr;
 }

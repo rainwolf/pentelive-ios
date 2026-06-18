@@ -36,6 +36,9 @@
 // GADBannerView *bannerView_;
 
 @interface BoardViewController ()
+// SELECTION: the chosen pair [black move5, white move6]. Declared here (not the
+// .h) so the new TB-select state stays local to the implementation.
+@property (nonatomic, strong) NSMutableArray<NSNumber *> *renjuSelectedPoints;
 @end
 
 @implementation BoardViewController
@@ -426,6 +429,32 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
 //}
 
 - (IBAction)dPentePlayer1:(id)sender {
+    if (self.renjuPhase != nil) {
+        if ([self.renjuPhase isEqualToString:@"SWAP"]) {
+            self.renjuTakeOver = YES;
+            self.renjuMove4Decline = NO;
+            [self submitRenjuDecision];
+        } else if ([self.renjuPhase isEqualToString:@"BRANCH"]) {
+            // Post-take-over Branch A: reveal the 9x9 box, place move 5, then
+            // submit it as a single `move` (no standalone branch post).
+            self.renjuMove4BranchA = YES;
+            self.renjuMove4BranchB = NO;
+            [player1Button setHidden:YES];
+            [player2Button setHidden:YES];
+            [passButton setHidden:YES];
+            [dPenteChoiceLabel setHidden:YES];
+            // Placement phase: submit VISIBLE but greyed/disabled until the move-5
+            // stone is placed (boardTap enables it on a legal placement).
+            [submitButton setHidden:NO];
+            [submitButton setEnabled:NO];
+            [submitButton setTitle:NSLocalizedString(@"submit", nil)
+                          forState:UIControlStateDisabled];
+            [submitButton setAlpha:0.5];
+            activeGame = YES;
+            [self applyRenjuOpeningMaskIfNeeded]; // 9x9 box
+        }
+        return;
+    }
     if ([game.gameType hasPrefix:@"Swap2-"]) {
         dPenteChoice = NO;
         finalMove = 0;
@@ -452,6 +481,66 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
 }
 
 - (IBAction)dPentePlayer2:(id)sender {
+    if (self.renjuPhase != nil) {
+        if ([self.renjuPhase isEqualToString:@"SWAP"]) {
+            if ([self isRenjuMove4Window]) {
+                // "No swap" -> Branch A: place your move 5 in the 9x9, submitted with
+                // the decline together via the move4 fold.
+                self.renjuTakeOver = NO;
+                self.renjuMove4Decline = NO;
+                self.renjuMove4BranchA = YES;
+                self.renjuMove4BranchB = NO;
+                [player1Button setHidden:YES];
+                [player2Button setHidden:YES];
+                [passButton setHidden:YES];
+                [dPenteChoiceLabel setHidden:YES];
+                // Placement phase: submit VISIBLE but greyed/disabled until the
+                // move-5 stone is placed (boardTap enables it on a legal placement).
+                [submitButton setHidden:NO];
+                [submitButton setEnabled:NO];
+                [submitButton setTitle:NSLocalizedString(@"submit", nil)
+                              forState:UIControlStateDisabled];
+                [submitButton setAlpha:0.5];
+                activeGame = YES;
+                [self applyRenjuOpeningMaskIfNeeded]; // 9x9 box
+            } else {
+                // decline + place: dismiss buttons, show the central box, let
+                // boardTap place, then confirm via the normal submit path.
+                self.renjuTakeOver = NO;
+                self.renjuMove4Decline = NO;
+                [player1Button setHidden:YES];
+                [player2Button setHidden:YES];
+                [dPenteChoiceLabel setHidden:YES];
+                // Placement phase: submit VISIBLE but greyed/disabled until the
+                // stone is placed in the central box (boardTap enables it).
+                [submitButton setHidden:NO];
+                [submitButton setEnabled:NO];
+                [submitButton setTitle:NSLocalizedString(@"submit", nil)
+                              forState:UIControlStateDisabled];
+                [submitButton setAlpha:0.5];
+                activeGame = YES;
+                [self updateRenjuBoxOverlay];
+                [self applyRenjuOpeningMaskIfNeeded];
+            }
+        } else if ([self.renjuPhase isEqualToString:@"BRANCH"]) {
+            // Post-take-over Branch B: collect ten 5th-move offers, submitted MANUALLY
+            // via the submit button (revealed when the 10th offer is placed) as a single
+            // `move` (no standalone branch post).
+            self.renjuMove4BranchA = NO;
+            self.renjuMove4BranchB = YES;
+            self.renjuPickedOffers = [NSMutableArray array];
+            [player1Button setHidden:YES];
+            [player2Button setHidden:YES];
+            [passButton setHidden:YES];
+            [dPenteChoiceLabel setHidden:YES];
+            // Offer collection: showRenjuOfferCounter owns the submit styling
+            // ("submit N/10", greyed until ten, enabled at "submit 10/10").
+            [self renderRenjuCandidates:@[]];
+            [self showRenjuOfferCounter];
+            activeGame = YES;
+        }
+        return;
+    }
     if ([game.gameType hasPrefix:@"Swap2-"]) {
         [player1Button setHidden:YES];
         [player2Button setHidden:YES];
@@ -478,6 +567,26 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
 }
 
 - (IBAction)swap2Pass:(id)sender {
+    if (self.renjuPhase != nil) {
+        // Move-4 "Place 10" -> Branch B: offer ten 5th-move candidates, submitted with
+        // the decline together via the move4 fold, sent MANUALLY via the submit button
+        // (revealed when the 10th offer is placed).
+        self.renjuTakeOver = NO;
+        self.renjuMove4Decline = NO;
+        self.renjuMove4BranchA = NO;
+        self.renjuMove4BranchB = YES;
+        self.renjuPickedOffers = [NSMutableArray array];
+        [player1Button setHidden:YES];
+        [player2Button setHidden:YES];
+        [passButton setHidden:YES];
+        [dPenteChoiceLabel setHidden:YES];
+        // Offer collection: showRenjuOfferCounter owns the submit styling
+        // ("submit N/10", greyed until ten, enabled at "submit 10/10").
+        [self renderRenjuCandidates:@[]];
+        [self showRenjuOfferCounter];
+        activeGame = YES;
+        return;
+    }
     [passButton setHidden:YES];
     swap2WillPass = YES;
     [player1Button setHidden:YES];
@@ -561,7 +670,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
     } else if (dPenteOpening) {
         dPenteMove4 = -1;
         if (dPenteMove3 != -1) {
-            abstractBoard[dPenteMove3 / 19][dPenteMove3 % 19] = 0;
+            abstractBoard[dPenteMove3 / gridSize][dPenteMove3 % gridSize] = 0;
             [board setAbstractBoard:abstractBoard];
             [zoomedBoard setAbstractBoard:abstractBoard];
             dPenteMove3 = -1;
@@ -571,13 +680,13 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                 setTitle:[NSString
                              stringWithFormat:
                                  NSLocalizedString(@"submit: %c%d-%c%d", nil),
-                                 coordinateLetters[dPenteMove1 % 19],
-                                 19 - (dPenteMove1 / 19),
-                                 coordinateLetters[dPenteMove2 % 19],
-                                 19 - (dPenteMove2 / 19)]
+                                 coordinateLetters[dPenteMove1 % gridSize],
+                                 gridSize - (dPenteMove1 / gridSize),
+                                 coordinateLetters[dPenteMove2 % gridSize],
+                                 gridSize - (dPenteMove2 / gridSize)]
                 forState:UIControlStateDisabled];
         } else if (dPenteMove2 != -1) {
-            abstractBoard[dPenteMove2 / 19][dPenteMove2 % 19] = 0;
+            abstractBoard[dPenteMove2 / gridSize][dPenteMove2 % gridSize] = 0;
             [board setAbstractBoard:abstractBoard];
             [zoomedBoard setAbstractBoard:abstractBoard];
             dPenteMove2 = -1;
@@ -588,11 +697,11 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                              stringWithFormat:NSLocalizedString(@"submit: %c%d",
                                                                 nil),
                                               coordinateLetters[dPenteMove1 %
-                                                                19],
-                                              19 - (dPenteMove1 / 19)]
+                                                                gridSize],
+                                              gridSize - (dPenteMove1 / gridSize)]
                 forState:UIControlStateDisabled];
         } else if (dPenteMove1 != -1) {
-            abstractBoard[dPenteMove1 / 19][dPenteMove1 % 19] = 0;
+            abstractBoard[dPenteMove1 / gridSize][dPenteMove1 % gridSize] = 0;
             [board setAbstractBoard:abstractBoard];
             [zoomedBoard setAbstractBoard:abstractBoard];
             dPenteMove1 = -1;
@@ -602,7 +711,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
     } else if (swap2Opening) {
         swap2Move3 = -1;
         if (swap2Move2 != -1) {
-            abstractBoard[swap2Move2 / 19][swap2Move2 % 19] = 0;
+            abstractBoard[swap2Move2 / gridSize][swap2Move2 % gridSize] = 0;
             [board setAbstractBoard:abstractBoard];
             [zoomedBoard setAbstractBoard:abstractBoard];
             swap2Move2 = -1;
@@ -613,11 +722,11 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                              stringWithFormat:NSLocalizedString(@"submit: %c%d",
                                                                 nil),
                                               coordinateLetters[swap2Move1 %
-                                                                19],
-                                              19 - (swap2Move1 / 19)]
+                                                                gridSize],
+                                              gridSize - (swap2Move1 / gridSize)]
                 forState:UIControlStateDisabled];
         } else if (swap2Move1 != -1) {
-            abstractBoard[swap2Move1 / 19][swap2Move1 % 19] = 0;
+            abstractBoard[swap2Move1 / gridSize][swap2Move1 % gridSize] = 0;
             [board setAbstractBoard:abstractBoard];
             [zoomedBoard setAbstractBoard:abstractBoard];
             swap2Move1 = -1;
@@ -641,8 +750,306 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
     }
 }
 
+#pragma mark - Renju turn-based opening UI
+
+// Legal central-square radius for the NEXT single-stone opening placement; 0 = no box.
+// Moves 2/3/4/5 -> radius 1/2/3/4 (3x3/5x5/7x7/9x9) about centre (7,7). placed = stones on board.
+- (int)renjuCentralBoxRadius {
+    if (!activeGame) {
+        return 0;
+    }
+    if (self.renjuMove4BranchA) {
+        return 4; // move-4 "No swap": move 5 constrained to the 9x9
+    }
+    if (self.renjuMove4BranchB) {
+        return 0; // move-4 "Place 10": offers are whole-board
+    }
+    NSString *phase = self.renjuPhase;
+    int placed = (int)[movesList count];
+    if ([phase isEqualToString:@"MOVE"]) {
+        return MAX(1, MIN(4, placed)); // incl. Branch-A move 5 -> 9x9
+    }
+    if ([phase isEqualToString:@"SWAP"] && !self.renjuTakeOver &&
+        !self.renjuMove4Decline) {
+        if (placed >= 4) {
+            return 0; // move-4 window: declining triggers BRANCH, no stone placed
+        }
+        return MAX(1, MIN(3, placed)); // decline+place windows 1-3 -> 3x3/5x5/7x7
+    }
+    return 0; // OFFERS/BRANCH/SELECTION/COMPLETE
+}
+
+// Mark every empty cell OUTSIDE the legal central square with -1 (masked) so the
+// board's empty-cell guard rejects taps there. No-op when no box applies. The marks
+// are transient: loadEngineIntoAbstractBoard rebuilds the board (no -1 for Renju) on
+// the next server refresh, so they clear automatically.
+- (void)applyRenjuOpeningMaskIfNeeded {
+    int r = [self renjuCentralBoxRadius];
+    if (r <= 0) {
+        return;
+    }
+    for (int i = 0; i < gridSize; ++i) {
+        for (int j = 0; j < gridSize; ++j) {
+            if (abstractBoard[i][j] == 0 && (abs(j - 7) > r || abs(i - 7) > r)) {
+                abstractBoard[i][j] = -1;
+            }
+        }
+    }
+    [self.board setNeedsDisplay];
+    [self.zoomedBoard setNeedsDisplay];
+}
+
+- (void)updateRenjuBoxOverlay {
+    // No visible central-box overlay (per design). The legal central square is still
+    // enforced during placement in boardTap: (via renjuCentralBoxRadius), and the
+    // server is authoritative regardless — we just don't draw the dashed hint.
+    [self.renjuBoxLayer removeFromSuperlayer];
+    self.renjuBoxLayer = nil;
+}
+
+- (void)renderRenjuCandidates:(NSArray<NSNumber *> *)cells {
+    self.board.renjuCandidates = cells;
+    [self.board setNeedsDisplay];
+    if (self.zoomedBoard) {
+        self.zoomedBoard.renjuCandidates = cells;
+        [self.zoomedBoard setNeedsDisplay];
+    }
+}
+
+- (BOOL)isRenjuMove4Window {
+    return [self.renjuPhase isEqualToString:@"SWAP"] && [movesList count] == 4;
+}
+
+- (void)showRenjuOfferCounter {
+    NSUInteger n = self.renjuPickedOffers.count;
+    // The running count over ten now rides on the submit button itself
+    // ("submit N/10"); the player-facing choice label stays hidden. Submit is
+    // kept VISIBLE but greyed/disabled until exactly ten offers are picked, and
+    // ENABLED only at "submit 10/10". This method owns the full submit styling
+    // for the 10-offer collection, so callers need not re-set it afterwards.
+    [dPenteChoiceLabel setHidden:YES];
+    NSString *title =
+        [NSString stringWithFormat:NSLocalizedString(@"submit %lu/10", nil),
+                                   (unsigned long)n];
+    [submitButton setHidden:NO];
+    if (n == 10) {
+        [submitButton setTitle:title forState:UIControlStateNormal];
+        [submitButton setEnabled:YES];
+        [submitButton setAlpha:1];
+    } else {
+        [submitButton setTitle:title forState:UIControlStateDisabled];
+        [submitButton setEnabled:NO];
+        [submitButton setAlpha:0.5];
+    }
+}
+
+// Lay the Renju opening DECISION buttons out in a single row below the board, evenly
+// filling the width to the LEFT of the board-lock (padlock) button so none sits under it.
+// Frame-based to match this view's layout idiom (see viewDidLoad). `buttons` is 2 (swap
+// windows 1-3 / post-take-over branch) or 3 (move-4) UIButtons, ordered left-to-right.
+- (void)layoutRenjuDecisionButtons:(NSArray<UIButton *> *)buttons {
+    NSUInteger n = buttons.count;
+    if (n == 0) {
+        return;
+    }
+    CGFloat rowY = board.frame.size.height + 2; // same row as submit / lock
+    CGFloat btnH = player1Button.frame.size.height;
+    CGFloat leftX = 10.0f;
+    CGFloat gapToLock = 8.0f; // keep clear of the padlock on the right
+    CGFloat rightX = lockButton.frame.origin.x - gapToLock;
+    if (rightX <= leftX) { // degenerate safety (lock not laid out yet)
+        rightX = board.frame.size.width - 10.0f;
+    }
+    CGFloat gap = 6.0f; // inter-button gap
+    CGFloat btnW = (rightX - leftX - (CGFloat)(n - 1) * gap) / (CGFloat)n;
+    for (NSUInteger k = 0; k < n; ++k) {
+        UIButton *b = buttons[k];
+        b.frame = CGRectMake(leftX + (CGFloat)k * (btnW + gap), rowY, btnW, btnH);
+    }
+}
+
+// SELECTION: lock the board to the 10 offered cells. Mark every EMPTY cell that is NOT one
+// of self.renjuOffers with -1 (masked) — the same mechanism applyRenjuOpeningMaskIfNeeded
+// uses for the opening box — so a live stone can render/place only on an offer. The 10
+// offers stay at 0 (still drawn as translucent candidates via renderRenjuCandidates).
+// No-op (board left fully open) if there are no offers, so we never lock the whole board.
+- (void)applyRenjuSelectionMask {
+    if (self.renjuOffers.count == 0) {
+        return;
+    }
+    NSSet<NSNumber *> *offers = [NSSet setWithArray:self.renjuOffers];
+    for (int i = 0; i < gridSize; ++i) {
+        for (int j = 0; j < gridSize; ++j) {
+            if (abstractBoard[i][j] == 0 &&
+                ![offers containsObject:@(gridSize * i + j)]) {
+                abstractBoard[i][j] = -1;
+            }
+        }
+    }
+    [self.board setNeedsDisplay];
+    [self.zoomedBoard setNeedsDisplay];
+}
+
+// Restore every masked (-1) cell to empty (0). Clears the SELECTION mask (and, harmlessly,
+// any opening-box mask) so placement is unconstrained again. The -1 marks only ever come
+// from the Renju opening masks, so clearing them all is safe.
+- (void)clearRenjuOpeningMask {
+    for (int i = 0; i < gridSize; ++i) {
+        for (int j = 0; j < gridSize; ++j) {
+            if (abstractBoard[i][j] == -1) {
+                abstractBoard[i][j] = 0;
+            }
+        }
+    }
+    [self.board setNeedsDisplay];
+    [self.zoomedBoard setNeedsDisplay];
+}
+
+- (void)renderRenjuOpeningUI {
+    // Each render reflects a fresh server-shipped phase; the decision flags only carry
+    // from a button press to the immediately-following submit, so reset them here.
+    self.renjuTakeOver = NO;
+    self.renjuMove4Decline = NO;
+    self.renjuBranchB = NO;
+    self.renjuMove4BranchA = NO;
+    self.renjuMove4BranchB = NO;
+    self.renjuSelectedPoints = [NSMutableArray array]; // clear any stale SELECTION pair
+    [self clearRenjuOpeningMask]; // drop any -1 left over from a prior SELECTION/box mask
+    // hide the dPente/swap2 controls first; clear any stale overlay from a prior phase.
+    // Submit is hidden by default here; the SWAP and BRANCH (move-4 decision) phases —
+    // where the player decides via the choice buttons — leave it hidden. Every other
+    // (non-decision) phase below re-shows it greyed/disabled: OFFERS, SELECTION, and
+    // MOVE/COMPLETE. It never auto-submits — it is ENABLED only when the current input
+    // is a complete, valid move (boardTap), then submitted MANUALLY.
+    [player1Button setHidden:YES];
+    [player2Button setHidden:YES];
+    [passButton setHidden:YES];
+    [dPenteChoiceLabel setHidden:YES];
+    [submitButton setHidden:YES];
+    [self renderRenjuCandidates:@[]];
+    [self updateRenjuBoxOverlay];
+
+    NSString *phase = self.renjuPhase;
+    if ([phase isEqualToString:@"SWAP"]) {
+        if ([self isRenjuMove4Window]) {
+            // Move-4: three choices on one screen via the move4 fold. Buttons only
+            // (no descriptive label); laid out clear of the padlock.
+            [player1Button setTitle:NSLocalizedString(@"Swap", nil)
+                           forState:UIControlStateNormal];
+            [player2Button setTitle:NSLocalizedString(@"No swap", nil)
+                           forState:UIControlStateNormal];
+            [passButton setTitle:NSLocalizedString(@"Place 10", nil)
+                        forState:UIControlStateNormal];
+            [self layoutRenjuDecisionButtons:@[ player1Button, player2Button, passButton ]];
+            [player1Button setHidden:NO];
+            [player2Button setHidden:NO];
+            [passButton setHidden:NO];
+            [self.view bringSubviewToFront:player1Button];
+            [self.view bringSubviewToFront:player2Button];
+            [self.view bringSubviewToFront:passButton];
+        } else {
+            // Swap windows 1-3: two choices. Buttons only (no "Swap?" label), so the
+            // titles must read on their own; laid out clear of the padlock.
+            [player1Button setTitle:NSLocalizedString(@"Swap", nil)
+                           forState:UIControlStateNormal];
+            [player2Button setTitle:NSLocalizedString(@"No swap", nil)
+                           forState:UIControlStateNormal];
+            [self layoutRenjuDecisionButtons:@[ player1Button, player2Button ]];
+            [player1Button setHidden:NO];
+            [player2Button setHidden:NO];
+            [self.view bringSubviewToFront:player1Button];
+            [self.view bringSubviewToFront:player2Button];
+        }
+    } else if ([phase isEqualToString:@"BRANCH"]) {
+        // Post-take-over branch: two choices. Buttons only (no descriptive label);
+        // laid out clear of the padlock.
+        [player1Button setTitle:NSLocalizedString(@"Place", nil)
+                       forState:UIControlStateNormal];
+        [player2Button setTitle:NSLocalizedString(@"Offer", nil)
+                       forState:UIControlStateNormal];
+        [self layoutRenjuDecisionButtons:@[ player1Button, player2Button ]];
+        [player1Button setHidden:NO];
+        [player2Button setHidden:NO];
+        [self.view bringSubviewToFront:player1Button];
+        [self.view bringSubviewToFront:player2Button];
+    } else if ([phase isEqualToString:@"OFFERS"]) {
+        self.renjuPickedOffers = [NSMutableArray array];
+        [self renderRenjuCandidates:@[]];
+        // Offer collection is not a choice phase: showRenjuOfferCounter keeps the
+        // submit button VISIBLE with the live "submit N/10" count, greyed/disabled
+        // until exactly ten offers are placed (boardTap re-calls it on every
+        // pick/removal, enabling at "submit 10/10").
+        [self showRenjuOfferCounter];
+    } else if ([phase isEqualToString:@"SELECTION"]) {
+        self.renjuSelectedPoints = [NSMutableArray array];
+        // Lock the board to the 10 offers (black 5th) by masking every other empty cell
+        // with -1; the offers stay drawn as translucent candidates. Restored on the first
+        // tap so the white 6th can land anywhere. No instructional label — the dead-stone
+        // candidates speak for themselves (the label stays hidden from the top of this method).
+        [self applyRenjuSelectionMask];
+        [self renderRenjuCandidates:(self.renjuOffers ?: @[])];
+        // Selection is not a choice phase: keep submit VISIBLE but greyed/disabled.
+        // boardTap enables it once BOTH the black 5th and white 6th are chosen
+        // (count == 2); a third tap resets the pair and re-disables it.
+        [submitButton setHidden:NO];
+        [submitButton setEnabled:NO];
+        [submitButton setTitle:NSLocalizedString(@"submit", nil)
+                      forState:UIControlStateDisabled];
+        [submitButton setAlpha:0.5];
+    } else {
+        // MOVE / COMPLETE: ordinary single-stone placement, no choice buttons. Reveal
+        // the submit button (disabled until a stone is placed) — it was hidden above for
+        // the choice phases; the placement path only setEnabled:YES, never setHidden:NO.
+        [submitButton setHidden:NO];
+        [submitButton setEnabled:NO];
+        [submitButton setTitle:NSLocalizedString(@"submit", nil)
+                      forState:UIControlStateDisabled];
+        [submitButton setAlpha:0.5];
+    }
+    // MOVE / COMPLETE: no buttons; placement handled by boardTap.
+    // Lock out illegal cells (outside the central square) with -1 for the constrained
+    // placement phases (SWAP windows 1-3 and MOVE). No-op for the others.
+    [self applyRenjuOpeningMaskIfNeeded];
+}
+
+- (void)submitRenjuDecision {
+    [player1Button setHidden:YES];
+    [player2Button setHidden:YES];
+    [passButton setHidden:YES];
+    [dPenteChoiceLabel setHidden:YES];
+    spinner.center = stone.center;
+    [spinner setHidden:NO];
+    [spinner startAnimating];
+    [NSThread detachNewThreadSelector:@selector(submitMoveToServer)
+                             toTarget:self
+                           withObject:nil];
+}
+
+- (BOOL)renjuOfferWouldDuplicate:(int)move {
+    NSMutableSet<NSNumber *> *accepted = [NSMutableSet set];
+    for (NSNumber *m in self.renjuPickedOffers) {
+        for (NSNumber *img in [RenjuOfferSymmetry d4ImagesOf:m.intValue]) {
+            [accepted addObject:img];
+        }
+    }
+    for (NSNumber *img in [RenjuOfferSymmetry d4ImagesOf:move]) {
+        if ([accepted containsObject:img]) {
+            return YES;
+        }
+    }
+    return NO;
+}
+
 - (IBAction)boardTap:(UILongPressGestureRecognizer *)recognizer {
     if (dPenteChoice && [submitButton isHidden]) {
+        return;
+    }
+    // Renju: no board interaction while a swap/branch choice is pending. The choice
+    // buttons are visible until the player decides; declining a swap (windows 1-3)
+    // hides them and opens central-box placement.
+    if (([self.renjuPhase isEqualToString:@"SWAP"] ||
+         [self.renjuPhase isEqualToString:@"BRANCH"]) &&
+        ![player1Button isHidden]) {
         return;
     }
     if (dPenteOpening) {
@@ -682,6 +1089,21 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
             [stone setStoneColor:WHITE];
             [zoomedStone setStoneColor:WHITE];
         }
+        [stone setNeedsDisplay];
+        [zoomedStone setNeedsDisplay];
+    } else if (self.renjuPhase != nil) {
+        // Renju opening: black plays first (move 1 = centre). The stone the current
+        // player is placing alternates by stones-on-board parity — odd count (centre
+        // only, 3 stones, ...) places WHITE; even count places BLACK.
+        int renjuColor = (([movesList count] % 2) == 1) ? WHITE : BLACK;
+        // SELECTION: at 4 stones parity yields BLACK (the offered 5th move). Once the black
+        // 5th is chosen, the next placement (and any re-placement) is the WHITE 6th, so force
+        // white — otherwise the 6th's preview/zoomed stone wrongly renders black.
+        if ([self.renjuPhase isEqualToString:@"SELECTION"] && [self.renjuSelectedPoints count] >= 1) {
+            renjuColor = WHITE;
+        }
+        [stone setStoneColor:renjuColor];
+        [zoomedStone setStoneColor:renjuColor];
         [stone setNeedsDisplay];
         [zoomedStone setNeedsDisplay];
     } else {
@@ -743,11 +1165,31 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                 //                    }
                 if (swap2Move1 != -1) {
                     move = swap2Move1;
-                    abstractBoard[move / 19][move % 19] = 2;
+                    abstractBoard[move / gridSize][move % gridSize] = 2;
                     [self detectCaptureOfOpponent:1 atPosition:move];
                 }
                 [board setNeedsDisplay];
             }
+        }
+        // Renju SELECTION: a new press while both the black 5th and white 6th are placed begins
+        // RE-PLACING the white 6th — lift it now (back to count==1) so the old white stone is not
+        // left on the (zoomed) board during the drag. The release re-places it (count==1 branch
+        // below); releasing on its old (now-empty) cell restores it. Drop submit to the lone-5th
+        // state so an invalid release doesn't leave a stale enabled submit.
+        if ([self.renjuPhase isEqualToString:@"SELECTION"] && self.renjuSelectedPoints.count >= 2) {
+            int six = [[self.renjuSelectedPoints lastObject] intValue];
+            abstractBoard[six / gridSize][six % gridSize] = 0;
+            [self.renjuSelectedPoints removeLastObject];
+            [board setNeedsDisplay];
+            [zoomedBoard setNeedsDisplay];
+            int m5 = [self.renjuSelectedPoints[0] intValue];
+            [submitButton setHidden:NO];
+            [submitButton setEnabled:NO];
+            [submitButton setTitle:[NSString stringWithFormat:NSLocalizedString(@"submit: %c%d-", nil),
+                                                              coordinateLetters[m5 % gridSize],
+                                                              gridSize - (m5 / gridSize)]
+                          forState:UIControlStateDisabled];
+            [submitButton setAlpha:0.5];
         }
         finalMove = -1;
         [zoomedBoard setHidden:NO];
@@ -784,6 +1226,135 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
 
         finalMove = gridSize * i + j;
         finaMoveNumber = [NSNumber numberWithInt:finalMove];
+        if (self.renjuPhase != nil && activeGame) {
+            int tapped = gridSize * i + j;
+            if ([self.renjuPhase isEqualToString:@"OFFERS"] ||
+                self.renjuMove4BranchB) {
+                if (abstractBoard[i][j] != 0) {
+                    break; // occupied
+                }
+                NSNumber *cell = @(tapped);
+                if ([self.renjuPickedOffers containsObject:cell]) {
+                    [self.renjuPickedOffers removeObject:cell]; // tap again to remove
+                } else {
+                    if (self.renjuPickedOffers.count >= 10) {
+                        break;
+                    }
+                    if ([self renjuOfferWouldDuplicate:tapped]) {
+                        break; // D4 dedup (UX)
+                    }
+                    [self.renjuPickedOffers addObject:cell];
+                }
+                [self renderRenjuCandidates:self.renjuPickedOffers];
+                // showRenjuOfferCounter owns the submit styling: it shows the live
+                // "submit N/10" count, keeps submit VISIBLE but greyed/disabled
+                // below ten, and ENABLES it at exactly ten (a removal that drops the
+                // count back below ten re-greys it). The 10-offer `move` is then sent
+                // MANUALLY (submitMove: -> submitMoveToServer ->
+                // renjuActionForCurrentPhaseFillingMoves, renjuMove4BranchB ->
+                // renjuAction=move). No auto-submit.
+                [self showRenjuOfferCounter];
+                break;
+            }
+            if ([self.renjuPhase isEqualToString:@"SELECTION"]) {
+                // Two taps: 1st = the offered black 5th, 2nd = an empty white 6th
+                // distinct from the 5th. A tap beyond two resets the pair.
+                if (self.renjuSelectedPoints == nil) {
+                    self.renjuSelectedPoints = [NSMutableArray array];
+                }
+                if (self.renjuSelectedPoints.count == 0) {
+                    if (![self.renjuOffers containsObject:@(tapped)]) {
+                        break; // 1st must be offered
+                    }
+                    [self.renjuSelectedPoints addObject:@(tapped)];
+                    // Black 5th picked: drop the translucent offers, unmask the board so
+                    // the white 6th may land on ANY empty cell, and show the chosen 5th as
+                    // a normal live stone.
+                    [self renderRenjuCandidates:@[]];
+                    [self clearRenjuOpeningMask];
+                    abstractBoard[i][j] = 2; // black 5th
+                    [board setNeedsDisplay];
+                    [zoomedBoard setNeedsDisplay];
+                    // Submit reflects the pick but stays DISABLED until the white
+                    // 6th is also chosen: "submit: <5th>-" (trailing dash). Reuses
+                    // the same index->coordinate formatter as the normal placement
+                    // "submit: %c%d" path.
+                    [submitButton setHidden:NO];
+                    [submitButton setEnabled:NO];
+                    [submitButton
+                        setTitle:[NSString
+                                     stringWithFormat:
+                                         NSLocalizedString(@"submit: %c%d-", nil),
+                                         coordinateLetters[tapped % gridSize],
+                                         gridSize - (tapped / gridSize)]
+                        forState:UIControlStateDisabled];
+                    [submitButton setAlpha:0.5];
+                } else if (self.renjuSelectedPoints.count == 1) {
+                    if (abstractBoard[i][j] != 0 ||
+                        tapped == [self.renjuSelectedPoints[0] intValue]) {
+                        break; // 2nd must be empty and distinct from the 5th
+                    }
+                    [self.renjuSelectedPoints addObject:@(tapped)];
+                    abstractBoard[i][j] = 1; // white 6th
+                    [board setNeedsDisplay];
+                    [zoomedBoard setNeedsDisplay];
+                    // Both points chosen (count == 2): show both picks on the button
+                    // ("submit: <5th>-<6th>") and ENABLE the manual submit. No
+                    // auto-submit — tapping submit fires submitMove: ->
+                    // renjuActionForCurrentPhaseFillingMoves (SELECTION) ->
+                    // renjuAction=select, moves "m5,m6" (same payload as before).
+                    int m5 = [self.renjuSelectedPoints[0] intValue];
+                    int m6 = tapped;
+                    [submitButton
+                        setTitle:[NSString
+                                     stringWithFormat:
+                                         NSLocalizedString(@"submit: %c%d-%c%d",
+                                                           nil),
+                                         coordinateLetters[m5 % gridSize],
+                                         gridSize - (m5 / gridSize),
+                                         coordinateLetters[m6 % gridSize],
+                                         gridSize - (m6 / gridSize)]
+                        forState:UIControlStateNormal];
+                    [submitButton setHidden:NO];
+                    [submitButton setEnabled:YES];
+                    [submitButton setAlpha:1];
+                } else {
+                    // 3rd tap resets the pair: undo the provisional 5th/6th stones,
+                    // re-mask to the 10 offers, and re-show them for a fresh black-5th pick.
+                    for (NSNumber *p in self.renjuSelectedPoints) {
+                        int v = [p intValue];
+                        abstractBoard[v / gridSize][v % gridSize] = 0;
+                    }
+                    self.renjuSelectedPoints = [NSMutableArray array];
+                    [self applyRenjuSelectionMask];
+                    [self renderRenjuCandidates:(self.renjuOffers ?: @[])];
+                    // Pair cleared: drop submit back to greyed/disabled until both
+                    // the black 5th and white 6th are re-chosen.
+                    [submitButton setHidden:NO];
+                    [submitButton setEnabled:NO];
+                    [submitButton setTitle:NSLocalizedString(@"submit", nil)
+                                  forState:UIControlStateDisabled];
+                    [submitButton setAlpha:0.5];
+                }
+                break;
+            }
+            // MOVE / SWAP decline+place: gate to the central box
+            int r = [self renjuCentralBoxRadius];
+            if (r > 0) {
+                if (abs(j - 7) > r || abs(i - 7) > r) {
+                    finalMove = -1;
+                    [self replayGame:lastMove];
+                    [submitButton setEnabled:NO];
+                    [submitButton setTitle:@"submit"
+                                  forState:UIControlStateDisabled];
+                    [submitButton setAlpha:0.5];
+                    [board setNeedsDisplay];
+                    [zoomedBoard setNeedsDisplay];
+                    break; // outside legal square
+                }
+            }
+            // fall through to the normal single-stone placement/preview below
+        }
         if (goMarkStones && activeGame &&
             (abstractBoard[i][j] != 0 ||
              [deadBlackStones containsObject:finaMoveNumber] ||
@@ -828,10 +1399,10 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                                      stringWithFormat:
                                          NSLocalizedString(@"submit: %c%d-%c%d",
                                                            nil),
-                                         coordinateLetters[connect6Move1 % 19],
-                                         19 - (connect6Move1 / 19),
-                                         coordinateLetters[finalMove % 19],
-                                         19 - (finalMove / 19)]
+                                         coordinateLetters[connect6Move1 % gridSize],
+                                         gridSize - (connect6Move1 / gridSize),
+                                         coordinateLetters[finalMove % gridSize],
+                                         gridSize - (finalMove / gridSize)]
                         forState:UIControlStateNormal];
                 } else if (([[self.game gameType] isEqualToString:@"D-Pente"] ||
                             [[self.game gameType]
@@ -843,14 +1414,14 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                                          NSLocalizedString(
                                              @"submit: %c%d-%c%d-%c%d-%c%d",
                                              nil),
-                                         coordinateLetters[dPenteMove1 % 19],
-                                         19 - (dPenteMove1 / 19),
-                                         coordinateLetters[dPenteMove2 % 19],
-                                         19 - (dPenteMove2 / 19),
-                                         coordinateLetters[dPenteMove3 % 19],
-                                         19 - (dPenteMove3 / 19),
-                                         coordinateLetters[finalMove % 19],
-                                         19 - (finalMove / 19)]
+                                         coordinateLetters[dPenteMove1 % gridSize],
+                                         gridSize - (dPenteMove1 / gridSize),
+                                         coordinateLetters[dPenteMove2 % gridSize],
+                                         gridSize - (dPenteMove2 / gridSize),
+                                         coordinateLetters[dPenteMove3 % gridSize],
+                                         gridSize - (dPenteMove3 / gridSize),
+                                         coordinateLetters[finalMove % gridSize],
+                                         gridSize - (finalMove / gridSize)]
                         forState:UIControlStateNormal];
                 } else {
                     [submitButton
@@ -890,8 +1461,8 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                                      stringWithFormat:
                                          NSLocalizedString(@"submit: %c%d",
                                                            nil),
-                                         coordinateLetters[finalMove % 19],
-                                         19 - (finalMove / 19)]
+                                         coordinateLetters[finalMove % gridSize],
+                                         gridSize - (finalMove / gridSize)]
                         forState:UIControlStateDisabled];
                     [submitButton setEnabled:NO];
                     [submitButton setAlpha:0.5];
@@ -903,10 +1474,10 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                                      stringWithFormat:
                                          NSLocalizedString(@"submit: %c%d-%c%d",
                                                            nil),
-                                         coordinateLetters[dPenteMove1 % 19],
-                                         19 - (dPenteMove1 / 19),
-                                         coordinateLetters[finalMove % 19],
-                                         19 - (finalMove / 19)]
+                                         coordinateLetters[dPenteMove1 % gridSize],
+                                         gridSize - (dPenteMove1 / gridSize),
+                                         coordinateLetters[finalMove % gridSize],
+                                         gridSize - (finalMove / gridSize)]
                         forState:UIControlStateDisabled];
                     [submitButton setEnabled:NO];
                     [submitButton setAlpha:0.5];
@@ -918,12 +1489,12 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                                      stringWithFormat:
                                          NSLocalizedString(
                                              @"submit: %c%d-%c%d-%c%d", nil),
-                                         coordinateLetters[dPenteMove1 % 19],
-                                         19 - (dPenteMove1 / 19),
-                                         coordinateLetters[dPenteMove2 % 19],
-                                         19 - (dPenteMove2 / 19),
-                                         coordinateLetters[finalMove % 19],
-                                         19 - (finalMove / 19)]
+                                         coordinateLetters[dPenteMove1 % gridSize],
+                                         gridSize - (dPenteMove1 / gridSize),
+                                         coordinateLetters[dPenteMove2 % gridSize],
+                                         gridSize - (dPenteMove2 / gridSize),
+                                         coordinateLetters[finalMove % gridSize],
+                                         gridSize - (finalMove / gridSize)]
                         forState:UIControlStateDisabled];
                     [submitButton setEnabled:NO];
                     [submitButton setAlpha:0.5];
@@ -935,14 +1506,14 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                                          NSLocalizedString(
                                              @"submit: %c%d-%c%d-%c%d-%c%d",
                                              nil),
-                                         coordinateLetters[dPenteMove1 % 19],
-                                         19 - (dPenteMove1 / 19),
-                                         coordinateLetters[dPenteMove2 % 19],
-                                         19 - (dPenteMove2 / 19),
-                                         coordinateLetters[dPenteMove3 % 19],
-                                         19 - (dPenteMove3 / 19),
-                                         coordinateLetters[finalMove % 19],
-                                         19 - (finalMove / 19)]
+                                         coordinateLetters[dPenteMove1 % gridSize],
+                                         gridSize - (dPenteMove1 / gridSize),
+                                         coordinateLetters[dPenteMove2 % gridSize],
+                                         gridSize - (dPenteMove2 / gridSize),
+                                         coordinateLetters[dPenteMove3 % gridSize],
+                                         gridSize - (dPenteMove3 / gridSize),
+                                         coordinateLetters[finalMove % gridSize],
+                                         gridSize - (finalMove / gridSize)]
                         forState:UIControlStateDisabled];
                     [self detectCaptureOfOpponent:1 atPosition:finalMove];
                 }
@@ -956,8 +1527,8 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                                      stringWithFormat:
                                          NSLocalizedString(@"submit: %c%d",
                                                            nil),
-                                         coordinateLetters[finalMove % 19],
-                                         19 - (finalMove / 19)]
+                                         coordinateLetters[finalMove % gridSize],
+                                         gridSize - (finalMove / gridSize)]
                         forState:UIControlStateDisabled];
                     [submitButton setEnabled:NO];
                     [submitButton setAlpha:0.5];
@@ -969,10 +1540,10 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                                      stringWithFormat:
                                          NSLocalizedString(@"submit: %c%d-%c%d",
                                                            nil),
-                                         coordinateLetters[swap2Move1 % 19],
-                                         19 - (swap2Move1 / 19),
-                                         coordinateLetters[finalMove % 19],
-                                         19 - (finalMove / 19)]
+                                         coordinateLetters[swap2Move1 % gridSize],
+                                         gridSize - (swap2Move1 / gridSize),
+                                         coordinateLetters[finalMove % gridSize],
+                                         gridSize - (finalMove / gridSize)]
                         forState:UIControlStateDisabled];
                     [submitButton setEnabled:NO];
                     [submitButton setAlpha:0.5];
@@ -983,12 +1554,12 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                                      stringWithFormat:
                                          NSLocalizedString(
                                              @"submit: %c%d-%c%d-%c%d", nil),
-                                         coordinateLetters[swap2Move1 % 19],
-                                         19 - (swap2Move1 / 19),
-                                         coordinateLetters[swap2Move2 % 19],
-                                         19 - (swap2Move2 / 19),
-                                         coordinateLetters[finalMove % 19],
-                                         19 - (finalMove / 19)]
+                                         coordinateLetters[swap2Move1 % gridSize],
+                                         gridSize - (swap2Move1 / gridSize),
+                                         coordinateLetters[swap2Move2 % gridSize],
+                                         gridSize - (swap2Move2 / gridSize),
+                                         coordinateLetters[finalMove % gridSize],
+                                         gridSize - (finalMove / gridSize)]
                         forState:UIControlStateNormal];
                 }
             }
@@ -1003,8 +1574,8 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                                      stringWithFormat:
                                          NSLocalizedString(@"submit: %c%d",
                                                            nil),
-                                         coordinateLetters[finalMove % 19],
-                                         19 - (finalMove / 19)]
+                                         coordinateLetters[finalMove % gridSize],
+                                         gridSize - (finalMove / gridSize)]
                         forState:UIControlStateDisabled];
                     [submitButton setEnabled:NO];
                     [submitButton setAlpha:0.5];
@@ -1015,12 +1586,12 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                                      stringWithFormat:
                                          NSLocalizedString(@"submit: %c%d-%c%d",
                                                            nil),
-                                         coordinateLetters[swap2Move1 % 19],
-                                         19 - (swap2Move1 / 19),
-                                         coordinateLetters[finalMove % 19],
-                                         19 - (finalMove / 19)]
+                                         coordinateLetters[swap2Move1 % gridSize],
+                                         gridSize - (swap2Move1 / gridSize),
+                                         coordinateLetters[finalMove % gridSize],
+                                         gridSize - (finalMove / gridSize)]
                         forState:UIControlStateNormal];
-                    abstractBoard[swap2Move1 / 19][swap2Move1 % 19] = 2;
+                    abstractBoard[swap2Move1 / gridSize][swap2Move1 % gridSize] = 2;
                     [self detectCaptureOfOpponent:1 atPosition:swap2Move1];
                     [self detectCaptureOfOpponent:2 atPosition:finalMove];
                 }
@@ -1159,7 +1730,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
     if ([captures count] > 0) {
         for (id capturee in captures) {
             [capturee getValue:&capture];
-            int i = capture.position / 19, j = capture.position % 19,
+            int i = capture.position / gridSize, j = capture.position % gridSize,
                 color = capture.color;
             poof = poof || (color == myColor);
             if (poof && !done) {
@@ -1188,6 +1759,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
 }
 
 - (IBAction)submitMove:(id)sender {
+    [submitButton setEnabled:NO];
     spinner.center = stone.center;
     [spinner setColor:[[self.game myColor] isEqualToString:@"white"]
                           ? [UIColor blackColor]
@@ -1213,10 +1785,56 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
     return str;
 }
 
+// Returns the renjuAction for the pending phase, or nil for a plain command=move.
+// *outMoves receives the moves payload string.
+- (NSString *)renjuActionForCurrentPhaseFillingMoves:(NSString **)outMoves {
+    // Branch A (fresh move-4 decline OR post-take-over): a single `move` placing the
+    // 5th stone. The server infers "decline pending swap" from the phase; no sentinel.
+    if (self.renjuMove4BranchA) {
+        *outMoves = [NSString stringWithFormat:@"%d", finalMove];
+        return @"move";
+    }
+    // Branch B: a single `move` carrying the ten 5th-move offers (branch inferred by count).
+    if (self.renjuMove4BranchB) {
+        NSMutableArray<NSString *> *toks = [NSMutableArray array];
+        for (NSNumber *n in self.renjuPickedOffers) {
+            [toks addObject:[n stringValue]];
+        }
+        *outMoves = [toks componentsJoinedByString:@","];
+        return @"move";
+    }
+    NSString *phase = self.renjuPhase;
+    if ([phase isEqualToString:@"SWAP"]) {
+        if (self.renjuTakeOver) {
+            *outMoves = @"1"; // take over opponent's side; server ignores the payload
+            return @"swap";
+        }
+        // windows 1-3 decline + place: a single `move` carrying just the stone.
+        *outMoves = [NSString stringWithFormat:@"%d", finalMove];
+        return @"move";
+    }
+    if ([phase isEqualToString:@"SELECTION"]) {
+        // atomic 2-stone: chosen black 5th + white 6th.
+        *outMoves = [NSString stringWithFormat:@"%@,%@",
+                     self.renjuSelectedPoints[0], self.renjuSelectedPoints[1]];
+        return @"select";
+    }
+    // MOVE / COMPLETE -> plain placement, no renjuAction
+    *outMoves = [NSString stringWithFormat:@"%d", finalMove];
+    return nil;
+}
+
 - (void)submitMoveToServer {
     //    NSLog(@"kitty %d", finalMove);
 
     NSString *moveString;
+    NSString *renjuAction = nil;
+    BOOL isRenju = [self.game.gameType containsString:@"Renju"];
+    if (isRenju) {
+        NSString *renjuMoves = nil;
+        renjuAction = [self renjuActionForCurrentPhaseFillingMoves:&renjuMoves];
+        moveString = renjuMoves;
+    } else
     if ([[self.game gameType] isEqualToString:@"Connect6"] &&
         (connect6Move1 != -1) && (connect6Move2 != -1)) {
         moveString =
@@ -1265,6 +1883,11 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
 
     //    NSLog(@"kitty %@", moveString);
 
+    NSString *renjuSuffix =
+        (renjuAction != nil)
+            ? [NSString stringWithFormat:@"&renjuAction=%@", renjuAction]
+            : @"";
+
     NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
     NSString *url;
     //    NSLog(@"kittyLog %@", replyMessage);
@@ -1272,29 +1895,29 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
         url = [NSString
             stringWithFormat:
                 @"https://www.pente.org/gameServer/tb/"
-                @"game?command=move%@&mobile=&gid=%@&moves=%@&message=",
-                hideString, [self.game gameID], moveString];
-        if (development) {
-            url = [NSString
-                stringWithFormat:
-                    @"https://localhost/gameServer/tb/"
-                    @"game?command=move%@&mobile=&gid=%@&moves=%@&message=",
-                    hideString, [self.game gameID], moveString];
-        }
-    } else {
-        url = [NSString
-            stringWithFormat:
-                @"https://www.pente.org/gameServer/tb/"
                 @"game?command=move%@&mobile=&gid=%@&moves=%@&message=%@",
-                hideString, [self.game gameID], moveString,
-                [self URLEncodedString_ch:replyMessage]];
+                hideString, [self.game gameID], moveString, renjuSuffix];
         if (development) {
             url = [NSString
                 stringWithFormat:
                     @"https://localhost/gameServer/tb/"
                     @"game?command=move%@&mobile=&gid=%@&moves=%@&message=%@",
+                    hideString, [self.game gameID], moveString, renjuSuffix];
+        }
+    } else {
+        url = [NSString
+            stringWithFormat:
+                @"https://www.pente.org/gameServer/tb/"
+                @"game?command=move%@&mobile=&gid=%@&moves=%@&message=%@%@",
+                hideString, [self.game gameID], moveString,
+                [self URLEncodedString_ch:replyMessage], renjuSuffix];
+        if (development) {
+            url = [NSString
+                stringWithFormat:
+                    @"https://localhost/gameServer/tb/"
+                    @"game?command=move%@&mobile=&gid=%@&moves=%@&message=%@%@",
                     hideString, [self.game gameID], moveString,
-                    [self URLEncodedString_ch:replyMessage]];
+                    [self URLEncodedString_ch:replyMessage], renjuSuffix];
         }
     }
     //    NSLog(@"kitty %@", url);
@@ -1320,6 +1943,43 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                                                      NSLocalizedString(
                                                          @"Reason: %@", nil),
                                                      error.localizedDescription]
+                              delegate:nil
+                     cancelButtonTitle:@"OK"
+                     otherButtonTitles:nil];
+                 [alert show];
+                 return;
+             }
+             NSInteger status =
+                 [response isKindOfClass:[NSHTTPURLResponse class]]
+                     ? ((NSHTTPURLResponse *)response).statusCode
+                     : 200;
+             BOOL respIsRenju =
+                 [strongSelf.game.gameType containsString:@"Renju"];
+             NSString *body =
+                 responseData
+                     ? [[[NSString alloc] initWithData:responseData
+                                              encoding:NSUTF8StringEncoding]
+                           stringByTrimmingCharactersInSet:
+                               [NSCharacterSet whitespaceAndNewlineCharacterSet]]
+                     : @"";
+             BOOL rejected =
+                 respIsRenju &&
+                 ((status >= 400) ||
+                  (body.length > 0 && ![body hasPrefix:@"{"] &&
+                   ![body hasPrefix:@"["] &&
+                   ([body containsString:@"Renju"] ||
+                    [body containsString:@"offered"] ||
+                    [body containsString:@"swap"] ||
+                    [body containsString:@"Expected"] ||
+                    [body containsString:@"decision"] ||
+                    [body containsString:@"Selected"])));
+             if (rejected) {
+                 UIAlertView *alert = [[UIAlertView alloc]
+                         initWithTitle:NSLocalizedString(@"Move rejected", nil)
+                               message:body.length
+                                           ? body
+                                           : NSLocalizedString(
+                                                 @"Renju move rejected.", nil)
                               delegate:nil
                      cancelButtonTitle:@"OK"
                      otherButtonTitles:nil];
@@ -1490,6 +2150,9 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                          ![strongSelf.game.gameType hasPrefix:@"Gomoku"]) ||
                         ([strongSelf.game.gameType hasPrefix:@"Speed Go"] &&
                          ![strongSelf.game.gameType hasPrefix:@"Speed Gomoku"]);
+             if ([strongSelf.game.gameType containsString:@"Renju"]) {
+                 gridSize = 15;
+             }
              [strongSelf setTitle:[strongSelf.game gameType]];
              if (iAmP1) {
                  [strongSelf.game setOpponentName:p2Name];
@@ -1768,6 +2431,24 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                                    ? [jsonResponse[@"dPenteState"] intValue]
                                    : 0;
 
+             id rpVal = jsonResponse[@"renjuPhase"];
+             self.renjuPhase = [rpVal isKindOfClass:[NSString class]] ? rpVal : nil;
+
+             id roVal = jsonResponse[@"renjuOffers"];
+             if ([roVal isKindOfClass:[NSString class]] && [(NSString *)roVal length] > 0) {
+                 NSMutableArray<NSNumber *> *parsed = [NSMutableArray array];
+                 for (NSString *tok in [(NSString *)roVal componentsSeparatedByString:@","]) {
+                     NSString *t = [tok stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+                     if (t.length > 0) [parsed addObject:@([t intValue])];
+                 }
+                 self.renjuOffers = parsed;
+             } else {
+                 self.renjuOffers = nil;
+             }
+
+             id rsVal = jsonResponse[@"renjuSwaps"];
+             self.renjuSwaps = [rsVal isKindOfClass:[NSNumber class]] ? rsVal : nil;
+
              //    NSLog(@"kitty message %@", message);
              dPenteOpening = NO;
              whiteCaptures = 0;
@@ -1916,6 +2597,10 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                  [strongSelf replayGame:lastMove];
              }
 
+             if ([[strongSelf.game gameType] containsString:@"Renju"]) {
+                 [strongSelf replayGame:lastMove];
+             }
+
              // Find out your color
              if ([[strongSelf.game myColor] isEqualToString:@"white"]) {
                  [strongSelf->stone setStoneColor:WHITE];
@@ -1991,6 +2676,20 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
 
              strongSelf->activeGame =
                  [currentPlayer isEqualToString:myUsername];
+
+             if ([strongSelf.game.gameType containsString:@"Renju"]) {
+                 if (strongSelf.renjuPhase != nil && strongSelf->activeGame) {
+                     [strongSelf renderRenjuOpeningUI];
+                 } else {
+                     // not our turn / no opening phase: clear any stale overlay
+                     [player1Button setHidden:YES];
+                     [player2Button setHidden:YES];
+                     [passButton setHidden:YES];
+                     [dPenteChoiceLabel setHidden:YES];
+                     [strongSelf renderRenjuCandidates:@[]];
+                     [strongSelf updateRenjuBoxOverlay]; // radius 0 -> removes box
+                 }
+             }
 
              if ([[strongSelf.game opponentName] isEqualToString:@"computer"]) {
                  NSString *message = nil;
@@ -2133,11 +2832,22 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                          [strongSelf->submitButton setAlpha:1.0];
                      }
                  } else {
-                     [strongSelf->submitButton
-                         setTitle:NSLocalizedString(@"submit", nil)
-                         forState:UIControlStateDisabled];
-                     [strongSelf->submitButton setEnabled:NO];
-                     [strongSelf->submitButton setAlpha:0.85];
+                     // An active non-Go game defaults submit to a greyed, disabled
+                     // "submit". But an active Renju opening phase owns its submit
+                     // state via renderRenjuOpeningUI (which ran above on this same
+                     // refresh); re-greying here would clobber the "submit N/10" /
+                     // "submit: c5-c6" styling on every server refresh, so skip it
+                     // and let renderRenjuOpeningUI own the renju submit button.
+                     BOOL isRenjuOpening =
+                         [strongSelf.game.gameType containsString:@"Renju"] &&
+                         strongSelf.renjuPhase != nil && strongSelf->activeGame;
+                     if (!isRenjuOpening) {
+                         [strongSelf->submitButton
+                             setTitle:NSLocalizedString(@"submit", nil)
+                             forState:UIControlStateDisabled];
+                         [strongSelf->submitButton setEnabled:NO];
+                         [strongSelf->submitButton setAlpha:0.85];
+                     }
                  }
              }
          }]; // end sendRequest completion

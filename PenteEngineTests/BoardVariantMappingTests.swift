@@ -22,6 +22,12 @@ final class BoardVariantMappingTests: XCTestCase {
         XCTAssertEqual(BoardVariantMapping.variant(forGameType: "Gomoku"), .gomoku)
     }
 
+    func testRenjuGameTypesMapToRenjuVariant() {
+        XCTAssertEqual(BoardVariantMapping.variant(forGameType: "Renju"), .renju)
+        XCTAssertEqual(BoardVariantMapping.variant(forGameType: "Speed Renju"), .renju)
+        XCTAssertEqual(BoardVariantMapping.variant(forGameType: "Turn-based Renju"), .renju)
+    }
+
     func testVariantForGameTypeFallsBackToPente() {
         // Unknown/legacy game-type strings deliberately fall back to .pente.
         // (Go must be filtered out by callers via isGoGame before reaching here.)
@@ -72,6 +78,16 @@ extension BoardVariantMappingTests {
         assertColor(BoardVariantMapping.backgroundColor(for: .connect6, boatPente: false),
                     0.929, 0.639, 0.992, 1)
     }
+
+    func testRenjuBackgroundColorIsDustyRose() {
+        let c = BoardVariantMapping.backgroundColor(for: .renju, boatPente: false)
+        var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
+        c.getRed(&r, green: &g, blue: &b, alpha: &a)
+        XCTAssertEqual(Double(r), 0.851, accuracy: 0.001)   // #D98880
+        XCTAssertEqual(Double(g), 0.533, accuracy: 0.001)
+        XCTAssertEqual(Double(b), 0.502, accuracy: 0.001)
+        XCTAssertEqual(Double(a), 1.0, accuracy: 0.001)
+    }
 }
 
 extension BoardVariantMappingTests {
@@ -86,5 +102,7 @@ extension BoardVariantMappingTests {
         XCTAssertTrue(BoardVariantMapping.hidesCaptureLabels(for: .swap2Pente, opening: true))
         XCTAssertFalse(BoardVariantMapping.hidesCaptureLabels(for: .swap2Pente, opening: false))
         XCTAssertTrue(BoardVariantMapping.hidesCaptureLabels(for: .swap2Keryo, opening: true))
+        XCTAssertTrue(BoardVariantMapping.hidesCaptureLabels(for: .renju, opening: false))
+        XCTAssertTrue(BoardVariantMapping.hidesCaptureLabels(for: .renju, opening: true))
     }
 }

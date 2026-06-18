@@ -45,6 +45,16 @@
     *playerStatsBaseString;
 @property(nonatomic, retain) NSMutableString *moveStatsString;
 @property(nonatomic, retain) NSDictionary *messagesHistory;
+@property (nonatomic, copy) NSString *renjuPhase;               // SWAP|BRANCH|OFFERS|SELECTION|MOVE|COMPLETE, or nil
+@property (nonatomic, strong) NSArray<NSNumber *> *renjuOffers; // parsed offered move indices, or nil
+@property (nonatomic, strong) NSNumber *renjuSwaps;            // packed opening word (opaque), or nil
+@property (nonatomic, assign) BOOL renjuTakeOver;       // user chose "Swap (take over)"
+@property (nonatomic, assign) BOOL renjuMove4Decline;   // declining the move-4 swap (no bundled stone)
+@property (nonatomic, assign) BOOL renjuBranchB;        // BRANCH choice: NO=A(1), YES=B(2)
+@property (nonatomic, assign) BOOL renjuMove4BranchA;   // move-4 "No swap": place move 5 (move4 fold)
+@property (nonatomic, assign) BOOL renjuMove4BranchB;   // move-4 "Place 10": offer 10 (move4 fold)
+@property (nonatomic, strong) NSMutableArray<NSNumber *> *renjuPickedOffers; // OFFERS: the 10 picks
+@property (nonatomic, strong) CAShapeLayer *renjuBoxLayer;     // dashed central-square legal-placement overlay
 //@property(nonatomic,retain) GamesTableViewController *gamesTable;
 @property(weak, nonatomic) IBOutlet BoardView *board;
 @property(weak, nonatomic) IBOutlet BoardView *zoomedBoard;

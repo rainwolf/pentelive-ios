@@ -17,6 +17,7 @@
 @synthesize whiteSquare, blackSquare;
 @synthesize go;
 @synthesize gridSize;
+@synthesize renjuCandidates;
 
 - (void)setAbstractBoard:(AbstractBoard *)board {
     abstractBoard = board;
@@ -147,6 +148,20 @@
             CGContextAddEllipseInRect(context, circle);
             CGContextFillPath(context);
         }
+    } else if (gridSize == 15) {
+        // Renju: 9 star points at cols/rows {3, 7, 11}
+        // index = col + row * 15
+        int starPoints[9] = {48, 52, 56, 108, 112, 116, 168, 172, 176};
+        for (int s = 0; s < 9; ++s) {
+            int col = starPoints[s] % gridSize;
+            int row = starPoints[s] / gridSize;
+            CGRect star =
+                CGRectMake(margin + 2 * col * margin - margin / 2,
+                           margin + 2 * row * margin - margin / 2, margin,
+                           margin);
+            CGContextAddEllipseInRect(context, star);
+            CGContextStrokePath(context);
+        }
     } else {
         // draw the 5 little special circles
         CGRect circle =
@@ -260,6 +275,20 @@
         CGContextTranslateCTM(context, circle.origin.x, circle.origin.y);
         [blackSquare setFrame:circle];
         [blackSquare.layer renderInContext:UIGraphicsGetCurrentContext()];
+        CGContextRestoreGState(context);
+    }
+
+    // translucent Renju opening candidates (offers being picked / selectable / chosen),
+    // drawn exactly like the translucent Go dead stones (blackStoneView at alpha 0.7).
+    for (NSNumber *cell in renjuCandidates) {
+        int idx = cell.intValue, i = idx / gridSize, j = idx % gridSize;
+        circle =
+            CGRectMake(j * 2 * margin, i * 2 * margin, 2 * margin, 2 * margin);
+        CGContextSaveGState(context);
+        CGContextTranslateCTM(context, circle.origin.x, circle.origin.y);
+        [blackStoneView setFrame:circle];
+        blackStoneView.layer.cornerRadius = margin;
+        [blackStoneView.layer renderInContext:UIGraphicsGetCurrentContext()];
         CGContextRestoreGState(context);
     }
 

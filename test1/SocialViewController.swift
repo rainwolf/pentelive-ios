@@ -32,15 +32,16 @@ class SocialViewController: UIViewController, UITableViewDelegate, UITableViewDa
                      "Speed Go": 20, "Speed Go (9x9)": 22, "Speed Go (13x13)": 24, "Speed O-Pente": 26,
                      "Turn-based Pente": 51, "Turn-based Keryo-Pente": 53, "Turn-based Gomoku": 55, "Turn-based D-Pente": 57,
                      "Turn-based G-Pente": 59, "Turn-based Poof-Pente": 61, "Turn-based Connect6": 63, "Turn-based Boat-Pente": 65, "Turn-based DK-Pente": 67,
-                     "Turn-based Go": 69, "Turn-based Go (9x9)": 71, "Turn-based Go (13x13)": 73, "Turn-based O-Pente": 75]
+                     "Turn-based Go": 69, "Turn-based Go (9x9)": 71, "Turn-based Go (13x13)": 73, "Turn-based O-Pente": 75,
+                     "Renju": 31, "Speed Renju": 32, "Turn-based Renju": 81]
     let gameNamesArray = ["Turn-based Pente", "Turn-based Keryo-Pente", "Turn-based Gomoku", "Turn-based D-Pente",
                           "Turn-based G-Pente", "Turn-based Poof-Pente", "Turn-based Connect6", "Turn-based Boat-Pente", "Turn-based DK-Pente",
-                          "Turn-based Go", "Turn-based Go (9x9)", "Turn-based Go (13x13)", "Turn-based O-Pente",
+                          "Turn-based Go", "Turn-based Go (9x9)", "Turn-based Go (13x13)", "Turn-based O-Pente", "Turn-based Renju",
                           "Pente", "Keryo-Pente", "Gomoku", "D-Pente", "G-Pente", "Poof-Pente", "Connect6",
-                          "Boat-Pente", "DK-Pente", "Go", "Go (9x9)", "Go (13x13)", "O-Pente",
+                          "Boat-Pente", "DK-Pente", "Go", "Go (9x9)", "Go (13x13)", "O-Pente", "Renju",
                           "Speed Pente", "Speed Keryo-Pente", "Speed Gomoku", "Speed D-Pente",
                           "Speed G-Pente", "Speed Poof-Pente", "Speed Connect6", "Speed Boat-Pente", "Speed DK-Pente",
-                          "Speed Go", "Speed Go (9x9)", "Speed Go (13x13)", "Speed O-Pente"]
+                          "Speed Go", "Speed Go (9x9)", "Speed Go (13x13)", "Speed O-Pente", "Speed Renju"]
     let textField = UITextField()
 
     var gameString: String?

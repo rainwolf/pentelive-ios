@@ -18,4 +18,8 @@ final class PenteVariantTests: XCTestCase {
         XCTAssertEqual(PenteVariant.gomoku.rawValue, 9)
         XCTAssertEqual(PenteVariant.connect6.rawValue, 10)
     }
+
+    func testRenjuRawValueIsEleven() {
+        XCTAssertEqual(PenteVariant.renju.rawValue, 11)
+    }
 }

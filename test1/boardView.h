@@ -42,6 +42,7 @@ typedef int AbstractBoard[19];
 @property(nonatomic, retain) UIView *whiteSquare, *blackSquare;
 @property(atomic, assign) BOOL go;
 @property(atomic, assign) int gridSize;
+@property(nonatomic, strong) NSArray<NSNumber *> *renjuCandidates; // translucent Renju offer/selection markers
 @property int lastMove;
 @property int lastConnect6Move;
 - (instancetype)init;

@@ -79,7 +79,7 @@ class LivePlayer: NSObject {
 }
 
 enum GameEnum: Int {
-    case pente = 1, speedPente, keryoPente, speedKeryoPente, gomoku, speedGomoku, dPente, speedDPente, gPente, speedGPente, poofPente, speedPoofPente, connect6, speedConnect6, boatPente, speedBoatPente, dkPente, speedDKPente, go, speedGo, go9x9, speedGo9x9, go13x13, speedGo13x13, oPente, speedOPente, swap2Pente, speedSwap2Pente, swap2Keryo, speedSwap2Keryo
+    case pente = 1, speedPente, keryoPente, speedKeryoPente, gomoku, speedGomoku, dPente, speedDPente, gPente, speedGPente, poofPente, speedPoofPente, connect6, speedConnect6, boatPente, speedBoatPente, dkPente, speedDKPente, go, speedGo, go9x9, speedGo9x9, go13x13, speedGo13x13, oPente, speedOPente, swap2Pente, speedSwap2Pente, swap2Keryo, speedSwap2Keryo, renju, speedRenju
 }
 
 class Table: NSObject {
@@ -118,7 +118,8 @@ class Table: NSObject {
                      15: "Boat-Pente", 16: "Speed Boat-Pente", 17: "DK-Pente", 18: "Speed DK-Pente",
                      19: "Go", 20: "Speed Go", 21: "Go (9x9)", 22: "Speed Go (9x9)", 23: "Go (13x13)",
                      24: "Speed Go (13x13)", 25: "O-Pente", 26: "Speed O-Pente", 27: "Swap2-Pente",
-                     28: "Speed Swap2-Pente", 29: "Swap2-Keryo", 30: "Speed Swap2-Keryo"]
+                     28: "Speed Swap2-Pente", 29: "Swap2-Keryo", 30: "Speed Swap2-Keryo",
+                     31: "Renju", 32: "Speed Renju"]
     
     init(table: Int) {
         self.table = table

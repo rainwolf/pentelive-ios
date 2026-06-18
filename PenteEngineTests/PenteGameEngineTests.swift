@@ -244,6 +244,45 @@ final class PenteGameEngineTests: XCTestCase {
         XCTAssertEqual(r.winner, 2)             // black wins: white lost >= 10 stones
     }
 
+    // MARK: Renju — black-first cadence + 15×15 board
+    func testRenjuFirstStoneIsBlack() {
+        let g = PenteGame(variant: .renju)
+        _ = g.play(112)                       // server auto-centre
+        XCTAssertEqual(g.stone(at: 112), 2)   // black-first: move 0 -> value 2
+    }
+
+    func testRenjuSecondStoneIsWhite() {
+        let g = PenteGame(variant: .renju)
+        _ = g.play(112)
+        _ = g.play(113)
+        XCTAssertEqual(g.stone(at: 113), 1)   // move 1 -> value 1 (white)
+    }
+
+    func testRenjuUses15x15Indexing() {
+        let g = PenteGame(variant: .renju)
+        _ = g.play(224)                       // last cell (col14,row14) on 15×15
+        XCTAssertEqual(g.stone(at: 224), 2)
+        XCTAssertEqual(g.stone(at: 225), 0)   // out of range on 15×15 -> treated empty
+    }
+
+    func testRenjuHasNoCaptures() {
+        // Layout that WOULD capture in Pente: B(112) W(113) W(114) B(115) collinear (row 7).
+        let g = PenteGame(variant: .renju)
+        _ = g.play(112)   // B  (m0)
+        _ = g.play(113)   // W  (m1)
+        _ = g.play(200)   // B  (m2, off to the side)
+        _ = g.play(114)   // W  (m3)
+        _ = g.play(115)   // B  (m4) flanks the W pair
+        XCTAssertEqual(g.stone(at: 113), 1)   // NOT captured
+        XCTAssertEqual(g.stone(at: 114), 1)   // NOT captured
+    }
+
+    func testNonRenjuEngineUnchangedFirstStoneWhite() {
+        let g = PenteGame(variant: .pente)
+        _ = g.play(180)
+        XCTAssertEqual(g.stone(at: 180), 1)   // legacy white-first preserved (19×19)
+    }
+
     // MARK: reset clears board + counters
     func testReset() {
         let g = PenteGame(variant: .pente)
