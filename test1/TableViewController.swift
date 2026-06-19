@@ -49,7 +49,6 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
     enum RenjuBoardMode { case idle, placing, offering, selecting }
     var renjuBoardMode: RenjuBoardMode = .idle
     var renjuPicks: [Int] = []
-    var renjuPending = false
     var renjuOfferCounterLabel = UILabel()
 
     var waitAlertController, invitationAlertController, inviteAlertController: UIAlertController?
@@ -247,7 +246,6 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
                         case .placing:
                             if withinRenjuBox(idx, radius: renjuBoxRadius(table.moves.count)) {
                                 sendRenjuSwap(swap: false, move: idx)
-                                renjuPending = true
                                 renjuBoardMode = .idle
                             }
                         case .offering:
@@ -266,7 +264,6 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
                                 renjuOfferCounterLabel.isHidden = false
                                 if renjuPicks.count == 10 {
                                     sendRenjuOffer10(moves: renjuPicks)
-                                    renjuPending = true
                                     renjuBoardMode = .idle
                                     renjuPicks = []
                                     board.renjuCandidates = []
@@ -277,7 +274,6 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
                         case .selecting:
                             if table.state.renju.offered.contains(idx) {
                                 sendRenjuSelect1(move: idx)
-                                renjuPending = true
                                 renjuBoardMode = .idle
                                 board.renjuCandidates = []
                                 zoomedBoard.renjuCandidates = []
@@ -626,7 +622,6 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
     }
 
     func renjuDecisionRejected(error: Int) {
-        renjuPending = false
         renjuBoardMode = .idle
         renjuPicks = []
         board.renjuCandidates = []; zoomedBoard.renjuCandidates = []
@@ -757,19 +752,15 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
                 renjuBoardMode = .idle; renjuPicks = []
                 board.renjuCandidates = []; zoomedBoard.renjuCandidates = []
             }
-            if renjuPending && !atDecision {
-                renjuPending = false
-            }
             if table.currentPlayerName() == me {
                 if atDecision {
                     // Guard against re-popping on repeated stateChanged calls (timer ticks, etc.)
-                    if presentedViewController == nil && renjuBoardMode == .idle && !renjuPending {
+                    if presentedViewController == nil && renjuBoardMode == .idle {
                         let alertController = UIAlertController(title: NSLocalizedString("Renju opening", comment: ""), message: nil, preferredStyle: .actionSheet)
                         let buttons = renjuModalButtons(n, t, started)
                         if buttons.swap {
                             let takeOverAction = UIAlertAction(title: NSLocalizedString("Take over", comment: ""), style: .default) { _ in
                                 self.sendRenjuSwap(swap: true, move: -1)
-                                self.renjuPending = true
                             }
                             alertController.addAction(takeOverAction)
                         }
@@ -785,7 +776,6 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
                             let declinePlaceAction = UIAlertAction(title: declineTitle, style: .default) { _ in
                                 if n == 5 {
                                     self.sendRenjuSwap(swap: false, move: -1)
-                                    self.renjuPending = true
                                 } else {
                                     self.renjuBoardMode = .placing
                                 }
