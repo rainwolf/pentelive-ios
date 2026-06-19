@@ -46,6 +46,11 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
     var popoverView: PopoverView?
     var isArenaTable = false
 
+    enum RenjuBoardMode { case idle, placing, offering, selecting }
+    var renjuBoardMode: RenjuBoardMode = .idle
+    var renjuPicks: [Int] = []
+    var renjuPending = false
+
     var waitAlertController, invitationAlertController, inviteAlertController: UIAlertController?
     var tablesAndPlayers: TablesAndPlayer!
     var invitablePlayers: [String]!
@@ -657,6 +662,81 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
                     popoverController.barButtonItem = navigationItem.rightBarButtonItems?[isArenaTable ? 0 : 1]
                 }
                 present(alertController, animated: true)
+            }
+        }
+        if table.isRenju() {
+            let n = table.moves.count
+            let t = table.state.renju
+            let started = table.state.state == .started
+            // Phase-advance reset: clear mode/picks/candidates when opening has moved on.
+            let atDecision = isRenjuSwapChoice(n, t, started) || isRenjuBranchChoice(n, t, started)
+            let atSelection = isRenjuSelection(n, t, started)
+            if (renjuBoardMode == .placing || renjuBoardMode == .offering) && !atDecision {
+                renjuBoardMode = .idle; renjuPicks = []
+                board.renjuCandidates = []; zoomedBoard.renjuCandidates = []
+            }
+            if renjuBoardMode == .selecting && !atSelection {
+                renjuBoardMode = .idle; renjuPicks = []
+                board.renjuCandidates = []; zoomedBoard.renjuCandidates = []
+            }
+            if renjuPending && !atDecision {
+                renjuPending = false
+            }
+            if table.currentPlayerName() == me {
+                if atDecision {
+                    // Guard against re-popping on repeated stateChanged calls (timer ticks, etc.)
+                    if presentedViewController == nil && renjuBoardMode == .idle && !renjuPending {
+                        let alertController = UIAlertController(title: NSLocalizedString("Renju opening", comment: ""), message: nil, preferredStyle: .actionSheet)
+                        let buttons = renjuModalButtons(n, t, started)
+                        if buttons.swap {
+                            let takeOverAction = UIAlertAction(title: NSLocalizedString("Take over", comment: ""), style: .default) { _ in
+                                self.sendRenjuSwap(swap: true, move: -1)
+                                self.renjuPending = true
+                            }
+                            alertController.addAction(takeOverAction)
+                        }
+                        if buttons.declinePlace {
+                            let declineTitle: String
+                            if n == 5 {
+                                declineTitle = NSLocalizedString("Decline", comment: "")
+                            } else if isRenjuBranchChoice(n, t, started) || n == 4 {
+                                declineTitle = NSLocalizedString("Place 5th move", comment: "")
+                            } else {
+                                declineTitle = NSLocalizedString("Decline & place", comment: "")
+                            }
+                            let declinePlaceAction = UIAlertAction(title: declineTitle, style: .default) { _ in
+                                if n == 5 {
+                                    self.sendRenjuSwap(swap: false, move: -1)
+                                    self.renjuPending = true
+                                } else {
+                                    self.renjuBoardMode = .placing
+                                }
+                            }
+                            alertController.addAction(declinePlaceAction)
+                        }
+                        if buttons.offer10 {
+                            let offer10Action = UIAlertAction(title: NSLocalizedString("Offer ten 5th moves", comment: ""), style: .default) { _ in
+                                self.renjuBoardMode = .offering
+                                self.renjuPicks = []
+                            }
+                            alertController.addAction(offer10Action)
+                        }
+                        if let popoverController = alertController.popoverPresentationController {
+                            popoverController.barButtonItem = navigationItem.rightBarButtonItems?[isArenaTable ? 0 : 1]
+                        }
+                        present(alertController, animated: true)
+                    }
+                } else if atSelection {
+                    // Enter selection mode once; set color before candidates (color has no didSet).
+                    if renjuBoardMode != .selecting {
+                        renjuBoardMode = .selecting
+                        board.renjuCandidateColor = 2 - (n % 2)
+                        board.renjuCandidates = t.offered
+                        zoomedBoard.renjuCandidateColor = 2 - (n % 2)
+                        zoomedBoard.renjuCandidates = t.offered
+                        addText(text: NSLocalizedString("Pick one of the 10 offered moves", comment: ""))
+                    }
+                }
             }
         }
     }
