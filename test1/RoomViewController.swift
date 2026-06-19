@@ -620,15 +620,17 @@ class PlayerTableCell: UITableViewCell {
     func joinTableEvent(event: [String: Any]) {
         let tableId = event["table"] as! Int
         let playerName = event["player"] as! String
-        self.playersAndTables.joinTable(tableId: tableId, player: playerName)
-        let table = self.playersAndTables.table(tableId: tableId)
-        self.tableView.reloadData()
-        if playerName == self.me {
-            self.tableViewController = TableViewController(table: table!, socket: self.socket, tablesAndPlayers: self.playersAndTables, pente_player: self.pentePlayer!, me: self.me, isArenaTable: self.isArena)
-            self.tableViewController?.pentePlayer = self.pentePlayer
-        }
+        // All UIKit work (reloadData, TableViewController construction, push) must run on the
+        // main thread — processEvent runs on the GCDAsyncSocket background queue. The model
+        // mutation goes on main too so it stays serialized with the reads, matching the sibling
+        // handlers (moveTableEvent / swapSeatsTableEvent / …).
         DispatchQueue.main.async {
+            self.playersAndTables.joinTable(tableId: tableId, player: playerName)
+            let table = self.playersAndTables.table(tableId: tableId)
+            self.tableView.reloadData()
             if playerName == self.me {
+                self.tableViewController = TableViewController(table: table!, socket: self.socket, tablesAndPlayers: self.playersAndTables, pente_player: self.pentePlayer!, me: self.me, isArenaTable: self.isArena)
+                self.tableViewController?.pentePlayer = self.pentePlayer
                 self.navigationController?.pushViewController(self.tableViewController!, animated: true)
             } else {
                 if tableId == self.tableViewController?.table.table {
