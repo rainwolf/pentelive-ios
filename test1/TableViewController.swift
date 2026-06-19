@@ -822,11 +822,14 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
                             }
                             alertController.addAction(offer10Action)
                         }
+                        // Mandatory choice: don't let an outside tap dismiss it.
+                        alertController.isModalInPresentation = true
                         if let popoverController = alertController.popoverPresentationController {
                             // Anchor the action sheet to the bottom-centre so it doesn't cover the board.
                             popoverController.sourceView = self.view
                             popoverController.sourceRect = CGRect(x: self.view.bounds.midX, y: self.view.bounds.maxY, width: 0, height: 0)
                             popoverController.permittedArrowDirections = []
+                            popoverController.delegate = self
                         }
                         present(alertController, animated: true)
                     }
