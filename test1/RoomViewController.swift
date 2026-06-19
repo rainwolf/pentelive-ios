@@ -482,8 +482,10 @@ class PlayerTableCell: UITableViewCell {
     func addRoomText(event: [String: Any]) {
         let playerName = event["player"] as! String
         let text = event["text"] as! String
-        let player = playersAndTables.players[playerName]!
-        if !player.muted {
+        // Server/system messages come from pseudo-senders (e.g. "game server") that aren't in
+        // the players dict — treat an unknown sender as not-muted instead of force-unwrapping (crash).
+        let player = playersAndTables.players[playerName]
+        if !(player?.muted ?? false) {
             DispatchQueue.main.async {
                 self.addText(text: "\(playerName): \(text)")
             }
@@ -956,8 +958,10 @@ class PlayerTableCell: UITableViewCell {
         let playerName = event["player"] as! String
         let text = event["text"] as! String
         let table = event["table"] as! Int
-        let player = playersAndTables.players[playerName]!
-        if table == tableViewController?.table.table, !player.muted {
+        // Server/system messages come from pseudo-senders (e.g. "game server") that aren't in
+        // the players dict — treat an unknown sender as not-muted instead of force-unwrapping (crash).
+        let player = playersAndTables.players[playerName]
+        if table == tableViewController?.table.table, !(player?.muted ?? false) {
             DispatchQueue.main.async {
                 self.tableViewController?.addText(text: "\(playerName): \(text)")
             }
