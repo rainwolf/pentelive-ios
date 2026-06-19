@@ -45,3 +45,22 @@ extension RenjuLiveModelTests {
         XCTAssertEqual((selDict["dsgRenjuTaraguchi10Select1TableEvent"] as! [String: Any])["move"] as! Int, 130)
     }
 }
+
+extension RenjuLiveModelTests {
+    private func startedInPAT() -> (TablesAndPlayer, Table) {
+        let pat = TablesAndPlayer(); let t = Table(table: 5); t.game = 31; t.state.state = .started
+        pat.tables[5] = t; return (pat, t)
+    }
+    func testForwardersMutateTracking() {
+        let (pat, t) = startedInPAT(); [112,113,97,98].forEach { t.addMove(move: $0) }
+        pat.renjuOffer10(tableId: 5, moves: [40,41,42,55,57,70,71,72,160,176])
+        XCTAssertTrue(t.state.renju.tenOffer)
+        pat.renjuSelect1(tableId: 5, move: 57)
+        XCTAssertEqual(t.state.renju.selected, 57)
+    }
+    func testSwapForwarderBranchA() {
+        let (pat, t) = startedInPAT(); [112,113,97,98].forEach { t.addMove(move: $0) }
+        pat.renjuSwap(tableId: 5, swap: false, move: 129)
+        XCTAssertTrue(t.state.renju.branchChosen)
+    }
+}

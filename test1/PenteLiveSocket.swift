@@ -169,6 +169,14 @@ import UIKit
             room.rejectGoDeadStonesTableEvent(event: content as! [String: Any])
         } else if let content = event?["dsgSwap2PassTableEvent"] {
             room.swap2PassTableEvent(event: content as! [String: Any])
+        } else if let content = event?["dsgRenjuTaraguchiSwapTableEvent"] {
+            room.renjuSwapTableEvent(event: content as! [String: Any])
+        } else if let content = event?["dsgRenjuTaraguchiOffer10TableEvent"] {
+            room.renjuOffer10TableEvent(event: content as! [String: Any])
+        } else if let content = event?["dsgRenjuTaraguchi10Select1TableEvent"] {
+            room.renjuSelect1TableEvent(event: content as! [String: Any])
+        } else if let content = event?["dsgMoveTableErrorEvent"] {
+            room.moveErrorTableEvent(event: content as! [String: Any])
         } else if let content = event?["dsgArenaRequestJoinTableEvent"] {
             room.arenaRequestJoinTableEvent(event: content as! [String: Any])
         }

@@ -849,7 +849,20 @@ class TablesAndPlayer: NSObject {
         let table = tables[tableId]!
         table.swap2Pass(silent: silent)
     }
-    
+
+    func renjuSwap(tableId: Int, swap: Bool, move: Int) {
+        guard let table = tables[tableId] else { return }
+        table.applyRenjuSwap(swap: swap, move: move)
+    }
+    func renjuOffer10(tableId: Int, moves: [Int]) {
+        guard let table = tables[tableId] else { return }
+        table.applyRenjuOffer10(moves: moves)
+    }
+    func renjuSelect1(tableId: Int, move: Int) {
+        guard let table = tables[tableId] else { return }
+        table.applyRenjuSelect1(move: move)
+    }
+
     func invitablePlayersFor(tableId: Int) -> [String] {
         if tables[tableId] == nil {
             return []

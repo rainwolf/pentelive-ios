@@ -767,7 +767,41 @@ class PlayerTableCell: UITableViewCell {
             }
         }
     }
-    
+
+    func renjuSwapTableEvent(event: [String: Any]) {
+        DispatchQueue.main.async {
+            let tableId = event["table"] as! Int
+            let swap = event["swap"] as! Bool
+            let move = event["move"] as! Int
+            self.playersAndTables.renjuSwap(tableId: tableId, swap: swap, move: move)
+            if tableId == self.tableViewController?.table.table { self.tableViewController?.stateChanged() }
+        }
+    }
+    func renjuOffer10TableEvent(event: [String: Any]) {
+        DispatchQueue.main.async {
+            let tableId = event["table"] as! Int
+            let moves = event["moves"] as! [Int]
+            self.playersAndTables.renjuOffer10(tableId: tableId, moves: moves)
+            if tableId == self.tableViewController?.table.table { self.tableViewController?.stateChanged() }
+        }
+    }
+    func renjuSelect1TableEvent(event: [String: Any]) {
+        DispatchQueue.main.async {
+            let tableId = event["table"] as! Int
+            let move = event["move"] as! Int
+            self.playersAndTables.renjuSelect1(tableId: tableId, move: move)
+            if tableId == self.tableViewController?.table.table { self.tableViewController?.stateChanged() }
+        }
+    }
+    func moveErrorTableEvent(event: [String: Any]) {
+        DispatchQueue.main.async {
+            let tableId = event["table"] as? Int
+            if tableId == self.tableViewController?.table.table {
+                self.tableViewController?.renjuDecisionRejected(error: event["error"] as? Int ?? 99)
+            }
+        }
+    }
+
     func rejectGoDeadStonesTableEvent(event: [String: Any]) {
         DispatchQueue.main.async {
             let tableId = event["table"] as! Int

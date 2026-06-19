@@ -559,6 +559,8 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
         socket.sendEvent(eventDictionary: RenjuWire.select1(move: move, player: me, table: table.table))
     }
 
+    func renjuDecisionRejected(error: Int) {}  // TEMP stub — fleshed out in Task 10
+
     func stateChanged() {
         setupView?.reloadData()
         board.backgroundColor = table.gameColor(); zoomedBoard.backgroundColor = table.gameColor()
