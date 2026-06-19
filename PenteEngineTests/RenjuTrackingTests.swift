@@ -109,4 +109,16 @@ extension RenjuTrackingTests {
         XCTAssertEqual(t.state.renju.offered, [])
         XCTAssertFalse(t.state.renju.tenOffer)
     }
+    func testCurrentPlayerAfterOpeningIsSeatAlternationNotColour() {
+        let t = started()
+        [112, 113, 97, 98].forEach { t.addMove(move: $0) } // n=4
+        t.applyRenjuSwap(swap: false, move: 129)            // Branch A
+        t.addMove(move: 129)                                // move 5 -> window 5
+        t.applyRenjuSwap(swap: false, move: -1)             // bare decline
+        t.addMove(move: 200)                                // move 6 -> complete
+        XCTAssertTrue(t.state.renju.complete)
+        // opening complete -> renjuOpeningPlayer == nil -> seat fallback 1 + count%2 (NOT 2 - count%2)
+        XCTAssertEqual(t.moves.count, 6)
+        XCTAssertEqual(t.currentPlayer(), 1) // 1 + 6%2 = 1; the buggy 2 - 6%2 would give 2
+    }
 }

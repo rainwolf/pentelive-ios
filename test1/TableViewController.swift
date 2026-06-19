@@ -649,6 +649,8 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
             table.gridSize = 9
         } else if table.game == 23 || table.game == 24 {
             table.gridSize = 13
+        } else if table.isRenju() {
+            table.gridSize = 15
         } else {
             table.gridSize = 19
         }

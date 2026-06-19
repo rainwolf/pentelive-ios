@@ -525,7 +525,7 @@ class Table: NSObject {
             }
         } else if isRenju() {
             if let p = renjuOpeningPlayer(moves.count, state.renju) { return p }
-            return 2 - (moves.count % 2) // black-first normal alternation
+            return 1 + (moves.count % 2) // seat-based alternation
         } else if game != GameEnum.connect6.rawValue && game != GameEnum.speedConnect6.rawValue {
             return 1 + (moves.count % 2)
         } else {

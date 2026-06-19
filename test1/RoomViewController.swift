@@ -797,7 +797,9 @@ class PlayerTableCell: UITableViewCell {
         DispatchQueue.main.async {
             let tableId = event["table"] as? Int
             if tableId == self.tableViewController?.table.table {
-                self.tableViewController?.renjuDecisionRejected(error: event["error"] as? Int ?? 99)
+                if self.tableViewController?.table.isRenju() == true {
+                    self.tableViewController?.renjuDecisionRejected(error: event["error"] as? Int ?? 99)
+                }
             }
         }
     }
