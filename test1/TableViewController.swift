@@ -789,7 +789,7 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
                             alertController.addAction(declinePlaceAction)
                         }
                         if buttons.offer10 {
-                            let offer10Action = UIAlertAction(title: NSLocalizedString("Offer ten 5th moves", comment: ""), style: .default) { _ in
+                            let offer10Action = UIAlertAction(title: NSLocalizedString("offer 10", comment: ""), style: .default) { _ in
                                 self.renjuBoardMode = .offering
                                 self.renjuPicks = []
                                 self.renjuOfferCounterLabel.text = "0/10"
