@@ -268,11 +268,11 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
                                 renjuOfferCounterLabel.text = "\(renjuPicks.count)/10"
                                 renjuOfferCounterLabel.isHidden = false
                                 if renjuPicks.count == 10 {
+                                    // Keep the 10 candidates visible (don't clear) — they persist
+                                    // through SELECTION; stateChanged reaffirms them on the echo.
                                     sendRenjuOffer10(moves: renjuPicks)
                                     renjuBoardMode = .idle
                                     renjuPicks = []
-                                    board.renjuCandidates = []
-                                    zoomedBoard.renjuCandidates = []
                                     renjuOfferCounterLabel.isHidden = true
                                 }
                             }
@@ -763,17 +763,28 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
             let n = table.moves.count
             let t = table.state.renju
             let started = table.state.state == .started
-            // Phase-advance reset: clear mode/picks/candidates when opening has moved on.
             let atDecision = isRenjuSwapChoice(n, t, started) || isRenjuBranchChoice(n, t, started)
             let atSelection = isRenjuSelection(n, t, started)
+            // Reset a board sub-mode once the opening advances past it.
             if (renjuBoardMode == .placing || renjuBoardMode == .offering) && !atDecision {
                 renjuBoardMode = .idle; renjuPicks = []
-                board.renjuCandidates = []; zoomedBoard.renjuCandidates = []
                 renjuOfferCounterLabel.isHidden = true
             }
             if renjuBoardMode == .selecting && !atSelection {
                 renjuBoardMode = .idle; renjuPicks = []
-                board.renjuCandidates = []; zoomedBoard.renjuCandidates = []
+            }
+            // Candidate stones (translucent), driven by phase so BOTH players see them:
+            //  - SELECTION: the 10 offered moves stay visible to the offerer AND the selector
+            //    until white picks one (the offerer must keep seeing what they offered).
+            //  - OFFERING: boardTouch manages the offerer's in-progress picks.
+            //  - otherwise: cleared.
+            let candColor = 2 - (n % 2)
+            if atSelection {
+                if board.renjuCandidates != t.offered { board.renjuCandidateColor = candColor; board.renjuCandidates = t.offered }
+                if zoomedBoard.renjuCandidates != t.offered { zoomedBoard.renjuCandidateColor = candColor; zoomedBoard.renjuCandidates = t.offered }
+            } else if renjuBoardMode != .offering {
+                if !board.renjuCandidates.isEmpty { board.renjuCandidates = [] }
+                if !zoomedBoard.renjuCandidates.isEmpty { zoomedBoard.renjuCandidates = [] }
             }
             if table.currentPlayerName() == me {
                 if atDecision {
@@ -820,13 +831,9 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
                         present(alertController, animated: true)
                     }
                 } else if atSelection {
-                    // Enter selection mode once; set color before candidates (color has no didSet).
+                    // Only the selector (white) can tap; the candidate display is handled above.
                     if renjuBoardMode != .selecting {
                         renjuBoardMode = .selecting
-                        board.renjuCandidateColor = 2 - (n % 2)
-                        board.renjuCandidates = t.offered
-                        zoomedBoard.renjuCandidateColor = 2 - (n % 2)
-                        zoomedBoard.renjuCandidates = t.offered
                         addText(text: NSLocalizedString("Pick one of the 10 offered moves", comment: ""))
                     }
                 }
