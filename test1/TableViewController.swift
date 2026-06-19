@@ -637,7 +637,16 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
     }
 
     func stateChanged() {
-        setupView?.reloadData()
+        // Don't reload the setup view while one of its pickers is being edited: a change echo
+        // (e.g. the game-type change we just sent) would rebuild the cell that owns the active
+        // picker/first-responder, crashing with EXC_BAD_ACCESS (no exception logged). The values
+        // refresh on the next stateChanged once editing ends. Mirrors keyboardWillShowHide's check.
+        let editingSetupPicker = (setupView?.gameCell?.textField.isFirstResponder ?? false)
+            || (setupView?.initialMinutesCell?.textField.isFirstResponder ?? false)
+            || (setupView?.incrementalSecondsCell?.textField.isFirstResponder ?? false)
+        if !editingSetupPicker {
+            setupView?.reloadData()
+        }
         board.backgroundColor = table.gameColor(); zoomedBoard.backgroundColor = table.gameColor()
         board.go = table.isGo(); zoomedBoard.go = table.isGo()
         if table.game == 22 || table.game == 21 {
