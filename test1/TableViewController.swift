@@ -50,6 +50,7 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
     var renjuBoardMode: RenjuBoardMode = .idle
     var renjuPicks: [Int] = []
     var renjuPending = false
+    var renjuOfferCounterLabel = UILabel()
 
     var waitAlertController, invitationAlertController, inviteAlertController: UIAlertController?
     var tablesAndPlayers: TablesAndPlayer!
@@ -160,6 +161,16 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
         zoomedStone.isHidden = true
         view.addSubview(zoomedStone)
 
+        renjuOfferCounterLabel.textAlignment = .center
+        renjuOfferCounterLabel.font = UIFont.boldSystemFont(ofSize: 17)
+        renjuOfferCounterLabel.textColor = UIColor.white
+        renjuOfferCounterLabel.backgroundColor = UIColor(white: 0, alpha: 0.55)
+        renjuOfferCounterLabel.layer.cornerRadius = 6
+        renjuOfferCounterLabel.clipsToBounds = true
+        renjuOfferCounterLabel.isHidden = true
+        renjuOfferCounterLabel.frame = CGRect(x: width - 80, y: width - 38, width: 72, height: 30)
+        view.addSubview(renjuOfferCounterLabel)
+
         if !isArenaTable {
             setupView?.frame = CGRect(x: 0, y: 0, width: 4 * width / 5, height: 314)
         } else {
@@ -186,7 +197,7 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
                 }
             } else {
 //                stone.color = StoneColor(rawValue: table.currentPlayer())!
-                zoomedStone.color = StoneColor(rawValue: table.currentPlayer())!
+                zoomedStone.color = table.isRenju() ? StoneColor(rawValue: 2 - (table.moves.count % 2))! : StoneColor(rawValue: table.currentPlayer())!
             }
 //            stone.setNeedsDisplay()
             zoomedStone.setNeedsDisplay()
@@ -230,7 +241,57 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
 //                stone.isHidden = false
 //                stone.center = CGPoint(x: CGFloat(j)*cellSize + cellSize/2, y: CGFloat(i)*cellSize+cellSize/2)
                 if !((currentPoint.x <= 0) || (currentPoint.x >= board.bounds.size.width) || (currentPoint.y <= 0) || (currentPoint.y >= board.bounds.size.height)) {
-                    sendMove(move: i * gridSize + j)
+                    let idx = i * gridSize + j
+                    if table.isRenju() && renjuBoardMode != .idle {
+                        switch renjuBoardMode {
+                        case .placing:
+                            if withinRenjuBox(idx, radius: renjuBoxRadius(table.moves.count)) {
+                                sendRenjuSwap(swap: false, move: idx)
+                                renjuPending = true
+                                renjuBoardMode = .idle
+                            }
+                        case .offering:
+                            if table.stone(at: idx) == 0 {
+                                let stab = RenjuLiveSymmetry.stabilizer({ self.table.stone(at: $0) })
+                                if let removeIdx = renjuPicks.firstIndex(of: idx) {
+                                    renjuPicks.remove(at: removeIdx)
+                                } else if !RenjuLiveSymmetry.isOfferDup(idx, offers: renjuPicks, stab: stab) {
+                                    renjuPicks.append(idx)
+                                }
+                                board.renjuCandidateColor = 2 - (table.moves.count % 2)
+                                zoomedBoard.renjuCandidateColor = 2 - (table.moves.count % 2)
+                                board.renjuCandidates = renjuPicks
+                                zoomedBoard.renjuCandidates = renjuPicks
+                                renjuOfferCounterLabel.text = "\(renjuPicks.count)/10"
+                                renjuOfferCounterLabel.isHidden = false
+                                if renjuPicks.count == 10 {
+                                    sendRenjuOffer10(moves: renjuPicks)
+                                    renjuPending = true
+                                    renjuBoardMode = .idle
+                                    renjuPicks = []
+                                    board.renjuCandidates = []
+                                    zoomedBoard.renjuCandidates = []
+                                    renjuOfferCounterLabel.isHidden = true
+                                }
+                            }
+                        case .selecting:
+                            if table.state.renju.offered.contains(idx) {
+                                sendRenjuSelect1(move: idx)
+                                renjuPending = true
+                                renjuBoardMode = .idle
+                                board.renjuCandidates = []
+                                zoomedBoard.renjuCandidates = []
+                            }
+                        case .idle:
+                            break
+                        }
+                    } else if table.isRenju() && renjuBoxRadius(table.moves.count) > 0 {
+                        if withinRenjuBox(idx, radius: renjuBoxRadius(table.moves.count)) {
+                            sendMove(move: idx)
+                        }
+                    } else {
+                        sendMove(move: idx)
+                    }
                 }
             } else {
 //                stone.isHidden = true
@@ -564,7 +625,21 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
         socket.sendEvent(eventDictionary: RenjuWire.select1(move: move, player: me, table: table.table))
     }
 
-    func renjuDecisionRejected(error: Int) {}  // TEMP stub — fleshed out in Task 10
+    func renjuDecisionRejected(error: Int) {
+        renjuPending = false
+        renjuBoardMode = .idle
+        renjuPicks = []
+        board.renjuCandidates = []; zoomedBoard.renjuCandidates = []
+        renjuOfferCounterLabel.isHidden = true
+        addText(text: "* Renju move rejected (\(error)) — try again")
+        stateChanged()
+    }
+
+    private func withinRenjuBox(_ idx: Int, radius: Int) -> Bool {
+        if radius == 0 { return true }
+        let x = idx % table.gridSize, y = idx / table.gridSize
+        return abs(x - 7) <= radius && abs(y - 7) <= radius
+    }
 
     func stateChanged() {
         setupView?.reloadData()
@@ -674,6 +749,7 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
             if (renjuBoardMode == .placing || renjuBoardMode == .offering) && !atDecision {
                 renjuBoardMode = .idle; renjuPicks = []
                 board.renjuCandidates = []; zoomedBoard.renjuCandidates = []
+                renjuOfferCounterLabel.isHidden = true
             }
             if renjuBoardMode == .selecting && !atSelection {
                 renjuBoardMode = .idle; renjuPicks = []
@@ -718,6 +794,8 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
                             let offer10Action = UIAlertAction(title: NSLocalizedString("Offer ten 5th moves", comment: ""), style: .default) { _ in
                                 self.renjuBoardMode = .offering
                                 self.renjuPicks = []
+                                self.renjuOfferCounterLabel.text = "0/10"
+                                self.renjuOfferCounterLabel.isHidden = false
                             }
                             alertController.addAction(offer10Action)
                         }
