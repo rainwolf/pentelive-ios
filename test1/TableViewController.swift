@@ -691,7 +691,10 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
                 }
                 alertController.addAction(p2Action)
                 if let popoverController = alertController.popoverPresentationController {
-                    popoverController.barButtonItem = navigationItem.rightBarButtonItems?[isArenaTable ? 0 : 1]
+                    // Anchor the action sheet to the bottom-centre so it doesn't cover the board.
+                    popoverController.sourceView = self.view
+                    popoverController.sourceRect = CGRect(x: self.view.bounds.midX, y: self.view.bounds.maxY, width: 0, height: 0)
+                    popoverController.permittedArrowDirections = []
                 }
                 present(alertController, animated: true)
             }
@@ -715,7 +718,10 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
                 }
                 alertController.addAction(passAction)
                 if let popoverController = alertController.popoverPresentationController {
-                    popoverController.barButtonItem = navigationItem.rightBarButtonItems?[isArenaTable ? 0 : 1]
+                    // Anchor the action sheet to the bottom-centre so it doesn't cover the board.
+                    popoverController.sourceView = self.view
+                    popoverController.sourceRect = CGRect(x: self.view.bounds.midX, y: self.view.bounds.maxY, width: 0, height: 0)
+                    popoverController.permittedArrowDirections = []
                 }
                 present(alertController, animated: true)
             } else if table.isSwap2ChoiceWithoutPassOption(), table.seats[1] != nil, me == table.seats[1]?.name {
@@ -731,7 +737,10 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
                 }
                 alertController.addAction(p2Action)
                 if let popoverController = alertController.popoverPresentationController {
-                    popoverController.barButtonItem = navigationItem.rightBarButtonItems?[isArenaTable ? 0 : 1]
+                    // Anchor the action sheet to the bottom-centre so it doesn't cover the board.
+                    popoverController.sourceView = self.view
+                    popoverController.sourceRect = CGRect(x: self.view.bounds.midX, y: self.view.bounds.maxY, width: 0, height: 0)
+                    popoverController.permittedArrowDirections = []
                 }
                 present(alertController, animated: true)
             }
@@ -756,23 +765,20 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
                 if atDecision {
                     // Guard against re-popping on repeated stateChanged calls (timer ticks, etc.)
                     if presentedViewController == nil && renjuBoardMode == .idle {
-                        let alertController = UIAlertController(title: NSLocalizedString("Renju opening", comment: ""), message: nil, preferredStyle: .actionSheet)
+                        let alertController = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
                         let buttons = renjuModalButtons(n, t, started)
                         if buttons.swap {
-                            let takeOverAction = UIAlertAction(title: NSLocalizedString("Take over", comment: ""), style: .default) { _ in
+                            let takeOverAction = UIAlertAction(title: NSLocalizedString("swap", comment: ""), style: .default) { _ in
                                 self.sendRenjuSwap(swap: true, move: -1)
                             }
                             alertController.addAction(takeOverAction)
                         }
                         if buttons.declinePlace {
-                            let declineTitle: String
-                            if n == 5 {
-                                declineTitle = NSLocalizedString("Decline", comment: "")
-                            } else if isRenjuBranchChoice(n, t, started) || n == 4 {
-                                declineTitle = NSLocalizedString("Place 5th move", comment: "")
-                            } else {
-                                declineTitle = NSLocalizedString("Decline & place", comment: "")
-                            }
+                            // Pure swap windows show "no swap"; the post-take-over BRANCH (no swap
+                            // option) keeps a descriptive label for placing the 5th move.
+                            let declineTitle = buttons.swap
+                                ? NSLocalizedString("no swap", comment: "")
+                                : NSLocalizedString("Place 5th move", comment: "")
                             let declinePlaceAction = UIAlertAction(title: declineTitle, style: .default) { _ in
                                 if n == 5 {
                                     self.sendRenjuSwap(swap: false, move: -1)
@@ -792,7 +798,10 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
                             alertController.addAction(offer10Action)
                         }
                         if let popoverController = alertController.popoverPresentationController {
-                            popoverController.barButtonItem = navigationItem.rightBarButtonItems?[isArenaTable ? 0 : 1]
+                            // Anchor the action sheet to the bottom-centre so it doesn't cover the board.
+                            popoverController.sourceView = self.view
+                            popoverController.sourceRect = CGRect(x: self.view.bounds.midX, y: self.view.bounds.maxY, width: 0, height: 0)
+                            popoverController.permittedArrowDirections = []
                         }
                         present(alertController, animated: true)
                     }

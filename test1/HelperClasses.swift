@@ -263,7 +263,7 @@ class Table: NSObject {
     }
     
     func gameHasCaptures() -> Bool {
-        return game != GameEnum.gomoku.rawValue && game != GameEnum.speedGomoku.rawValue && game != GameEnum.connect6.rawValue && game != GameEnum.speedConnect6.rawValue
+        return game != GameEnum.gomoku.rawValue && game != GameEnum.speedGomoku.rawValue && game != GameEnum.connect6.rawValue && game != GameEnum.speedConnect6.rawValue && game != GameEnum.renju.rawValue && game != GameEnum.speedRenju.rawValue
     }
     
     // Maps the live-room game id (GameEnum 1...30) to the engine variant.
