@@ -249,6 +249,8 @@
 		D4A11111111111111111G001 /* RenjuLiveSymmetry.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4A11111111111111111G002 /* RenjuLiveSymmetry.swift */; };
 		D4A11111111111111111H003 /* RenjuLiveSymmetryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4A11111111111111111H004 /* RenjuLiveSymmetryTests.swift */; };
 		D4A11111111111111111J003 /* RenjuLiveModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4A11111111111111111J004 /* RenjuLiveModelTests.swift */; };
+		D4A11111111111111111K001 /* RenjuWire.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4A11111111111111111K002 /* RenjuWire.swift */; };
+		D4A11111111111111111K003 /* RenjuWire.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4A11111111111111111K002 /* RenjuWire.swift */; };
 		D5EEBF69DF3319F594473C96 /* PenteGameEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C04A941E308F1CBC0804C1A6 /* PenteGameEngineTests.swift */; };
 		D836BAEE88141DCF9CE02CBB /* GoGame.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF08F02CC6ACC370781E5AA6 /* GoGame.swift */; };
 		E4A0EFFD667C8D2A4F318269 /* DashboardEndpoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB0E96BC0C158A9179179CBD /* DashboardEndpoint.swift */; };
@@ -551,6 +553,7 @@
 		D4A11111111111111111G002 /* RenjuLiveSymmetry.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RenjuLiveSymmetry.swift; sourceTree = "<group>"; };
 		D4A11111111111111111H004 /* RenjuLiveSymmetryTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RenjuLiveSymmetryTests.swift; sourceTree = "<group>"; };
 		D4A11111111111111111J004 /* RenjuLiveModelTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RenjuLiveModelTests.swift; sourceTree = "<group>"; };
+		D4A11111111111111111K002 /* RenjuWire.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RenjuWire.swift; sourceTree = "<group>"; };
 		DF79B5FAA47E933A0410E3FD /* DashboardMapping.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DashboardMapping.swift; sourceTree = "<group>"; };
 		E4BA6089918203FB8F929268 /* CorpusSnapshotGeneratorTests.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = CorpusSnapshotGeneratorTests.m; sourceTree = "<group>"; };
 		E5F0539DA310A85158CDB99B /* MoveResultTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MoveResultTests.swift; sourceTree = "<group>"; };
@@ -944,6 +947,7 @@
 				D4A11111111111111111C002 /* RenjuTracking.swift */,
 				D4A11111111111111111E002 /* RenjuOpeningPhase.swift */,
 				D4A11111111111111111G002 /* RenjuLiveSymmetry.swift */,
+				D4A11111111111111111K002 /* RenjuWire.swift */,
 				7050AD4ABDB95FF4BBC49527 /* Scan.swift */,
 				1195B9EE689C773DA39F77AD /* PenteVariant.swift */,
 				9B9AA0E8424F26F770E4D9CD /* MoveResult.swift */,
@@ -1351,6 +1355,7 @@
 				D4A11111111111111111F003 /* RenjuOpeningPhaseTests.swift in Sources */,
 				D4A11111111111111111H003 /* RenjuLiveSymmetryTests.swift in Sources */,
 				D4A11111111111111111J003 /* RenjuLiveModelTests.swift in Sources */,
+				D4A11111111111111111K003 /* RenjuWire.swift in Sources */,
 				6DF419D1BFAAECFD9C12D887 /* RuleSetTests.swift in Sources */,
 				D5EEBF69DF3319F594473C96 /* PenteGameEngineTests.swift in Sources */,
 				06B4B494FB3A1DBAF1123B09 /* PenteGameCorpusTests.swift in Sources */,
@@ -1420,6 +1425,7 @@
 				D4A11111111111111111C001 /* RenjuTracking.swift in Sources */,
 				D4A11111111111111111E001 /* RenjuOpeningPhase.swift in Sources */,
 				D4A11111111111111111G001 /* RenjuLiveSymmetry.swift in Sources */,
+				D4A11111111111111111K001 /* RenjuWire.swift in Sources */,
 				1B5F60CB3000FD275A9797D4 /* Scan.swift in Sources */,
 				ACB8501DE77D92A9A2323746 /* PenteVariant.swift in Sources */,
 				C39BBF8A4B9D391D75E63514 /* MoveResult.swift in Sources */,
