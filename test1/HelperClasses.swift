@@ -90,6 +90,9 @@ class Table: NSObject {
         didSet {
             if game != oldValue {
                 engine = PenteGame(variant: penteVariant(for: game))
+                if game == GameEnum.renju.rawValue || game == GameEnum.speedRenju.rawValue {
+                    gridSize = 15; passMove = 15 * 15
+                }
             }
         }
     }
@@ -276,6 +279,7 @@ class Table: NSObject {
         case .swap2Keryo, .speedSwap2Keryo: return .swap2Keryo
         case .gomoku, .speedGomoku: return .gomoku
         case .connect6, .speedConnect6: return .connect6
+        case .renju, .speedRenju: return .renju
         default: return .pente
         }
     }
@@ -302,9 +306,11 @@ class Table: NSObject {
         // (TableViewController: `hideStone = abstractBoard != 0`) would wrongly block
         // the centre. Rated games and (speed)gPente keep the mask, matching legacy.
         let maskAllowed = rated || game == GameEnum.gPente.rawValue || game == GameEnum.speedGPente.rawValue
-        for r in 0 ..< 19 {
-            for c in 0 ..< 19 {
-                let value = engine.stone(at: r * 19 + c)
+        let dim = isRenju() ? 15 : 19
+        if isRenju() { abstractBoard = Array(repeating: Array(repeating: 0, count: 19), count: 19) }
+        for r in 0 ..< dim {
+            for c in 0 ..< dim {
+                let value = engine.stone(at: r * dim + c)
                 abstractBoard[r][c] = (value == -1 && !maskAllowed) ? 0 : value
             }
         }
@@ -549,15 +555,21 @@ class Table: NSObject {
             return UIColor(red: 0.32, green: 0.75, blue: 0.50, alpha: 1.0)
         } else if game < GameEnum.swap2Keryo.rawValue {
             return UIColor(red: 0.90, green: 0.67, blue: 0.44, alpha: 1.00)
-        } else {
+        } else if game < GameEnum.renju.rawValue {
             return UIColor(red: 0.31, green: 0.78, blue: 0.47, alpha: 1.00)
+        } else {
+            return BoardVariantMapping.backgroundColor(for: .renju, boatPente: false)
         }
     }
     
     func isGo() -> Bool {
         return game >= GameEnum.go.rawValue && game < GameEnum.oPente.rawValue
     }
-    
+
+    func isRenju() -> Bool {
+        return game == GameEnum.renju.rawValue || game == GameEnum.speedRenju.rawValue
+    }
+
     func getGoScoreString() -> String {
         return goGame.scoreString()
     }
