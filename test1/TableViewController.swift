@@ -46,6 +46,15 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
     var popoverView: PopoverView?
     var isArenaTable = false
 
+    enum RenjuBoardMode { case idle, placing, offering, selecting }
+    var renjuBoardMode: RenjuBoardMode = .idle
+    var renjuPicks: [Int] = []
+    // While a sent opening decision awaits its server echo, this holds the "moveCount:phase"
+    // signature of that decision, so stateChanged() neither re-presents the same sheet nor clears
+    // the offered candidates until the echo advances the state. Cleared when the signature changes.
+    var renjuPendingSig: String? = nil
+    var renjuOfferCounterLabel = UILabel()
+
     var waitAlertController, invitationAlertController, inviteAlertController: UIAlertController?
     var tablesAndPlayers: TablesAndPlayer!
     var invitablePlayers: [String]!
@@ -155,6 +164,16 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
         zoomedStone.isHidden = true
         view.addSubview(zoomedStone)
 
+        renjuOfferCounterLabel.textAlignment = .center
+        renjuOfferCounterLabel.font = UIFont.boldSystemFont(ofSize: 17)
+        renjuOfferCounterLabel.textColor = UIColor.white
+        renjuOfferCounterLabel.backgroundColor = UIColor(white: 0, alpha: 0.55)
+        renjuOfferCounterLabel.layer.cornerRadius = 6
+        renjuOfferCounterLabel.clipsToBounds = true
+        renjuOfferCounterLabel.isHidden = true
+        renjuOfferCounterLabel.frame = CGRect(x: width - 80, y: width - 38, width: 72, height: 30)
+        view.addSubview(renjuOfferCounterLabel)
+
         if !isArenaTable {
             setupView?.frame = CGRect(x: 0, y: 0, width: 4 * width / 5, height: 314)
         } else {
@@ -181,7 +200,7 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
                 }
             } else {
 //                stone.color = StoneColor(rawValue: table.currentPlayer())!
-                zoomedStone.color = StoneColor(rawValue: table.currentPlayer())!
+                zoomedStone.color = table.isRenju() ? StoneColor(rawValue: 2 - (table.moves.count % 2))! : StoneColor(rawValue: table.currentPlayer())!
             }
 //            stone.setNeedsDisplay()
             zoomedStone.setNeedsDisplay()
@@ -221,11 +240,66 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
             } else {
                 hideStone = table.abstractBoard[i][j] != 0
             }
+            // During Renju white-selection only the 10 offered cells are selectable; hide the
+            // zoomed ghost stone (and crosshair) elsewhere so the board reads as "pick one of these".
+            if table.isRenju(), renjuBoardMode == .selecting {
+                hideStone = !table.state.renju.offered.contains(i * gridSize + j)
+            }
             if hideBoard, !hideStone {
 //                stone.isHidden = false
 //                stone.center = CGPoint(x: CGFloat(j)*cellSize + cellSize/2, y: CGFloat(i)*cellSize+cellSize/2)
                 if !((currentPoint.x <= 0) || (currentPoint.x >= board.bounds.size.width) || (currentPoint.y <= 0) || (currentPoint.y >= board.bounds.size.height)) {
-                    sendMove(move: i * gridSize + j)
+                    let idx = i * gridSize + j
+                    if table.isRenju() && renjuBoardMode != .idle {
+                        switch renjuBoardMode {
+                        case .placing:
+                            if withinRenjuBox(idx, radius: renjuBoxRadius(table.moves.count)) {
+                                sendRenjuSwap(swap: false, move: idx)
+                                renjuPendingSig = renjuSig()
+                                renjuBoardMode = .idle
+                            }
+                        case .offering:
+                            if table.stone(at: idx) == 0 {
+                                let stab = RenjuLiveSymmetry.stabilizer({ self.table.stone(at: $0) })
+                                if let removeIdx = renjuPicks.firstIndex(of: idx) {
+                                    renjuPicks.remove(at: removeIdx)
+                                } else if !RenjuLiveSymmetry.isOfferDup(idx, offers: renjuPicks, stab: stab) {
+                                    renjuPicks.append(idx)
+                                }
+                                board.renjuCandidateColor = 2 - (table.moves.count % 2)
+                                zoomedBoard.renjuCandidateColor = 2 - (table.moves.count % 2)
+                                board.renjuCandidates = renjuPicks
+                                zoomedBoard.renjuCandidates = renjuPicks
+                                renjuOfferCounterLabel.text = "\(renjuPicks.count)/10"
+                                renjuOfferCounterLabel.isHidden = false
+                                if renjuPicks.count == 10 {
+                                    // Keep the 10 candidates visible (don't clear) — they persist
+                                    // through SELECTION; stateChanged reaffirms them on the echo.
+                                    sendRenjuOffer10(moves: renjuPicks)
+                                    renjuPendingSig = renjuSig()
+                                    renjuBoardMode = .idle
+                                    renjuPicks = []
+                                    renjuOfferCounterLabel.isHidden = true
+                                }
+                            }
+                        case .selecting:
+                            if table.state.renju.offered.contains(idx) {
+                                sendRenjuSelect1(move: idx)
+                                renjuPendingSig = renjuSig()
+                                renjuBoardMode = .idle
+                                // Candidates stay (phase-driven) until the move-5 echo completes
+                                // the opening, then the display logic clears them.
+                            }
+                        case .idle:
+                            break
+                        }
+                    } else if table.isRenju() && renjuBoxRadius(table.moves.count) > 0 {
+                        if withinRenjuBox(idx, radius: renjuBoxRadius(table.moves.count)) {
+                            sendMove(move: idx)
+                        }
+                    } else {
+                        sendMove(move: idx)
+                    }
                 }
             } else {
 //                stone.isHidden = true
@@ -549,14 +623,57 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
         socket.sendEvent(eventDictionary: event)
     }
 
+    func sendRenjuSwap(swap: Bool, move: Int) {
+        socket.sendEvent(eventDictionary: RenjuWire.swap(swap: swap, move: move, player: me, table: table.table))
+    }
+    func sendRenjuOffer10(moves: [Int]) {
+        socket.sendEvent(eventDictionary: RenjuWire.offer10(moves: moves, player: me, table: table.table))
+    }
+    func sendRenjuSelect1(move: Int) {
+        socket.sendEvent(eventDictionary: RenjuWire.select1(move: move, player: me, table: table.table))
+    }
+
+    func renjuDecisionRejected(error: Int) {
+        renjuBoardMode = .idle
+        renjuPicks = []
+        board.renjuCandidates = []; zoomedBoard.renjuCandidates = []
+        renjuOfferCounterLabel.isHidden = true
+        addText(text: "* Renju move rejected (\(error)) — try again")
+        renjuPendingSig = nil
+        stateChanged()
+    }
+
+    // Identity of the current opening decision (move count + derived phase). Suppresses
+    // re-presenting the same decision sheet / clearing candidates until the echo advances it.
+    private func renjuSig() -> String {
+        return "\(table.moves.count):\(renjuPhase(table.moves.count, table.state.renju))"
+    }
+
+    private func withinRenjuBox(_ idx: Int, radius: Int) -> Bool {
+        if radius == 0 { return true }
+        let x = idx % table.gridSize, y = idx / table.gridSize
+        return abs(x - 7) <= radius && abs(y - 7) <= radius
+    }
+
     func stateChanged() {
-        setupView?.reloadData()
+        // Don't reload the setup view while one of its pickers is being edited: a change echo
+        // (e.g. the game-type change we just sent) would rebuild the cell that owns the active
+        // picker/first-responder, crashing with EXC_BAD_ACCESS (no exception logged). The values
+        // refresh on the next stateChanged once editing ends. Mirrors keyboardWillShowHide's check.
+        let editingSetupPicker = (setupView?.gameCell?.textField.isFirstResponder ?? false)
+            || (setupView?.initialMinutesCell?.textField.isFirstResponder ?? false)
+            || (setupView?.incrementalSecondsCell?.textField.isFirstResponder ?? false)
+        if !editingSetupPicker {
+            setupView?.reloadData()
+        }
         board.backgroundColor = table.gameColor(); zoomedBoard.backgroundColor = table.gameColor()
         board.go = table.isGo(); zoomedBoard.go = table.isGo()
         if table.game == 22 || table.game == 21 {
             table.gridSize = 9
         } else if table.game == 23 || table.game == 24 {
             table.gridSize = 13
+        } else if table.isRenju() {
+            table.gridSize = 15
         } else {
             table.gridSize = 19
         }
@@ -602,7 +719,10 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
                 }
                 alertController.addAction(p2Action)
                 if let popoverController = alertController.popoverPresentationController {
-                    popoverController.barButtonItem = navigationItem.rightBarButtonItems?[isArenaTable ? 0 : 1]
+                    // Anchor the action sheet to the bottom-centre so it doesn't cover the board.
+                    popoverController.sourceView = self.view
+                    popoverController.sourceRect = CGRect(x: self.view.bounds.midX, y: self.view.bounds.maxY, width: 0, height: 0)
+                    popoverController.permittedArrowDirections = []
                 }
                 present(alertController, animated: true)
             }
@@ -626,7 +746,10 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
                 }
                 alertController.addAction(passAction)
                 if let popoverController = alertController.popoverPresentationController {
-                    popoverController.barButtonItem = navigationItem.rightBarButtonItems?[isArenaTable ? 0 : 1]
+                    // Anchor the action sheet to the bottom-centre so it doesn't cover the board.
+                    popoverController.sourceView = self.view
+                    popoverController.sourceRect = CGRect(x: self.view.bounds.midX, y: self.view.bounds.maxY, width: 0, height: 0)
+                    popoverController.permittedArrowDirections = []
                 }
                 present(alertController, animated: true)
             } else if table.isSwap2ChoiceWithoutPassOption(), table.seats[1] != nil, me == table.seats[1]?.name {
@@ -642,9 +765,100 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
                 }
                 alertController.addAction(p2Action)
                 if let popoverController = alertController.popoverPresentationController {
-                    popoverController.barButtonItem = navigationItem.rightBarButtonItems?[isArenaTable ? 0 : 1]
+                    // Anchor the action sheet to the bottom-centre so it doesn't cover the board.
+                    popoverController.sourceView = self.view
+                    popoverController.sourceRect = CGRect(x: self.view.bounds.midX, y: self.view.bounds.maxY, width: 0, height: 0)
+                    popoverController.permittedArrowDirections = []
                 }
                 present(alertController, animated: true)
+            }
+        }
+        if table.isRenju() {
+            let n = table.moves.count
+            let t = table.state.renju
+            let started = table.state.state == .started
+            let atDecision = isRenjuSwapChoice(n, t, started) || isRenjuBranchChoice(n, t, started)
+            let atSelection = isRenjuSelection(n, t, started)
+            // A sent decision is no longer pending once the state (moveCount:phase) advances.
+            if let sig = renjuPendingSig, sig != renjuSig() { renjuPendingSig = nil }
+            // Reset a board sub-mode once the opening advances past it.
+            if (renjuBoardMode == .placing || renjuBoardMode == .offering) && !atDecision {
+                renjuBoardMode = .idle; renjuPicks = []
+                renjuOfferCounterLabel.isHidden = true
+            }
+            if renjuBoardMode == .selecting && !atSelection {
+                renjuBoardMode = .idle; renjuPicks = []
+            }
+            // Candidate stones (translucent), driven by phase so BOTH players see them:
+            //  - SELECTION: the 10 offered moves stay visible to the offerer AND the selector
+            //    until white picks one (the offerer must keep seeing what they offered).
+            //  - OFFERING: boardTouch manages the offerer's in-progress picks.
+            //  - otherwise: cleared.
+            let candColor = 2 - (n % 2)
+            if atSelection {
+                if board.renjuCandidates != t.offered { board.renjuCandidateColor = candColor; board.renjuCandidates = t.offered }
+                if zoomedBoard.renjuCandidates != t.offered { zoomedBoard.renjuCandidateColor = candColor; zoomedBoard.renjuCandidates = t.offered }
+            } else if renjuBoardMode != .offering && renjuPendingSig == nil {
+                if !board.renjuCandidates.isEmpty { board.renjuCandidates = [] }
+                if !zoomedBoard.renjuCandidates.isEmpty { zoomedBoard.renjuCandidates = [] }
+            }
+            if table.currentPlayerName() == me {
+                if atDecision {
+                    // Present once: not while a sheet is up, the board is armed, or a just-sent
+                    // decision is still awaiting its echo (renjuPendingSig).
+                    if presentedViewController == nil && renjuBoardMode == .idle && renjuPendingSig == nil {
+                        let alertController = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+                        let buttons = renjuModalButtons(n, t, started)
+                        if buttons.swap {
+                            let takeOverAction = UIAlertAction(title: NSLocalizedString("swap", comment: ""), style: .default) { _ in
+                                self.sendRenjuSwap(swap: true, move: -1)
+                                self.renjuPendingSig = self.renjuSig()
+                            }
+                            alertController.addAction(takeOverAction)
+                        }
+                        if buttons.declinePlace {
+                            // Pure swap windows show "no swap"; the post-take-over BRANCH (no swap
+                            // option) keeps a descriptive label for placing the 5th move.
+                            let declineTitle = buttons.swap
+                                ? NSLocalizedString("no swap", comment: "")
+                                : NSLocalizedString("Place 5th move", comment: "")
+                            let declinePlaceAction = UIAlertAction(title: declineTitle, style: .default) { _ in
+                                if n == 5 {
+                                    self.sendRenjuSwap(swap: false, move: -1)
+                                    self.renjuPendingSig = self.renjuSig()
+                                } else {
+                                    self.renjuBoardMode = .placing
+                                }
+                            }
+                            alertController.addAction(declinePlaceAction)
+                        }
+                        if buttons.offer10 {
+                            let offer10Action = UIAlertAction(title: NSLocalizedString("offer 10", comment: ""), style: .default) { _ in
+                                self.renjuBoardMode = .offering
+                                self.renjuPicks = []
+                                self.renjuOfferCounterLabel.text = "0/10"
+                                self.renjuOfferCounterLabel.isHidden = false
+                            }
+                            alertController.addAction(offer10Action)
+                        }
+                        // Mandatory choice: don't let an outside tap dismiss it.
+                        alertController.isModalInPresentation = true
+                        if let popoverController = alertController.popoverPresentationController {
+                            // Anchor the action sheet to the bottom-centre so it doesn't cover the board.
+                            popoverController.sourceView = self.view
+                            popoverController.sourceRect = CGRect(x: self.view.bounds.midX, y: self.view.bounds.maxY, width: 0, height: 0)
+                            popoverController.permittedArrowDirections = []
+                            popoverController.delegate = self
+                        }
+                        present(alertController, animated: true)
+                    }
+                } else if atSelection {
+                    // Only the selector (white) can tap; the candidate display is handled above.
+                    if renjuBoardMode != .selecting {
+                        renjuBoardMode = .selecting
+                        addText(text: NSLocalizedString("Pick one of the 10 offered moves", comment: ""))
+                    }
+                }
             }
         }
     }

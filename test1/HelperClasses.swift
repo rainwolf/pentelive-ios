@@ -90,6 +90,9 @@ class Table: NSObject {
         didSet {
             if game != oldValue {
                 engine = PenteGame(variant: penteVariant(for: game))
+                if game == GameEnum.renju.rawValue || game == GameEnum.speedRenju.rawValue {
+                    gridSize = 15; passMove = 15 * 15
+                }
             }
         }
     }
@@ -230,6 +233,7 @@ class Table: NSObject {
         lastMoveResult = engine.replay(moves, until: moves.count)
         self.moves = moves
         syncFromEngine()
+        advanceRenjuTracking(isRejoin: true)
     }
 
     func showMarkStones(player: String) -> Bool {
@@ -259,7 +263,7 @@ class Table: NSObject {
     }
     
     func gameHasCaptures() -> Bool {
-        return game != GameEnum.gomoku.rawValue && game != GameEnum.speedGomoku.rawValue && game != GameEnum.connect6.rawValue && game != GameEnum.speedConnect6.rawValue
+        return game != GameEnum.gomoku.rawValue && game != GameEnum.speedGomoku.rawValue && game != GameEnum.connect6.rawValue && game != GameEnum.speedConnect6.rawValue && game != GameEnum.renju.rawValue && game != GameEnum.speedRenju.rawValue
     }
     
     // Maps the live-room game id (GameEnum 1...30) to the engine variant.
@@ -276,6 +280,7 @@ class Table: NSObject {
         case .swap2Keryo, .speedSwap2Keryo: return .swap2Keryo
         case .gomoku, .speedGomoku: return .gomoku
         case .connect6, .speedConnect6: return .connect6
+        case .renju, .speedRenju: return .renju
         default: return .pente
         }
     }
@@ -302,9 +307,11 @@ class Table: NSObject {
         // (TableViewController: `hideStone = abstractBoard != 0`) would wrongly block
         // the centre. Rated games and (speed)gPente keep the mask, matching legacy.
         let maskAllowed = rated || game == GameEnum.gPente.rawValue || game == GameEnum.speedGPente.rawValue
-        for r in 0 ..< 19 {
-            for c in 0 ..< 19 {
-                let value = engine.stone(at: r * 19 + c)
+        let dim = isRenju() ? 15 : 19
+        if isRenju() { abstractBoard = Array(repeating: Array(repeating: 0, count: 19), count: 19) }
+        for r in 0 ..< dim {
+            for c in 0 ..< dim {
+                let value = engine.stone(at: r * dim + c)
                 abstractBoard[r][c] = (value == -1 && !maskAllowed) ? 0 : value
             }
         }
@@ -320,6 +327,7 @@ class Table: NSObject {
         let result = engine.play(move)
         moves.append(move)
         syncFromEngine()
+        advanceRenjuTracking(isRejoin: false)
         lastMoveResult = result
         if !result.captured.isEmpty {
             onCaptures?(result.captured)
@@ -380,9 +388,10 @@ class Table: NSObject {
         goGame = GoGame(gridSize: 19)
         state.dPenteState = .noChoice
         state.swap2State = .noChoice
+        state.renju = RenjuTracking()
         state.goState = .play
     }
-    
+
     func resetTimers() {
         let minutes = timer["initialMinutes"]!
         var seconds = 0
@@ -432,8 +441,50 @@ class Table: NSObject {
             state.dPenteState = .notSwapped
             state.swap2State = .notSwapped
         }
+        if isRenju() {
+            state.renju.awaitingSwap = false
+            state.renju.swapTaken = true
+        }
     }
-    
+
+    // Mirror react utils.js advanceRenjuTrackingAfterMove. isRejoin = bulk resetBoard+replay path
+    // (the decision echoes arrived FIRST, so do not reopen a window they already resolved).
+    func advanceRenjuTracking(isRejoin: Bool) {
+        guard isRenju() else { return }
+        let n = moves.count
+        if !isRejoin { state.renju.swapTaken = false } // incremental move opens a fresh window
+        let windowResolved = state.renju.swapTaken
+            || (n == 4 && (state.renju.branchChosen || state.renju.tenOffer || state.renju.selected != nil))
+        // n>=1: no swap window exists before the auto-placed centre, so awaitingSwap must stay
+        // false at n==0 (else renjuOpeningPlayer(0) computes an out-of-range seat).
+        let windowOpens = !windowResolved && ((n >= 1 && n <= 4) || (n == 5 && !state.renju.tenOffer))
+        state.renju.awaitingSwap = windowOpens
+        state.renju.complete = !windowOpens && n >= 5
+    }
+
+    func applyRenjuSwap(swap: Bool, move: Int) {
+        guard isRenju() else { return }
+        state.renju.awaitingSwap = false
+        // swap=false at the move-4 window continues Branch A; the stone rides the next move event.
+        if swap == false && moves.count == 4 {
+            state.renju.branchChosen = true
+            state.renju.tenOffer = false
+        }
+    }
+
+    func applyRenjuOffer10(moves offers: [Int]) {
+        guard isRenju() else { return }
+        state.renju.branchChosen = true
+        state.renju.tenOffer = true
+        state.renju.offered = offers
+        state.renju.awaitingSwap = false
+    }
+
+    func applyRenjuSelect1(move: Int) {
+        guard isRenju() else { return }
+        state.renju.selected = move
+    }
+
     func swap2Pass(silent _: Bool) {
         state.swap2State = .swap2Pass
     }
@@ -474,6 +525,9 @@ class Table: NSObject {
             } else {
                 return 1 + (moves.count % 2)
             }
+        } else if isRenju() {
+            if let p = renjuOpeningPlayer(moves.count, state.renju) { return p }
+            return 1 + (moves.count % 2) // seat-based alternation
         } else if game != GameEnum.connect6.rawValue && game != GameEnum.speedConnect6.rawValue {
             return 1 + (moves.count % 2)
         } else {
@@ -549,15 +603,21 @@ class Table: NSObject {
             return UIColor(red: 0.32, green: 0.75, blue: 0.50, alpha: 1.0)
         } else if game < GameEnum.swap2Keryo.rawValue {
             return UIColor(red: 0.90, green: 0.67, blue: 0.44, alpha: 1.00)
-        } else {
+        } else if game < GameEnum.renju.rawValue {
             return UIColor(red: 0.31, green: 0.78, blue: 0.47, alpha: 1.00)
+        } else {
+            return BoardVariantMapping.backgroundColor(for: .renju, boatPente: false)
         }
     }
     
     func isGo() -> Bool {
         return game >= GameEnum.go.rawValue && game < GameEnum.oPente.rawValue
     }
-    
+
+    func isRenju() -> Bool {
+        return game == GameEnum.renju.rawValue || game == GameEnum.speedRenju.rawValue
+    }
+
     func getGoScoreString() -> String {
         return goGame.scoreString()
     }
@@ -680,6 +740,7 @@ class GameState: NSObject {
     var dPenteState = DPenteState.noChoice
     var swap2State = Swap2State.noChoice
     var goState = GoState.play
+    var renju = RenjuTracking()
     var timers = [1: ["millis": 0], 2: ["millis": 0]]
 }
 
@@ -790,7 +851,20 @@ class TablesAndPlayer: NSObject {
         let table = tables[tableId]!
         table.swap2Pass(silent: silent)
     }
-    
+
+    func renjuSwap(tableId: Int, swap: Bool, move: Int) {
+        guard let table = tables[tableId] else { return }
+        table.applyRenjuSwap(swap: swap, move: move)
+    }
+    func renjuOffer10(tableId: Int, moves: [Int]) {
+        guard let table = tables[tableId] else { return }
+        table.applyRenjuOffer10(moves: moves)
+    }
+    func renjuSelect1(tableId: Int, move: Int) {
+        guard let table = tables[tableId] else { return }
+        table.applyRenjuSelect1(move: move)
+    }
+
     func invitablePlayersFor(tableId: Int) -> [String] {
         if tables[tableId] == nil {
             return []

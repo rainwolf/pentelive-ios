@@ -482,8 +482,10 @@ class PlayerTableCell: UITableViewCell {
     func addRoomText(event: [String: Any]) {
         let playerName = event["player"] as! String
         let text = event["text"] as! String
-        let player = playersAndTables.players[playerName]!
-        if !player.muted {
+        // Server/system messages come from pseudo-senders (e.g. "game server") that aren't in
+        // the players dict — treat an unknown sender as not-muted instead of force-unwrapping (crash).
+        let player = playersAndTables.players[playerName]
+        if !(player?.muted ?? false) {
             DispatchQueue.main.async {
                 self.addText(text: "\(playerName): \(text)")
             }
@@ -620,15 +622,17 @@ class PlayerTableCell: UITableViewCell {
     func joinTableEvent(event: [String: Any]) {
         let tableId = event["table"] as! Int
         let playerName = event["player"] as! String
+        // The model mutation stays on the socket (background) queue so it remains serialized with
+        // the other handlers that read playersAndTables.tables on that queue (moveTableEvent /
+        // systemMessageTableEvent) — tables is a non-thread-safe Dictionary. Only the UIKit work
+        // (reloadData, TableViewController construction, push) is dispatched to the main thread.
         self.playersAndTables.joinTable(tableId: tableId, player: playerName)
         let table = self.playersAndTables.table(tableId: tableId)
-        self.tableView.reloadData()
-        if playerName == self.me {
-            self.tableViewController = TableViewController(table: table!, socket: self.socket, tablesAndPlayers: self.playersAndTables, pente_player: self.pentePlayer!, me: self.me, isArenaTable: self.isArena)
-            self.tableViewController?.pentePlayer = self.pentePlayer
-        }
         DispatchQueue.main.async {
+            self.tableView.reloadData()
             if playerName == self.me {
+                self.tableViewController = TableViewController(table: table!, socket: self.socket, tablesAndPlayers: self.playersAndTables, pente_player: self.pentePlayer!, me: self.me, isArenaTable: self.isArena)
+                self.tableViewController?.pentePlayer = self.pentePlayer
                 self.navigationController?.pushViewController(self.tableViewController!, animated: true)
             } else {
                 if tableId == self.tableViewController?.table.table {
@@ -767,7 +771,43 @@ class PlayerTableCell: UITableViewCell {
             }
         }
     }
-    
+
+    func renjuSwapTableEvent(event: [String: Any]) {
+        DispatchQueue.main.async {
+            let tableId = event["table"] as! Int
+            let swap = event["swap"] as! Bool
+            let move = event["move"] as! Int
+            self.playersAndTables.renjuSwap(tableId: tableId, swap: swap, move: move)
+            if tableId == self.tableViewController?.table.table { self.tableViewController?.stateChanged() }
+        }
+    }
+    func renjuOffer10TableEvent(event: [String: Any]) {
+        DispatchQueue.main.async {
+            let tableId = event["table"] as! Int
+            let moves = event["moves"] as! [Int]
+            self.playersAndTables.renjuOffer10(tableId: tableId, moves: moves)
+            if tableId == self.tableViewController?.table.table { self.tableViewController?.stateChanged() }
+        }
+    }
+    func renjuSelect1TableEvent(event: [String: Any]) {
+        DispatchQueue.main.async {
+            let tableId = event["table"] as! Int
+            let move = event["move"] as! Int
+            self.playersAndTables.renjuSelect1(tableId: tableId, move: move)
+            if tableId == self.tableViewController?.table.table { self.tableViewController?.stateChanged() }
+        }
+    }
+    func moveErrorTableEvent(event: [String: Any]) {
+        DispatchQueue.main.async {
+            let tableId = event["table"] as? Int
+            if tableId == self.tableViewController?.table.table {
+                if self.tableViewController?.table.isRenju() == true {
+                    self.tableViewController?.renjuDecisionRejected(error: event["error"] as? Int ?? 99)
+                }
+            }
+        }
+    }
+
     func rejectGoDeadStonesTableEvent(event: [String: Any]) {
         DispatchQueue.main.async {
             let tableId = event["table"] as! Int
@@ -918,8 +958,10 @@ class PlayerTableCell: UITableViewCell {
         let playerName = event["player"] as! String
         let text = event["text"] as! String
         let table = event["table"] as! Int
-        let player = playersAndTables.players[playerName]!
-        if table == tableViewController?.table.table, !player.muted {
+        // Server/system messages come from pseudo-senders (e.g. "game server") that aren't in
+        // the players dict — treat an unknown sender as not-muted instead of force-unwrapping (crash).
+        let player = playersAndTables.players[playerName]
+        if table == tableViewController?.table.table, !(player?.muted ?? false) {
             DispatchQueue.main.async {
                 self.tableViewController?.addText(text: "\(playerName): \(text)")
             }
