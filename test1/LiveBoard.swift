@@ -251,6 +251,9 @@ class LiveBoard: UIView {
                 let i = idx / gridSize, j = idx % gridSize
                 circle = CGRect(x: CGFloat(j) * 2 * margin, y: CGFloat(i) * 2 * margin, width: 2 * margin, height: 2 * margin)
                 context.saveGState()
+                // CALayer.render(in:) ignores the view/layer alpha, so apply translucency on the
+                // context itself — otherwise the candidate stones paint as solid (placed) stones.
+                context.setAlpha(0.5)
                 context.translateBy(x: circle.origin.x, y: circle.origin.y)
                 candidateStone.frame = circle
                 candidateStone.layer.cornerRadius = margin

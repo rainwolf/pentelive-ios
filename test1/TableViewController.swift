@@ -49,6 +49,10 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
     enum RenjuBoardMode { case idle, placing, offering, selecting }
     var renjuBoardMode: RenjuBoardMode = .idle
     var renjuPicks: [Int] = []
+    // While a sent opening decision awaits its server echo, this holds the "moveCount:phase"
+    // signature of that decision, so stateChanged() neither re-presents the same sheet nor clears
+    // the offered candidates until the echo advances the state. Cleared when the signature changes.
+    var renjuPendingSig: String? = nil
     var renjuOfferCounterLabel = UILabel()
 
     var waitAlertController, invitationAlertController, inviteAlertController: UIAlertController?
@@ -251,6 +255,7 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
                         case .placing:
                             if withinRenjuBox(idx, radius: renjuBoxRadius(table.moves.count)) {
                                 sendRenjuSwap(swap: false, move: idx)
+                                renjuPendingSig = renjuSig()
                                 renjuBoardMode = .idle
                             }
                         case .offering:
@@ -271,6 +276,7 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
                                     // Keep the 10 candidates visible (don't clear) — they persist
                                     // through SELECTION; stateChanged reaffirms them on the echo.
                                     sendRenjuOffer10(moves: renjuPicks)
+                                    renjuPendingSig = renjuSig()
                                     renjuBoardMode = .idle
                                     renjuPicks = []
                                     renjuOfferCounterLabel.isHidden = true
@@ -279,9 +285,10 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
                         case .selecting:
                             if table.state.renju.offered.contains(idx) {
                                 sendRenjuSelect1(move: idx)
+                                renjuPendingSig = renjuSig()
                                 renjuBoardMode = .idle
-                                board.renjuCandidates = []
-                                zoomedBoard.renjuCandidates = []
+                                // Candidates stay (phase-driven) until the move-5 echo completes
+                                // the opening, then the display logic clears them.
                             }
                         case .idle:
                             break
@@ -632,7 +639,14 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
         board.renjuCandidates = []; zoomedBoard.renjuCandidates = []
         renjuOfferCounterLabel.isHidden = true
         addText(text: "* Renju move rejected (\(error)) — try again")
+        renjuPendingSig = nil
         stateChanged()
+    }
+
+    // Identity of the current opening decision (move count + derived phase). Suppresses
+    // re-presenting the same decision sheet / clearing candidates until the echo advances it.
+    private func renjuSig() -> String {
+        return "\(table.moves.count):\(renjuPhase(table.moves.count, table.state.renju))"
     }
 
     private func withinRenjuBox(_ idx: Int, radius: Int) -> Bool {
@@ -765,6 +779,8 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
             let started = table.state.state == .started
             let atDecision = isRenjuSwapChoice(n, t, started) || isRenjuBranchChoice(n, t, started)
             let atSelection = isRenjuSelection(n, t, started)
+            // A sent decision is no longer pending once the state (moveCount:phase) advances.
+            if let sig = renjuPendingSig, sig != renjuSig() { renjuPendingSig = nil }
             // Reset a board sub-mode once the opening advances past it.
             if (renjuBoardMode == .placing || renjuBoardMode == .offering) && !atDecision {
                 renjuBoardMode = .idle; renjuPicks = []
@@ -782,19 +798,21 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
             if atSelection {
                 if board.renjuCandidates != t.offered { board.renjuCandidateColor = candColor; board.renjuCandidates = t.offered }
                 if zoomedBoard.renjuCandidates != t.offered { zoomedBoard.renjuCandidateColor = candColor; zoomedBoard.renjuCandidates = t.offered }
-            } else if renjuBoardMode != .offering {
+            } else if renjuBoardMode != .offering && renjuPendingSig == nil {
                 if !board.renjuCandidates.isEmpty { board.renjuCandidates = [] }
                 if !zoomedBoard.renjuCandidates.isEmpty { zoomedBoard.renjuCandidates = [] }
             }
             if table.currentPlayerName() == me {
                 if atDecision {
-                    // Guard against re-popping on repeated stateChanged calls (timer ticks, etc.)
-                    if presentedViewController == nil && renjuBoardMode == .idle {
+                    // Present once: not while a sheet is up, the board is armed, or a just-sent
+                    // decision is still awaiting its echo (renjuPendingSig).
+                    if presentedViewController == nil && renjuBoardMode == .idle && renjuPendingSig == nil {
                         let alertController = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
                         let buttons = renjuModalButtons(n, t, started)
                         if buttons.swap {
                             let takeOverAction = UIAlertAction(title: NSLocalizedString("swap", comment: ""), style: .default) { _ in
                                 self.sendRenjuSwap(swap: true, move: -1)
+                                self.renjuPendingSig = self.renjuSig()
                             }
                             alertController.addAction(takeOverAction)
                         }
@@ -807,6 +825,7 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
                             let declinePlaceAction = UIAlertAction(title: declineTitle, style: .default) { _ in
                                 if n == 5 {
                                     self.sendRenjuSwap(swap: false, move: -1)
+                                    self.renjuPendingSig = self.renjuSig()
                                 } else {
                                     self.renjuBoardMode = .placing
                                 }

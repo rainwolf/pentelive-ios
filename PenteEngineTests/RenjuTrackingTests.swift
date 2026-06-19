@@ -121,4 +121,15 @@ extension RenjuTrackingTests {
         XCTAssertEqual(t.moves.count, 6)
         XCTAssertEqual(t.currentPlayer(), 1) // 1 + 6%2 = 1; the buggy 2 - 6%2 would give 2
     }
+
+    // Regression (review #3): no swap window exists before the auto-placed centre. A bulk replay
+    // of an empty move list must leave awaitingSwap=false so renjuOpeningPlayer(0) doesn't compute
+    // the out-of-range seat 3 (Swift -1 % 2 == -1).
+    func testNoSwapWindowAtZeroMoves() {
+        let t = started()
+        t.addMoves(moves: [])
+        XCTAssertFalse(t.state.renju.awaitingSwap)
+        XCTAssertNotEqual(t.currentPlayer(), 3)
+        XCTAssertEqual(t.currentPlayer(), 1)
+    }
 }

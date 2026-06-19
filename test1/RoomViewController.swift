@@ -622,13 +622,13 @@ class PlayerTableCell: UITableViewCell {
     func joinTableEvent(event: [String: Any]) {
         let tableId = event["table"] as! Int
         let playerName = event["player"] as! String
-        // All UIKit work (reloadData, TableViewController construction, push) must run on the
-        // main thread — processEvent runs on the GCDAsyncSocket background queue. The model
-        // mutation goes on main too so it stays serialized with the reads, matching the sibling
-        // handlers (moveTableEvent / swapSeatsTableEvent / …).
+        // The model mutation stays on the socket (background) queue so it remains serialized with
+        // the other handlers that read playersAndTables.tables on that queue (moveTableEvent /
+        // systemMessageTableEvent) — tables is a non-thread-safe Dictionary. Only the UIKit work
+        // (reloadData, TableViewController construction, push) is dispatched to the main thread.
+        self.playersAndTables.joinTable(tableId: tableId, player: playerName)
+        let table = self.playersAndTables.table(tableId: tableId)
         DispatchQueue.main.async {
-            self.playersAndTables.joinTable(tableId: tableId, player: playerName)
-            let table = self.playersAndTables.table(tableId: tableId)
             self.tableView.reloadData()
             if playerName == self.me {
                 self.tableViewController = TableViewController(table: table!, socket: self.socket, tablesAndPlayers: self.playersAndTables, pente_player: self.pentePlayer!, me: self.me, isArenaTable: self.isArena)

@@ -455,7 +455,9 @@ class Table: NSObject {
         if !isRejoin { state.renju.swapTaken = false } // incremental move opens a fresh window
         let windowResolved = state.renju.swapTaken
             || (n == 4 && (state.renju.branchChosen || state.renju.tenOffer || state.renju.selected != nil))
-        let windowOpens = !windowResolved && (n <= 4 || (n == 5 && !state.renju.tenOffer))
+        // n>=1: no swap window exists before the auto-placed centre, so awaitingSwap must stay
+        // false at n==0 (else renjuOpeningPlayer(0) computes an out-of-range seat).
+        let windowOpens = !windowResolved && ((n >= 1 && n <= 4) || (n == 5 && !state.renju.tenOffer))
         state.renju.awaitingSwap = windowOpens
         state.renju.complete = !windowOpens && n >= 5
     }
