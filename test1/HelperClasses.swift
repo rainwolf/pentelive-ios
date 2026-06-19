@@ -233,6 +233,7 @@ class Table: NSObject {
         lastMoveResult = engine.replay(moves, until: moves.count)
         self.moves = moves
         syncFromEngine()
+        advanceRenjuTracking(isRejoin: true)
     }
 
     func showMarkStones(player: String) -> Bool {
@@ -326,6 +327,7 @@ class Table: NSObject {
         let result = engine.play(move)
         moves.append(move)
         syncFromEngine()
+        advanceRenjuTracking(isRejoin: false)
         lastMoveResult = result
         if !result.captured.isEmpty {
             onCaptures?(result.captured)
@@ -386,9 +388,10 @@ class Table: NSObject {
         goGame = GoGame(gridSize: 19)
         state.dPenteState = .noChoice
         state.swap2State = .noChoice
+        state.renju = RenjuTracking()
         state.goState = .play
     }
-    
+
     func resetTimers() {
         let minutes = timer["initialMinutes"]!
         var seconds = 0
@@ -438,8 +441,48 @@ class Table: NSObject {
             state.dPenteState = .notSwapped
             state.swap2State = .notSwapped
         }
+        if isRenju() {
+            state.renju.awaitingSwap = false
+            state.renju.swapTaken = true
+        }
     }
-    
+
+    // Mirror react utils.js advanceRenjuTrackingAfterMove. isRejoin = bulk resetBoard+replay path
+    // (the decision echoes arrived FIRST, so do not reopen a window they already resolved).
+    func advanceRenjuTracking(isRejoin: Bool) {
+        guard isRenju() else { return }
+        let n = moves.count
+        if !isRejoin { state.renju.swapTaken = false } // incremental move opens a fresh window
+        let windowResolved = state.renju.swapTaken
+            || (n == 4 && (state.renju.branchChosen || state.renju.tenOffer || state.renju.selected != nil))
+        let windowOpens = !windowResolved && (n <= 4 || (n == 5 && !state.renju.tenOffer))
+        state.renju.awaitingSwap = windowOpens
+        state.renju.complete = !windowOpens && n >= 5
+    }
+
+    func applyRenjuSwap(swap: Bool, move: Int) {
+        guard isRenju() else { return }
+        state.renju.awaitingSwap = false
+        // swap=false at the move-4 window continues Branch A; the stone rides the next move event.
+        if swap == false && moves.count == 4 {
+            state.renju.branchChosen = true
+            state.renju.tenOffer = false
+        }
+    }
+
+    func applyRenjuOffer10(moves offers: [Int]) {
+        guard isRenju() else { return }
+        state.renju.branchChosen = true
+        state.renju.tenOffer = true
+        state.renju.offered = offers
+        state.renju.awaitingSwap = false
+    }
+
+    func applyRenjuSelect1(move: Int) {
+        guard isRenju() else { return }
+        state.renju.selected = move
+    }
+
     func swap2Pass(silent _: Bool) {
         state.swap2State = .swap2Pass
     }
@@ -480,6 +523,9 @@ class Table: NSObject {
             } else {
                 return 1 + (moves.count % 2)
             }
+        } else if isRenju() {
+            if let p = renjuOpeningPlayer(moves.count, state.renju) { return p }
+            return 2 - (moves.count % 2) // black-first normal alternation
         } else if game != GameEnum.connect6.rawValue && game != GameEnum.speedConnect6.rawValue {
             return 1 + (moves.count % 2)
         } else {
