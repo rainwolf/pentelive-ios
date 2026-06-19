@@ -262,6 +262,10 @@ class TableSetupView: UITableView, UITableViewDelegate, UITableViewDataSource, U
             incrementalSecondsCell?.textField.text = "\(row)"
             table.timer.updateValue(row, forKey: "incrementalSeconds")
         }
+        // Non-arena tables push settings on every change (matching the private/rated/timed
+        // row toggles); the game/timer pickers previously only sent on dismiss, so a game-type
+        // change (e.g. to Renju) never reached the server.
+        updateSettings()
     }
 
     func updateSettings() {
