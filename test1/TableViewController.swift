@@ -236,6 +236,11 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
             } else {
                 hideStone = table.abstractBoard[i][j] != 0
             }
+            // During Renju white-selection only the 10 offered cells are selectable; hide the
+            // zoomed ghost stone (and crosshair) elsewhere so the board reads as "pick one of these".
+            if table.isRenju(), renjuBoardMode == .selecting {
+                hideStone = !table.state.renju.offered.contains(i * gridSize + j)
+            }
             if hideBoard, !hideStone {
 //                stone.isHidden = false
 //                stone.center = CGPoint(x: CGFloat(j)*cellSize + cellSize/2, y: CGFloat(i)*cellSize+cellSize/2)
