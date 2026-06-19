@@ -680,6 +680,7 @@ class GameState: NSObject {
     var dPenteState = DPenteState.noChoice
     var swap2State = Swap2State.noChoice
     var goState = GoState.play
+    var renju = RenjuTracking()
     var timers = [1: ["millis": 0], 2: ["millis": 0]]
 }
 
