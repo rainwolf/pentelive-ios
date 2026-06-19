@@ -21,6 +21,8 @@ class LiveBoard: UIView {
     var goDeadStones: [Int: [Int]]?
     let whiteSquare = UIView(), blackSquare = UIView()
     var gridSize = 19
+    var renjuCandidates: [Int] = [] { didSet { setNeedsDisplay() } }
+    var renjuCandidateColor: Int = 2
 
     init(table: Table) {
         self.table = table
@@ -93,25 +95,41 @@ class LiveBoard: UIView {
         }
         var circle: CGRect
         if !go {
-            // draw the 5 little special circles
-            circle = CGRect(x: margin + 12 * margin - margin / 2, y: margin + 12 * margin - margin / 2, width: margin, height: margin)
-            context.addEllipse(in: circle)
-            context.strokePath()
-            circle.origin.x = bounds.size.width - margin - 12 * margin - margin / 2
-            context.addEllipse(in: circle)
-            context.strokePath()
-            circle.origin.x = bounds.size.width - margin - 12 * margin - margin / 2
-            circle.origin.y = bounds.size.width - margin - 12 * margin - margin / 2
-            context.addEllipse(in: circle)
-            context.strokePath()
-            circle.origin.x = margin + 12 * margin - margin / 2
-            circle.origin.y = bounds.size.width - margin - 12 * margin - margin / 2
-            context.addEllipse(in: circle)
-            context.strokePath()
-            circle.origin.x = bounds.size.width / 2 - margin / 2
-            circle.origin.y = bounds.size.width / 2 - margin / 2
-            context.addEllipse(in: circle)
-            context.strokePath()
+            if gridSize == 19 {
+                // draw the 5 little special circles (19×19 Pente layout)
+                circle = CGRect(x: margin + 12 * margin - margin / 2, y: margin + 12 * margin - margin / 2, width: margin, height: margin)
+                context.addEllipse(in: circle)
+                context.strokePath()
+                circle.origin.x = bounds.size.width - margin - 12 * margin - margin / 2
+                context.addEllipse(in: circle)
+                context.strokePath()
+                circle.origin.x = bounds.size.width - margin - 12 * margin - margin / 2
+                circle.origin.y = bounds.size.width - margin - 12 * margin - margin / 2
+                context.addEllipse(in: circle)
+                context.strokePath()
+                circle.origin.x = margin + 12 * margin - margin / 2
+                circle.origin.y = bounds.size.width - margin - 12 * margin - margin / 2
+                context.addEllipse(in: circle)
+                context.strokePath()
+                circle.origin.x = bounds.size.width / 2 - margin / 2
+                circle.origin.y = bounds.size.width / 2 - margin / 2
+                context.addEllipse(in: circle)
+                context.strokePath()
+            } else if gridSize == 15 {
+                // draw 9 filled star-point dots at rows/cols {3, 7, 11} (15×15 Renju layout)
+                // indices: [48,52,56, 108,112,116, 168,172,176]
+                let starLines: [CGFloat] = [3.0, 7.0, 11.0]
+                for row in starLines {
+                    for col in starLines {
+                        circle = CGRect(x: margin + 2 * col * margin - margin / 4,
+                                        y: margin + 2 * row * margin - margin / 4,
+                                        width: margin / 2,
+                                        height: margin / 2)
+                        context.addEllipse(in: circle)
+                        context.fillPath()
+                    }
+                }
+            }
         } else {
             let c = floor(CGFloat(gridSize / 2))
             let gridSizeFloat = CGFloat(gridSize)
@@ -223,6 +241,23 @@ class LiveBoard: UIView {
                 blackSquare.layer.render(in: context)
                 context.restoreGState()
             }
+        }
+
+        if !renjuCandidates.isEmpty {
+            let candidateStone = renjuCandidateColor == StoneColor.white.rawValue ? whiteStone! : blackStone!
+            let savedAlpha = candidateStone.alpha
+            candidateStone.alpha = 0.5
+            for idx in renjuCandidates {
+                let i = idx / gridSize, j = idx % gridSize
+                circle = CGRect(x: CGFloat(j) * 2 * margin, y: CGFloat(i) * 2 * margin, width: 2 * margin, height: 2 * margin)
+                context.saveGState()
+                context.translateBy(x: circle.origin.x, y: circle.origin.y)
+                candidateStone.frame = circle
+                candidateStone.layer.cornerRadius = margin
+                candidateStone.layer.render(in: context)
+                context.restoreGState()
+            }
+            candidateStone.alpha = savedAlpha
         }
 
         let lastMove = table.lastMove()
