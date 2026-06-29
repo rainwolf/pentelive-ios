@@ -1026,18 +1026,20 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
 }
 
 - (BOOL)renjuOfferWouldDuplicate:(int)move {
-    NSMutableSet<NSNumber *> *accepted = [NSMutableSet set];
-    for (NSNumber *m in self.renjuPickedOffers) {
-        for (NSNumber *img in [RenjuOfferSymmetry d4ImagesOf:m.intValue]) {
-            [accepted addObject:img];
-        }
+    // Shape-relative dedup: two offers collide only when a symmetry that maps the 4 placed
+    // opening stones onto themselves (colour-for-colour) maps one onto the other. The placed
+    // shape lives in abstractBoard (0 empty, 1 white, 2 black, -1 masked — only >0 cells
+    // count as stones), so hand the whole board plus the already-picked offers to the shared
+    // RenjuLiveSymmetry algorithm via the RenjuOfferSymmetry @objc bridge.
+    int n = gridSize * gridSize;
+    NSMutableArray<NSNumber *> *board = [NSMutableArray arrayWithCapacity:n];
+    for (int p = 0; p < n; p++) {
+        [board addObject:@(abstractBoard[p / gridSize][p % gridSize])];
     }
-    for (NSNumber *img in [RenjuOfferSymmetry d4ImagesOf:move]) {
-        if ([accepted containsObject:img]) {
-            return YES;
-        }
-    }
-    return NO;
+    return [RenjuOfferSymmetry wouldDuplicate:move
+                                       offers:self.renjuPickedOffers
+                                        board:board
+                                         size:gridSize];
 }
 
 - (IBAction)boardTap:(UILongPressGestureRecognizer *)recognizer {
