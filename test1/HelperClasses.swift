@@ -444,6 +444,17 @@ class Table: NSObject {
         if isRenju() {
             state.renju.awaitingSwap = false
             state.renju.swapTaken = true
+            // The live server delivers a move-4 TAKE-OVER as this seat-swap event
+            // (dsgSwapSeatsTableEvent), NOT as a renju decision echo. A seat swap only ever fires
+            // on a take-over (a decline changes no seats), so moves.count == 4 here unambiguously
+            // means "took over move 4" -> commit Branch A (Taraguchi-10): the swapped-in player
+            // just rides the next move event and must NOT be re-presented the Offer-10 / Branch-B
+            // choice. Take-overs at the n=1..3 windows only swap seats and reopen the window, so
+            // the branch commit is gated on move 4.
+            if moves.count == 4 {
+                state.renju.branchChosen = true
+                state.renju.tenOffer = false
+            }
         }
     }
 
@@ -453,6 +464,16 @@ class Table: NSObject {
         guard isRenju() else { return }
         let n = moves.count
         if !isRejoin { state.renju.swapTaken = false } // incremental move opens a fresh window
+        // A reconstructed take-over (a silent seat swap already applied -> swapTaken) at the
+        // move-4 window commits Branch A on rejoin, matching the live seat-swap handler. This is
+        // order-independent: if the bulk state-sync applied the swap before the four moves loaded,
+        // swapTaken was set while moves.count was still 0 in swapSeats, so we finish the Branch-A
+        // commit here. swapTaken is reset above on every incremental move, so this fires on the
+        // rejoin/replay path only and never re-triggers during normal live play.
+        if n == 4 && state.renju.swapTaken {
+            state.renju.branchChosen = true
+            state.renju.tenOffer = false
+        }
         let windowResolved = state.renju.swapTaken
             || (n == 4 && (state.renju.branchChosen || state.renju.tenOffer || state.renju.selected != nil))
         // n>=1: no swap window exists before the auto-placed centre, so awaitingSwap must stay
