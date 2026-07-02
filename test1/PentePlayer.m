@@ -7,6 +7,7 @@
 //
 
 #import "PentePlayer.h"
+#import "penteLive-Swift.h"
 @import AFNetworking;
 
 // Reads the compile-time `development` macro (PentePlayer.h) so Swift, which
@@ -17,6 +18,7 @@ BOOL developmentEnabled(void) { return development; }
 @synthesize setID;
 @synthesize gameID;
 @synthesize gameType;
+@synthesize gameKind = _gameKind;
 @synthesize opponentName;
 @synthesize opponentRating;
 @synthesize myColor;
@@ -27,6 +29,11 @@ BOOL developmentEnabled(void) { return development; }
 @synthesize privateGame;
 @synthesize nameColor;
 @synthesize crown;
+
+- (void)setGameType:(NSString *)newGameType {
+    gameType = newGameType;
+    _gameKind = newGameType ? [[GameKind alloc] initWithGameType:newGameType] : nil;
+}
 
 - (NSString *)localizedTimeString {
     if (!localizedTime) {

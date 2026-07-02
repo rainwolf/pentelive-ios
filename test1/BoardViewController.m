@@ -455,7 +455,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
         }
         return;
     }
-    if ([game.gameType hasPrefix:@"Swap2-"]) {
+    if (game.gameKind.isSwap2) {
         dPenteChoice = NO;
         finalMove = 0;
         swap2PlayP1 = YES;
@@ -541,7 +541,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
         }
         return;
     }
-    if ([game.gameType hasPrefix:@"Swap2-"]) {
+    if (game.gameKind.isSwap2) {
         [player1Button setHidden:YES];
         [player2Button setHidden:YES];
         [dPenteChoiceLabel setHidden:YES];
@@ -632,7 +632,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
         whiteCaptures = 0;
         blackCaptures = 0;
         ++lastMove;
-        if ([[self.game gameType] isEqualToString:@"Connect6"]) {
+        if (self.game.gameKind.isConnect6) {
             ++lastMove;
         }
         [self replayGame:lastMove];
@@ -738,7 +738,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
         blackCaptures = 0;
         [stone setHidden:YES];
         --lastMove;
-        if ([[self.game gameType] isEqualToString:@"Connect6"]) {
+        if (self.game.gameKind.isConnect6) {
             --lastMove;
         }
         [self replayGame:lastMove];
@@ -1043,6 +1043,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
 }
 
 - (IBAction)boardTap:(UILongPressGestureRecognizer *)recognizer {
+    GameKind *kind = self.game.gameKind;
     if (dPenteChoice && [submitButton isHidden]) {
         return;
     }
@@ -1388,14 +1389,10 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
             stone.center = CGPointMake(cellSize * j + cellSize / 2,
                                        cellSize * i + cellSize / 2);
 
-            if (!([[self.game gameType] isEqualToString:@"Connect6"] &&
-                  (connect6Move1 == -1)) &&
-                !(dPenteOpening &&
-                  ([[self.game gameType] isEqualToString:@"D-Pente"] ||
-                   [[self.game gameType] isEqualToString:@"DK-Pente"]) &&
-                  (dPenteMove3 == -1))) {
+            if (!(kind.isConnect6 && (connect6Move1 == -1)) &&
+                !(dPenteOpening && kind.isDOpening && (dPenteMove3 == -1))) {
                 [submitButton setEnabled:YES];
-                if ([[self.game gameType] isEqualToString:@"Connect6"]) {
+                if (kind.isConnect6) {
                     [submitButton
                         setTitle:[NSString
                                      stringWithFormat:
@@ -1406,10 +1403,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                                          coordinateLetters[finalMove % gridSize],
                                          gridSize - (finalMove / gridSize)]
                         forState:UIControlStateNormal];
-                } else if (([[self.game gameType] isEqualToString:@"D-Pente"] ||
-                            [[self.game gameType]
-                                isEqualToString:@"DK-Pente"]) &&
-                           dPenteOpening) {
+                } else if (kind.isDOpening && dPenteOpening) {
                     [submitButton
                         setTitle:[NSString
                                      stringWithFormat:
@@ -1440,7 +1434,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
             }
 
             [stone setHidden:NO];
-            if ([[self.game gameType] isEqualToString:@"Connect6"]) {
+            if (kind.isConnect6) {
                 if (connect6Move1 == -1) {
                     connect6Move1 = finalMove;
                     if ([[self.game myColor] isEqualToString:@"white"]) {
@@ -1452,9 +1446,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                     connect6Move2 = finalMove;
                 }
             }
-            if (dPenteOpening &&
-                ([[self.game gameType] isEqualToString:@"D-Pente"] ||
-                 [[self.game gameType] isEqualToString:@"DK-Pente"])) {
+            if (dPenteOpening && kind.isDOpening) {
                 if (dPenteMove1 == -1) {
                     dPenteMove1 = finalMove;
                     abstractBoard[i][j] = 1;
@@ -1520,7 +1512,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                     [self detectCaptureOfOpponent:1 atPosition:finalMove];
                 }
             }
-            if (swap2Opening && [[self.game gameType] hasPrefix:@"Swap2-"]) {
+            if (swap2Opening && kind.isSwap2) {
                 if (swap2Move1 == -1) {
                     swap2Move1 = finalMove;
                     abstractBoard[i][j] = 1;
@@ -1565,8 +1557,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                         forState:UIControlStateNormal];
                 }
             }
-            if (swap2WillPass && [[self.game gameType] hasPrefix:@"Swap2-"] &&
-                [movesList count] == 3) {
+            if (swap2WillPass && kind.isSwap2 && [movesList count] == 3) {
                 if (swap2Move1 == -1) {
                     swap2Move1 = finalMove;
                     abstractBoard[i][j] = 2;
@@ -1603,16 +1594,14 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                     [self addGoMove:finalMove];
                     [self updateCaptures];
                 }
-            } else if (!([[self.game gameType] isEqualToString:@"Connect6"] ||
-                         [[self.game gameType] isEqualToString:@"Gomoku"])) {
-                if ([[self.game gameType] isEqualToString:@"Poof-Pente"] ||
-                    [[self.game gameType] isEqualToString:@"O-Pente"]) {
+            } else if (!(kind.isConnect6 || kind.isGomoku)) {
+                if (kind.hasPoof) {
                     if ([self detectPoof:(stone.stoneColor == BLACK ? 2 : 1)
                               atPosition:finalMove]) {
                         [stone setHidden:YES];
                     }
                 }
-                if ([[self.game gameType] isEqualToString:@"O-Pente"]) {
+                if (kind.isOPente) {
                     if ([self
                             detectKeryoPoof:(stone.stoneColor == BLACK ? 2 : 1)
                                  atPosition:finalMove]) {
@@ -1622,9 +1611,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                 [self
                     detectCaptureOfOpponent:(stone.stoneColor == BLACK ? 1 : 2)
                                  atPosition:finalMove];
-                if ([[self.game gameType] containsString:@"Keryo-Pente"] ||
-                    [[self.game gameType] isEqualToString:@"DK-Pente"] ||
-                    [[self.game gameType] isEqualToString:@"O-Pente"]) {
+                if (kind.isKeryoCaptureFamily) {
                     [self
                         detectKeryoCaptureOfOpponent:(stone.stoneColor == BLACK
                                                           ? 1
@@ -1831,28 +1818,27 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
 
     NSString *moveString;
     NSString *renjuAction = nil;
-    BOOL isRenju = [self.game.gameType containsString:@"Renju"];
+    GameKind *kind = self.game.gameKind;
+    BOOL isRenju = kind.isRenju;
     if (isRenju) {
         NSString *renjuMoves = nil;
         renjuAction = [self renjuActionForCurrentPhaseFillingMoves:&renjuMoves];
         moveString = renjuMoves;
     } else
-    if ([[self.game gameType] isEqualToString:@"Connect6"] &&
+    if (kind.isConnect6 &&
         (connect6Move1 != -1) && (connect6Move2 != -1)) {
         moveString =
             [NSString stringWithFormat:@"%i,%i", connect6Move1, connect6Move2];
-    } else if (([[self.game gameType] isEqualToString:@"D-Pente"] ||
-                [[self.game gameType] isEqualToString:@"DK-Pente"]) &&
+    } else if (kind.isDOpening &&
                (dPenteMove1 != -1) && (dPenteMove2 != -1) &&
                (dPenteMove3 != -1) && (dPenteMove4 != -1) && dPenteOpening) {
         moveString =
             [NSString stringWithFormat:@"%i,%i,%i,%i,", dPenteMove1,
                                        dPenteMove2, dPenteMove3, dPenteMove4];
-    } else if (([[self.game gameType] isEqualToString:@"D-Pente"] ||
-                [[self.game gameType] isEqualToString:@"DK-Pente"]) &&
+    } else if (kind.isDOpening &&
                (finalMove != -1) && dPenteChoice) {
         moveString = [NSString stringWithFormat:@"1,%i", finalMove];
-    } else if ([[self.game gameType] hasPrefix:@"Swap2-"] &&
+    } else if (kind.isSwap2 &&
                (swap2Opening || swap2WillPass || swap2Choice)) {
         if (swap2Opening && swap2Move1 != -1 && swap2Move2 != -1 &&
             swap2Move3 != -1) {
@@ -1955,8 +1941,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                  [response isKindOfClass:[NSHTTPURLResponse class]]
                      ? ((NSHTTPURLResponse *)response).statusCode
                      : 200;
-             BOOL respIsRenju =
-                 [strongSelf.game.gameType containsString:@"Renju"];
+             BOOL respIsRenju = strongSelf.game.gameKind.isRenju;
              NSString *body =
                  responseData
                      ? [[[NSString alloc] initWithData:responseData
@@ -2148,11 +2133,9 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
              [strongSelf.game setPrivateGame:jsonResponse[@"privateGame"]];
              iAmP1 = [myUsername isEqualToString:p1Name];
              [strongSelf.game setGameType:jsonResponse[@"gameName"]];
-             isGoGame = ([strongSelf.game.gameType hasPrefix:@"Go"] &&
-                         ![strongSelf.game.gameType hasPrefix:@"Gomoku"]) ||
-                        ([strongSelf.game.gameType hasPrefix:@"Speed Go"] &&
-                         ![strongSelf.game.gameType hasPrefix:@"Speed Gomoku"]);
-             if ([strongSelf.game.gameType containsString:@"Renju"]) {
+             GameKind *kind = strongSelf.game.gameKind;
+             isGoGame = kind.isGo;
+             if (kind.isRenju) {
                  gridSize = 15;
              }
              [strongSelf setTitle:[strongSelf.game gameType]];
@@ -2237,12 +2220,10 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                                                           [strongSelf->movesList
                                                                   count]]]];
                  }
-                 if (([[strongSelf.game gameType]
-                          isEqualToString:@"Connect6"] &&
+                 if ((kind.isConnect6 &&
                       [[strongSelf.game myColor] isEqualToString:@"white"] &&
                       (([strongSelf->movesList count] % 4) == 1)) ||
-                     ([[strongSelf.game gameType]
-                          isEqualToString:@"Connect6"] &&
+                     (kind.isConnect6 &&
                       [[strongSelf.game myColor] isEqualToString:@"black"] &&
                       (([strongSelf->movesList count] % 4) == 3))) {
                      [strongSelf->receivedMessageView
@@ -2258,8 +2239,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                                                       (unsigned long)
                                                           [strongSelf->movesList
                                                                   count]]]];
-                 } else if ([[strongSelf.game gameType]
-                                isEqualToString:@"Connect6"]) {
+                 } else if (kind.isConnect6) {
                      [strongSelf->receivedMessageView
                          setFont:[UIFont fontWithName:@"HelveticaNeue-Bold"
                                                  size:15.35f]];
@@ -2459,41 +2439,20 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
 
              lastMove = (int)[strongSelf->movesList count];
 
-             if ([[strongSelf.game gameType] isEqualToString:@"Pente"] ||
-                 [[strongSelf.game gameType] isEqualToString:@"Boat-Pente"] ||
-                 [[strongSelf.game gameType] isEqualToString:@"Speed Pente"] ||
-                 [[strongSelf.game gameType]
-                     isEqualToString:@"Speed Boat-Pente"]) {
+             if (kind.isPente) {
                  [strongSelf replayGame:lastMove];
              }
-             if ([[strongSelf.game gameType] isEqualToString:@"Keryo-Pente"] ||
-                 [[strongSelf.game gameType]
-                     isEqualToString:@"Speed Keryo-Pente"]) {
+             if (kind.isKeryoPente) {
                  [strongSelf replayGame:lastMove];
              }
-             if ([[strongSelf.game gameType] isEqualToString:@"O-Pente"] ||
-                 [[strongSelf.game gameType]
-                     isEqualToString:@"Speed O-Pente"]) {
+             if (kind.isOPente) {
                  [strongSelf replayGame:lastMove];
              }
-             if ([[strongSelf.game gameType] isEqualToString:@"G-Pente"] ||
-                 [[strongSelf.game gameType]
-                     isEqualToString:@"Speed G-Pente"]) {
+             if (kind.isGPente) {
                  [strongSelf replayGame:lastMove];
              }
-             if ([[strongSelf.game gameType] isEqualToString:@"D-Pente"] ||
-                 [[strongSelf.game gameType]
-                     isEqualToString:@"Speed D-Pente"] ||
-                 [[strongSelf.game gameType] isEqualToString:@"DK-Pente"] ||
-                 [[strongSelf.game gameType]
-                     isEqualToString:@"Speed DK-Pente"]) {
-                 if ([[strongSelf.game gameType] isEqualToString:@"DK-Pente"] ||
-                     [[strongSelf.game gameType]
-                         isEqualToString:@"Speed DK-Pente"]) {
-                     [strongSelf replayGame:lastMove];
-                 } else {
-                     [strongSelf replayGame:lastMove];
-                 }
+             if (kind.isDOpening) {
+                 [strongSelf replayGame:lastMove];
 
                  dPenteChoice = NO;
                  if ([strongSelf->movesList count] == 4) {
@@ -2517,17 +2476,12 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                      }
                  }
              }
-             if ([strongSelf.game.gameType containsString:@"Swap2-"]) {
+             if (kind.isSwap2) {
                  swap2Opening = [strongSelf->movesList count] == 0;
                  swap2Choice =
                      dPenteState == 2 && ([strongSelf->movesList count] == 3 ||
                                           [strongSelf->movesList count] == 5);
-                 if ([strongSelf.game.gameType containsString:@"Swap2-Pente"]) {
-                     [strongSelf replayGame:lastMove];
-                 } else if ([strongSelf.game.gameType
-                                containsString:@"Swap2-Keryo"]) {
-                     [strongSelf replayGame:lastMove];
-                 }
+                 [strongSelf replayGame:lastMove];
 
                  if (swap2Choice) {
                      if ([strongSelf->movesList count] == 3) {
@@ -2560,17 +2514,16 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                  } else {
                  }
              }
-             if ([[strongSelf.game gameType] containsString:@"Poof-Pente"]) {
+             if (kind.isPoofPente) {
                  [strongSelf replayGame:lastMove];
              }
              go = NO;
              goMarkStones = NO;
              goEvaluateDeadStones = NO;
              if (isGoGame) {
-                 if ([strongSelf.game.gameType containsString:@"(9x9)"]) {
+                 if (kind.goBoardSize == 9) {
                      gridSize = 9;
-                 } else if ([strongSelf.game.gameType
-                                containsString:@"(13x13)"]) {
+                 } else if (kind.goBoardSize == 13) {
                      gridSize = 13;
                  }
                  goMarkStones = [jsonResponse[@"goState"]
@@ -2590,16 +2543,16 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                      [strongSelf evaluateDeadStones];
                  }
              }
-             if ([[strongSelf.game gameType] containsString:@"Connect6"]) {
+             if (kind.isConnect6) {
                  [strongSelf replayGame:lastMove];
              }
              [strongSelf updateCaptures];
 
-             if ([[strongSelf.game gameType] containsString:@"Gomoku"]) {
+             if (kind.isGomoku) {
                  [strongSelf replayGame:lastMove];
              }
 
-             if ([[strongSelf.game gameType] containsString:@"Renju"]) {
+             if (kind.isRenju) {
                  [strongSelf replayGame:lastMove];
              }
 
@@ -2622,8 +2575,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                      parseMove:[strongSelf->movesList objectAtIndex:i]];
                  if (i == 0) {
                      [moveStatsString appendString:@"<b>1.</b> "];
-                 } else if ([[strongSelf.game gameType]
-                                containsString:@"Connect6"]) {
+                 } else if (kind.isConnect6) {
                      if (((i - 3) % 4) == 0) {
                          [moveStatsString
                              appendString:[NSString stringWithFormat:
@@ -2679,7 +2631,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
              strongSelf->activeGame =
                  [currentPlayer isEqualToString:myUsername];
 
-             if ([strongSelf.game.gameType containsString:@"Renju"]) {
+             if (kind.isRenju) {
                  if (strongSelf.renjuPhase != nil && strongSelf->activeGame) {
                      [strongSelf renderRenjuOpeningUI];
                  } else {
@@ -2783,10 +2735,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                  dPenteState != 2 &&
                  ([strongSelf->movesList count] > 1 ||
                   ([strongSelf->movesList count] > 0 &&
-                   (isGoGame ||
-                    [[strongSelf.game gameType] isEqualToString:@"D-Pente"] ||
-                    [[strongSelf.game gameType]
-                        isEqualToString:@"DK-Pente"])))) {
+                   (isGoGame || kind.isDOpening)))) {
                  [strongSelf->submitButton
                          removeTarget:nil
                                action:NULL
@@ -2841,7 +2790,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                      // "submit: c5-c6" styling on every server refresh, so skip it
                      // and let renderRenjuOpeningUI own the renju submit button.
                      BOOL isRenjuOpening =
-                         [strongSelf.game.gameType containsString:@"Renju"] &&
+                         kind.isRenju &&
                          strongSelf.renjuPhase != nil && strongSelf->activeGame;
                      if (!isRenjuOpening) {
                          [strongSelf->submitButton
@@ -3225,8 +3174,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
         [self replayGoGame:untilMove];
         [self updateCaptures];
     } else {
-        PenteVariant variant =
-            [BoardVariantMapping variantForGameType:[self.game gameType]];
+        PenteVariant variant = self.game.gameKind.variantValue;
 
         // Opening flags — preserved verbatim from the deleted per-variant methods.
         if (variant == PenteVariantDPente || variant == PenteVariantDkPente) {
@@ -3257,7 +3205,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
         blackCaptures = (int)engine.blackCaptures;
         [captures removeAllObjects];
 
-        BOOL boat = [[self.game gameType] isEqualToString:@"Boat-Pente"];
+        BOOL boat = self.game.gameKind.isBoatPente;
         UIColor *bg = [BoardVariantMapping backgroundColorForVariant:variant
                                                            boatPente:boat];
         [board setBackgroundColor:bg];
@@ -3331,10 +3279,10 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                         objectForKey:[NSString
                                          stringWithFormat:@"%i", untilMove]]];
         }
-        if (([[self.game gameType] isEqualToString:@"Connect6"] &&
+        if ((self.game.gameKind.isConnect6 &&
              [[self.game myColor] isEqualToString:@"white"] &&
              ((untilMove % 4) == 1)) ||
-            ([[self.game gameType] isEqualToString:@"Connect6"] &&
+            (self.game.gameKind.isConnect6 &&
              [[self.game myColor] isEqualToString:@"black"] &&
              ((untilMove % 4) == 3))) {
             [receivedMessageView setFont:[UIFont fontWithName:@"HelveticaNeue"
@@ -3345,7 +3293,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                     [messagesHistory
                         objectForKey:[NSString
                                          stringWithFormat:@"%i", untilMove]]];
-        } else if ([[self.game gameType] isEqualToString:@"Connect6"]) {
+        } else if (self.game.gameKind.isConnect6) {
             [receivedMessageView
                 setFont:[UIFont fontWithName:@"HelveticaNeue-Bold"
                                         size:15.35f]];
@@ -3426,7 +3374,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
         int rowCol = [self parseMove:[movesList objectAtIndex:i]];
         if (i == 0) {
             [moveStatsString appendString:@"<b>1.</b> "];
-        } else if ([[self.game gameType] isEqualToString:@"Connect6"]) {
+        } else if (self.game.gameKind.isConnect6) {
             if (((i - 3) % 4) == 0) {
                 [moveStatsString
                     appendString:[NSString
