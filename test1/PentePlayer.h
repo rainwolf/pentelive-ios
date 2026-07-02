@@ -27,6 +27,8 @@
 // derives the same flag via `developmentEnabled()`. Flip the macro only.
 BOOL developmentEnabled(void);
 
+@class GameKind;
+
 @interface Game : NSObject {
     NSString *gameID, *setID, *gameType, *opponentName, *opponentRating,
         *myColor, *remainingTime, *ratedNot, *privateGame, *localizedTime,
@@ -37,6 +39,9 @@ BOOL developmentEnabled(void);
 @property(nonatomic, retain) NSString *gameID;
 @property(nonatomic, retain) NSString *setID;
 @property(nonatomic, retain) NSString *gameType;
+/// Resolved variant/family identity for `gameType`, recomputed whenever
+/// `gameType` is set. Read this instead of re-parsing `gameType` strings.
+@property(nonatomic, strong, readonly) GameKind *gameKind;
 @property(nonatomic, retain) NSString *opponentName;
 @property(nonatomic, retain) NSString *opponentRating;
 @property(nonatomic, retain) NSString *myColor;
