@@ -24,6 +24,17 @@
 @interface MMAI ()
 // Private, only reached on a packaging error (tables missing from the bundle).
 - (int)safeFallbackMove:(NSArray<NSNumber *> *)played;
+// Private. Shared by both degraded-engine paths (!ok() and a thrown C++
+// exception): picks the fallback move(s), appends them to `moves`, and
+// returns the same value -getMove would (a plain index, or -- for a Connect6
+// mid-game turn -- a base-362 packed pair). See the implementation comment
+// for why Connect6 needs special handling here. Exposed via this class
+// extension (rather than being folded inline into -getMove) so
+// PenteEngineTests can also reach it directly through a test-only category,
+// since a host-app test bundles real pente.tbl/pente.scs/opngbk.pen and so
+// can never naturally exercise !ok() or the catch(...) block.
+- (int)appendFallbackMovesForSnapshot:(NSArray<NSNumber *> *)snapshot
+                            movesCount:(int)movesCount;
 @end
 
 @implementation MMAI
@@ -114,6 +125,8 @@
     // the properties.
     int mv = 0;
     BOOL engineThrew = NO;
+    BOOL usedFallback = NO;   // !ok() or a thrown exception; mv already appended
+    BOOL enginePacked = NO;   // Connect6: mv is a base-362 packed stone PAIR
     try {
         // Heap-allocate: sizeof(CAi) is roughly 50KB (18 planes of a 19x19
         // board history plus search scratch state) and -getMove runs on a
@@ -135,9 +148,18 @@
                   @"pente.scs / opngbk.pen) missing from the app bundle. "
                   @"Returning a SAFE FALLBACK move, not a real search result. "
                   @"***");
-            mv = [self safeFallbackMove:snapshot];
+            mv = [self appendFallbackMovesForSnapshot:snapshot
+                                            movesCount:movesCount];
+            usedFallback = YES;
         } else {
             mv = ai->getMove(cmoves, marshaledCount);
+            // Connect6 (game 13/14) is the ONLY variant whose engine return is a
+            // base-362 packed stone PAIR (see MMAI.h): m1 = mv/362, m2 = mv%362,
+            // with m2 == 361 the single-stone sentinel. Flag it so the append
+            // below unpacks it into the two real board moves the replay path
+            // expects. The safe-fallback paths (!ok() / exception) return a plain
+            // 0..360 index and must NOT be unpacked, so the flag is set ONLY here.
+            enginePacked = (self.game == 13 || self.game == 14);
         }
     } catch (...) {
         // Any C++ exception out of construction or search (bad_alloc, a
@@ -151,17 +173,81 @@
         NSLog(@"[MMAI] *** CAi threw a C++ exception during construction or "
               @"search; returning a SAFE FALLBACK move instead of crashing "
               @"the AI thread. ***");
-        mv = [self safeFallbackMove:snapshot];
+        mv = [self appendFallbackMovesForSnapshot:snapshot movesCount:movesCount];
+        usedFallback = YES;
     }
 
     // Mirror the OLD Obj-C engine's -getMove side effect (test1/MMAI.m@main,
     // ~line 341): append the chosen move -- including a fallback move -- to
-    // `moves` exactly once, unconditionally, immediately before returning.
-    // MMAIViewController's -getNewAImove depends on exactly this: it
-    // discards -getMove's return value and re-reads
+    // `moves` immediately before returning. MMAIViewController's -getNewAImove
+    // depends on exactly this: it discards -getMove's return value and re-reads
     // [[aiPlayer moves] count] to decide how much of the board to replay.
-    [self.moves addObject:[NSNumber numberWithInt:mv]];
+    //
+    // The degraded-engine paths above (usedFallback) already picked their
+    // move(s) AND appended them via -appendFallbackMovesForSnapshot:
+    // movesCount: -- including, for Connect6, appending BOTH stones of a
+    // mid-game turn -- so there is nothing left to do here for them.
+    //
+    // For a real engine result, every variant appends exactly one move EXCEPT
+    // Connect6, whose engine turn is two stones packed base-362 into `mv`
+    // (enginePacked): split it into m1 and m2 and append each as its own move
+    // so the move-count-driven replay sees the AI's full turn. m2 == 361
+    // (only the game's very first move) means a single stone this turn.
+    // Mirrors the React decode in react_mmai/src/redux_saga/sagas.js.
+    if (usedFallback) {
+        // already appended above.
+    } else if (enginePacked) {
+        int m1 = mv / 362;
+        int m2 = mv % 362;
+        [self.moves addObject:[NSNumber numberWithInt:m1]];
+        if (m2 != 361) {
+            [self.moves addObject:[NSNumber numberWithInt:m2]];
+        }
+    } else {
+        [self.moves addObject:[NSNumber numberWithInt:mv]];
+    }
 
+    return mv;
+}
+
+// Fallback move SELECTION AND APPEND, shared by both degraded-engine paths in
+// -getMove (!ok() and a thrown C++ exception). For every variant except a
+// mid-game Connect6 turn, this is exactly the old one-move fallback: pick one
+// legal cell via -safeFallbackMove: and append it.
+//
+// Connect6 (game 13/14) is turn-PAIRED: every turn but the very first stone
+// of the game is two stones, and the whole app -- MMAIViewController's
+// -nextMoveIsAI / -replayGame: / swipe-undo -- drives the human/AI turn
+// handshake purely from [[aiPlayer moves] count] parity, NOT from whether the
+// move that produced that count came from a real search. If this fallback
+// appended only one stone for a mid-game Connect6 turn, the move-count-driven
+// cadence would desync for the rest of the game: the AI would appear to still
+// owe a stone forever after (or the pairing would flip), freezing or
+// corrupting the board. So when the degraded engine is asked for a Connect6
+// move mid-game (movesCount > 0 -- the only single-stone turn is the
+// empty-board opening), this still produces TWO legal stones to preserve
+// cadence, even though neither is a real search result: move QUALITY may
+// degrade in this branch; move CADENCE integrity must not. The second stone
+// is chosen against an occupancy snapshot that has been updated with the
+// first, so the two fallback stones are never the same cell.
+//
+// Returns the chosen move: for the single-stone case, that move's board
+// index; for the two-stone case, the base-362 packed pair (m1*362 + m2), for
+// symmetry with the engine's own packed return (see MMAI.h) -- every caller
+// in this app discards -getMove's return value and re-reads `moves` anyway.
+- (int)appendFallbackMovesForSnapshot:(NSArray<NSNumber *> *)snapshot
+                            movesCount:(int)movesCount {
+    if ((self.game == 13 || self.game == 14) && movesCount > 0) {
+        NSMutableArray<NSNumber *> *occupancy = [snapshot mutableCopy];
+        int m1 = [self safeFallbackMove:occupancy];
+        [self.moves addObject:[NSNumber numberWithInt:m1]];
+        [occupancy addObject:[NSNumber numberWithInt:m1]]; // update occupancy
+        int m2 = [self safeFallbackMove:occupancy];
+        [self.moves addObject:[NSNumber numberWithInt:m2]];
+        return (m1 * 362) + m2;
+    }
+    int mv = [self safeFallbackMove:snapshot];
+    [self.moves addObject:[NSNumber numberWithInt:mv]];
     return mv;
 }
 

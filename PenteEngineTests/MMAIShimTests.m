@@ -16,6 +16,30 @@
 #import <XCTest/XCTest.h>
 #import "../test1/MMAI.h"
 
+// Test-only seam (spec §5.3 fallback item): the degraded-engine fallback
+// paths inside -getMove (!ok() / a thrown C++ exception) are otherwise
+// unreachable from this suite. This is a host-app test, so [NSBundle
+// mainBundle] is the real penteLive.app bundle and +[MMAI filesDir] always
+// resolves to the real, present pente.tbl/pente.scs/opngbk.pen -- there is no
+// way to make CAi's constructor fail or throw without either faking a broken
+// app bundle (not available to XCTest) or changing MMAI's public API (adding
+// an injectable files-dir hook) purely for testability, which the fallback
+// fix itself does not need.
+//
+// -appendFallbackMovesForSnapshot:movesCount: (declared privately in
+// MMAI.mm's class extension) IS the fallback move-selection-and-append logic
+// that both of those paths call; it does not touch CAi or the bundle at all.
+// Redeclaring its selector here in a category lets this suite call it
+// directly and assert the two-stones-mid-game / one-stone-opening cadence
+// contract in isolation, without needing to force the engine itself to fail.
+// This is the least invasive workable seam: no change to MMAI.h, no new
+// public API, no behavior added -- just a test-visible name for logic that
+// already exists.
+@interface MMAI (FallbackTesting)
+- (int)appendFallbackMovesForSnapshot:(NSArray<NSNumber *> *)snapshot
+                            movesCount:(int)movesCount;
+@end
+
 @interface MMAIShimTests : XCTestCase
 @end
 
@@ -132,6 +156,131 @@ static NSArray<NSNumber *> *FixedPosition(void) {
         [self assertLegalMove:move
                         label:[NSString stringWithFormat:@"variant %@", g]];
     }
+}
+
+// Connect6 (game 13) is the ONLY variant whose -getMove return is a base-362
+// packed stone PAIR (m1 = packed/362, m2 = packed%362; m2 == 361 = single-stone
+// sentinel, only ever the game's first move). This asserts the shim's
+// packed-append contract: after the lone opening stone, a mid-game AI turn
+// unpacks to two distinct legal cells AND both are appended to `moves` (the
+// list grows by two), so MMAIViewController's move-count-driven replay sees the
+// AI's full two-stone turn. Before the fix the raw packed int (up to ~130681)
+// was appended verbatim as one bogus "move".
+- (void)testConnect6GetMoveAppendsPackedPair {
+    MMAI *ai = [[MMAI alloc] init];
+    [ai reset];
+    ai.game = 13;
+    [ai setLevel:1];
+    [ai setSeat:1];
+    [ai addMove:180]; // one opening stone -> the next turn is a two-stone pair
+    NSUInteger before = [ai.moves count]; // == 1
+
+    int packed = [ai getMove]; // return value intentionally kept: it is packed
+
+    int m1 = packed / 362;
+    int m2 = packed % 362;
+    XCTAssertNotEqual(m2, 361,
+                      @"Connect6 mid-game turn must place TWO stones "
+                      @"(m2 must not be the single-stone sentinel 361)");
+    XCTAssertTrue(m1 >= 0 && m1 <= 360, @"Connect6 stone 1 (%d) off board", m1);
+    XCTAssertTrue(m2 >= 0 && m2 <= 360, @"Connect6 stone 2 (%d) off board", m2);
+    XCTAssertNotEqual(m1, m2, @"Connect6's two stones must be distinct");
+    XCTAssertNotEqual(m1, 180, @"Connect6 stone 1 lands on the occupied cell 180");
+    XCTAssertNotEqual(m2, 180, @"Connect6 stone 2 lands on the occupied cell 180");
+
+    NSUInteger after = [ai.moves count];
+    XCTAssertEqual(after, before + 2,
+                   @"Connect6 -getMove must append BOTH stones to `moves` "
+                   @"(had %lu, now %lu)", (unsigned long)before,
+                   (unsigned long)after);
+    XCTAssertEqual([ai.moves[after - 2] intValue], m1,
+                   @"appended stone 1 must equal unpacked m1");
+    XCTAssertEqual([ai.moves[after - 1] intValue], m2,
+                   @"appended stone 2 must equal unpacked m2");
+}
+
+// Blocker 1 fallback test. Drives -appendFallbackMovesForSnapshot:movesCount:
+// directly (see the FallbackTesting category above for why this is the
+// chosen seam) to assert the fix: a mid-game Connect6 fallback (the engine
+// couldn't load/threw) must still append TWO stones to preserve the
+// human/AI turn cadence, even though neither stone is a real search result.
+// Before the fix, both fallback call sites in -getMove appended only one
+// raw stone here, silently desyncing the two-stone pairing for the rest of
+// the game.
+- (void)testFallbackAppendsTwoStonesForConnect6MidGame {
+    MMAI *ai = [[MMAI alloc] init];
+    [ai reset];
+    ai.game = 13;
+    [ai setLevel:1];
+    [ai setSeat:1];
+    [ai addMove:180]; // one stone already on the board -> mid-game turn
+
+    NSUInteger before = [ai.moves count];
+    XCTAssertEqual(before, (NSUInteger)1);
+
+    int packed = [ai appendFallbackMovesForSnapshot:ai.moves
+                                          movesCount:(int)before];
+
+    NSUInteger after = [ai.moves count];
+    XCTAssertEqual(after, before + 2,
+                   @"Connect6 fallback must append exactly TWO stones "
+                   @"mid-game (had %lu, now %lu)", (unsigned long)before,
+                   (unsigned long)after);
+
+    int m1 = packed / 362;
+    int m2 = packed % 362;
+    // NB: not -assertLegalMove:label: -- that helper checks against the
+    // suite-wide FixedPosition() (@180, @181), which is unrelated to this
+    // test's own board (a single stone at @180). Check occupancy against
+    // what THIS test actually played instead.
+    XCTAssertTrue(m1 >= 0 && m1 <= 360,
+                  @"Connect6 fallback stone 1: %d out of board range", m1);
+    XCTAssertTrue(m2 >= 0 && m2 <= 360,
+                  @"Connect6 fallback stone 2: %d out of board range", m2);
+    XCTAssertNotEqual(m1, 180,
+                       @"Connect6 fallback stone 1 lands on the occupied "
+                       @"centre cell");
+    XCTAssertNotEqual(m2, 180,
+                       @"Connect6 fallback stone 2 lands on the occupied "
+                       @"centre cell");
+    XCTAssertNotEqual(m1, m2,
+                       @"Connect6 fallback's two stones must be distinct "
+                       @"(occupancy snapshot must be updated between calls)");
+    XCTAssertEqual([ai.moves[after - 2] intValue], m1,
+                   @"appended fallback stone 1 must equal unpacked m1");
+    XCTAssertEqual([ai.moves[after - 1] intValue], m2,
+                   @"appended fallback stone 2 must equal unpacked m2");
+}
+
+// Companion case: the empty-board Connect6 opening is the ONE single-stone
+// turn (movesCount == 0), so the fallback must append exactly ONE stone here,
+// not two -- confirms the fix didn't just hardcode "always append two" for
+// game 13/14.
+- (void)testFallbackAppendsOneStoneForConnect6EmptyBoard {
+    MMAI *ai = [[MMAI alloc] init];
+    [ai reset];
+    ai.game = 13;
+    [ai setLevel:1];
+    [ai setSeat:1];
+
+    NSUInteger before = [ai.moves count];
+    XCTAssertEqual(before, (NSUInteger)0);
+
+    int mv = [ai appendFallbackMovesForSnapshot:ai.moves movesCount:(int)before];
+
+    NSUInteger after = [ai.moves count];
+    XCTAssertEqual(after, before + 1,
+                   @"Connect6 fallback must append exactly ONE stone on the "
+                   @"empty-board opening turn (had %lu, now %lu)",
+                   (unsigned long)before, (unsigned long)after);
+    // NB: not -assertLegalMove:label: -- that helper checks occupancy against
+    // the suite-wide FixedPosition(), which was never played on THIS test's
+    // board (truly empty). Nothing is occupied here, so only the board-range
+    // check applies.
+    XCTAssertTrue(mv >= 0 && mv <= 360,
+                  @"Connect6 fallback opening stone: %d out of board range",
+                  mv);
+    XCTAssertEqual([ai.moves[after - 1] intValue], mv);
 }
 
 @end

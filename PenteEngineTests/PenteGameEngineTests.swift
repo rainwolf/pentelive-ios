@@ -283,6 +283,71 @@ final class PenteGameEngineTests: XCTestCase {
         XCTAssertEqual(g.stone(at: 180), 1)   // legacy white-first preserved (19×19)
     }
 
+    // MARK: PoofPente ADVANTAGE rule (authority: SimplePoofPenteState.isGameOver/
+    // getWinner). A capture win requires the threshold AND strictly MORE lost
+    // stones than the opponent; at a tie (10-10) the game continues. This builds
+    // an exact 10-10 board and asserts NO winner -- a plain `>=` referee (either
+    // side reaching 10 wins) would wrongly report black winning here.
+    //
+    // 10 independent, mutually isolated capture gadgets on even rows (spaced 2 so
+    // no spurious cross-row line/capture); "junk" fillers live far away (cols
+    // 10-18) at king-distance >= 2 from everything, so they never capture or form
+    // a line -- they only keep the alternating cadence landing each closer on the
+    // intended colour.
+    private func poofAdvantageMoves() -> [Int] {
+        func rc(_ r: Int, _ c: Int) -> Int { r * 19 + c }
+        var junkPool: [Int] = []
+        for c in [10, 12, 14, 16, 18] {
+            for r in [1, 3, 5, 7, 9, 11, 13, 15, 17] { junkPool.append(rc(r, c)) }
+        }
+        var ji = 0
+        func junk() -> Int { defer { ji += 1 }; return junkPool[ji] }
+
+        var m: [Int] = []
+        // White-captures-black x5: W(3) B(4) Wjunk B(5) W(6)=closer Bjunk.
+        // Each closer custodially captures the black pair -> blackCaptures += 2.
+        for k in 0..<5 {
+            let r = 2 * k
+            m += [rc(r, 3), rc(r, 4), junk(), rc(r, 5), rc(r, 6), junk()]
+        }
+        // Black-captures-white x5: Wjunk B(3) W(4) Bjunk W(5) B(6)=closer.
+        // Each closer captures the white pair -> whiteCaptures += 2.
+        for k in 0..<5 {
+            let r = 10 + 2 * k
+            m += [junk(), rc(r, 3), rc(r, 4), junk(), rc(r, 5), rc(r, 6)]
+        }
+        return m
+    }
+
+    func testPoofPenteAdvantageRuleTieContinuesAndStrictLeadWins() {
+        let g = PenteGame(variant: .poofPente)
+        let m = poofAdvantageMoves()
+        XCTAssertEqual(m.count, 60)
+
+        // After only the white-capturing gadgets: black has lost 10, white 0.
+        // Strictly ahead at the threshold -> white wins (advantage branch).
+        let mid = g.replay(m, until: 30)
+        XCTAssertEqual(g.blackCaptures, 10)
+        XCTAssertEqual(g.whiteCaptures, 0)
+        XCTAssertEqual(mid.winner, 1)
+
+        // After the mirror gadgets: an exact 10-10 tie -> game continues, NO win.
+        // (A plain `>=` referee would report winner == 2 here.)
+        let end = g.replay(m, until: 60)
+        XCTAssertEqual(g.whiteCaptures, 10)
+        XCTAssertEqual(g.blackCaptures, 10)
+        XCTAssertEqual(end.winner, 0)
+    }
+
+    // MARK: @objc cadence accessor (colorForMoveAt:) exposes the variant cadence
+    // the turn-driven UI needs (esp. Connect6's 1,2,2,1 two-stone rotation).
+    func testColorForMoveAtExposesCadence() {
+        let pente = PenteGame(variant: .pente)
+        XCTAssertEqual((0..<4).map { pente.colorForMove(at: $0) }, [1, 2, 1, 2])
+        let c6 = PenteGame(variant: .connect6)
+        XCTAssertEqual((0..<8).map { c6.colorForMove(at: $0) }, [1, 2, 2, 1, 1, 2, 2, 1])
+    }
+
     // MARK: reset clears board + counters
     func testReset() {
         let g = PenteGame(variant: .pente)

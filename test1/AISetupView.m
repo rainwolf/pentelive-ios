@@ -164,27 +164,33 @@
     }
     if (indexPath.row == 0) {
         [difficultyCell.textField resignFirstResponder];
-        if ([gameCell.detailTextLabel.text isEqualToString:@"Pente"]) {
-            [gameCell.detailTextLabel setText:@"Keryo-Pente"];
-            [board setBackgroundColor:[UIColor colorWithRed:0.702
-                                                      green:1
-                                                       blue:0.518
-                                                      alpha:1]];
-            [zBoard setBackgroundColor:[UIColor colorWithRed:0.702
-                                                       green:1
-                                                        blue:0.518
-                                                       alpha:1]];
+        // Cycle the exposed, faithfully-refereed variants:
+        // Pente -> Keryo-Pente -> Poof-Pente -> Connect6 -> (wrap to Pente).
+        NSString *cur = gameCell.detailTextLabel.text;
+        NSString *next;
+        if ([cur isEqualToString:@"Pente"]) {
+            next = @"Keryo-Pente";
+        } else if ([cur isEqualToString:@"Keryo-Pente"]) {
+            next = @"Poof-Pente";
+        } else if ([cur isEqualToString:@"Poof-Pente"]) {
+            next = @"Connect6";
         } else {
-            [gameCell.detailTextLabel setText:@"Pente"];
-            [board setBackgroundColor:[UIColor colorWithRed:0.984
-                                                      green:0.851
-                                                       blue:0.541
-                                                      alpha:1]];
-            [zBoard setBackgroundColor:[UIColor colorWithRed:0.984
-                                                       green:0.851
-                                                        blue:0.541
-                                                       alpha:1]];
+            next = @"Pente";
         }
+        [gameCell.detailTextLabel setText:next];
+
+        UIColor *bg;
+        if ([next isEqualToString:@"Keryo-Pente"]) {
+            bg = [UIColor colorWithRed:0.702 green:1 blue:0.518 alpha:1]; // green
+        } else if ([next isEqualToString:@"Poof-Pente"]) {
+            bg = [UIColor colorWithRed:0.898 green:0.804 blue:1 alpha:1]; // lavender
+        } else if ([next isEqualToString:@"Connect6"]) {
+            bg = [UIColor colorWithRed:0.639 green:0.867 blue:1 alpha:1]; // light blue
+        } else {
+            bg = [UIColor colorWithRed:0.984 green:0.851 blue:0.541 alpha:1]; // tan
+        }
+        [board setBackgroundColor:bg];
+        [zBoard setBackgroundColor:bg];
         [board setNeedsDisplay];
         [zBoard setNeedsDisplay];
     }
