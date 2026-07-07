@@ -24,6 +24,7 @@
 #import "BoardView.h"
 #import "MMAI.h"
 #import "PenteGame.h"
+#import "penteLive-Swift.h"
 #import "PopoverView.h"
 #import "TSMessage.h"
 #import "TSMessageView.h"
@@ -36,7 +37,11 @@
     int finalMove, whiteCaptures, blackCaptures, lastMove;
     char coordinateLetters[19];
     BOOL aiThinking;
-    LegacyPenteGame *penteGame;
+    // Canonical variant-aware Swift referee (bridged via penteLive-Swift.h).
+    // Its ruleset is fixed at init, so it is (re)created whenever the chosen
+    // variant changes; `currentVariant` tracks what `penteGame` was built for.
+    SwiftPenteGame *penteGame;
+    PenteVariant currentVariant;
 }
 @synthesize aiPlayer;
 @synthesize board;
@@ -62,8 +67,10 @@
     [super viewDidLoad];
     // Do any additional setup after loading the view, typically from a nib.
 
-    penteGame = [[LegacyPenteGame alloc] init];
-    penteGame.abstractBoard = abstractBoard;
+    // The Swift referee owns its own internal board; it is created lazily by
+    // -referee once a variant is chosen, then mirrored into `abstractBoard`
+    // (the shared C array the views render) after each replay.
+    penteGame = nil;
 
     aiThinking = NO;
 
@@ -100,26 +107,21 @@
                                self.view.bounds.size.width)];
     [zoomedBoard setFrame:CGRectMake(0, 0, 2 * self.view.bounds.size.width,
                                      2 * self.view.bounds.size.width)];
-    if ([[[NSUserDefaults standardUserDefaults] objectForKey:@"MMAIGame"]
-            isEqualToString:@"Keryo-Pente"]) {
-        [board setBackgroundColor:[UIColor colorWithRed:0.702
-                                                  green:1
-                                                   blue:0.518
-                                                  alpha:1]];
-        [zoomedBoard setBackgroundColor:[UIColor colorWithRed:0.702
-                                                        green:1
-                                                         blue:0.518
-                                                        alpha:1]];
+    // Initial board colour mirrors the AISetupView variant chooser palette.
+    NSString *savedGame =
+        [[NSUserDefaults standardUserDefaults] objectForKey:@"MMAIGame"];
+    UIColor *boardBg;
+    if ([savedGame isEqualToString:@"Keryo-Pente"]) {
+        boardBg = [UIColor colorWithRed:0.702 green:1 blue:0.518 alpha:1];
+    } else if ([savedGame isEqualToString:@"Poof-Pente"]) {
+        boardBg = [UIColor colorWithRed:0.898 green:0.804 blue:1 alpha:1];
+    } else if ([savedGame isEqualToString:@"Connect6"]) {
+        boardBg = [UIColor colorWithRed:0.639 green:0.867 blue:1 alpha:1];
     } else {
-        [board setBackgroundColor:[UIColor colorWithRed:0.984
-                                                  green:0.851
-                                                   blue:0.541
-                                                  alpha:1]];
-        [zoomedBoard setBackgroundColor:[UIColor colorWithRed:0.984
-                                                        green:0.851
-                                                         blue:0.541
-                                                        alpha:1]];
+        boardBg = [UIColor colorWithRed:0.984 green:0.851 blue:0.541 alpha:1];
     }
+    [board setBackgroundColor:boardBg];
+    [zoomedBoard setBackgroundColor:boardBg];
     [board setLastMove:-1];
     [board setLastConnect6Move:-1];
     [zoomedBoard setLastMove:-1];
@@ -306,10 +308,8 @@
                            : 1)];
     //    NSLog(@"kitty %@", setupView.colorCell.detailTextLabel.text);
     [aiPlayer addMove:180];
-    [aiPlayer setGame:([setupView.gameCell.detailTextLabel.text
-                           isEqualToString:@"Pente"]
-                           ? 1
-                           : 2)];
+    [aiPlayer setGame:[self gameIdForChooser:setupView.gameCell.detailTextLabel
+                                                 .text]];
     if (aiPlayer.seat == 1) {
         [stone setStoneColor:BLACK];
         [zoomedStone setStoneColor:BLACK];
@@ -333,13 +333,57 @@
 
 - (IBAction)goBackOneMoveSwipe:(UISwipeGestureRecognizer *)sender {
     if ([[aiPlayer moves] count] > 1 && !aiThinking) {
-        [[aiPlayer moves] removeLastObject];
-        [self replayGame:[[aiPlayer moves] count]];
-        if (aiPlayer.seat == 1 + [[aiPlayer moves] count] % 2) {
-            activeGame = NO;
-        } else {
-            activeGame = YES;
+        int n = (int)[[aiPlayer moves] count];
+        int human = [self humanColor];
+        SwiftPenteGame *ref = [self referee];
+
+        // Lookahead undo (same semantics as the Android fix). Popping a
+        // fixed number of moves is wrong in general: colorForMoveAt: assigns
+        // each SLOT in the move list to a colour by position, independent of
+        // history, so whether "pop exactly one" lands on the human's turn
+        // depends entirely on the active variant's cadence. Search backward
+        // from n-1 for the LARGEST t in [1, n-1] whose slot -- i.e. who
+        // moves next once the list has been truncated to t entries,
+        // colorForMoveAt:t -- belongs to the human, and truncate to exactly
+        // that many moves. Concretely, for the shapes this app can be in:
+        //   (a) plain Pente/Keryo mid-game (alternating cadence): the slot
+        //       at t = n-1 belongs to the OTHER colour from the one that
+        //       plays at t = n-2 (alternating flips every slot), so t = n-1
+        //       is the AI's and the search continues to t = n-2, which is
+        //       the human's own slot again. Net effect: pops the AI's reply
+        //       AND the human's own last move, same as the old app.
+        //   (b) Connect6, human retracting the FIRST of their own two still-
+        //       open stones (the AI's last pair is fully played; the human
+        //       has placed only one of their two): t = n-1 already belongs
+        //       to the human (both slots of a pair share one colour), so
+        //       this degenerates to a plain single-move pop.
+        //   (c) Connect6, immediately after the AI's very first (lone,
+        //       unpaired) opening stone: the only in-range candidate,
+        //       t = 1, is still the first half of the AI's very next pair,
+        //       so no candidate satisfies the search. The swipe is a no-op
+        //       rather than freezing the board (activeGame = NO with
+        //       nothing left to re-launch the AI) or corrupting the move
+        //       list.
+        int foundT = -1;
+        for (int t = n - 1; t >= 1; t--) {
+            if ((int)[ref colorForMoveAt:t] == human) {
+                foundT = t;
+                break;
+            }
         }
+        if (foundT >= 0) {
+            [[aiPlayer moves]
+                removeObjectsInRange:NSMakeRange(foundT, n - foundT)];
+            [self replayGame:[[aiPlayer moves] count]];
+            // Recomputed from -nextMoveIsAI (not hardcoded YES): by
+            // construction foundT's slot belongs to the human, but routing
+            // through the same check -boardTap: uses keeps this correct if
+            // that invariant is ever loosened.
+            activeGame = ![self nextMoveIsAI];
+        }
+        // else: no in-range truncation point hands the next move to the
+        // human -- leave `moves` untouched (no-op) instead of freezing the
+        // board or truncating past a sensible boundary.
     }
 }
 
@@ -373,10 +417,16 @@
 
             [aiPlayer addMove:finalMove];
             [self replayGame:[[aiPlayer moves] count]];
-            if (activeGame) {
+            // Launch the AI only when the game is still live AND the next move
+            // belongs to the AI. For multi-stone turns (Connect6) the human's
+            // first stone leaves the next move still theirs, so activeGame stays
+            // YES and we just wait for the second tap; only once the turn flips
+            // to the AI do we launch its single getMove, which appends the AI's
+            // whole turn (two stones for Connect6) in one shot.
+            if (activeGame && [self nextMoveIsAI]) {
                 activeGame = NO;
                 spinner.center = stone.center;
-                [spinner setColor:([[aiPlayer moves] count] % 2 == 1)
+                [spinner setColor:([self nextMoveColor] == 2)
                                       ? [UIColor blackColor]
                                       : [UIColor whiteColor]];
                 [spinner setHidden:NO];
@@ -450,7 +500,28 @@
 - (void)getNewAImove {
     [aiPlayer getMove];
     //    NSLog(@"kitty move %i", newMove);
-    activeGame = YES;
+    // Defense in depth: -getMove is contracted to append the AI's WHOLE turn
+    // (both stones for a mid-game Connect6 pair, one stone otherwise -- see
+    // MMAI.mm) before returning, so the next move per the referee's cadence
+    // should always belong to the human by the time we get here, making it
+    // safe to unlock the board unconditionally. But if -getMove ever again
+    // returns having appended only PART of an AI turn (e.g. a future
+    // regression reintroduces the fallback-cadence bug this branch fixes),
+    // blindly setting activeGame = YES would hand the tap gesture to the
+    // human while the AI still owes a stone, corrupting the move list. Re-
+    // check -nextMoveIsAI and refuse to unlock in that case instead. With the
+    // MMAI.mm fallback fix in place this branch should be unreachable -- if
+    // it fires, that means the append contract broke, so log loudly.
+    if ([self nextMoveIsAI]) {
+        NSLog(@"[MMAIViewController] *** getNewAImove: AI still owes a move "
+              @"after -getMove returned (moves.count=%lu); NOT unlocking the "
+              @"human -- this should be unreachable, investigate the AI "
+              @"append path. ***",
+              (unsigned long)[[aiPlayer moves] count]);
+        activeGame = NO;
+    } else {
+        activeGame = YES;
+    }
     // sleep for 0.x seconds
     [NSThread sleepForTimeInterval:0.18];
     [self replayGame:[[aiPlayer moves] count]];
@@ -469,28 +540,98 @@
     [blackCapturesCountLabel setNeedsDisplay];
 }
 
-- (void)replayGame:(unsigned long)untilMove {
-    if (aiPlayer.game == 1) {
-        [self replayPenteGame:untilMove];
-    } else {
-        [self replayKeryoPenteGame:untilMove];
+// ---------------------------------------------------------------------------
+// Variant wiring. The AISetupView chooser stores a display string; -startGame
+// maps it to a canonical MMAI engine id (see MMAI.h) via -gameIdForChooser:,
+// and the Swift referee is selected from that id via -variantForGame:. ONE
+// place documents the chooser -> (engine id, PenteVariant) table:
+//     Pente        -> (1,  PenteVariantPente)
+//     Keryo-Pente  -> (3,  PenteVariantKeryoPente)  (the engine maps legacy 2
+//                                                     and canonical 3 alike)
+//     Poof-Pente   -> (11, PenteVariantPoofPente)
+//     Connect6     -> (13, PenteVariantConnect6)
+// ---------------------------------------------------------------------------
+- (int)gameIdForChooser:(NSString *)name {
+    if ([name isEqualToString:@"Keryo-Pente"]) return 3;
+    if ([name isEqualToString:@"Poof-Pente"]) return 11;
+    if ([name isEqualToString:@"Connect6"]) return 13;
+    return 1; // Pente (default)
+}
+
+- (PenteVariant)variantForGame:(int)game {
+    switch (game) {
+        case 3:  return PenteVariantKeryoPente;
+        case 11: return PenteVariantPoofPente;
+        case 13: return PenteVariantConnect6;
+        default: return PenteVariantPente;
     }
 }
 
-- (void)replayPenteGame:(unsigned long)untilMove {
-    [penteGame replayMoves:[aiPlayer moves]
-                   variant:PenteGameVariantPente
-                 untilMove:untilMove];
-    whiteCaptures = penteGame.whiteCaptures;
-    blackCaptures = penteGame.blackCaptures;
+// Lazily (re)build the referee for the chosen variant. Its ruleset is fixed at
+// init, so a fresh instance is created whenever the variant changes.
+- (SwiftPenteGame *)referee {
+    PenteVariant v = [self variantForGame:aiPlayer.game];
+    if (penteGame == nil || v != currentVariant) {
+        currentVariant = v;
+        penteGame = [[SwiftPenteGame alloc] initWithVariant:v];
+    }
+    return penteGame;
+}
+
+// Referee colour (1 white, 2 black) the human plays, from the colour chooser.
+- (int)humanColor {
+    return [setupView.colorCell.detailTextLabel.text
+               isEqualToString:NSLocalizedString(@"white", nil)]
+               ? 1
+               : 2;
+}
+
+// Colour to play the NEXT move (index == moves already played), per the active
+// variant's cadence. Drives Connect6's two-stone turns.
+- (int)nextMoveColor {
+    return (int)[[self referee] colorForMoveAt:(int)[[aiPlayer moves] count]];
+}
+
+- (BOOL)nextMoveIsAI {
+    return [self nextMoveColor] != [self humanColor];
+}
+
+// Single referee-driven replay path (collapses the former replayPenteGame /
+// replayKeryoPenteGame + winnerForVariant): replays the move list through the
+// Swift engine, mirrors its board into `abstractBoard`, refreshes the capture
+// labels, reads MoveResult.winner for the game-over banner, and rebuilds the
+// move-list HTML. Board-view / capture-label plumbing is unchanged.
+- (void)replayGame:(unsigned long)untilMove {
+    SwiftPenteGame *game = [self referee];
+    MoveResult *result = [game replay:[aiPlayer moves] until:(int)untilMove];
+    whiteCaptures = game.whiteCaptures;
+    blackCaptures = game.blackCaptures;
+
+    // Mirror the engine's board into the shared C array the views render.
+    // stoneAt: -> 0 empty / 1 white / 2 black / -1 masked; the -1 overlay is
+    // preserved so an opening-restricted cell still blocks a human tap
+    // (boardTap only accepts abstractBoard[i][j] == 0).
+    for (int idx = 0; idx < 361; idx++) {
+        abstractBoard[idx / 19][idx % 19] = (int)[game stoneAt:idx];
+    }
 
     [board setAbstractBoard:abstractBoard];
-    [board
-        setLastMove:[[[aiPlayer moves] objectAtIndex:untilMove - 1] intValue]];
+    int lastPlayed = [[[aiPlayer moves] objectAtIndex:untilMove - 1] intValue];
+    [board setLastMove:lastPlayed];
+    // Connect6: also highlight the earlier stone of the two-stone turn (the move
+    // before last, when it shares the same colour). Other variants clear it.
+    if (aiPlayer.game == 13 && untilMove >= 2 &&
+        [game colorForMoveAt:(int)(untilMove - 1)] ==
+            [game colorForMoveAt:(int)(untilMove - 2)]) {
+        [board setLastConnect6Move:
+                   [[[aiPlayer moves] objectAtIndex:untilMove - 2] intValue]];
+    } else {
+        [board setLastConnect6Move:-1];
+    }
     if (lastMove == [movesList count]) {
         [zoomedBoard setAbstractBoard:abstractBoard];
-        [zoomedBoard setLastMove:[[[aiPlayer moves] objectAtIndex:untilMove - 1]
-                                     intValue]];
+        [zoomedBoard setLastMove:lastPlayed];
+        [zoomedBoard setLastConnect6Move:board.lastConnect6Move];
     }
     [board setNeedsDisplay];
     [zoomedBoard setNeedsDisplay];
@@ -498,8 +639,7 @@
 
     NSString *message = nil;
     BOOL iWin = YES;
-    int winner = [penteGame winnerForVariant:PenteGameVariantPente
-                                       moves:[aiPlayer moves]];
+    int winner = (int)result.winner;
     if (winner == 1) {
         message = NSLocalizedString(@"White wins", nil);
     } else if (winner == 2) {
@@ -542,105 +682,6 @@
                             canBeDismissedByUser:YES];
         });
     }
-    NSString *colorStr = NSLocalizedString(@"Color:", nil),
-             *difficultyStr = NSLocalizedString(@"difficulty:", nil);
-    moveStatsString = [[NSMutableString alloc]
-        initWithString:
-            [NSString stringWithFormat:
-                          @"<center><b>%@</b> %@, <b>%@</b> %@</center><hr>",
-                          colorStr, setupView.colorCell.detailTextLabel.text,
-                          difficultyStr,
-                          setupView.difficultyCell.textField.text]];
-    int i = 0;
-    for (NSNumber *move in [aiPlayer moves]) {
-        int rowCol = [move intValue];
-        if (i == 0) {
-            [moveStatsString appendString:@"<b>1.</b> "];
-        } else {
-            if ((i % 2) == 0) {
-                [moveStatsString
-                    appendString:[NSString
-                                     stringWithFormat:@"&nbsp; <b>%i.</b> ",
-                                                      (i >> 1) + 1]];
-            } else {
-                [moveStatsString appendString:@" - "];
-            }
-        }
-        [moveStatsString
-            appendString:[NSString
-                             stringWithFormat:@"%c%d",
-                                              coordinateLetters[rowCol % 19],
-                                              19 - (rowCol / 19)]];
-        ++i;
-    }
-    [playerStats
-        loadHTMLString:[HEADERSTRING stringByAppendingString:moveStatsString]
-               baseURL:nil];
-}
-
-- (void)replayKeryoPenteGame:(unsigned long)untilMove {
-    [penteGame replayMoves:[aiPlayer moves]
-                   variant:PenteGameVariantKeryoPente
-                 untilMove:untilMove];
-    whiteCaptures = penteGame.whiteCaptures;
-    blackCaptures = penteGame.blackCaptures;
-
-    [board setAbstractBoard:abstractBoard];
-    [board setAbstractBoard:abstractBoard];
-    [board
-        setLastMove:[[[aiPlayer moves] objectAtIndex:untilMove - 1] intValue]];
-    if (lastMove == [movesList count]) {
-        [zoomedBoard setAbstractBoard:abstractBoard];
-        [zoomedBoard setLastMove:[[[aiPlayer moves] objectAtIndex:untilMove - 1]
-                                     intValue]];
-    }
-    [board setNeedsDisplay];
-    [zoomedBoard setNeedsDisplay];
-    [self updateCaptures];
-
-    NSString *message = nil;
-    BOOL iWin = YES;
-    int winner = [penteGame winnerForVariant:PenteGameVariantKeryoPente
-                                       moves:[aiPlayer moves]];
-    if (winner == 1) {
-        message = NSLocalizedString(@"White wins", nil);
-    } else if (winner == 2) {
-        message = NSLocalizedString(@"Black wins", nil);
-    }
-    if (message) {
-        activeGame = NO;
-        if ([message isEqualToString:NSLocalizedString(@"White wins", nil)]) {
-            if ([setupView.colorCell.detailTextLabel.text
-                    isEqualToString:NSLocalizedString(@"black", nil)]) {
-                iWin = NO;
-            }
-        } else {
-            if ([setupView.colorCell.detailTextLabel.text
-                    isEqualToString:NSLocalizedString(@"white", nil)]) {
-                iWin = NO;
-            }
-        }
-        [TSMessage
-            showNotificationInViewController:self.navigationController
-                                       title:NSLocalizedString(@"Game Over",
-                                                               nil)
-                                    subtitle:message
-                                       image:nil
-                                        type:
-                                            (iWin
-                                                 ? TSMessageNotificationTypeSuccess
-                                                 : TSMessageNotificationTypeError)
-                                        duration:
-                                            TSMessageNotificationDurationAutomatic
-                                    callback:^{
-                                        [TSMessage dismissActiveNotification];
-                                    }
-                                 buttonTitle:nil
-                              buttonCallback:nil
-                                  atPosition:TSMessageNotificationPositionBottom
-                        canBeDismissedByUser:YES];
-    }
-
     NSString *colorStr = NSLocalizedString(@"Color:", nil),
              *difficultyStr = NSLocalizedString(@"difficulty:", nil);
     moveStatsString = [[NSMutableString alloc]

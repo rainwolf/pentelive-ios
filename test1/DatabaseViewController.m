@@ -1096,6 +1096,11 @@ BoardViewController *boardController;
 }
 
 - (void)getNewAImove {
+    // -getMove's return is a base-362 packed stone PAIR for Connect6 (game
+    // 13/14), not a single board index (see MMAI.h) -- this screen only ever
+    // sets game 1 (Pente) or 2 (Keryo-Pente) in -startThinking above, so
+    // `finalMove` below is always a plain index, but must never be wired up
+    // to Connect6 without unpacking it first.
     finalMove = [aiPlayer getMove];
     [self performSelectorOnMainThread:@selector(stopThinking)
                            withObject:nil

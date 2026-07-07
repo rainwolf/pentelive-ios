@@ -37,6 +37,16 @@ import Foundation
         return board[rowCol / boardSize][rowCol % boardSize]
     }
 
+    /// Colour (1 white, 2 black) that plays the stone at 0-based move `index`,
+    /// per the variant's cadence. Alternating families flip every move; Connect6
+    /// uses the 1,2,2,1 period-4 rotation (one lone opening stone, then pairs);
+    /// Renju is black-first. Exposed to ObjC (selector `colorForMoveAt:`) so the
+    /// turn-driven UI can tell whose stone the next move (index == moves.count)
+    /// is -- essential for Connect6's two-stone turns.
+    @objc func colorForMove(at index: Int) -> Int {
+        colorForMove(index)
+    }
+
     @objc func play(_ move: Int) -> MoveResult {
         // @objc callers may pass an out-of-range index; treat it as a no-op rather
         // than trapping on the array access.
@@ -122,13 +132,31 @@ import Foundation
             return color
         }
         if let cap = rules.capture {
-            // `>=` for BOTH families. In OPente/PoofPente a single move can remove
-            // poof + capture stones together, so the counter may JUMP past the
-            // threshold (e.g. 8 -> 12) and an `== threshold` test would miss the win.
-            // Colour mapping preserved: whiteCaptures (white stones lost) -> black (2)
-            // wins; blackCaptures -> white (1) wins.
-            if whiteCaptures >= cap.threshold { return 2 }
-            if blackCaptures >= cap.threshold { return 1 }
+            // Counters are stones LOST: whiteCaptures (white stones lost) -> black (2)
+            // wins; blackCaptures (black stones lost) -> white (1) wins.
+            //
+            // `>=` (not `==`): in OPente/PoofPente a single move can remove poof +
+            // capture stones together, so the counter may JUMP past the threshold
+            // (e.g. 8 -> 12) and an `== threshold` test would miss the win.
+            // NB: this gate (rules.poof != .none) also covers O-Pente's .keryo poof
+            // kind, not just PoofPente's plain .poof -- that is CORRECT, not an
+            // oversight: OPenteState.java:182-190 applies this exact same advantage
+            // rule (a tie at the threshold, e.g. 15-15, does not end the game), so
+            // do not narrow this check to `== .poof`.
+            if rules.poof != .none {
+                // Poof family (authority: SimplePoofPenteState.isGameOver/getWinner):
+                // the ADVANTAGE rule. A capture win requires the threshold AND
+                // strictly MORE lost stones than the opponent -- at a tie (e.g. 10-10)
+                // the game continues until one side pulls ahead or wins by 5-in-a-row.
+                // Maps captures[2] > captures[1] && >= capturesToWin (black wins) and
+                // its mirror onto the stones-lost counters here.
+                if whiteCaptures > blackCaptures && whiteCaptures >= cap.threshold { return 2 }
+                if blackCaptures > whiteCaptures && blackCaptures >= cap.threshold { return 1 }
+            } else {
+                // Pente/Keryo family (PenteState): plain threshold, no advantage clause.
+                if whiteCaptures >= cap.threshold { return 2 }
+                if blackCaptures >= cap.threshold { return 1 }
+            }
         }
         return 0
     }
