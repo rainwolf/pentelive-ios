@@ -107,19 +107,14 @@
                                self.view.bounds.size.width)];
     [zoomedBoard setFrame:CGRectMake(0, 0, 2 * self.view.bounds.size.width,
                                      2 * self.view.bounds.size.width)];
-    // Initial board colour mirrors the AISetupView variant chooser palette.
+    // Initial board colour comes from the single source of truth
+    // (BoardVariantMapping) so mmai matches the rest of the app per variant.
     NSString *savedGame =
         [[NSUserDefaults standardUserDefaults] objectForKey:@"MMAIGame"];
-    UIColor *boardBg;
-    if ([savedGame isEqualToString:@"Keryo-Pente"]) {
-        boardBg = [UIColor colorWithRed:0.702 green:1 blue:0.518 alpha:1];
-    } else if ([savedGame isEqualToString:@"Poof-Pente"]) {
-        boardBg = [UIColor colorWithRed:0.898 green:0.804 blue:1 alpha:1];
-    } else if ([savedGame isEqualToString:@"Connect6"]) {
-        boardBg = [UIColor colorWithRed:0.639 green:0.867 blue:1 alpha:1];
-    } else {
-        boardBg = [UIColor colorWithRed:0.984 green:0.851 blue:0.541 alpha:1];
-    }
+    PenteVariant boardVariant =
+        [self variantForGame:[self gameIdForChooser:savedGame]];
+    UIColor *boardBg = [BoardVariantMapping backgroundColorForVariant:boardVariant
+                                                            boatPente:NO];
     [board setBackgroundColor:boardBg];
     [zoomedBoard setBackgroundColor:boardBg];
     [board setLastMove:-1];

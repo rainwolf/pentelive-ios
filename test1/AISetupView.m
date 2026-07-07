@@ -7,6 +7,7 @@
 //
 
 #import "AISetupView.h"
+#import "penteLive-Swift.h"
 
 @implementation AISetupView
 @synthesize difficulty;
@@ -180,15 +181,18 @@
         [gameCell.detailTextLabel setText:next];
 
         UIColor *bg;
+        // Board colour comes from the single source of truth
+        // (BoardVariantMapping) so the chooser matches the rest of the app.
+        PenteVariant nextVariant = PenteVariantPente;
         if ([next isEqualToString:@"Keryo-Pente"]) {
-            bg = [UIColor colorWithRed:0.702 green:1 blue:0.518 alpha:1]; // green
+            nextVariant = PenteVariantKeryoPente;
         } else if ([next isEqualToString:@"Poof-Pente"]) {
-            bg = [UIColor colorWithRed:0.898 green:0.804 blue:1 alpha:1]; // lavender
+            nextVariant = PenteVariantPoofPente;
         } else if ([next isEqualToString:@"Connect6"]) {
-            bg = [UIColor colorWithRed:0.639 green:0.867 blue:1 alpha:1]; // light blue
-        } else {
-            bg = [UIColor colorWithRed:0.984 green:0.851 blue:0.541 alpha:1]; // tan
+            nextVariant = PenteVariantConnect6;
         }
+        bg = [BoardVariantMapping backgroundColorForVariant:nextVariant
+                                                  boatPente:NO];
         [board setBackgroundColor:bg];
         [zBoard setBackgroundColor:bg];
         [board setNeedsDisplay];
