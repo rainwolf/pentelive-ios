@@ -268,4 +268,88 @@ final class ScanTests: XCTestCase {
         XCTAssertTrue(Scan.hasRun(on: board, color: 1, length: 5))
         XCTAssertTrue(Scan.boatHasUnbreakableRun(on: board, color: 1, length: 5))
     }
+
+    // MARK: - O-Pente boat survival WITH triples (capture run 3)
+    //
+    // withTriples adds the two run-3 (triple) break forms on top of the pair form.
+    // Each case below has NO pair-capturable stone, so the pair-only referee
+    // (withTriples: false, i.e. Boat) reports the five UNBREAKABLE, while the
+    // triple-aware referee (withTriples: true, i.e. O-Pente) reports it breakable.
+    // That flip is the mutation-sanity anchor: disable the triple passes and the
+    // `withTriples: true` assertions here fail.
+
+    // (a) The five's only vulnerable stone (9,5) is the END of an own vertical
+    // triple (7,5),(8,5),(9,5): black flank (6,5), empty flank (10,5) -> breakable.
+    func testOPenteTripleBreakEndFormBreaksFive() {
+        var board = emptyBoard()
+        for c in 5...9 { board[9][c] = 1 }        // white five (9,5)..(9,9)
+        board[8][5] = 1
+        board[7][5] = 1
+        board[6][5] = 2                            // enemy flank; (10,5) stays empty
+        XCTAssertTrue(Scan.boatHasUnbreakableRun(on: board, color: 1, length: 5,
+                                                 withTriples: false))  // pair-only: a win
+        XCTAssertFalse(Scan.boatHasUnbreakableRun(on: board, color: 1, length: 5,
+                                                  withTriples: true))  // triple: breakable
+    }
+
+    // (b) Run stone (9,5) is the MIDDLE of an own vertical triple
+    // (8,5),(9,5),(10,5): black flank (7,5), empty flank (11,5) -> breakable.
+    func testOPenteTripleBreakMiddleFormBreaksFive() {
+        var board = emptyBoard()
+        for c in 5...9 { board[9][c] = 1 }
+        board[8][5] = 1
+        board[10][5] = 1
+        board[7][5] = 2                            // enemy flank; (11,5) stays empty
+        XCTAssertTrue(Scan.boatHasUnbreakableRun(on: board, color: 1, length: 5,
+                                                 withTriples: false))  // pair-only: a win
+        XCTAssertFalse(Scan.boatHasUnbreakableRun(on: board, color: 1, length: 5,
+                                                  withTriples: true))  // triple: breakable
+    }
+
+    // (c) Triple-capturable-LOOKING but the outer flank (6,5) is OWN colour, so the
+    // triple cannot be captured -> the five stays unbreakable even for O-Pente.
+    func testOPenteTripleLookalikeOwnFlankIsUnbreakable() {
+        var board = emptyBoard()
+        for c in 5...9 { board[9][c] = 1 }
+        board[8][5] = 1
+        board[7][5] = 1
+        board[6][5] = 1                            // OWN flank (not enemy) -> not capturable
+        XCTAssertTrue(Scan.boatHasUnbreakableRun(on: board, color: 1, length: 5,
+                                                 withTriples: true))
+        XCTAssertTrue(Scan.boatHasUnbreakableRun(on: board, color: 1, length: 5,
+                                                 withTriples: false))
+    }
+
+    // (c') Triple at the board EDGE: the outer flank (-1,5) is off-board, so even a
+    // black at (3,5) cannot custodially capture the triple -> unbreakable.
+    func testOPenteTripleAtBoardEdgeIsUnbreakable() {
+        var board = emptyBoard()
+        for c in 5...9 { board[2][c] = 1 }        // white five on row 2
+        board[1][5] = 1
+        board[0][5] = 1                            // triple (0,5),(1,5),(2,5); (-1,5) off-board
+        board[3][5] = 2                            // enemy on the inner side only
+        XCTAssertTrue(Scan.boatHasUnbreakableRun(on: board, color: 1, length: 5,
+                                                 withTriples: true))
+    }
+
+    // (d) Regression: a genuine PAIR break still fires under BOTH flags, and a clean
+    // five stays unbreakable under both — enabling triples must not disturb the pair
+    // form or the run==2 (Boat) behaviour.
+    func testOPentePairBreakUnchangedByTriples() {
+        var breakable = emptyBoard()
+        for c in 5...9 { breakable[9][c] = 1 }
+        breakable[8][5] = 1                        // off-line white pair (8,5),(9,5)
+        breakable[7][5] = 2                        // black far flank; (10,5) empty -> pair break
+        XCTAssertFalse(Scan.boatHasUnbreakableRun(on: breakable, color: 1, length: 5,
+                                                  withTriples: false))
+        XCTAssertFalse(Scan.boatHasUnbreakableRun(on: breakable, color: 1, length: 5,
+                                                  withTriples: true))
+
+        var clean = emptyBoard()
+        for c in 5...9 { clean[9][c] = 1 }
+        XCTAssertTrue(Scan.boatHasUnbreakableRun(on: clean, color: 1, length: 5,
+                                                 withTriples: false))
+        XCTAssertTrue(Scan.boatHasUnbreakableRun(on: clean, color: 1, length: 5,
+                                                 withTriples: true))
+    }
 }

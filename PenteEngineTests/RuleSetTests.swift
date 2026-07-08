@@ -59,9 +59,16 @@ final class RuleSetTests: XCTestCase {
 
     func testOPente() {
         let r = ruleSet(for: .oPente)
-        assertCapture(r, run: 3, threshold: 10)   // threshold 10, NOT keryo family
+        // Keryo family: capture run 3, loss threshold 15 (authority OPenteState /
+        // GridStateFactory game 25) — corrected from the former (wrong) threshold 10.
+        assertCapture(r, run: 3, threshold: 15)
         XCTAssertEqual(r.poof, .keryo)
         XCTAssertEqual(r.opening, .tournament)
+        // O-Pente is a boat (unbreakable-five) variant; capture run 3 is the
+        // discriminator PenteGame.computeWinner uses to enable the triple-capture
+        // break forms in the survival scan (withTriples). Boat-Pente stays run 2.
+        XCTAssertTrue(r.boat)
+        XCTAssertEqual(r.capture?.run, 3)
     }
 
     func testPoofPente() {

@@ -97,7 +97,7 @@ final class PenteGameEngineTests: XCTestCase {
         XCTAssertEqual(r.winner, 0)
     }
 
-    // MARK: OPente — 3-stone keryo poof (placed in the middle of 3), threshold 10
+    // MARK: OPente — 3-stone keryo poof (placed in the middle of 3), threshold 15
     func testOPenteKeryoPoof() {
         // Column j=2 (off-centre): B(1,2), W(2,2), W places (3,2), W(4,2), B(5,2)
         // → W triple (2,2),(3,2),(4,2) keryo-poofs (run 3). Run-2 poof does not fire.
@@ -115,7 +115,7 @@ final class PenteGameEngineTests: XCTestCase {
         XCTAssertEqual(g.stone(at: 4*19+2), 0)
         XCTAssertEqual(g.stone(at: 1*19+2), 2)
         XCTAssertEqual(g.stone(at: 5*19+2), 2)
-        XCTAssertEqual(r.winner, 0)            // 3 < 10
+        XCTAssertEqual(r.winner, 0)            // 3 < 15 (threshold 15), no capture win
     }
 
     // MARK: Tournament opening mask (Pente) applied at exactly 2 moves, cleared after
@@ -216,15 +216,21 @@ final class PenteGameEngineTests: XCTestCase {
         XCTAssertEqual(next.placed, 2)
     }
 
-    // MARK: OPente — capture count crosses 10 via a multi-removal poof (jumps 9 -> 12)
-    func testOPenteWinWhenCaptureCountJumpsPastTen() {
+    // MARK: OPente — capture count JUMPS past the threshold; win requires reaching 15
+    func testOPenteCaptureWinNeedsFifteenNotTwelve() {
         // Each keryo-poof removes 3 white stones at once, so whiteCaptures steps
-        // 3, 6, 9, 12 and never equals exactly 10. With an `== threshold` test the win
-        // was skipped; `>= threshold` catches the jump past 10. Four independent
-        // vertical poof setups in well-separated columns; each block is 6 moves
-        // (parity filler) except the last (5 moves). Total = 23 moves.
+        // 3, 6, 9, 12, 15 and never lands exactly on the threshold. The correct
+        // O-Pente threshold is 15 (OPenteState / Android VariantReferee game 25:
+        //   if (whiteCaptures >= 15 && whiteCaptures > blackCaptures) w = 2),
+        // NOT 10. So:
+        //   * after 4 poofs whiteCaptures == 12 -> 12 < 15 -> NO win (winner 0),
+        //     even though a `>= 10` referee would (wrongly) have declared black.
+        //   * after 5 poofs whiteCaptures == 15 -> 15 >= 15 and 15 > 0 -> black wins.
+        // Five vertical poof setups in well-separated columns; each block is 6 moves
+        // (parity filler) except the last (5 moves). Total = 5*5 + 4 = 29 moves.
+        // The 4th poof completes at move index 22, i.e. after 23 moves played.
         let g = PenteGame(variant: .oPente)
-        let cols = [2, 6, 10, 14]
+        let cols = [2, 6, 10, 14, 18]
         var moves: [Int] = []
         for (k, c) in cols.enumerated() {
             moves.append(2 * 19 + c)        // W partner
@@ -233,15 +239,85 @@ final class PenteGameEngineTests: XCTestCase {
             moves.append(5 * 19 + c)        // B bottom flanker
             moves.append(3 * 19 + c)        // W placed -> keryo-poof of (2,c),(3,c),(4,c)
             if k < cols.count - 1 {
-                moves.append(18 * 19 + c)   // B filler (parity, isolated)
+                moves.append(17 * 19 + c)   // B filler (parity, isolated, off the poof cols)
             }
         }
-        XCTAssertEqual(moves.count, 23)
+        XCTAssertEqual(moves.count, 29)
+
+        // Checkpoint: 4 poofs done, whiteCaptures == 12 -> below the 15 threshold.
+        let mid = g.replay(moves, until: 23)
+        XCTAssertEqual(g.whiteCaptures, 12)
+        XCTAssertEqual(g.blackCaptures, 0)
+        XCTAssertEqual(mid.winner, 0)           // 12 < 15 -> NOT a win (would be at 10)
+
+        // Full: 5 poofs, whiteCaptures == 15, strict lead over black's 0 -> black wins.
         let r = g.replay(moves, until: moves.count)
         XCTAssertEqual(r.placed, 1)             // final move was white
-        XCTAssertEqual(g.whiteCaptures, 12)     // 4 poofs × 3 white stones, jumps past 10
+        XCTAssertEqual(g.whiteCaptures, 15)     // 5 poofs × 3 white stones
         XCTAssertEqual(g.blackCaptures, 0)
-        XCTAssertEqual(r.winner, 2)             // black wins: white lost >= 10 stones
+        XCTAssertEqual(r.winner, 2)             // black wins: white lost >= 15 with strict lead
+    }
+
+    // MARK: OPente — boat survival with TRIPLE breaks (capture run 3)
+    //
+    // White builds a five on row 9 (cols 5..9) whose only vulnerable stone, (9,5),
+    // is NOT pair-capturable but IS the end of an own vertical triple
+    // (7,5),(8,5),(9,5) that black can custodially capture (existing black flank
+    // (6,5); empty flank (10,5)). So the five is breakable ONLY through the run-3
+    // (triple) form — the case that distinguishes O-Pente from pair-only Boat-Pente.
+    // Black fillers sit on row 0 and never interact; no poof/capture fires while
+    // building. The five is completed on the last (white) move. 13 moves.
+    private func oPenteTripleBreakBase() -> [Int] {
+        func rc(_ r: Int, _ c: Int) -> Int { r * 19 + c }
+        return [
+            rc(9, 5), rc(6, 5),   // W five-stone, B outer flank of the triple
+            rc(9, 6), rc(0, 0),
+            rc(9, 7), rc(0, 2),
+            rc(8, 5), rc(0, 4),   // W triple-middle stone
+            rc(7, 5), rc(0, 6),   // W triple-end stone (triple (7,5),(8,5),(9,5) now stands)
+            rc(9, 8), rc(0, 8),
+            rc(9, 9),             // W completes the five — breakable ONLY via a triple
+        ]
+    }
+
+    func testOPenteTripleBreakableFiveIsNotAWin() {
+        let g = PenteGame(variant: .oPente)
+        let moves = oPenteTripleBreakBase()
+        let r = g.replay(moves, until: moves.count)
+        XCTAssertEqual(g.whiteCaptures, 0)          // nothing captured while building
+        XCTAssertEqual(g.blackCaptures, 0)
+        XCTAssertEqual(g.stone(at: 9 * 19 + 5), 1)  // (9,5) on the board, five complete
+        XCTAssertEqual(g.stone(at: 9 * 19 + 9), 1)
+        // Breakable via the run-3 triple custodial capture -> boat withholds the win.
+        // (A pair-only referee finds no break and would WRONGLY declare white here;
+        //  this is the mutation-sanity anchor for the triple passes.)
+        XCTAssertEqual(r.winner, 0)
+    }
+
+    func testOPenteTripleBreakableFivePromotedWhenOpponentFailsToBreak() {
+        let g = PenteGame(variant: .oPente)
+        var moves = oPenteTripleBreakBase()
+        moves.append(0 * 19 + 10)                   // idx 13: black plays elsewhere
+        XCTAssertEqual(g.replay(moves, until: 13).winner, 0)   // provisional at formation
+        let r = g.replay(moves, until: moves.count)
+        // Black had a turn and did NOT break the five -> the surviving five is promoted
+        // (the promotion path checks only that a five stands, exactly like Boat-Pente).
+        XCTAssertEqual(g.whiteCaptures, 0)
+        XCTAssertEqual(r.winner, 1)                 // white promoted to the win
+    }
+
+    func testOPenteTripleBreakableFiveBrokenByTripleCapture() {
+        let g = PenteGame(variant: .oPente)
+        var moves = oPenteTripleBreakBase()
+        moves.append(10 * 19 + 5)                   // idx 13: black plays (10,5)
+        let r = g.replay(moves, until: moves.count)
+        // (10,5) with the (6,5) flank custodially removes the triple (7,5),(8,5),(9,5)
+        // (a run-3 capture), taking (9,5) out of the five.
+        XCTAssertEqual(g.whiteCaptures, 3)          // three white stones lost
+        XCTAssertEqual(g.stone(at: 9 * 19 + 5), 0)  // (9,5) captured -> five is broken
+        XCTAssertEqual(g.stone(at: 8 * 19 + 5), 0)
+        XCTAssertEqual(g.stone(at: 7 * 19 + 5), 0)
+        XCTAssertEqual(r.winner, 0)                 // 4 left; 3 < 15 -> game continues
     }
 
     // MARK: Renju — black-first cadence + 15×15 board

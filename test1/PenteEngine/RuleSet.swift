@@ -83,11 +83,16 @@ struct DKPenteRules: RuleSet {
 }
 
 struct OPenteRules: RuleSet {
-    let capture: (run: Int, threshold: Int)? = (3, 10)
+    // Keryo-family capture: run 3, loss threshold 15 (authority OPenteState /
+    // GridStateFactory game 25). Carries the `boat` unbreakable-five rule; because
+    // its capture run is 3 the boat survival scan also tests the triple-capture
+    // break forms (see PenteGame.computeWinner / Scan.runBreakable withTriples).
+    let capture: (run: Int, threshold: Int)? = (3, 15)
     let poof: PoofKind = .keryo
     let winLength: Int = 5
     let opening: OpeningMask = .tournament
     let cadence: Cadence = .alternating
+    let boat: Bool = true
 }
 
 struct PoofPenteRules: RuleSet {

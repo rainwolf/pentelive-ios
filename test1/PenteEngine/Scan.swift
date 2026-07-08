@@ -224,8 +224,15 @@ enum Scan {
     }
 
     /// True iff `color` holds a run of at least `length` in which no stone can be
-    /// undone by an opponent custodial pair-capture (the Boat-Pente "unbreakable five").
-    static func boatHasUnbreakableRun(on board: [[Int]], color: Int, length: Int) -> Bool {
+    /// undone by an opponent custodial capture (the Boat-Pente "unbreakable five").
+    ///
+    /// `withTriples` selects the capture forms tested. Boat-Pente (capture run 2)
+    /// passes false: only the pair form. O-Pente (capture run 3) passes true: the
+    /// pair form PLUS the two triple forms (run stone at an end / in the middle of
+    /// an own triple), mirroring VariantReferee.boatRowWinner(withTriples=true) and
+    /// OPenteState. The default is false so Boat callers stay pair-only.
+    static func boatHasUnbreakableRun(on board: [[Int]], color: Int, length: Int,
+                                      withTriples: Bool = false) -> Bool {
         let n = board.count
         for i in 0..<n {
             for j in 0..<n where board[i][j] == color {
@@ -237,7 +244,9 @@ enum Scan {
                     while x >= 0, x < n, y >= 0, y < n, board[x][y] == color {
                         run.append((x, y)); x += di; y += dj
                     }
-                    if run.count >= length, !runBreakable(on: board, run: run, color: color, n: n) {
+                    if run.count >= length,
+                       !runBreakable(on: board, run: run, color: color, n: n,
+                                     withTriples: withTriples) {
                         return true
                     }
                 }
@@ -246,12 +255,28 @@ enum Scan {
         return false
     }
 
-    /// A run is breakable if any stone in it sits in a pair (own partner in some
-    /// direction) whose flanks are one enemy and one empty — the opponent plays the
-    /// empty flank to custodially capture the pair. Mirrors BoatPenteState.isGameOver
-    /// lines 90-111 (pair form only; boat is a Pente-flavour, capture run 2).
-    private static func runBreakable(on board: [[Int]], run: [(Int, Int)], color: Int, n: Int) -> Bool {
+    /// A run is breakable if any stone in it can be undone by an opponent custodial
+    /// capture. Two families are tested per run stone S, mirroring the already-shipped
+    /// Android VariantReferee.boatRowWinner breakability passes verbatim:
+    ///
+    /// - PAIR (8 dirs, always): S has an own partner at S+dir whose flanks S+2dir and
+    ///   S-dir are one enemy and one empty — the opponent plays the empty flank to
+    ///   custodially capture the (S, partner) pair. Mirrors BoatPenteState.isGameOver.
+    ///
+    /// When `withTriples` (O-Pente, capture run 3) and no pair broke S, two run-3 forms:
+    /// - TRIPLE END (8 dirs): own stones at S+dir & S+2dir; the flanks S-dir / S+3dir
+    ///   are one enemy and one empty — opponent captures the triple {S, S+dir, S+2dir}.
+    /// - TRIPLE MIDDLE (4 axes): own stones at S+dir & S-dir; the flanks S+2dir / S-2dir
+    ///   are one enemy and one empty — opponent captures the triple {S-dir, S, S+dir}.
+    ///
+    /// Empty is `<= 0` (covers 0 and the -1 mask); off-board flanks fail the inBounds
+    /// guard and so are neither enemy nor empty — matching the pair form's edge handling
+    /// (and Android's `-2` off-board sentinel that is skipped).
+    private static func runBreakable(on board: [[Int]], run: [(Int, Int)], color: Int,
+                                     n: Int, withTriples: Bool) -> Bool {
         for (sx, sy) in run {
+            // PAIR form (8 dirs).
+            var pairBreak = false
             for (di, dj) in neighbours {
                 let px = sx + di, py = sy + dj          // partner
                 let fx = sx + 2 * di, fy = sy + 2 * dj  // far flank (beyond partner)
@@ -262,7 +287,41 @@ enum Scan {
                 let fv = board[fx][fy], bv = board[bx][by]
                 let fEnemy = fv > 0 && fv != color, fEmpty = fv <= 0
                 let bEnemy = bv > 0 && bv != color, bEmpty = bv <= 0
-                if (fEnemy && bEmpty) || (fEmpty && bEnemy) { return true }
+                if (fEnemy && bEmpty) || (fEmpty && bEnemy) { pairBreak = true; break }
+            }
+            if pairBreak { return true }
+            guard withTriples else { continue }
+
+            // TRIPLE END form (8 dirs): own at S+dir & S+2dir; flanks S-dir / S+3dir.
+            var tripleBreak = false
+            for (di, dj) in neighbours {
+                let a1x = sx + di, a1y = sy + dj            // S+dir
+                let a2x = sx + 2 * di, a2y = sy + 2 * dj    // S+2dir
+                let a3x = sx + 3 * di, a3y = sy + 3 * dj    // S+3dir (outer flank)
+                let a4x = sx - di, a4y = sy - dj            // S-dir  (inner flank)
+                guard inBounds(a1x, a1y, n: n), inBounds(a2x, a2y, n: n),
+                      inBounds(a3x, a3y, n: n), inBounds(a4x, a4y, n: n) else { continue }
+                guard board[a1x][a1y] == color, board[a2x][a2y] == color else { continue }
+                let ov = board[a3x][a3y], iv = board[a4x][a4y]
+                let oEnemy = ov > 0 && ov != color, oEmpty = ov <= 0
+                let iEnemy = iv > 0 && iv != color, iEmpty = iv <= 0
+                if (iEnemy && oEmpty) || (iEmpty && oEnemy) { tripleBreak = true; break }
+            }
+            if tripleBreak { return true }
+
+            // TRIPLE MIDDLE form (4 axes): own at S+dir & S-dir; flanks S+2dir / S-2dir.
+            for (di, dj) in neighbours.prefix(4) {
+                let a1x = sx + di, a1y = sy + dj            // S+dir
+                let a2x = sx - di, a2y = sy - dj            // S-dir
+                let a3x = sx - 2 * di, a3y = sy - 2 * dj    // S-2dir (flank)
+                let a4x = sx + 2 * di, a4y = sy + 2 * dj    // S+2dir (flank)
+                guard inBounds(a1x, a1y, n: n), inBounds(a2x, a2y, n: n),
+                      inBounds(a3x, a3y, n: n), inBounds(a4x, a4y, n: n) else { continue }
+                guard board[a1x][a1y] == color, board[a2x][a2y] == color else { continue }
+                let pv = board[a4x][a4y], mv = board[a3x][a3y]
+                let pEnemy = pv > 0 && pv != color, pEmpty = pv <= 0
+                let mEnemy = mv > 0 && mv != color, mEmpty = mv <= 0
+                if (pEnemy && mEmpty) || (pEmpty && mEnemy) { return true }
             }
         }
         return false

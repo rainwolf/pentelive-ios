@@ -140,7 +140,14 @@ import Foundation
             if Scan.hasRun(on: board, color: opponent, length: rules.winLength) {
                 return opponent
             }
-            if Scan.boatHasUnbreakableRun(on: board, color: color, length: rules.winLength) {
+            // Discriminator: capture run 3 (O-Pente) also tests the triple-capture
+            // break forms; run 2 (Boat-Pente) is pair-only. Boat.capture.run == 2 and
+            // O-Pente.capture.run == 3 are the only boat variants, so `capture.run`
+            // cleanly and meaningfully selects `withTriples` (run 3 exists precisely
+            // because triple custodial captures do). Mirrors VariantReferee game 25.
+            let withTriples = (rules.capture?.run ?? 0) >= 3
+            if Scan.boatHasUnbreakableRun(on: board, color: color,
+                                          length: rules.winLength, withTriples: withTriples) {
                 return color
             }
         } else if Scan.winLine(on: board, at: lastMove, color: color, length: rules.winLength) {
