@@ -22,10 +22,16 @@ protocol RuleSet {
     var cadence: Cadence { get }
     /// Board edge length. 19 for the Pente/Go family; 15 for Renju.
     var boardSize: Int { get }
+    /// Boat-Pente "unbreakable five" rule: when true, a 5-in-a-row wins only if some
+    /// run through the placed stone has no pair-capturable stone (see Scan.boatUnbreakableFive).
+    var boat: Bool { get }
 }
 
 /// Default board size: every legacy variant is 19×19. Only Renju overrides.
 extension RuleSet { var boardSize: Int { 19 } }
+
+/// Default: only Boat-Pente sets the unbreakable-five rule.
+extension RuleSet { var boat: Bool { false } }
 
 struct PenteRules: RuleSet {
     let capture: (run: Int, threshold: Int)? = (2, 10)
@@ -33,6 +39,15 @@ struct PenteRules: RuleSet {
     let winLength: Int = 5
     let opening: OpeningMask = .tournament
     let cadence: Cadence = .alternating
+}
+
+struct BoatPenteRules: RuleSet {
+    let capture: (run: Int, threshold: Int)? = (2, 10)
+    let poof: PoofKind = .none
+    let winLength: Int = 5
+    let opening: OpeningMask = .tournament
+    let cadence: Cadence = .alternating
+    let boat: Bool = true
 }
 
 struct KeryoPenteRules: RuleSet {
@@ -139,5 +154,6 @@ func ruleSet(for variant: PenteVariant) -> RuleSet {
     case .gomoku:     return GomokuRules()
     case .connect6:   return Connect6Rules()
     case .renju:      return RenjuRules()
+    case .boatPente:  return BoatPenteRules()
     }
 }

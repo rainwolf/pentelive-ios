@@ -17,4 +17,7 @@ import Foundation
     case connect6 = 10
     /// Renju (Taraguchi-10). 15×15, black-first, no captures. Raw value 11 = next free.
     case renju = 11
+    /// Boat-Pente. Pente rules, but a 5-in-a-row wins only if it is "unbreakable"
+    /// (no stone in it is pair-capturable). Raw value 12 = next free.
+    case boatPente = 12
 }

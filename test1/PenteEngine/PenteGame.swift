@@ -128,7 +128,22 @@ import Foundation
     }
 
     private func computeWinner(lastMove: Int, color: Int) -> Int {
-        if Scan.winLine(on: board, at: lastMove, color: color, length: rules.winLength) {
+        if rules.boat {
+            // Boat-Pente, mirroring server BoatPenteState.isGameOver (whole-board scan
+            // every move, not just lastMove). `color` has just moved, so the opponent
+            // is the player about to move. Any standing opponent five wins for them —
+            // `color` had this turn to break it and it survived (promotion; no capture
+            // check, and it beats the mover's own fresh five). The mover wins only on
+            // an UNbreakable five. A breakable mover-five is provisional: play continues
+            // and the capture-threshold win below still applies.
+            let opponent = 3 - color
+            if Scan.hasRun(on: board, color: opponent, length: rules.winLength) {
+                return opponent
+            }
+            if Scan.boatHasUnbreakableRun(on: board, color: color, length: rules.winLength) {
+                return color
+            }
+        } else if Scan.winLine(on: board, at: lastMove, color: color, length: rules.winLength) {
             return color
         }
         if let cap = rules.capture {

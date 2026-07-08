@@ -545,11 +545,13 @@
 //                                                     and canonical 3 alike)
 //     Poof-Pente   -> (11, PenteVariantPoofPente)
 //     Connect6     -> (13, PenteVariantConnect6)
+//     Boat-Pente   -> (15, PenteVariantBoatPente) (Pente rules + unbreakable-five)
 // ---------------------------------------------------------------------------
 - (int)gameIdForChooser:(NSString *)name {
     if ([name isEqualToString:@"Keryo-Pente"]) return 3;
     if ([name isEqualToString:@"Poof-Pente"]) return 11;
     if ([name isEqualToString:@"Connect6"]) return 13;
+    if ([name isEqualToString:@"Boat-Pente"]) return 15;
     return 1; // Pente (default)
 }
 
@@ -558,6 +560,7 @@
         case 3:  return PenteVariantKeryoPente;
         case 11: return PenteVariantPoofPente;
         case 13: return PenteVariantConnect6;
+        case 15: return PenteVariantBoatPente;
         default: return PenteVariantPente;
     }
 }

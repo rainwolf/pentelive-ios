@@ -220,4 +220,52 @@ final class ScanTests: XCTestCase {
         for c in 5...9 { five[9][c] = 1 }
         XCTAssertFalse(Scan.winLine(on: five, at: rc(9, 9), color: 1, length: 6))
     }
+
+    // MARK: - Boat-Pente "unbreakable five" (whole-board scan)
+    //
+    // boatHasUnbreakableRun mirrors the capture-proof half of server
+    // BoatPenteState.isGameOver: some >=5 run of the colour has NO pair-capturable
+    // stone. Boat is a Pente-flavour variant (capture run 2), so only the pair form
+    // is tested. hasRun is the plain "any >=length run" the promotion path uses.
+
+    func testBoatCleanFiveIsUnbreakable() {
+        var board = emptyBoard()
+        for c in 5...9 { board[9][c] = 1 }   // plain white five, no off-line pairs
+        XCTAssertTrue(Scan.boatHasUnbreakableRun(on: board, color: 1, length: 5))
+    }
+
+    func testBoatFiveWithCapturableEndPairIsBreakable() {
+        var board = emptyBoard()
+        for c in 5...9 { board[9][c] = 1 }   // white five (9,5)..(9,9)
+        // Off-line white pair (8,5)+(9,5) that black can capture: black already at
+        // the far flank (7,5), the near flank (10,5) is empty -> black plays (10,5)
+        // to custodially remove (8,5),(9,5), breaking the five.
+        board[8][5] = 1
+        board[7][5] = 2
+        XCTAssertFalse(Scan.boatHasUnbreakableRun(on: board, color: 1, length: 5))
+    }
+
+    func testBoatBreakablePairNeedsOneEnemyOneEmptyFlank() {
+        // Same off-line pair (8,5)+(9,5) but BOTH flanks occupied by white -> the
+        // pair is not capturable, so the five stays unbreakable (a win).
+        var board = emptyBoard()
+        for c in 5...9 { board[9][c] = 1 }
+        board[8][5] = 1
+        board[7][5] = 1   // own colour, not an enemy flank
+        XCTAssertTrue(Scan.boatHasUnbreakableRun(on: board, color: 1, length: 5))
+    }
+
+    func testBoatFourInARowHasNoFiveRun() {
+        var board = emptyBoard()
+        for c in 6...9 { board[9][c] = 1 }   // only four -> no >=5 run
+        XCTAssertFalse(Scan.boatHasUnbreakableRun(on: board, color: 1, length: 5))
+        XCTAssertFalse(Scan.hasRun(on: board, color: 1, length: 5))
+    }
+
+    func testBoatOverlineCountsAsRun() {
+        var board = emptyBoard()
+        for c in 5...10 { board[9][c] = 1 }   // six in a row (overline) is still a >=5 run
+        XCTAssertTrue(Scan.hasRun(on: board, color: 1, length: 5))
+        XCTAssertTrue(Scan.boatHasUnbreakableRun(on: board, color: 1, length: 5))
+    }
 }

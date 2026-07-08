@@ -22,4 +22,8 @@ final class PenteVariantTests: XCTestCase {
     func testRenjuRawValueIsEleven() {
         XCTAssertEqual(PenteVariant.renju.rawValue, 11)
     }
+
+    func testBoatPenteRawValueIsTwelve() {
+        XCTAssertEqual(PenteVariant.boatPente.rawValue, 12)
+    }
 }

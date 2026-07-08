@@ -179,4 +179,92 @@ enum Scan {
         }
         return false
     }
+
+    // MARK: - Boat-Pente "unbreakable five"
+    //
+    // Ports CAi::boatRunProof (Ai.cpp:2252). Boat-Pente treats a 5-in-a-row as a
+    // WIN only if some >=5 run through the placed stone is "unbreakable": no stone
+    // in that run can be undone by an opponent custodial capture. Boat is a
+    // Pente-flavour variant (capture run = 2), so only the pair form is tested
+    // (Keryo/O-Pente triple breaks do not apply). A run stone S is breakable when,
+    // in some direction, S has an own-colour partner at S+k whose flanks S+2k and
+    // S-k are one enemy and one empty — the opponent plays the empty flank to
+    // custodially capture the (S, partner) pair. Empty is `<= 0` (covers 0 and the
+    // -1 mask), matching the legacy oracle.
+    //
+    // These two functions mirror server BoatPenteState.isGameOver, which re-scans
+    // the WHOLE board every call (not just the last move): `hasRun` answers "does
+    // this colour hold any >=length run right now" (used for the current player's
+    // promoted win, awarded with no capture check), and `boatHasUnbreakableRun`
+    // answers "does this colour hold a >=length run with no pair-capturable stone"
+    // (used for the mover's fresh win). See PenteGame.computeWinner for how the two
+    // combine. Overlines count (server allowOverlines(true)).
+
+    // The 4 axes as forward step directions; runs are enumerated from their start
+    // cell (the one whose backward neighbour is not `color`) so each run is seen once.
+    private static let axisSteps: [(Int, Int)] = [(0, 1), (1, 0), (1, 1), (1, -1)]
+
+    /// True iff `color` holds any run of at least `length` (overlines included).
+    static func hasRun(on board: [[Int]], color: Int, length: Int) -> Bool {
+        let n = board.count
+        for i in 0..<n {
+            for j in 0..<n where board[i][j] == color {
+                for (di, dj) in axisSteps {
+                    let bi = i - di, bj = j - dj
+                    if bi >= 0, bi < n, bj >= 0, bj < n, board[bi][bj] == color { continue }
+                    var cnt = 0, x = i, y = j
+                    while x >= 0, x < n, y >= 0, y < n, board[x][y] == color {
+                        cnt += 1; x += di; y += dj
+                    }
+                    if cnt >= length { return true }
+                }
+            }
+        }
+        return false
+    }
+
+    /// True iff `color` holds a run of at least `length` in which no stone can be
+    /// undone by an opponent custodial pair-capture (the Boat-Pente "unbreakable five").
+    static func boatHasUnbreakableRun(on board: [[Int]], color: Int, length: Int) -> Bool {
+        let n = board.count
+        for i in 0..<n {
+            for j in 0..<n where board[i][j] == color {
+                for (di, dj) in axisSteps {
+                    let bi = i - di, bj = j - dj
+                    if bi >= 0, bi < n, bj >= 0, bj < n, board[bi][bj] == color { continue }
+                    var run: [(Int, Int)] = []
+                    var x = i, y = j
+                    while x >= 0, x < n, y >= 0, y < n, board[x][y] == color {
+                        run.append((x, y)); x += di; y += dj
+                    }
+                    if run.count >= length, !runBreakable(on: board, run: run, color: color, n: n) {
+                        return true
+                    }
+                }
+            }
+        }
+        return false
+    }
+
+    /// A run is breakable if any stone in it sits in a pair (own partner in some
+    /// direction) whose flanks are one enemy and one empty — the opponent plays the
+    /// empty flank to custodially capture the pair. Mirrors BoatPenteState.isGameOver
+    /// lines 90-111 (pair form only; boat is a Pente-flavour, capture run 2).
+    private static func runBreakable(on board: [[Int]], run: [(Int, Int)], color: Int, n: Int) -> Bool {
+        for (sx, sy) in run {
+            for (di, dj) in neighbours {
+                let px = sx + di, py = sy + dj          // partner
+                let fx = sx + 2 * di, fy = sy + 2 * dj  // far flank (beyond partner)
+                let bx = sx - di, by = sy - dj          // near flank (behind S)
+                guard inBounds(px, py, n: n), inBounds(fx, fy, n: n),
+                      inBounds(bx, by, n: n) else { continue }
+                guard board[px][py] == color else { continue }  // need an own partner
+                let fv = board[fx][fy], bv = board[bx][by]
+                let fEnemy = fv > 0 && fv != color, fEmpty = fv <= 0
+                let bEnemy = bv > 0 && bv != color, bEmpty = bv <= 0
+                if (fEnemy && bEmpty) || (fEmpty && bEnemy) { return true }
+            }
+        }
+        return false
+    }
 }

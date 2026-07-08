@@ -30,6 +30,21 @@ final class RuleSetTests: XCTestCase {
         XCTAssertEqual(r.opening, .gpente)
     }
 
+    func testBoatPente() {
+        // Boat-Pente is Pente-flavoured (2-stone capture, threshold 10, tournament
+        // opening, alternating) but carries the unbreakable-five `boat` flag.
+        let r = ruleSet(for: .boatPente)
+        assertCapture(r, run: 2, threshold: 10)
+        XCTAssertEqual(r.poof, .none)
+        XCTAssertEqual(r.winLength, 5)
+        XCTAssertEqual(r.opening, .tournament)
+        XCTAssertEqual(r.cadence, .alternating)
+        XCTAssertTrue(r.boat)
+        // Every other variant leaves boat off.
+        XCTAssertFalse(ruleSet(for: .pente).boat)
+        XCTAssertFalse(ruleSet(for: .keryoPente).boat)
+    }
+
     func testDPente() {
         let r = ruleSet(for: .dPente)
         assertCapture(r, run: 2, threshold: 10)

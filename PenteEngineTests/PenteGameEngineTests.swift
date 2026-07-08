@@ -358,4 +358,87 @@ final class PenteGameEngineTests: XCTestCase {
         XCTAssertEqual(g.whiteCaptures, 0)
         XCTAssertEqual(g.stone(at: 9*19+5), 0)
     }
+
+    // MARK: Boat-Pente — a clean (unbreakable) five wins, just like Pente.
+    func testBoatWinByUnbreakableFive() {
+        let g = PenteGame(variant: .boatPente)
+        // White (9,5)..(9,9); black fillers isolated on row 0 (no captures, no line).
+        let moves = [9*19+5, 0*19+0, 9*19+6, 0*19+2, 9*19+7, 0*19+4,
+                     9*19+8, 0*19+6, 9*19+9]
+        let beforeWin = g.replay(moves, until: 7)  // after 4th white (cols 5..8)
+        XCTAssertEqual(beforeWin.winner, 0)
+        let r = g.replay(moves, until: moves.count) // 5th white completes the line
+        XCTAssertEqual(r.placed, 1)
+        XCTAssertEqual(r.winner, 1)                 // unbreakable five -> white wins
+    }
+
+    // MARK: Boat-Pente — a five with a capturable stone is provisional, NOT a win.
+    // The same position under plain Pente would win immediately (see companion test).
+    func testBoatCapturableFiveIsNotAWin() {
+        // White five (9,5)..(9,9) plus off-line white (8,5). Black at (7,5) is the far
+        // flank of the (8,5),(9,5) pair; (10,5) stays empty, so black could capture the
+        // pair and break the five -> Boat withholds the win.
+        let g = PenteGame(variant: .boatPente)
+        // idx: 0 W(9,5) 1 B(7,5) 2 W(9,6) 3 B(0,0) 4 W(9,7) 5 B(0,2)
+        //      6 W(8,5) 7 B(0,4) 8 W(9,8) 9 B(0,6) 10 W(9,9) completes the five
+        let seq = [9*19+5, 7*19+5, 9*19+6, 0*19+0, 9*19+7, 0*19+2,
+                   8*19+5, 0*19+4, 9*19+8, 0*19+6, 9*19+9]
+        let r = g.replay(seq, until: seq.count)
+        XCTAssertEqual(r.placed, 1)
+        XCTAssertEqual(r.winner, 0)                 // provisional five -> no win yet
+
+        // Sanity: identical sequence under plain Pente DOES win on the five.
+        let p = PenteGame(variant: .pente)
+        XCTAssertEqual(p.replay(seq, until: seq.count).winner, 1)
+    }
+
+    // MARK: Boat-Pente — capture-threshold win still applies (10 captures).
+    func testBoatWinByTenCaptures() {
+        let g = PenteGame(variant: .boatPente)
+        let rows = [1, 4, 7, 10, 13]
+        var moves: [Int] = []
+        for (k, r) in rows.enumerated() {
+            moves.append(r * 19 + 5)        // W anchor
+            moves.append(r * 19 + 6)        // B (captured)
+            moves.append(18 * 19 + 2 * k)   // W throwaway
+            moves.append(r * 19 + 7)        // B (captured)
+            moves.append(r * 19 + 8)        // W closer -> captures the black pair
+            if k < rows.count - 1 {
+                moves.append(17 * 19 + 2 * k)   // B filler (parity)
+            }
+        }
+        let r = g.replay(moves, until: moves.count)
+        XCTAssertEqual(g.blackCaptures, 10)
+        XCTAssertEqual(r.winner, 1)                 // white wins by reaching 10 captures
+    }
+
+    // MARK: Boat-Pente — a provisional (breakable) five is PROMOTED to a win once the
+    // opponent has had a turn and failed to break it (server BoatPenteState.isGameOver
+    // awards the current player's standing five with no capture check).
+    func testBoatBreakableFivePromotedWhenOpponentFailsToBreak() {
+        // idx 10 = W(9,9) forms the five (9,5)..(9,9); it is breakable via the off-line
+        // white pair (8,5),(9,5) — black sits at (7,5), (10,5) is empty. idx 11 = black
+        // plays elsewhere (0,8) instead of the capturing (10,5), so on that move white's
+        // five stands and is promoted.
+        let seq = [9*19+5, 7*19+5, 9*19+6, 0*19+0, 9*19+7, 0*19+2,
+                   8*19+5, 0*19+4, 9*19+8, 0*19+6, 9*19+9, 0*19+8]
+        let g = PenteGame(variant: .boatPente)
+        XCTAssertEqual(g.replay(seq, until: 11).winner, 0)   // white's formation move: provisional
+        let r = g.replay(seq, until: seq.count)              // black failed to break it
+        XCTAssertEqual(r.winner, 1)                          // -> white promoted to the win
+    }
+
+    // MARK: Boat-Pente — if the opponent DOES break the five, no promotion.
+    func testBoatBreakableFiveNotPromotedIfBroken() {
+        // Same as above but idx 11 = black plays (10,5), custodially capturing the
+        // (8,5),(9,5) pair (black flankers at (7,5) and (10,5)) -> the five drops to
+        // four and no win stands.
+        let seq = [9*19+5, 7*19+5, 9*19+6, 0*19+0, 9*19+7, 0*19+2,
+                   8*19+5, 0*19+4, 9*19+8, 0*19+6, 9*19+9, 10*19+5]
+        let g = PenteGame(variant: .boatPente)
+        let r = g.replay(seq, until: seq.count)
+        XCTAssertEqual(g.whiteCaptures, 2)   // two white stones (8,5),(9,5) captured
+        XCTAssertEqual(g.stone(at: 9*19+5), 0)
+        XCTAssertEqual(r.winner, 0)          // broken five -> game continues
+    }
 }

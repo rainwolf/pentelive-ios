@@ -61,6 +61,9 @@ import UIKit
         case .renju:
             // #D98880 dusty rose — canonical Renju board colour, distinct from gomoku.
             return UIColor(red: 0.851, green: 0.533, blue: 0.502, alpha: 1)
+        case .boatPente:
+            // Boat blue — same colour the legacy `boatPente: true` flag produced.
+            return UIColor(red: 0.145, green: 0.729, blue: 1, alpha: 1)
         }
     }
 

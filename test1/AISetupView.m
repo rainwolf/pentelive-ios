@@ -166,7 +166,7 @@
     if (indexPath.row == 0) {
         [difficultyCell.textField resignFirstResponder];
         // Cycle the exposed, faithfully-refereed variants:
-        // Pente -> Keryo-Pente -> Poof-Pente -> Connect6 -> (wrap to Pente).
+        // Pente -> Keryo-Pente -> Poof-Pente -> Connect6 -> Boat-Pente -> (wrap to Pente).
         NSString *cur = gameCell.detailTextLabel.text;
         NSString *next;
         if ([cur isEqualToString:@"Pente"]) {
@@ -175,6 +175,8 @@
             next = @"Poof-Pente";
         } else if ([cur isEqualToString:@"Poof-Pente"]) {
             next = @"Connect6";
+        } else if ([cur isEqualToString:@"Connect6"]) {
+            next = @"Boat-Pente";
         } else {
             next = @"Pente";
         }
@@ -190,6 +192,8 @@
             nextVariant = PenteVariantPoofPente;
         } else if ([next isEqualToString:@"Connect6"]) {
             nextVariant = PenteVariantConnect6;
+        } else if ([next isEqualToString:@"Boat-Pente"]) {
+            nextVariant = PenteVariantBoatPente;
         }
         bg = [BoardVariantMapping backgroundColorForVariant:nextVariant
                                                   boatPente:NO];
