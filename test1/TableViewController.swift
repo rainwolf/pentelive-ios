@@ -30,6 +30,9 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
     var me: String
     var seatsView: SeatsView!
     let playButton = UIButton()
+    let renjuPassButton = UIButton()
+    let renjuDrawButton = UIButton()
+    var drawArmed = false
     var timer, waitTimer: Timer?
     var waitSeconds: Int = 7 * 60
     var cellSize: CGFloat = 0
@@ -95,6 +98,14 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
         playButton.titleLabel?.font = UIFont.boldSystemFont(ofSize: 25)
         playButton.setTitleColor(UIColor.blue, for: .normal)
         playButton.addTarget(self, action: #selector(play), for: .touchUpInside)
+        renjuPassButton.setTitle(NSLocalizedString("PASS", comment: ""), for: .normal)
+        renjuPassButton.titleLabel?.font = UIFont.boldSystemFont(ofSize: 20)
+        renjuPassButton.setTitleColor(UIColor.blue, for: .normal)
+        renjuPassButton.addTarget(self, action: #selector(renjuPass), for: .touchUpInside)
+        renjuDrawButton.setTitle(NSLocalizedString("DRAW?", comment: ""), for: .normal)
+        renjuDrawButton.titleLabel?.font = UIFont.boldSystemFont(ofSize: 20)
+        renjuDrawButton.setTitleColor(UIColor.blue, for: .normal)
+        renjuDrawButton.addTarget(self, action: #selector(toggleDrawOffer), for: .touchUpInside)
 
         let optionsItem = UIBarButtonItem(image: UIImage(named: "cancel"), style: .plain, target: self, action: #selector(showOptions))
         if !isArenaTable {
@@ -141,6 +152,17 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
         playButton.frame = frame
         playButton.isHidden = true
         view.addSubview(playButton)
+        // Live renju PASS + DRAW? buttons split the playButton-row slot (derived from the same
+        // frame, so it scales on iPhone and iPad). Hidden until it is my post-opening renju turn.
+        var renjuButtonFrame = frame
+        renjuButtonFrame.size.width = frame.size.width / 2
+        renjuPassButton.frame = renjuButtonFrame
+        renjuButtonFrame.origin.x = frame.origin.x + frame.size.width / 2
+        renjuDrawButton.frame = renjuButtonFrame
+        renjuPassButton.isHidden = true
+        renjuDrawButton.isHidden = true
+        view.addSubview(renjuPassButton)
+        view.addSubview(renjuDrawButton)
         let gestureRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(boardTouch(gestureReconizer:)))
 //        let gestureRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(self.boardTouch))
         gestureRecognizer.minimumPressDuration = 0.05
@@ -298,7 +320,8 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
                             sendMove(move: idx)
                         }
                     } else {
-                        sendMove(move: idx)
+                        sendMove(move: idx, drawOffer: drawArmed)
+                        setDrawArmed(false)
                     }
                 }
             } else {
@@ -618,9 +641,52 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
         }
     }
 
-    func sendMove(move: Int) {
-        let event = ["dsgMoveTableEvent": ["move": move, "moves": [move], "player": me, "table": table.table, "time": 0] as [String: Any]]
+    func sendMove(move: Int, drawOffer: Bool = false) {
+        var inner: [String: Any] = ["move": move, "moves": [move], "player": me, "table": table.table, "time": 0]
+        if drawOffer { inner["drawOffer"] = true }
+        let event = ["dsgMoveTableEvent": inner]
         socket.sendEvent(eventDictionary: event)
+    }
+
+    // MARK: - Live renju PASS / DRAW? buttons
+
+    @objc func renjuPass() {
+        guard renjuPostOpeningMyTurn() else { return }
+        sendMove(move: table.gridSize * table.gridSize, drawOffer: drawArmed)
+        setDrawArmed(false)
+    }
+
+    @objc func toggleDrawOffer() {
+        setDrawArmed(!drawArmed)
+        if drawArmed {
+            TSMessage.showNotification(in: self,
+                                       title: NSLocalizedString("Draw offer", comment: ""),
+                                       subtitle: NSLocalizedString("Draw offer will be sent with your move", comment: ""),
+                                       type: TSMessageNotificationType.message,
+                                       duration: TimeInterval(TSMessageNotificationDuration.automatic.rawValue),
+                                       canBeDismissedByUser: true)
+        }
+    }
+
+    func setDrawArmed(_ armed: Bool) {
+        drawArmed = armed
+        renjuDrawButton.backgroundColor = armed ? UIColor.systemGreen : UIColor.clear
+    }
+
+    // Live, post-opening renju position where it is my move: PASS/DRAW? are meaningful.
+    func renjuPostOpeningMyTurn() -> Bool {
+        return table.isRenju() && table.state.state == .started
+            && table.state.renju.complete && table.currentPlayerName() == me
+    }
+
+    // Refresh PASS/DRAW? visibility; disarm any pending draw when the game is not live.
+    func updateRenjuDrawButtons() {
+        let show = renjuPostOpeningMyTurn()
+        renjuPassButton.isHidden = !show
+        renjuDrawButton.isHidden = !show
+        if table.state.state != .started {
+            setDrawArmed(false)
+        }
     }
 
     func sendRenjuSwap(swap: Bool, move: Int) {
@@ -704,6 +770,7 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
         } else {
             seatsView.ratedTimerLabel.alpha = 0.3
         }
+        updateRenjuDrawButtons()
         seatsView.setTimers(timers: table.state.timers)
         if table.isDPente() {
             if table.seats[2] != nil, me == table.seats[2]?.name, table.moves.count == 4, table.state.dPenteState == .noChoice {
@@ -989,6 +1056,7 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
         } else {
             playButton.isHidden = true
         }
+        updateRenjuDrawButtons()
         showGoDialog()
     }
 
@@ -1010,6 +1078,7 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
         if table.isGo(), table.state.state == .started, table.currentPlayerName() == me {
             playButton.isHidden = false; playButton.setTitle(NSLocalizedString("PASS", comment: ""), for: .normal)
         }
+        updateRenjuDrawButtons()
         showGoDialog()
     }
 
@@ -1024,6 +1093,7 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
         } else {
             playButton.isHidden = true
         }
+        updateRenjuDrawButtons()
     }
 
     func showGoDialog() {
@@ -1081,6 +1151,37 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
             }
             present(alertController, animated: true)
         }
+    }
+
+    func drawOffered(player: String) {
+        if me != player, table.amIseated(i: me) {
+            let alertController = UIAlertController(title: NSLocalizedString("\(player) offered a draw", comment: ""), message: nil, preferredStyle: .alert)
+
+            let acceptAction = UIAlertAction(title: NSLocalizedString("accept draw", comment: ""), style: .default) { _ in
+                let event = ["dsgRenjuAcceptDrawTableEvent": ["player": self.me, "table": self.table.table, "time": 0] as [String: Any]]
+                self.socket.sendEvent(eventDictionary: event)
+            }
+            alertController.addAction(acceptAction)
+            let rejectAction = UIAlertAction(title: NSLocalizedString("decline draw", comment: ""), style: .destructive) { _ in
+                let event = ["dsgRenjuRejectDrawTableEvent": ["player": self.me, "table": self.table.table, "time": 0] as [String: Any]]
+                self.socket.sendEvent(eventDictionary: event)
+            }
+            alertController.addAction(rejectAction)
+            if let popoverController = alertController.popoverPresentationController {
+                popoverController.barButtonItem = navigationItem.rightBarButtonItems?[isArenaTable ? 0 : 1]
+            }
+            present(alertController, animated: true)
+        }
+    }
+
+    func drawRejected(player _: String) {
+        setDrawArmed(false)
+        addText(text: NSLocalizedString("* draw offer declined *", comment: ""))
+    }
+
+    func drawAccepted(player _: String) {
+        addText(text: NSLocalizedString("* draw accepted *", comment: ""))
+        // game end arrives via the game-state event
     }
 
     func requestUndoReply(player _: String, accepted: Bool) {

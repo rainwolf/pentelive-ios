@@ -734,6 +734,14 @@ class PlayerTableCell: UITableViewCell {
             if tableId == self.tableViewController?.table.table {
                 self.tableViewController?.stateChanged()
                 self.tableViewController?.gameStateChanged()
+                // Rejoin: surface an in-flight draw offer carried on the game-state snapshot.
+                if let drawOfferedBy = event["drawOfferedBy"] as? String {
+                    if drawOfferedBy == self.me {
+                        self.tableViewController?.addText(text: NSLocalizedString("* draw offer pending *", comment: ""))
+                    } else {
+                        self.tableViewController?.drawOffered(player: drawOfferedBy)
+                    }
+                }
                 //                if gameState == 4 {
                 //                    if let winner = event["winner"] as? String {
                 //                        self.tableViewController?.addText(text: NSLocalizedString("\(winner) wins game 1 of the set. Server swapped your seats for the 2nd game.", comment: ""))
@@ -835,7 +843,33 @@ class PlayerTableCell: UITableViewCell {
             }
         }
     }
-    
+
+    func renjuAcceptDrawTableEvent(event: [String: Any]) {
+        DispatchQueue.main.async {
+            let tableId = event["table"] as! Int
+            if self.playersAndTables.table(tableId: tableId) == nil {
+                return
+            }
+            if tableId == self.tableViewController?.table.table {
+                let playerName = event["player"] as! String
+                self.tableViewController?.drawAccepted(player: playerName)
+            }
+        }
+    }
+
+    func renjuRejectDrawTableEvent(event: [String: Any]) {
+        DispatchQueue.main.async {
+            let tableId = event["table"] as! Int
+            if self.playersAndTables.table(tableId: tableId) == nil {
+                return
+            }
+            if tableId == self.tableViewController?.table.table {
+                let playerName = event["player"] as! String
+                self.tableViewController?.drawRejected(player: playerName)
+            }
+        }
+    }
+
     func replyUndoRequestTableEvent(event: [String: Any]) {
         DispatchQueue.main.async {
             let tableId = event["table"] as! Int
@@ -927,6 +961,11 @@ class PlayerTableCell: UITableViewCell {
                     self.tableViewController?.addMoves(moves: moves)
                 }
                 self.tableViewController?.stateChanged()
+                if let offer = event["drawOffer"] as? Bool, offer,
+                   let playerName = event["player"] as? String,
+                   playerName != self.me {
+                    self.tableViewController?.drawOffered(player: playerName)
+                }
             }
         }
     }
