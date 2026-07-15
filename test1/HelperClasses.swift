@@ -230,7 +230,15 @@ class Table: NSObject {
         // Pente-family: rebuild the whole position in one engine call (replay resets
         // the engine internally) and mirror it back. Unlike the per-move addMove loop
         // this stays silent — no onCaptures animation fires during a bulk load.
-        lastMoveResult = engine.replay(moves, until: moves.count)
+        // The engine must see stones ONLY: a pass sentinel (gridSize², e.g. renju's 225
+        // opening-window decline) is filtered here explicitly, mirroring the isPass guard
+        // on the single-move addMove path, rather than relying on PenteGame.play's
+        // out-of-range no-op. Parity is safe either way — play() never advances moveCount
+        // for a pass — but the FULL list (passes included) is still kept in `moves` so
+        // move parity and advanceRenjuTracking(isRejoin:) counts (which read moves.count)
+        // stay correct.
+        let stones = moves.filter { !isPass($0) }
+        lastMoveResult = engine.replay(stones, until: stones.count)
         self.moves = moves
         syncFromEngine()
         advanceRenjuTracking(isRejoin: true)

@@ -1817,6 +1817,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
     BOOL staged = (finalMove > -1);
     [self.renjuPassButton2 setHidden:!(renjuComplete && !staged)];
     [self.renjuDrawButton setHidden:!renjuComplete];
+    if (!renjuComplete) { self.drawArmed = NO; }
     self.renjuDrawButton.backgroundColor =
         self.drawArmed ? [UIColor systemGreenColor] : [UIColor clearColor];
     if (renjuComplete) {
