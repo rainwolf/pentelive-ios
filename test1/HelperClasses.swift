@@ -324,6 +324,17 @@ class Table: NSObject {
             addGoMove(move: move)
             return
         }
+        if isPass(move) {
+            // Pass (server sends gridSize² for renju's opening-window declines): no
+            // stone to place, so skip the engine/board application explicitly rather
+            // than relying on PenteGame.play's own out-of-range no-op. Still recorded
+            // in `moves` and still advances renju tracking — both depend on
+            // moves.count, not board state.
+            moves.append(move)
+            advanceRenjuTracking(isRejoin: false)
+            lastMoveResult = nil
+            return
+        }
         let result = engine.play(move)
         moves.append(move)
         syncFromEngine()
@@ -333,8 +344,14 @@ class Table: NSObject {
             onCaptures?(result.captured)
         }
     }
-    
+
     var gridSize = 19, passMove = 19 * 19
+
+    // True when `move` is a pass (server sends gridSize² for renju's opening-window
+    // declines). Board/engine application must skip it; it still belongs in `moves`.
+    func isPass(_ move: Int) -> Bool {
+        return move == gridSize * gridSize
+    }
     
     func addGoMove(move: Int) {
         if game == GameEnum.speedGo9x9.rawValue || game == GameEnum.go9x9.rawValue {
