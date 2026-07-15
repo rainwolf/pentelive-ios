@@ -236,6 +236,39 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
     rect.origin.y = board.frame.size.height + 2;
     rect.size.width = x;
     passButton.frame = rect;
+
+    // Renju turn-based (COMPLETE-phase) PASS / DRAW? buttons. Created in code
+    // (lockButton precedent) — the storyboard passButton is the swap2/renju
+    // OPENING button and is never visible with phase COMPLETE, so these reuse
+    // the player1/player2 slots (x, 2*x) in the same bottom row. Hidden until
+    // updateRenjuTbButtons reveals them.
+    self.renjuPassButton2 = [[UIButton alloc] init];
+    rect = passButton.frame; // same bottom row / height as the decision buttons
+    rect.origin.x = x;
+    self.renjuPassButton2.frame = rect;
+    [self.renjuPassButton2 setTitle:NSLocalizedString(@"PASS", nil)
+                           forState:UIControlStateNormal];
+    [self.renjuPassButton2 setTitleColor:[UIColor blueColor]
+                                forState:UIControlStateNormal];
+    [self.renjuPassButton2 addTarget:self
+                              action:@selector(renjuPassTapped:)
+                    forControlEvents:UIControlEventTouchUpInside];
+    [self.renjuPassButton2 setHidden:YES];
+    [self.view addSubview:self.renjuPassButton2];
+
+    self.renjuDrawButton = [[UIButton alloc] init];
+    rect.origin.x = 2 * x;
+    self.renjuDrawButton.frame = rect;
+    [self.renjuDrawButton setTitle:NSLocalizedString(@"DRAW?", nil)
+                          forState:UIControlStateNormal];
+    [self.renjuDrawButton setTitleColor:[UIColor blueColor]
+                               forState:UIControlStateNormal];
+    [self.renjuDrawButton addTarget:self
+                             action:@selector(toggleDrawOffer:)
+                   forControlEvents:UIControlEventTouchUpInside];
+    [self.renjuDrawButton setHidden:YES];
+    [self.view addSubview:self.renjuDrawButton];
+
     rect = dPenteChoiceLabel.frame;
     rect.origin.y = (player1Button.frame.origin.y + 3);
     dPenteChoiceLabel.frame = rect;
@@ -1723,6 +1756,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
             }
         }
     }
+    [self updateRenjuTbButtons]; // keep TB PASS visibility in sync with staging
 }
 
 - (void)undoCaptures {
@@ -1771,6 +1805,57 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
     [NSThread detachNewThreadSelector:@selector(submitMoveToServer)
                              toTarget:self
                            withObject:nil];
+}
+
+// Renju turn-based (COMPLETE-phase) button state. PASS shows only when it is my
+// turn in COMPLETE and no stone is staged; DRAW? shows whenever it is my turn in
+// COMPLETE (armed => green). SUBMIT stays disabled-until-staged via the existing
+// non-Go default (boardTap), so no extra work is needed here.
+- (void)updateRenjuTbButtons {
+    BOOL renjuComplete =
+        [self.renjuPhase isEqualToString:@"COMPLETE"] && activeGame;
+    BOOL staged = (finalMove > -1);
+    [self.renjuPassButton2 setHidden:!(renjuComplete && !staged)];
+    [self.renjuDrawButton setHidden:!renjuComplete];
+    self.renjuDrawButton.backgroundColor =
+        self.drawArmed ? [UIColor systemGreenColor] : [UIColor clearColor];
+    if (renjuComplete) {
+        [self.view bringSubviewToFront:self.renjuPassButton2];
+        [self.view bringSubviewToFront:self.renjuDrawButton];
+    }
+}
+
+- (void)toggleDrawOffer:(UIButton *)sender {
+    self.drawArmed = !self.drawArmed;
+    [self updateRenjuTbButtons];
+    if (self.drawArmed) {
+        [TSMessage
+            showNotificationInViewController:self.navigationController
+                                       title:NSLocalizedString(@"Draw offer",
+                                                               nil)
+                                    subtitle:
+                                        NSLocalizedString(
+                                            @"Draw offer will be sent after "
+                                            @"you move",
+                                            nil)
+                                       image:nil
+                                        type:TSMessageNotificationTypeMessage
+                                    duration:
+                                        TSMessageNotificationDurationAutomatic
+                                    callback:^{
+                                        [TSMessage dismissActiveNotification];
+                                    }
+                                 buttonTitle:nil
+                              buttonCallback:nil
+                                  atPosition:TSMessageNotificationPositionBottom
+                        canBeDismissedByUser:YES];
+    }
+}
+
+- (void)renjuPassTapped:(UIButton *)sender {
+    if (![self.renjuPhase isEqualToString:@"COMPLETE"] || !activeGame) return;
+    finalMove = gridSize * gridSize; // pass sentinel; renjuAction stays nil
+    [self submitMove:sender];
 }
 
 - (NSString *)getDeadStonesString {
@@ -1889,6 +1974,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
         (renjuAction != nil)
             ? [NSString stringWithFormat:@"&renjuAction=%@", renjuAction]
             : @"";
+    NSString *drawSuffix = self.drawArmed ? @"&drawOffer=true" : @"";
 
     NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
     NSString *url;
@@ -1897,29 +1983,33 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
         url = [NSString
             stringWithFormat:
                 @"https://www.pente.org/gameServer/tb/"
-                @"game?command=move%@&mobile=&gid=%@&moves=%@&message=%@",
-                hideString, [self.game gameID], moveString, renjuSuffix];
-        if (development) {
-            url = [NSString
-                stringWithFormat:
-                    @"https://localhost/gameServer/tb/"
-                    @"game?command=move%@&mobile=&gid=%@&moves=%@&message=%@",
-                    hideString, [self.game gameID], moveString, renjuSuffix];
-        }
-    } else {
-        url = [NSString
-            stringWithFormat:
-                @"https://www.pente.org/gameServer/tb/"
                 @"game?command=move%@&mobile=&gid=%@&moves=%@&message=%@%@",
-                hideString, [self.game gameID], moveString,
-                [self URLEncodedString_ch:replyMessage], renjuSuffix];
+                hideString, [self.game gameID], moveString, renjuSuffix,
+                drawSuffix];
         if (development) {
             url = [NSString
                 stringWithFormat:
                     @"https://localhost/gameServer/tb/"
                     @"game?command=move%@&mobile=&gid=%@&moves=%@&message=%@%@",
+                    hideString, [self.game gameID], moveString, renjuSuffix,
+                    drawSuffix];
+        }
+    } else {
+        url = [NSString
+            stringWithFormat:
+                @"https://www.pente.org/gameServer/tb/"
+                @"game?command=move%@&mobile=&gid=%@&moves=%@&message=%@%@%@",
+                hideString, [self.game gameID], moveString,
+                [self URLEncodedString_ch:replyMessage], renjuSuffix,
+                drawSuffix];
+        if (development) {
+            url = [NSString
+                stringWithFormat:
+                    @"https://localhost/gameServer/tb/"
+                    @"game?command=move%@&mobile=&gid=%@&moves=%@&message=%@%@%@",
                     hideString, [self.game gameID], moveString,
-                    [self URLEncodedString_ch:replyMessage], renjuSuffix];
+                    [self URLEncodedString_ch:replyMessage], renjuSuffix,
+                    drawSuffix];
         }
     }
     //    NSLog(@"kitty %@", url);
@@ -1988,6 +2078,8 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                  [alert show];
                  return;
              }
+             strongSelf.drawArmed = NO; // consumed by this submitted move
+             [strongSelf updateRenjuTbButtons];
              [strongSelf cleanUp];
          }];
 }
@@ -2136,6 +2228,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                       *p2Name = jsonResponse[@"player2"][@"name"];
              NSString *currentPlayer = jsonResponse[@"currentPlayer"];
              BOOL undoRequest = [jsonResponse[@"undoRequested"] boolValue];
+             BOOL drawOffered = [jsonResponse[@"drawOffered"] boolValue];
              [strongSelf.game setSetID:[jsonResponse[@"sid"] stringValue]];
              if ([jsonResponse[@"moves"] length] > 0) {
                  strongSelf->movesList = [NSMutableArray
@@ -2692,6 +2785,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                      [strongSelf updateRenjuBoxOverlay]; // radius 0 -> removes box
                  }
              }
+             [strongSelf updateRenjuTbButtons]; // sync TB PASS/DRAW? each poll
 
              if ([[strongSelf.game opponentName] isEqualToString:@"computer"]) {
                  NSString *message = nil;
@@ -2770,6 +2864,39 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
              }
              if (undoRequest && strongSelf->activeGame) {
                  [strongSelf presentUndoOptions];
+             }
+             if (drawOffered && strongSelf->activeGame) {
+                 // My turn: opponent offered a draw with their move -> respond.
+                 [strongSelf presentDrawOptions];
+             } else if (drawOffered) {
+                 // Not my turn: I offered; waiting for opponent to reply.
+                 dispatch_async(dispatch_get_main_queue(), ^{
+                     [TSMessage
+                         showNotificationInViewController:strongSelf
+                                                              .navigationController
+                                                    title:NSLocalizedString(
+                                                              @"Draw offered",
+                                                              nil)
+                                                 subtitle:
+                                                     NSLocalizedString(
+                                                         @"Waiting for your "
+                                                         @"opponent to reply",
+                                                         nil)
+                                                    image:nil
+                                                     type:
+                                                         TSMessageNotificationTypeMessage
+                                                 duration:
+                                                     TSMessageNotificationDurationAutomatic
+                                                 callback:^{
+                                                     [TSMessage
+                                                         dismissActiveNotification];
+                                                 }
+                                              buttonTitle:nil
+                                           buttonCallback:nil
+                                               atPosition:
+                                                   TSMessageNotificationPositionBottom
+                                     canBeDismissedByUser:YES];
+                 });
              }
              if (goMarkStones && strongSelf->activeGame &&
                  ![[NSUserDefaults standardUserDefaults]
@@ -3133,6 +3260,98 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
 
     [alert addAction:acceptAction];
     [alert addAction:declineAction];
+    if (alert.popoverPresentationController) {
+        [alert.popoverPresentationController setSourceView:playerStats];
+        [alert.popoverPresentationController setSourceRect:playerStats.bounds];
+    }
+    [self presentViewController:alert animated:YES completion:nil];
+}
+
+// Opponent offered a draw with their move; it is now my turn to respond. Clones
+// the presentUndoOptions request scaffold (POST to /gameServer/tb/game, prod +
+// development localhost). Accept => acceptDraw; Dismiss is a no-op — playing a
+// move implicitly declines.
+- (void)presentDrawOptions {
+    UIAlertController *alert = [UIAlertController
+        alertControllerWithTitle:NSLocalizedString(@"Draw offered", nil)
+                         message:nil
+                  preferredStyle:UIAlertControllerStyleActionSheet];
+    UIAlertAction *acceptAction = [UIAlertAction
+        actionWithTitle:NSLocalizedString(@"Accept draw", nil)
+                  style:UIAlertActionStyleDefault
+                handler:^(UIAlertAction *action) {
+                    PenteNavigationViewController *navControllor =
+                        (PenteNavigationViewController *)
+                            self.navigationController;
+                    NSMutableURLRequest *request =
+                        [[NSMutableURLRequest alloc] init];
+
+                    NSString *post = [NSString
+                        stringWithFormat:@"gid=%@&command=acceptDraw&mobile=",
+                                         [self.game gameID]];
+                    NSData *postData =
+                        [post dataUsingEncoding:NSASCIIStringEncoding
+                            allowLossyConversion:YES];
+                    NSString *postLength = [NSString
+                        stringWithFormat:@"%lu",
+                                         (unsigned long)[postData length]];
+
+                    NSURL *url =
+                        [NSURL URLWithString:
+                                   @"https://www.pente.org/gameServer/tb/game"];
+                    if (development) {
+                        url =
+                            [NSURL URLWithString:
+                                       @"https://localhost/gameServer/tb/game"];
+                    }
+                    [request setURL:url];
+                    [request setHTTPMethod:@"POST"];
+                    [request setValue:postLength
+                        forHTTPHeaderField:@"Content-Length"];
+                    [request setValue:@"application/x-www-form-urlencoded"
+                        forHTTPHeaderField:@"Content-Type"];
+                    [request setHTTPBody:postData];
+                    [request setTimeoutInterval:7.0f];
+
+                    [request setHTTPShouldUsePipelining:YES];
+
+                    __weak typeof(self) weakSelf = self;
+                    [PenteHTTPClient
+                        sendRequest:request
+                         completion:^(NSData *responseData,
+                                      NSURLResponse *response, NSError *error) {
+                             if (error) {
+                                 UIAlertView *alert = [[UIAlertView alloc]
+                                         initWithTitle:NSLocalizedString(
+                                                           @"Error", nil)
+                                               message:
+                                                   [NSString
+                                                       stringWithFormat:
+                                                           NSLocalizedString(
+                                                               @"Reason: %@",
+                                                               nil),
+                                                           error
+                                                               .localizedDescription]
+                                              delegate:nil
+                                     cancelButtonTitle:@"OK"
+                                     otherButtonTitles:nil];
+                                 [alert show];
+                                 return;
+                             }
+                             [navControllor setDidMove:YES];
+                             [weakSelf.navigationController
+                                 popToRootViewControllerAnimated:YES];
+                         }];
+                }];
+    UIAlertAction *dismissAction = [UIAlertAction
+        actionWithTitle:NSLocalizedString(@"Dismiss", nil)
+                  style:UIAlertActionStyleCancel
+                handler:^(UIAlertAction *action){
+                    // No-op: making a move declines the offer.
+                }];
+
+    [alert addAction:acceptAction];
+    [alert addAction:dismissAction];
     if (alert.popoverPresentationController) {
         [alert.popoverPresentationController setSourceView:playerStats];
         [alert.popoverPresentationController setSourceRect:playerStats.bounds];
