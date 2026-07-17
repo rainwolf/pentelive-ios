@@ -153,6 +153,12 @@ import UIKit
             room.undoRequestTableEvent(event: content as! [String: Any])
         } else if let content = event?["dsgUndoReplyTableEvent"] {
             room.replyUndoRequestTableEvent(event: content as! [String: Any])
+        } else if let content = event?["dsgRenjuAcceptDrawTableEvent"] {
+            room.renjuAcceptDrawTableEvent(event: content as! [String: Any])
+        } else if let content = event?["dsgRenjuRejectDrawTableEvent"] {
+            room.renjuRejectDrawTableEvent(event: content as! [String: Any])
+        } else if let content = event?["dsgRenjuDrawTableErrorEvent"] {
+            print("dsgRenjuDrawTableErrorEvent (ignored): \(content)")
         } else if let content = event?["dsgCancelRequestTableEvent"] {
             room.cancelRequestTableEvent(event: content as! [String: Any])
         } else if let content = event?["dsgCancelReplyTableEvent"] {

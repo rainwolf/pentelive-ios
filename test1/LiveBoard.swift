@@ -264,7 +264,9 @@ class LiveBoard: UIView {
         }
 
         let lastMove = table.lastMove()
-        if lastMove > -1 {
+        if lastMove > -1 && !table.isPass(lastMove) {
+            // A pass (gridSize²) has no board coordinate — i / j below would land a
+            // row past the last real row, drawing the marker off the board.
             context.setFillColor(UIColor.red.cgColor)
             let i = lastMove / gridSize, j = lastMove % gridSize
             circle = CGRect(x: (CGFloat(j) * 2 + 2 / 3) * margin, y: (CGFloat(i) * 2 + 2 / 3) * margin, width: (CGFloat(2) / 3) * margin, height: (CGFloat(2) / 3) * margin)

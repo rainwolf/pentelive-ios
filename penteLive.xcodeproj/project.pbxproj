@@ -251,6 +251,7 @@
 		D4A11111111111111111G001 /* RenjuLiveSymmetry.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4A11111111111111111G002 /* RenjuLiveSymmetry.swift */; };
 		D4A11111111111111111H003 /* RenjuLiveSymmetryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4A11111111111111111H004 /* RenjuLiveSymmetryTests.swift */; };
 		D4A11111111111111111J003 /* RenjuLiveModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4A11111111111111111J004 /* RenjuLiveModelTests.swift */; };
+		D4A11111111111111111L003 /* RenjuPassTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4A11111111111111111L004 /* RenjuPassTests.swift */; };
 		D4A11111111111111111K001 /* RenjuWire.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4A11111111111111111K002 /* RenjuWire.swift */; };
 		D4A11111111111111111K003 /* RenjuWire.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4A11111111111111111K002 /* RenjuWire.swift */; };
 		D5EEBF69DF3319F594473C96 /* PenteGameEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C04A941E308F1CBC0804C1A6 /* PenteGameEngineTests.swift */; };
@@ -559,6 +560,7 @@
 		D4A11111111111111111G002 /* RenjuLiveSymmetry.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RenjuLiveSymmetry.swift; sourceTree = "<group>"; };
 		D4A11111111111111111H004 /* RenjuLiveSymmetryTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RenjuLiveSymmetryTests.swift; sourceTree = "<group>"; };
 		D4A11111111111111111J004 /* RenjuLiveModelTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RenjuLiveModelTests.swift; sourceTree = "<group>"; };
+		D4A11111111111111111L004 /* RenjuPassTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RenjuPassTests.swift; sourceTree = "<group>"; };
 		D4A11111111111111111K002 /* RenjuWire.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RenjuWire.swift; sourceTree = "<group>"; };
 		D6E40F513E93FEDEA4E7F4BE /* CPoint.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = CPoint.h; sourceTree = "<group>"; };
 		DF79B5FAA47E933A0410E3FD /* DashboardMapping.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DashboardMapping.swift; sourceTree = "<group>"; };
@@ -983,6 +985,7 @@
 				D4A11111111111111111F004 /* RenjuOpeningPhaseTests.swift */,
 				D4A11111111111111111H004 /* RenjuLiveSymmetryTests.swift */,
 				D4A11111111111111111J004 /* RenjuLiveModelTests.swift */,
+				D4A11111111111111111L004 /* RenjuPassTests.swift */,
 				8ECBCB2C27E5249A019555B9 /* RuleSetTests.swift */,
 				C04A941E308F1CBC0804C1A6 /* PenteGameEngineTests.swift */,
 				A43C60A3066249BC1D49D05D /* PenteGameCorpusTests.swift */,
@@ -1376,6 +1379,7 @@
 				D4A11111111111111111F003 /* RenjuOpeningPhaseTests.swift in Sources */,
 				D4A11111111111111111H003 /* RenjuLiveSymmetryTests.swift in Sources */,
 				D4A11111111111111111J003 /* RenjuLiveModelTests.swift in Sources */,
+				D4A11111111111111111L003 /* RenjuPassTests.swift in Sources */,
 				D4A11111111111111111K003 /* RenjuWire.swift in Sources */,
 				6DF419D1BFAAECFD9C12D887 /* RuleSetTests.swift in Sources */,
 				D5EEBF69DF3319F594473C96 /* PenteGameEngineTests.swift in Sources */,

@@ -55,6 +55,9 @@
 @property (nonatomic, assign) BOOL renjuMove4BranchB;   // move-4 "Place 10": offer 10 (move4 fold)
 @property (nonatomic, strong) NSMutableArray<NSNumber *> *renjuPickedOffers; // OFFERS: the 10 picks
 @property (nonatomic, strong) CAShapeLayer *renjuBoxLayer;     // dashed central-square legal-placement overlay
+@property (nonatomic, strong) UIButton *renjuPassButton2;      // TB COMPLETE-phase PASS (code-created; NOT storyboard passButton)
+@property (nonatomic, strong) UIButton *renjuDrawButton;       // TB COMPLETE-phase DRAW? (code-created)
+@property (nonatomic, assign) BOOL drawArmed;                  // draw offer armed; appended to next submitted move
 //@property(nonatomic,retain) GamesTableViewController *gamesTable;
 @property(weak, nonatomic) IBOutlet BoardView *board;
 @property(weak, nonatomic) IBOutlet BoardView *zoomedBoard;

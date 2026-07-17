@@ -303,7 +303,9 @@
         CGContextAddEllipseInRect(context, circle);
         CGContextFillPath(context);
     }
-    if (lastMove > -1) {
+    // A pass (renju TB) is stored as the sentinel gridSize*gridSize, which has no
+    // board cell — skip the last-move highlight so it isn't drawn off-board.
+    if (lastMove > -1 && lastMove < gridSize * gridSize) {
         CGContextSetFillColorWithColor(
             context, [UIColor colorWithRed:1 green:0 blue:0 alpha:0.8].CGColor);
         int i = lastMove / gridSize, j = lastMove % gridSize;

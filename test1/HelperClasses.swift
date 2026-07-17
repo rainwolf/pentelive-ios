@@ -230,7 +230,15 @@ class Table: NSObject {
         // Pente-family: rebuild the whole position in one engine call (replay resets
         // the engine internally) and mirror it back. Unlike the per-move addMove loop
         // this stays silent — no onCaptures animation fires during a bulk load.
-        lastMoveResult = engine.replay(moves, until: moves.count)
+        // The engine must see stones ONLY: a pass sentinel (gridSize², e.g. renju's 225
+        // opening-window decline) is filtered here explicitly, mirroring the isPass guard
+        // on the single-move addMove path, rather than relying on PenteGame.play's
+        // out-of-range no-op. Parity is safe either way — play() never advances moveCount
+        // for a pass — but the FULL list (passes included) is still kept in `moves` so
+        // move parity and advanceRenjuTracking(isRejoin:) counts (which read moves.count)
+        // stay correct.
+        let stones = moves.filter { !isPass($0) }
+        lastMoveResult = engine.replay(stones, until: stones.count)
         self.moves = moves
         syncFromEngine()
         advanceRenjuTracking(isRejoin: true)
@@ -324,6 +332,17 @@ class Table: NSObject {
             addGoMove(move: move)
             return
         }
+        if isPass(move) {
+            // Pass (server sends gridSize² for renju's opening-window declines): no
+            // stone to place, so skip the engine/board application explicitly rather
+            // than relying on PenteGame.play's own out-of-range no-op. Still recorded
+            // in `moves` and still advances renju tracking — both depend on
+            // moves.count, not board state.
+            moves.append(move)
+            advanceRenjuTracking(isRejoin: false)
+            lastMoveResult = nil
+            return
+        }
         let result = engine.play(move)
         moves.append(move)
         syncFromEngine()
@@ -333,8 +352,14 @@ class Table: NSObject {
             onCaptures?(result.captured)
         }
     }
-    
+
     var gridSize = 19, passMove = 19 * 19
+
+    // True when `move` is a pass (server sends gridSize² for renju's opening-window
+    // declines). Board/engine application must skip it; it still belongs in `moves`.
+    func isPass(_ move: Int) -> Bool {
+        return move == gridSize * gridSize
+    }
     
     func addGoMove(move: Int) {
         if game == GameEnum.speedGo9x9.rawValue || game == GameEnum.go9x9.rawValue {
