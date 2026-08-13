@@ -754,6 +754,15 @@ class PlayerTableCell: UITableViewCell {
         }
     }
     
+    /// The cue that it is now someone's turn at the open table. Used by the move event and by
+    /// every swap choice that hands the turn over without placing a stone. Kept in one place so
+    /// the mute check cannot drift between the two.
+    private func playTurnSound() {
+        if playSounds {
+            AudioServicesPlaySystemSound(newMoveSndID)
+        }
+    }
+
     func swapSeatsTableEvent(event: [String: Any]) {
         DispatchQueue.main.async {
             let tableId = event["table"] as! Int
@@ -762,13 +771,15 @@ class PlayerTableCell: UITableViewCell {
             self.playersAndTables.swapSeats(tableId: tableId, swap: swap, silent: silent)
             if tableId == self.tableViewController?.table.table {
                 self.tableViewController?.stateChanged()
-                //                if let message = event ["changeText"] as? String {
-                //                    self.tableViewController?.addText(text: "* \(message) *")
-                //                }
+                // A swap choice passes the turn without placing a stone, so no move event
+                // follows. silent=true is the rejoin/state-sync marker, not a live choice.
+                if !silent {
+                    self.playTurnSound()
+                }
             }
         }
     }
-    
+
     func swap2PassTableEvent(event: [String: Any]) {
         DispatchQueue.main.async {
             let tableId = event["table"] as! Int
@@ -776,6 +787,11 @@ class PlayerTableCell: UITableViewCell {
             self.playersAndTables.swap2Pass(tableId: tableId, silent: silent)
             if tableId == self.tableViewController?.table.table {
                 self.tableViewController?.stateChanged()
+                // "Let p1 decide" -- turn returns to p1 with no stone placed. Note that
+                // LiveTable.swap2Pass(silent:) discards the flag, so gate on the local one.
+                if !silent {
+                    self.playTurnSound()
+                }
             }
         }
     }
@@ -794,7 +810,16 @@ class PlayerTableCell: UITableViewCell {
             let tableId = event["table"] as! Int
             let moves = event["moves"] as! [Int]
             self.playersAndTables.renjuOffer10(tableId: tableId, moves: moves)
-            if tableId == self.tableViewController?.table.table { self.tableViewController?.stateChanged() }
+            if tableId == self.tableViewController?.table.table {
+                self.tableViewController?.stateChanged()
+                // The offer hands SELECTION to the opponent with no move event. This frame
+                // carries no `silent` flag; the rejoin replay is recognisable only by its
+                // missing `player` (ServerTable.java:649 builds it with player=nil, and the
+                // server's Gson encoder omits null fields entirely).
+                if event["player"] as? String != nil {
+                    self.playTurnSound()
+                }
+            }
         }
     }
     func renjuSelect1TableEvent(event: [String: Any]) {
@@ -953,9 +978,7 @@ class PlayerTableCell: UITableViewCell {
         DispatchQueue.main.async {
             if tableId == self.tableViewController?.table.table {
                 if move != 0 {
-                    if self.playSounds {
-                        AudioServicesPlaySystemSound(self.newMoveSndID)
-                    }
+                    self.playTurnSound()
                     self.tableViewController?.addMove(move: move)
                 } else {
                     self.tableViewController?.addMoves(moves: moves)
