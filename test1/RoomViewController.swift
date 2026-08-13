@@ -787,11 +787,6 @@ class PlayerTableCell: UITableViewCell {
             self.playersAndTables.swap2Pass(tableId: tableId, silent: silent)
             if tableId == self.tableViewController?.table.table {
                 self.tableViewController?.stateChanged()
-                // "Let p1 decide" -- turn returns to p1 with no stone placed. Note that
-                // LiveTable.swap2Pass(silent:) discards the flag, so gate on the local one.
-                if !silent {
-                    self.playTurnSound()
-                }
             }
         }
     }
