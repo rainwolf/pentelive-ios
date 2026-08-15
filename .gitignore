@@ -1,3 +1,9 @@
 Pods
 fastlane
 screenshots/
+
+# Xcode per-user window/UI state. Regenerated whenever the project is
+# opened, and meaningless to anyone else. Schemes and breakpoints under
+# xcuserdata/ stay tracked on purpose — the documented build uses
+# `-scheme test1`, which resolves to xcschemes/test1.xcscheme.
+*.xcuserstate
