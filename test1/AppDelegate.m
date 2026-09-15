@@ -13,13 +13,60 @@
 //@import Firebase;
 @import RMStore;
 #import "PenteNavigationViewController.h"
+#import "SceneDelegate.h"
 @import TSMessages;
 #import "penteLive-Swift.h"
 
 @implementation AppDelegate
-@synthesize window = _window;
 @synthesize notification;
 @synthesize sndID, broadcastSndID;
+
+#pragma mark - Window access
+
++ (PenteNavigationViewController *)rootNavigationController {
+    // Deliberately avoids UIWindowScene's key-window property, which is iOS 15+.
+    // -connectedScenes, UIWindowScene, -activationState and -windows are all
+    // iOS 13, so nothing here constrains the deployment target above 13.0.
+    UIWindowScene *active = nil;
+    for (UIScene *scene in [UIApplication sharedApplication].connectedScenes) {
+        if (![scene isKindOfClass:[UIWindowScene class]]) {
+            continue;
+        }
+        UIWindowScene *windowScene = (UIWindowScene *)scene;
+        if (windowScene.activationState ==
+            UISceneActivationStateForegroundActive) {
+            active = windowScene;
+            break;
+        }
+        // Remember the first window scene seen, but keep looking for a
+        // foreground-active one, which wins.
+        if (active == nil) {
+            active = windowScene;
+        }
+    }
+    if (active == nil) {
+        return nil;
+    }
+
+    // Prefer the scene delegate's own window (UIKit assigns it from
+    // UISceneStoryboardFile); fall back to the scene's window list.
+    UIWindow *window = nil;
+    id<UISceneDelegate> sceneDelegate = active.delegate;
+    if ([sceneDelegate isKindOfClass:[SceneDelegate class]]) {
+        window = ((SceneDelegate *)sceneDelegate).window;
+    }
+    if (window == nil) {
+        window = active.windows.firstObject;
+    }
+
+    UIViewController *root = window.rootViewController;
+    if (![root isKindOfClass:[PenteNavigationViewController class]]) {
+        return nil;
+    }
+    return (PenteNavigationViewController *)root;
+}
+
+#pragma mark - Application life cycle
 
 - (BOOL)application:(UIApplication *)application
     didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
@@ -85,11 +132,14 @@
     NSSet *products = [NSSet setWithArray:@[ @"1YRNOADSORLIMITS" ]];
     [[RMStore defaultStore] requestProducts:products
         success:^(NSArray *products, NSArray *invalidProductIdentifiers) {
+            // Async completion: resolve the scene root when the block runs, not
+            // when it was created. This method runs before the scene connects.
+            PenteNavigationViewController *nav =
+                [AppDelegate rootNavigationController];
             for (SKProduct *product in products) {
                 if ([product.productIdentifier
                         isEqualToString:@"1YRNOADSORLIMITS"]) {
-                    [((PenteNavigationViewController *)self.window
-                          .rootViewController) setSubscription:product];
+                    [nav setSubscription:product];
                 }
             }
         }
@@ -134,14 +184,24 @@
                                   encoding:NSUTF8StringEncoding];
         //        NSLog(dashboardString);
 
+        // Async completion: resolve the scene root when the block runs, not when
+        // it was created — this method runs before the scene connects. The nil
+        // guard is not optional: handed a nil presenting view controller,
+        // TSMessage falls back to the app-wide key window's root view
+        // controller, the deprecated API this migration is moving away from. An
+        // early return keeps that path dormant.
+        PenteNavigationViewController *nav =
+            [AppDelegate rootNavigationController];
+        if (!nav) {
+            return;
+        }
+
         if ([dashboardString containsString:@"success"]) {
             [[NSUserDefaults standardUserDefaults]
                 setBool:NO
                  forKey:@"shouldSendReceipt"];
             [TSMessage
-                showNotificationInViewController:((PenteNavigationViewController
-                                                       *)self.window
-                                                      .rootViewController)
+                showNotificationInViewController:nav
                                            title:NSLocalizedString(
                                                      @"Purchase registration "
                                                      @"successful",
@@ -166,9 +226,7 @@
                 setBool:NO
                  forKey:@"shouldSendReceipt"];
             [TSMessage
-                showNotificationInViewController:((PenteNavigationViewController
-                                                       *)self.window
-                                                      .rootViewController)
+                showNotificationInViewController:nav
                                            title:NSLocalizedString(
                                                      @"Purchase restore failed",
                                                      nil)
@@ -192,9 +250,7 @@
                             canBeDismissedByUser:YES];
         } else {
             [TSMessage
-                showNotificationInViewController:((PenteNavigationViewController
-                                                       *)self.window
-                                                      .rootViewController)
+                showNotificationInViewController:nav
                                            title:NSLocalizedString(
                                                      @"Purchase registration "
                                                      @"failed",
@@ -277,23 +333,27 @@
     //    addMessageFromRemoteNotification:userInfo updateUI:YES];
 
     //    NSLog(@"penteliveee: %@", userInfo);
+    // One resolution for the whole method. Deliberately not guarded here: every
+    // use below is a plain message send, which is a no-op on nil exactly as it
+    // was when the retired app-global window was nil. The TSMessage
+    // presentations at the end of the method get an explicit guard instead,
+    // where nil actually matters.
+    PenteNavigationViewController *nav = [AppDelegate rootNavigationController];
+
     if (application.applicationState == UIApplicationStateInactive ||
         application.applicationState == UIApplicationStateBackground) {
-        [(PenteNavigationViewController *)(self.window.rootViewController)
-            setReceivedNotification:userInfo];
+        [nav setReceivedNotification:userInfo];
         NSLog(@"penteliveee: inactive notif %@", userInfo);
         return;
     }
 
     if ([userInfo objectForKey:@"silentNotification"]) {
-        PenteNavigationViewController *navController =
-            (PenteNavigationViewController *)(self.window.rootViewController);
-        if ([navController.visibleViewController
+        if ([nav.visibleViewController
                 respondsToSelector:@selector(refreshDashboard)]) {
-            [((GamesTableViewController *)(navController.visibleViewController))
+            [((GamesTableViewController *)(nav.visibleViewController))
                 refreshDashboard];
         } else {
-            [navController setDidMove:YES];
+            [nav setDidMove:YES];
         }
         return;
     }
@@ -318,27 +378,21 @@
         }
     }
 
-    if ([((PenteNavigationViewController *)self.window.rootViewController)
-                .visibleViewController
+    if ([nav.visibleViewController
             respondsToSelector:@selector(refreshDashboard)]) {
-        [((GamesTableViewController *)((PenteNavigationViewController *)
-                                           self.window.rootViewController)
-              .visibleViewController) refreshDashboard];
+        [((GamesTableViewController *)nav.visibleViewController)
+            refreshDashboard];
     } else {
-        [(PenteNavigationViewController *)self.window.rootViewController
-            setDidMove:YES];
+        [nav setDidMove:YES];
     }
 
     NSString *title = @"";
     NSString *buttonTitle = @"close";
     if ([message containsString:@"your move"]) {
-        if ([((PenteNavigationViewController *)self.window.rootViewController)
-                    .visibleViewController
+        if ([nav.visibleViewController
                 isKindOfClass:[BoardViewController class]]) {
             BoardViewController *vc =
-                (BoardViewController *)((PenteNavigationViewController *)
-                                            self.window.rootViewController)
-                    .visibleViewController;
+                (BoardViewController *)nav.visibleViewController;
             if ([[[vc game] gameID]
                     isEqualToString:[userInfo objectForKey:@"gameID"]]) {
                 [vc replayGame];
@@ -387,32 +441,41 @@
                                  @"%@ wants to play a live game of %@.", nil),
                              player, game];
     }
+    // Nil guard covering both TSMessage branches below. Not optional: handed a
+    // nil presenting view controller, TSMessage falls back to the app-wide key
+    // window's root view controller, the deprecated API this migration is moving
+    // away from. An early return keeps that path dormant.
+    if (!nav) {
+        return;
+    }
+
     if (![message
             containsString:@"device has been registered for notifications"]) {
         [TSMessage
-            showNotificationInViewController:self.window.rootViewController
+            showNotificationInViewController:nav
             title:title
             subtitle:message
             image:nil
             type:TSMessageNotificationTypeMessage
             duration:TSMessageNotificationDurationAutomatic
             callback:^{
-                [(PenteNavigationViewController *)self.window.rootViewController
-                    setReceivedNotification:userInfo];
-                if ([((PenteNavigationViewController *)
-                          self.window.rootViewController)
-                            .visibleViewController
+                // Re-resolved, NOT captured from the enclosing nav: this block
+                // outlives the method, and the root can legitimately change
+                // between the banner appearing and the user tapping it. This is
+                // the only lifetime-sensitive window site in the file.
+                PenteNavigationViewController *tappedNav =
+                    [AppDelegate rootNavigationController];
+                if (!tappedNav) {
+                    return;
+                }
+                [tappedNav setReceivedNotification:userInfo];
+                if ([tappedNav.visibleViewController
                         respondsToSelector:@selector(refreshDashboard)]) {
-                    [((GamesTableViewController
-                           *)((PenteNavigationViewController *)
-                                  self.window.rootViewController)
-                          .visibleViewController) refreshDashboard];
+                    [((GamesTableViewController *)
+                          tappedNav.visibleViewController) refreshDashboard];
                 } else {
-                    [(PenteNavigationViewController *)
-                            self.window.rootViewController setDidMove:YES];
-                    [(PenteNavigationViewController *)
-                            self.window.rootViewController
-                        popToRootViewControllerAnimated:YES];
+                    [tappedNav setDidMove:YES];
+                    [tappedNav popToRootViewControllerAnimated:YES];
                 }
             }
             buttonTitle:buttonTitle
@@ -423,7 +486,7 @@
             canBeDismissedByUser:YES];
     } else {
         [TSMessage
-            showNotificationInViewController:self.window.rootViewController
+            showNotificationInViewController:nav
                                        title:NSLocalizedString(
                                                  @"Registration success!", nil)
                                     subtitle:

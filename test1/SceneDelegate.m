@@ -4,7 +4,6 @@
 //
 
 #import "SceneDelegate.h"
-#import "AppDelegate.h"
 #import "GamesTableViewController.h"
 #import "PenteNavigationViewController.h"
 
@@ -17,25 +16,13 @@
     willConnectToSession:(UISceneSession *)session
                  options:(UISceneConnectionOptions *)connectionOptions {
     // UIKit has already built self.window and its rootViewController from
-    // UISceneStoryboardFile by the time this runs. Mirror it onto the
-    // AppDelegate so the existing self.window.* call sites keep resolving.
-    // Single-scene only: valid while UIApplicationSupportsMultipleScenes
-    // is <false/>. Phase 2 replaces this with a real accessor.
+    // UISceneStoryboardFile by the time this runs. Phase 1's mirror onto
+    // AppDelegate.window is gone: call sites now ask
+    // +[AppDelegate rootNavigationController], which resolves this window
+    // through the scene at the moment it is needed. sceneDidDisconnect: went
+    // with the mirror — it existed only to stop the strong app-global reference
+    // outliving its scene, and there is no longer such a reference.
     NSLog(@"penteliveee: scene connected");
-    AppDelegate *appDelegate =
-        (AppDelegate *)[[UIApplication sharedApplication] delegate];
-    appDelegate.window = self.window;
-}
-
-- (void)sceneDidDisconnect:(UIScene *)scene {
-    // appDelegate.window is strong, so without this the mirror outlives the
-    // scene and every AppDelegate window site silently targets a detached
-    // view hierarchy after a disconnect/reconnect cycle.
-    AppDelegate *appDelegate =
-        (AppDelegate *)[[UIApplication sharedApplication] delegate];
-    if (appDelegate.window == self.window) {
-        appDelegate.window = nil;
-    }
 }
 
 - (void)sceneDidEnterBackground:(UIScene *)scene {
