@@ -246,6 +246,12 @@ BoardViewController *boardController;
 - (void)viewWillAppear:(BOOL)animated {
     //    NSLog(@"kittyAppear %i", finalMove);
     [super viewWillAppear:animated];
+
+    if (@available(iOS 26.0, *)) {
+        self.navigationController.interactiveContentPopGestureRecognizer
+            .enabled = NO;
+    }
+
     [zoomedBoard setHidden:YES];
     [zoomedStone setHidden:YES];
     [stone setHidden:YES];
@@ -278,6 +284,11 @@ BoardViewController *boardController;
 
 - (void)viewWillDisappear:(BOOL)animated {
     [super viewWillDisappear:animated];
+
+    if (@available(iOS 26.0, *)) {
+        self.navigationController.interactiveContentPopGestureRecognizer
+            .enabled = YES;
+    }
 }
 
 - (void)setBoardColor {
