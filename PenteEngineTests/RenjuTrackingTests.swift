@@ -72,12 +72,15 @@ extension RenjuTrackingTests {
         XCTAssertFalse(t.state.renju.branchChosen)
         XCTAssertFalse(t.state.renju.awaitingSwap)
     }
-    func testLiveTakeoverAtN4GoesToBranch() {
+    // A live move-4 take-over arrives as a seat-swap event and commits Branch A, so the
+    // swapped-in player is NOT re-presented the Offer-10 / Branch-B choice; they just play move 5.
+    func testLiveTakeoverAtN4CommitsBranchA() {
         let t = started(); [112,113,97,98].forEach { t.addMove(move: $0) }
         t.seats[1] = LivePlayer(name: "graviton"); t.seats[2] = LivePlayer(name: "iostest")
         t.swapSeats(swap: true, silent: false)
         XCTAssertFalse(t.state.renju.awaitingSwap)
-        XCTAssertFalse(t.state.renju.branchChosen) // -> BRANCH
+        XCTAssertTrue(t.state.renju.branchChosen)  // -> MOVE, not BRANCH
+        XCTAssertEqual(phase(t), .move)
         t.addMove(move: 129)
         XCTAssertTrue(t.state.renju.awaitingSwap)   // window 5 opens
     }
@@ -89,13 +92,15 @@ extension RenjuTrackingTests {
         XCTAssertFalse(t.state.renju.awaitingSwap)
         XCTAssertEqual(phase(t), .selection)
     }
-    func testRejoinSilentSwapThenBulkIsBranch() {
+    // The take-over marker survives the bulk replay (advanceRenjuTracking(isRejoin: true) does not
+    // clear swapTaken), so the reconstructed move-4 take-over commits Branch A -> phase .move.
+    func testRejoinSilentSwapThenBulkIsMove() {
         let t = started()
         t.swapSeats(swap: false, silent: true) // rejoin take-over marker
         t.addMoves(moves: [112,113,97,98])
         XCTAssertFalse(t.state.renju.awaitingSwap)
-        XCTAssertFalse(t.state.renju.branchChosen)
-        XCTAssertEqual(phase(t), .branch)
+        XCTAssertTrue(t.state.renju.branchChosen)
+        XCTAssertEqual(phase(t), .move)
     }
     func testRejoinNoEchoBulkIsSwap() {
         let t = started(); t.addMoves(moves: [112,113,97,98])
