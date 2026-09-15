@@ -143,6 +143,7 @@
 		63B625FB1C138E42000AC164 /* splash_750x1334.png in Resources */ = {isa = PBXBuildFile; fileRef = 63B625F91C138E42000AC164 /* splash_750x1334.png */; };
 		63BBB6F81DDF8E7700D27D33 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 63BBB6FA1DDF8E7700D27D33 /* Localizable.strings */; };
 		63C4198B17B0E03200983B57 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 63C4198A17B0E03200983B57 /* Images.xcassets */; };
+		1B7A0C0F2E4D4A9B8C6D0002 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 1B7A0C0F2E4D4A9B8C6D0001 /* LaunchScreen.storyboard */; };
 		63C4199517B0FD2000983B57 /* icon_58x58.png in Resources */ = {isa = PBXBuildFile; fileRef = 63C4199217B0FD2000983B57 /* icon_58x58.png */; };
 		63C4199617B0FD2000983B57 /* icon_80x80.png in Resources */ = {isa = PBXBuildFile; fileRef = 63C4199317B0FD2000983B57 /* icon_80x80.png */; };
 		63C4199717B0FD2000983B57 /* icon_120x120.png in Resources */ = {isa = PBXBuildFile; fileRef = 63C4199417B0FD2000983B57 /* icon_120x120.png */; };
@@ -431,6 +432,7 @@
 		63BBB6F51DDDBC3B00D27D33 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = en; path = en.lproj/MainStoryboard.storyboard; sourceTree = "<group>"; };
 		63BBB6FD1DDF907600D27D33 /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = Base; path = Base.lproj/Localizable.strings; sourceTree = "<group>"; };
 		63C4198A17B0E03200983B57 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = penteLive/Images.xcassets; sourceTree = SOURCE_ROOT; };
+		1B7A0C0F2E4D4A9B8C6D0001 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = test1/LaunchScreen.storyboard; sourceTree = SOURCE_ROOT; };
 		63C4199217B0FD2000983B57 /* icon_58x58.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = icon_58x58.png; sourceTree = "<group>"; };
 		63C4199317B0FD2000983B57 /* icon_80x80.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = icon_80x80.png; sourceTree = "<group>"; };
 		63C4199417B0FD2000983B57 /* icon_120x120.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = icon_120x120.png; sourceTree = "<group>"; };
@@ -746,6 +748,7 @@
 				63EF95CA2F6582CA001C269F /* PenteHTTPClient.m */,
 				631B675D169DA7FE0098B3E1 /* Settings.bundle */,
 				63C4198A17B0E03200983B57 /* Images.xcassets */,
+				1B7A0C0F2E4D4A9B8C6D0001 /* LaunchScreen.storyboard */,
 				6336480F1CF350C600F432E2 /* RatingStatsView.h */,
 				633648101CF350C600F432E2 /* RatingStatsView.m */,
 				6333AF861DC8BB030023BAAF /* WhosOnlineView.m */,
@@ -1264,6 +1267,7 @@
 				63EACA5D1712EA1200E3902B /* acceptButton.png in Resources */,
 				63A680261DF9B330005E1B65 /* lightning.png in Resources */,
 				63C4198B17B0E03200983B57 /* Images.xcassets in Resources */,
+				1B7A0C0F2E4D4A9B8C6D0002 /* LaunchScreen.storyboard in Resources */,
 				63D3E18922691810003EB851 /* kothcrown23.png in Resources */,
 				63B3AC6B1CF64C0F00362111 /* newmessage@2x.png in Resources */,
 				63EACA5E1712EA1200E3902B /* acceptButton@2x.png in Resources */,
