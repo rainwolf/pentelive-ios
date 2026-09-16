@@ -15,9 +15,22 @@
 #import "PenteNavigationViewController.h"
 #import "SceneDelegate.h"
 @import TSMessages;
+@import UserNotifications;
 #import "penteLive-Swift.h"
 
-@implementation AppDelegate
+// Conformance lives here rather than in the header: nothing outside this file
+// talks to the app delegate as a notification-centre delegate, and declaring it
+// here keeps UserNotifications out of every translation unit that imports
+// AppDelegate.h.
+@interface AppDelegate () <UNUserNotificationCenterDelegate>
+@end
+
+@implementation AppDelegate {
+    // Duplicate-suppression state for -handleRemoteNotificationUserInfo:; see
+    // that method for why the payload itself is the key.
+    NSDictionary *_lastHandledUserInfo;
+    NSTimeInterval _lastHandledAt;
+}
 @synthesize notification;
 @synthesize sndID, broadcastSndID;
 
@@ -98,6 +111,19 @@
                                    categories:nil]];
         [application registerForRemoteNotifications];
     }
+
+    // MUST be assigned before this method returns. When the app is launched by
+    // a tapped notification, iOS delivers the response to this delegate during
+    // launch; a delegate installed any later than here never sees it.
+    //
+    // Installing it also changes where foreground pushes land: with a delegate
+    // present iOS calls
+    // -userNotificationCenter:willPresentNotification:withCompletionHandler:
+    // instead of the legacy -application:didReceiveRemoteNotification:. Both
+    // are wired to the same -handleRemoteNotificationUserInfo:, so the
+    // foreground banner/sound/refresh behaviour is unchanged.
+    [UNUserNotificationCenter currentNotificationCenter].delegate = self;
+
     //    else {
     //        [[UIApplication sharedApplication]
     //        registerForRemoteNotificationTypes:
@@ -105,6 +131,13 @@
     //         UIRemoteNotificationTypeAlert)];
     //    }
 
+    // Kept only as the pre-scene fallback: under the UIScene life cycle UIKit
+    // hands this method a nil launchOptions and puts the tapped payload on
+    // UISceneConnectionOptions.notificationResponse instead, so on every
+    // current launch this assigns nil. -[SceneDelegate
+    // scene:willConnectToSession:options:] is what actually fills this in, and
+    // it runs after this method but ~2 ms before -[PenteNavigationViewController
+    // viewDidLoad] reads the property.
     notification = [launchOptions
         objectForKey:UIApplicationLaunchOptionsRemoteNotificationKey];
     //    NSLog(@"kitty1");
@@ -328,11 +361,47 @@
 
 - (void)application:(UIApplication *)application
     didReceiveRemoteNotification:(NSDictionary *)userInfo {
+    // Pre-scene / no-UN-delegate path. Retained rather than deleted so nothing
+    // depends on iOS choosing one delivery route over the other; both routes
+    // land in the single implementation below. Now that a notification-centre
+    // delegate exists this is expected never to fire; the log says so out loud
+    // rather than leaving it to inference.
+    NSLog(@"penteliveee: push via legacy didReceiveRemote");
+    [self handleRemoteNotificationUserInfo:userInfo];
+}
+
+/// The one implementation of "a push arrived while the app is running".
+///
+/// Called from the legacy -application:didReceiveRemoteNotification: and from
+/// -userNotificationCenter:willPresentNotification:withCompletionHandler:.
+/// iOS calls only one of the two for any given push, but that is its choice,
+/// not something the app can enforce, so the duplicate guard below makes a
+/// second delivery of the same payload a no-op rather than a second banner and
+/// a second sound.
+- (void)handleRemoteNotificationUserInfo:(NSDictionary *)userInfo {
     //    NSLog(@"Received notification: %@", [userInfo
     //    objectForKey:@"gameID"]); [self
     //    addMessageFromRemoteNotification:userInfo updateUI:YES];
 
     //    NSLog(@"penteliveee: %@", userInfo);
+
+    // Duplicate suppression. APNs exposes no stable per-push id to both entry
+    // points, so the payload is the key: an identical dictionary arriving
+    // within the window is treated as the same push redelivered. Two genuinely
+    // distinct pushes always differ (gameID, setID or the alert body), and two
+    // byte-identical ones inside a two-second window are not something the
+    // server produces.
+    static const NSTimeInterval kDuplicateWindow = 2.0;
+    NSTimeInterval nowInterval = [NSDate timeIntervalSinceReferenceDate];
+    if (userInfo != nil && _lastHandledUserInfo != nil &&
+        [_lastHandledUserInfo isEqualToDictionary:userInfo] &&
+        (nowInterval - _lastHandledAt) < kDuplicateWindow) {
+        NSLog(@"penteliveee: duplicate notif suppressed");
+        return;
+    }
+    _lastHandledUserInfo = [userInfo copy];
+    _lastHandledAt = nowInterval;
+
     // One resolution for the whole method. Deliberately not guarded here: every
     // use below is a plain message send, which is a no-op on nil exactly as it
     // was when the retired app-global window was nil. The TSMessage
@@ -340,6 +409,7 @@
     // where nil actually matters.
     PenteNavigationViewController *nav = [AppDelegate rootNavigationController];
 
+    UIApplication *application = [UIApplication sharedApplication];
     if (application.applicationState == UIApplicationStateInactive ||
         application.applicationState == UIApplicationStateBackground) {
         [nav setReceivedNotification:userInfo];
@@ -507,6 +577,69 @@
                         canBeDismissedByUser:YES];
     }
 }
+
+#pragma mark - UNUserNotificationCenterDelegate
+
+- (void)userNotificationCenter:(UNUserNotificationCenter *)center
+       willPresentNotification:(UNNotification *)presentedNotification
+         withCompletionHandler:
+             (void (^)(UNNotificationPresentationOptions))completionHandler {
+    // Where foreground pushes arrive now that a delegate exists. Same payload,
+    // same handler, so the in-app TSMessage banner, the notification sound and
+    // the dashboard refresh are literally the code that ran before.
+    NSLog(@"penteliveee: push via UN willPresent");
+    [self handleRemoteNotificationUserInfo:presentedNotification.request.content
+                                              .userInfo];
+
+    // None, not banner/sound: the app presents its own TSMessage banner and
+    // plays its own sound (honouring the in-app sound preference). Asking iOS
+    // to present as well would put a system banner on top of the TSMessage one
+    // and play the push sound over the app's — exactly the double-handling this
+    // change has to avoid. Suppressing the system presentation reproduces
+    // pre-delegate behaviour, where iOS never displayed a foreground push.
+    completionHandler(UNNotificationPresentationOptionNone);
+}
+
+- (void)userNotificationCenter:(UNUserNotificationCenter *)center
+    didReceiveNotificationResponse:(UNNotificationResponse *)response
+             withCompletionHandler:(void (^)(void))completionHandler {
+    // The only callback a tap produces when the app is suspended or in the
+    // background: the scene is not reconnected, so
+    // -scene:willConnectToSession:options: does not run, and the app is not
+    // running in the foreground, so the legacy remote-notification method does
+    // not run either.
+    //
+    // This deliberately does not navigate. It parks the payload where the
+    // existing flow already looks for it, and the measured ordering does the
+    // rest: this fires ~159 microseconds before -sceneWillEnterForeground:,
+    // which calls -refreshDashboard, which calls -parseMessages, which reads
+    // receivedNotification, navigates, and clears it.
+    if (![response.actionIdentifier
+            isEqualToString:UNNotificationDefaultActionIdentifier]) {
+        // A dismissal, or a custom action the app does not define. Nothing to
+        // deep-link to.
+        completionHandler();
+        return;
+    }
+
+    NSDictionary *userInfo = response.notification.request.content.userInfo;
+    PenteNavigationViewController *nav = [AppDelegate rootNavigationController];
+    if (nav) {
+        NSLog(@"penteliveee: notif tap -> nav");
+        [nav setReceivedNotification:userInfo];
+    } else {
+        // No scene yet. This is the cold-launch race: park it on the app
+        // delegate, which -[PenteNavigationViewController viewDidLoad] copies
+        // into receivedNotification. Harmlessly redundant with the
+        // SceneDelegate's read of UISceneConnectionOptions.notificationResponse
+        // — both assign the same payload.
+        NSLog(@"penteliveee: notif tap -> appDelegate");
+        self.notification = userInfo;
+    }
+    completionHandler();
+}
+
+#pragma mark - Helpers
 
 - (NSString *)URLEncodedString_ch:(NSString *)input {
     NSMutableString *output = [NSMutableString string];
