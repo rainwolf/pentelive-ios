@@ -370,6 +370,22 @@
     [self handleRemoteNotificationUserInfo:userInfo];
 }
 
+/// Bounds-checked component access for the alert-body parsers below.
+///
+/// Notification bodies are assembled server-side from player-supplied text:
+/// message subjects and display names both land inside the alert string
+/// unfiltered. A parser that assumes its separator was present therefore
+/// indexes past the end of the split array on the first hostile or merely
+/// unexpected payload and raises NSRangeException. Returning nil instead lets
+/// each arm fall back to showing the raw alert body.
+static NSString *DSGAlertComponentOrNil(NSArray<NSString *> *components,
+                                        NSUInteger index) {
+    if (index >= [components count]) {
+        return nil;
+    }
+    return [components objectAtIndex:index];
+}
+
 /// The one implementation of "a push arrived while the app is running".
 ///
 /// Called from the legacy -application:didReceiveRemoteNotification: and from
@@ -436,6 +452,13 @@
     } else {
         message = [[userInfo objectForKey:@"aps"] objectForKey:@"alert"];
     }
+    // The alert body is whatever JSON the payload carried. Every use below is a
+    // string selector, so a non-string body would be an unrecognised-selector
+    // crash rather than a wrong banner. nil stays nil: the string selectors are
+    // all no-ops on nil, exactly as before.
+    if (message != nil && ![message isKindOfClass:[NSString class]]) {
+        message = [NSString stringWithFormat:@"%@", message];
+    }
 
     if (![[NSUserDefaults standardUserDefaults] boolForKey:@"inAppSoundsOff"]) {
         if ([message containsString:@"Live Game Alert"] &&
@@ -458,7 +481,41 @@
 
     NSString *title = @"";
     NSString *buttonTitle = @"close";
-    if ([message containsString:@"your move"]) {
+
+    // Which kind of push this is, decided on the payload's custom properties
+    // rather than on the alert text.
+    //
+    // The server (CacheNotificationServer.java) tags every alerting push with
+    // exactly one unambiguous property: a move push carries gameID, an
+    // invitation carries setID, a private message carries msgID, and a live
+    // invite carries liveBroadCastPlayer plus liveBroadCastGame. Registration
+    // pushes carry none of them. Those keys are already what the dashboard
+    // dispatches on (-[GamesTableViewController parseMessages]).
+    //
+    // Deciding on the text instead let a player choose which arm someone else's
+    // app took, because the message subject is interpolated into the alert body
+    // unfiltered: a subject reading "your move" steered a private message into
+    // the move parser. Keys are not player-writable, so that misrouting is gone
+    // rather than merely defused.
+    //
+    // The text tests are kept as the fallback for any payload that arrives
+    // without a recognised key, so a push from an older or future server build
+    // is classified exactly as it was before.
+    BOOL hasGameID = [userInfo objectForKey:@"gameID"] != nil;
+    BOOL hasMsgID = [userInfo objectForKey:@"msgID"] != nil;
+    BOOL hasSetID = [userInfo objectForKey:@"setID"] != nil;
+    BOOL hasLiveInvite =
+        [userInfo objectForKey:@"liveBroadCastPlayer"] != nil &&
+        [userInfo objectForKey:@"liveBroadCastGame"] != nil;
+    BOOL isKeyed = hasGameID || hasMsgID || hasSetID || hasLiveInvite;
+
+    BOOL isMove = isKeyed ? hasGameID : [message containsString:@"your move"];
+    BOOL isNewMessage =
+        isKeyed ? hasMsgID : [message containsString:@"new message"];
+    BOOL isInvitation =
+        isKeyed ? hasSetID : [message containsString:@"invited you"];
+
+    if (isMove) {
         if ([nav.visibleViewController
                 isKindOfClass:[BoardViewController class]]) {
             BoardViewController *vc =
@@ -471,34 +528,46 @@
         }
     }
 
-    if ([message containsString:@"your move"]) {
+    // Each arm below reformats the server's alert body into the app's own copy.
+    // None of them may assume its separator was present: where the expected
+    // structure is missing the arm leaves `message` as the raw alert body,
+    // which is already a readable sentence, rather than indexing off the end of
+    // the split array or substituting an empty string.
+    if (isMove) {
         title = NSLocalizedString(@"It's your turn", nil);
         NSArray<NSString *> *splitStr = [[message
             stringByReplacingOccurrencesOfString:@"It's your move in a game of "
                                       withString:@""]
             componentsSeparatedByString:@" against "];
-        message = [NSString
-            stringWithFormat:NSLocalizedString(
-                                 @"It's your move against %@ in a game of %@.",
-                                 nil),
-                             [splitStr objectAtIndex:1],
-                             [splitStr objectAtIndex:0]];
-    } else if ([message containsString:@"new message"]) {
+        NSString *gameName = DSGAlertComponentOrNil(splitStr, 0);
+        NSString *opponent = DSGAlertComponentOrNil(splitStr, 1);
+        if (gameName != nil && opponent != nil) {
+            NSString *format = NSLocalizedString(
+                @"It's your move against %@ in a game of %@.", nil);
+            message = [NSString stringWithFormat:format, opponent, gameName];
+        }
+    } else if (isNewMessage) {
         NSArray<NSString *> *splitStr =
             [message componentsSeparatedByString:@" sent you a new message! "];
-        title = [NSString
-            stringWithFormat:NSLocalizedString(@"New Message from %@", nil),
-                             [splitStr objectAtIndex:0]];
-        message = [splitStr objectAtIndex:1];
-    } else if ([message containsString:@"invited you"]) {
+        NSString *sender = DSGAlertComponentOrNil(splitStr, 0);
+        NSString *body = DSGAlertComponentOrNil(splitStr, 1);
+        if (sender != nil && body != nil) {
+            title = [NSString
+                stringWithFormat:NSLocalizedString(@"New Message from %@", nil),
+                                 sender];
+            message = body;
+        }
+    } else if (isInvitation) {
         title = NSLocalizedString(@"New invitation", nil);
         NSArray<NSString *> *splitStr = [message
             componentsSeparatedByString:@" has invited you to a game of "];
-        message = [NSString
-            stringWithFormat:NSLocalizedString(
-                                 @"%@ has invited you to a game of %@.", nil),
-                             [splitStr objectAtIndex:0],
-                             [splitStr objectAtIndex:1]];
+        NSString *inviter = DSGAlertComponentOrNil(splitStr, 0);
+        NSString *gameName = DSGAlertComponentOrNil(splitStr, 1);
+        if (inviter != nil && gameName != nil) {
+            NSString *format =
+                NSLocalizedString(@"%@ has invited you to a game of %@.", nil);
+            message = [NSString stringWithFormat:format, inviter, gameName];
+        }
     } else if ([message containsString:@"Live Game Alert"] &&
                [message containsString:@"wants to play live"] &&
                [userInfo objectForKey:@"liveBroadCastPlayer"] &&
@@ -519,7 +588,13 @@
         return;
     }
 
-    if (![message
+    // Registration pushes are the one family the server sends with no custom
+    // property at all, so they are still recognised by their text - but only
+    // when the payload carried no key that identifies it as something else.
+    // Without that guard a player could put the registration sentence in a
+    // message subject and replace someone else's banner with a fake one.
+    if (isKeyed ||
+        ![message
             containsString:@"device has been registered for notifications"]) {
         [TSMessage
             showNotificationInViewController:nav
