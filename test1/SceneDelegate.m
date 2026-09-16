@@ -24,7 +24,6 @@
     // through the scene at the moment it is needed. sceneDidDisconnect: went
     // with the mirror — it existed only to stop the strong app-global reference
     // outliving its scene, and there is no longer such a reference.
-    NSLog(@"penteliveee: scene connected");
 
     // Cold launch from a tapped push. Under the scene life cycle UIKit hands
     // -application:didFinishLaunchingWithOptions: a nil launchOptions and puts
@@ -38,7 +37,6 @@
     if (response != nil &&
         [response.actionIdentifier
             isEqualToString:UNNotificationDefaultActionIdentifier]) {
-        NSLog(@"penteliveee: scene connected from notif tap");
         AppDelegate *appDelegate =
             (AppDelegate *)[UIApplication sharedApplication].delegate;
         appDelegate.notification =

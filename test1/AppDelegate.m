@@ -662,7 +662,6 @@ static NSString *DSGAlertComponentOrNil(NSArray<NSString *> *components,
     // Where foreground pushes arrive now that a delegate exists. Same payload,
     // same handler, so the in-app TSMessage banner, the notification sound and
     // the dashboard refresh are literally the code that ran before.
-    NSLog(@"penteliveee: push via UN willPresent");
     [self handleRemoteNotificationUserInfo:presentedNotification.request.content
                                               .userInfo];
 
@@ -700,7 +699,6 @@ static NSString *DSGAlertComponentOrNil(NSArray<NSString *> *components,
     NSDictionary *userInfo = response.notification.request.content.userInfo;
     PenteNavigationViewController *nav = [AppDelegate rootNavigationController];
     if (nav) {
-        NSLog(@"penteliveee: notif tap -> nav");
         [nav setReceivedNotification:userInfo];
     } else {
         // No scene yet. This is the cold-launch race: park it on the app
@@ -708,7 +706,6 @@ static NSString *DSGAlertComponentOrNil(NSArray<NSString *> *components,
         // into receivedNotification. Harmlessly redundant with the
         // SceneDelegate's read of UISceneConnectionOptions.notificationResponse
         // — both assign the same payload.
-        NSLog(@"penteliveee: notif tap -> appDelegate");
         self.notification = userInfo;
     }
     completionHandler();
