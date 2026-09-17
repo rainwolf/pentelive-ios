@@ -3,7 +3,9 @@ fastlane
 screenshots/
 
 # Xcode per-user window/UI state. Regenerated whenever the project is
-# opened, and meaningless to anyone else. Schemes and breakpoints under
-# xcuserdata/ stay tracked on purpose — the documented build uses
-# `-scheme test1`, which resolves to xcschemes/test1.xcscheme.
+# opened, and meaningless to anyone else. The test1 scheme now lives in
+# penteLive.xcodeproj/xcshareddata/xcschemes/, so `-scheme test1` no longer
+# depends on anyone's xcuserdata/. What is still tracked under xcuserdata/
+# (breakpoints, xcschememanagement.plist) is left as-is deliberately; whether
+# to drop it is a separate decision.
 *.xcuserstate

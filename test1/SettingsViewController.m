@@ -7,6 +7,7 @@
 //
 
 #import "SettingsViewController.h"
+#import "AppDelegate.h"
 #import "ChangeColorViewController.h"
 #import "GamesTableViewController.h"
 #import "IASKSettingsReader.h"
@@ -75,12 +76,17 @@
         //        NSLog(@"kitty navigationController");
         self.navC = (PenteNavigationViewController *)self.navigationController;
     } else {
-        if ([[UIApplication sharedApplication].keyWindow.rootViewController
-                isKindOfClass:[PenteNavigationViewController class]]) {
-            //            NSLog(@"kitty rootViewController");
-            [self setNavC:(PenteNavigationViewController *)
-                              [UIApplication sharedApplication]
-                                  .keyWindow.rootViewController];
+        //            NSLog(@"kitty rootViewController");
+        // Was the app-wide key window's root view controller, deprecated since
+        // iOS 13 because it returns a key window across all connected scenes
+        // rather than this scene's. +rootNavigationController already performs the
+        // PenteNavigationViewController kind check and returns nil otherwise, so
+        // navC is left untouched in exactly the cases the old isKindOfClass:
+        // test rejected.
+        PenteNavigationViewController *nav =
+            [AppDelegate rootNavigationController];
+        if (nav) {
+            [self setNavC:nav];
         }
     }
 }
