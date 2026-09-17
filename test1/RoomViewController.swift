@@ -183,6 +183,12 @@ class PlayerTableCell: UITableViewCell {
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShowHide), name: UIResponder.keyboardWillChangeFrameNotification, object: nil)
         
         tableViewController = nil
+        // Seed `me` before the arena table is described. `me` is otherwise only assigned in
+        // loginEvent(), which arrives asynchronously over the socket, so on the first
+        // viewDidAppear it is still "" — and "".hasPrefix("guest") is false, which made the
+        // rated check below always say "rated" and passed an empty player name to the setup
+        // view. pentePlayer is injected by the presenting controller and is available here.
+        me = pentePlayer?.playerName ?? "guest"
         if isArena {
             let data: [String: Any] = ["game": 1, "timed": true, "initialMinutes": 5, "incrementalSeconds": 1, "rated": me.hasPrefix("guest") ? false : true, "playAs": 1]
             setupView = ArenaTableSetupView(data: data, socket: socket, me: me)
