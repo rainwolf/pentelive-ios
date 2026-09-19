@@ -80,11 +80,13 @@
             initWithObjects:@"Pente", @"Keryo-Pente", @"Gomoku", @"D-Pente",
                             @"G-Pente", @"Poof-Pente", @"Connect6",
                             @"Boat-Pente", @"DK-Pente", @"O-Pente",
+                            @"Swap2-Pente", @"Swap2-Keryo",
                             @"Speed Pente", @"Speed Keryo-Pente",
                             @"Speed Gomoku", @"Speed D-Pente", @"Speed G-Pente",
                             @"Speed Poof-Pente", @"Speed Connect6",
                             @"Speed Boat-Pente", @"Speed DK-Pente",
-                            @"Speed O-Pente", nil];
+                            @"Speed O-Pente", @"Speed Swap2-Pente",
+                            @"Speed Swap2-Keryo", nil];
     }
     return self;
 }
@@ -761,6 +763,28 @@
                                                    green:0.75
                                                     blue:0.50
                                                    alpha:1.0]];
+    } else if ([gameCell.textField.text isEqualToString:@"Swap2-Pente"] ||
+               [gameCell.textField.text
+                   isEqualToString:@"Speed Swap2-Pente"]) {
+        [board setBackgroundColor:[UIColor colorWithRed:0.90
+                                                  green:0.67
+                                                   blue:0.44
+                                                  alpha:1.00]];
+        [zBoard setBackgroundColor:[UIColor colorWithRed:0.90
+                                                   green:0.67
+                                                    blue:0.44
+                                                   alpha:1.00]];
+    } else if ([gameCell.textField.text isEqualToString:@"Swap2-Keryo"] ||
+               [gameCell.textField.text
+                   isEqualToString:@"Speed Swap2-Keryo"]) {
+        [board setBackgroundColor:[UIColor colorWithRed:0.31
+                                                  green:0.78
+                                                   blue:0.47
+                                                  alpha:1.00]];
+        [zBoard setBackgroundColor:[UIColor colorWithRed:0.31
+                                                   green:0.78
+                                                    blue:0.47
+                                                   alpha:1.00]];
     }
     [board setNeedsDisplay];
     [zBoard setNeedsDisplay];

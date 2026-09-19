@@ -31,6 +31,14 @@
 #import "penteLive-Swift.h"
 #import <QuartzCore/QuartzCore.h>
 
+/// Games whose first stone may be played off-center and taken back again.
+/// Every other game seeds a fixed, unremovable center stone at K10.
+static BOOL DBAllowsOffCenterFirstStone(NSString *gameType) {
+    return [gameType containsString:@"D-Pente"] ||
+           [gameType containsString:@"DK-Pente"] ||
+           [gameType containsString:@"Swap2-"];
+}
+
 @implementation DatabaseViewController {
     int abstractBoard[19][19];
     int finalMove, whiteCaptures, blackCaptures, lastMove;
@@ -374,6 +382,24 @@ BoardViewController *boardController;
                                                         green:0.75
                                                          blue:0.50
                                                         alpha:1.0]];
+    } else if ([game containsString:@"Swap2-Pente"]) {
+        [board setBackgroundColor:[UIColor colorWithRed:0.90
+                                                  green:0.67
+                                                   blue:0.44
+                                                  alpha:1.00]];
+        [zoomedBoard setBackgroundColor:[UIColor colorWithRed:0.90
+                                                        green:0.67
+                                                         blue:0.44
+                                                        alpha:1.00]];
+    } else if ([game containsString:@"Swap2-Keryo"]) {
+        [board setBackgroundColor:[UIColor colorWithRed:0.31
+                                                  green:0.78
+                                                   blue:0.47
+                                                  alpha:1.00]];
+        [zoomedBoard setBackgroundColor:[UIColor colorWithRed:0.31
+                                                        green:0.78
+                                                         blue:0.47
+                                                        alpha:1.00]];
     } else if ([game containsString:@"Pente"]) {
         [board setBackgroundColor:[UIColor colorWithRed:0.984
                                                   green:0.851
@@ -432,8 +458,7 @@ BoardViewController *boardController;
 - (IBAction)goBackOneMoveSwipe:(UISwipeGestureRecognizer *)sender {
     [board setLastMove:-1];
     if ([movesList count] > 1 ||
-        ([movesList count] > 0 && ([game containsString:@"D-Pente"] ||
-                                   [game containsString:@"DK-Pente"]))) {
+        ([movesList count] > 0 && DBAllowsOffCenterFirstStone(game))) {
         [movesList removeLastObject];
         [self replayGame];
         [board setDbOptions:nil];
@@ -1385,8 +1410,7 @@ BoardViewController *boardController;
     if (([movesList count] == 0 ||
          ([movesList count] > 0 &&
           [[movesList firstObject] intValue] != 180)) &&
-        ![game containsString:@"D-Pente"] &&
-        ![game containsString:@"DK-Pente"]) {
+        !DBAllowsOffCenterFirstStone(game)) {
         [self resetState];
     }
     if ([game isEqualToString:@"Pente"] ||
