@@ -1,5 +1,17 @@
 Pods
-fastlane
+
+# fastlane: track Fastfile, Appfile, README.md, .env.example only.
+# metadata/, screenshots/ and Deliverfile are the owner's local 2017 files.
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/test_output
+fastlane/metadata/
+fastlane/screenshots/
+fastlane/Deliverfile
+fastlane/.env*
+!fastlane/.env.example
+fastlane/build/
+*.p8
 screenshots/
 
 # Xcode per-user window/UI state. Regenerated whenever the project is
