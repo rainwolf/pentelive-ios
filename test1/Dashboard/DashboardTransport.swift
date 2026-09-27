@@ -4,7 +4,7 @@ protocol Transport {
     func data(for request: URLRequest) async throws -> (Data, URLResponse)
 }
 
-/// Default transport wrapping the existing AFNetworking-backed PenteHTTPClient,
+/// Default transport wrapping the existing NSURLSession-backed PenteHTTPClient,
 /// preserving its session/SSL behavior. Completion fires on the main queue.
 struct PenteHTTPClientTransport: Transport {
     func data(for request: URLRequest) async throws -> (Data, URLResponse) {
