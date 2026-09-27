@@ -11,7 +11,7 @@ xcode-select --install
 
 For _fastlane_ installation instructions, see [Installing _fastlane_](https://docs.fastlane.tools/#installing-fastlane)
 
-# penteLive: publishing to TestFlight
+# penteLive: publishing to the App Store
 
 One-time setup:
 
@@ -20,21 +20,40 @@ One-time setup:
    (role App Manager), download the `.p8` once and store it outside the repo.
 3. `cp fastlane/.env.example fastlane/.env` and fill in `ASC_KEY_ID`, `ASC_ISSUER_ID`, `ASC_KEY_PATH`.
 
-Release: `bundle exec fastlane beta version:2.11.11`. Options:
+Release: `bundle exec fastlane release version:2.11.11 changelog:"What's new"`. Options:
 
+- `changelog:` (required) becomes the App Store "What's New" text, in every language the version has.
 - `build:N` sets `CURRENT_PROJECT_VERSION` (digits and dots); defaults to the version, the project convention.
-- `changelog:"What to test"` sets the TestFlight "What to Test" text.
 
-It uploads to TestFlight, then commits the bump as `2.11.11` and tags `v2.11.11` locally; push yourself.
-"Submit for Review" stays manual in App Store Connect.
+It bumps and builds, creates version 2.11.11 in App Store Connect, uploads the build, waits for Apple to
+finish processing it (often 10-30 minutes; the wait has no timeout, and Ctrl-C there is safe), and submits
+it for review. Once approved it goes live by itself. Then it commits the bump as `2.11.11` and tags
+`v2.11.11` locally; push yourself.
 
-Before touching anything it checks the version/build format, the API key, a clean git tree, that tag
-`v2.11.11` does not exist yet, and that `Pods/` matches `Podfile.lock` (if not: `bundle exec pod install`,
-review/commit, rerun).
+The upload call writes only: the "What's New" text, the release type ("release automatically after
+approval", which also removes any phased release), and it deletes the version's App Review attachments
+(deliver does that whenever no attachment is passed; the preflight below stops the run if any exist).
+Nothing else: name, description, keywords, URLs, categories, review contact, screenshots and pricing stay
+as they are in App Store Connect. The old files in `fastlane/metadata/` and `fastlane/screenshots/` are
+never read.
 
-Recovery: if the build, export or upload fails (or you press Ctrl-C), the bump in `project.pbxproj` is
-reverted automatically; fix the problem and rerun. If an upload failed but the build shows up in TestFlight
-anyway, rerun with a higher `build:` (App Store Connect rejects a reused build number).
+Before touching anything it checks the changelog, the version/build format, the API key, a clean git tree,
+that tag `v2.11.11` does not exist yet, that `Pods/` matches `Podfile.lock` (if not: `bundle exec pod install`,
+review/commit, rerun), and, read-only in App Store Connect, that no review is in progress, that no version
+is waiting in a non-editable state (Pending Developer Release, Pending Apple Release, In Review, etc.), that
+no other unreleased version exists (if App Store Connect already has, say, 2.11.11 in "Prepare for
+Submission", use that version number or delete it there first), and that the version being edited has no
+App Review attachments (save and remove them there first; re-add them after submitting).
+
+Recovery: if the build, export, upload or submission fails (or you press Ctrl-C), the bump in
+`project.pbxproj` is reverted automatically; the error says what to do. If the upload failed, fix the
+problem and rerun (with a higher `build:` if the build shows up in App Store Connect anyway; a build number
+can't be reused). If only the submission failed, the build is uploaded: if it finished processing, submit
+it by hand in App Store Connect; if Apple emailed an invalid-binary notice, fix it and rerun with a higher
+`build:`.
+
+TestFlight only: `bundle exec fastlane beta version:2.11.11 [build:N] [changelog:"What to test"]` uploads
+to TestFlight without submitting anything, then commits and tags the same way.
 
 # Available Actions
 
@@ -67,6 +86,18 @@ Build and export an App Store-signed .ipa into fastlane/build/
 Bump, build and upload to TestFlight, then commit the bump as "X.Y.Z" and tag vX.Y.Z (no push).
 
 Usage: beta version:X.Y.Z [build:N] [changelog:"What to test"]
+
+### ios release
+
+```sh
+[bundle exec] fastlane ios release
+```
+
+Bump, build, upload to the App Store and submit for review; goes live automatically once approved.
+
+Then commits the bump as "X.Y.Z" and tags vX.Y.Z (no push). Sets only What's New and the release type as metadata.
+
+Usage: release version:X.Y.Z changelog:"What's new" [build:N]
 
 ----
 
