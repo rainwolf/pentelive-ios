@@ -1,5 +1,6 @@
-# Publishes penteLive updates to TestFlight. "Submit for Review" stays manual in App Store Connect.
-# Run from the repo root:  bundle exec fastlane beta version:2.11.11
+# Publishes penteLive updates. Run from the repo root:
+#   bundle exec fastlane release version:2.11.11 changelog:"What's new"   (App Store, submitted for review)
+#   bundle exec fastlane beta version:2.11.11                             (TestFlight upload only)
 
 fastlane_require "xcodeproj"
 
@@ -39,6 +40,95 @@ def asc_api_key!
     issuer_id: ENV["ASC_ISSUER_ID"],
     key_filepath: key_path
   )
+end
+
+# Shared pre-flight for beta and release: fails before anything is touched.
+# Returns [version, build_number (nil = default to the version), api_key].
+def preflight!(options)
+  version = require_version!(options)
+  build_number = options[:build] && options[:build].to_s
+  if build_number && !build_number.match?(/\A\d+(\.\d+){0,2}\z/)
+    UI.user_error!("Pass build:N with digits and dots only (e.g. build:42 or build:2.11.11), got build:#{build_number}")
+  end
+  api_key = asc_api_key!
+  ensure_git_status_clean
+  UI.user_error!("Tag v#{version} already exists; pick a new version") if git_tag_exists(tag: "v#{version}")
+  # `build` would otherwise run pod install and its pbxproj churn would land in the release commit.
+  UI.user_error!("Pods out of sync: run `bundle exec pod install`, review/commit, then rerun") unless pods_in_sync?
+  [version, build_number, api_key]
+end
+
+# Bumps, builds, then yields the .ipa and a `step` setter to the upload block. On any failure (or Ctrl-C)
+# the bump is reverted and the message for the step that failed is shown; `hints` maps
+# step => [title, advice] for the steps after :build.
+def bump_build_and_ship(version, build_number, hints)
+  hints = { build: ["Build failed", "Fix the problem and rerun."] }.merge(hints)
+  bump(version: version, build: build_number)
+  step = :build
+  begin
+    ipa = build || lane_context[SharedValues::IPA_OUTPUT_PATH]
+    yield ipa, ->(next_step) { step = next_step }
+  rescue Exception => e # also Ctrl-C: never leave the bump behind
+    sh("git", "checkout", "--", PBXPROJ)
+    title, advice = hints.fetch(step)
+    UI.user_error!("#{title}: #{e.message}\nThe version bump in project.pbxproj was reverted. #{advice}")
+  end
+end
+
+def commit_and_tag!(version, done_message)
+  git_commit(path: PBXPROJ, message: version, allow_nothing_to_commit: true)
+  add_git_tag(tag: "v#{version}")
+  UI.success(done_message)
+  UI.important("Push when ready: git push && git push origin v#{version}")
+end
+
+# Read-only App Store Connect checks for `release` (needs the Spaceship token asc_api_key! sets).
+# Returns the locales of the version the release notes go to: the editable version if one exists,
+# otherwise the live one (App Store Connect copies its localizations into the new version).
+def app_store_preflight!(version)
+  ios = Spaceship::ConnectAPI::Platform::IOS
+  bundle_id = CredentialsManager::AppfileConfig.try_fetch_value(:app_identifier)
+  app = Spaceship::ConnectAPI::App.find(bundle_id) || UI.user_error!("App #{bundle_id} not found in App Store Connect")
+  if (in_review = app.get_in_progress_review_submission(platform: ios))
+    UI.user_error!("A review submission is already #{in_review.state} in App Store Connect; wait for it or cancel it, then rerun")
+  end
+  ready = app.get_ready_review_submission(platform: ios, includes: "items")
+  if ready && !ready.items.to_a.empty?
+    UI.user_error!("An unsubmitted review submission with items exists in App Store Connect; remove its items there, then rerun")
+  end
+  edit = app.get_edit_app_store_version(platform: ios)
+  # deliver would silently rename an editable version to the new version string; make that a human decision.
+  if edit && edit.version_string != version
+    UI.user_error!("App Store Connect already has version #{edit.version_string} (#{edit.app_version_state}). " \
+                   "Rerun with version:#{edit.version_string}, or delete that version in App Store Connect first")
+  end
+  # Versions in these states are neither editable nor live: deliver can't edit them and App Store Connect
+  # refuses a new version while one exists, so deliver would only fail after the build and upload.
+  states = Spaceship::ConnectAPI::AppStoreVersion::AppVersionState
+  blocking = [states::PENDING_DEVELOPER_RELEASE, states::PENDING_APPLE_RELEASE, states::ACCEPTED, states::IN_REVIEW,
+              states::READY_FOR_REVIEW, states::WAITING_FOR_EXPORT_COMPLIANCE, states::PROCESSING_FOR_DISTRIBUTION]
+  if (stuck = app.get_app_store_versions(filter: { appVersionState: blocking.join(","), platform: ios }).first)
+    UI.user_error!("Version #{stuck.version_string} is #{stuck.app_version_state} in App Store Connect; " \
+                   "release it, wait for it, or cancel it there, then rerun")
+  end
+  source = edit || app.get_live_app_store_version(platform: ios) || UI.user_error!("No editable or live App Store version found")
+  # deliver deletes every App Review attachment on the version it edits when no app_review_attachment_file is passed.
+  review_detail = source.fetch_app_store_review_detail
+  if review_detail.nil?
+    UI.important("Version #{source.version_string} has no App Review details; deliver may fail after the upload. " \
+                 "Fill in App Review Information in App Store Connect first if it does")
+  else
+    attachments = review_detail.app_store_review_attachments.to_a
+    unless attachments.empty?
+      UI.user_error!("Version #{source.version_string} has #{attachments.length} App Review attachment(s); deliver would delete them. " \
+                     "Save and remove them in App Store Connect (re-add after submitting), then rerun")
+    end
+    UI.message("App Review attachments on version #{source.version_string}: #{attachments.length}")
+  end
+  locales = source.get_app_store_version_localizations.map(&:locale)
+  UI.user_error!("Version #{source.version_string} has no localizations") if locales.empty?
+  UI.message("Release notes will be set for #{locales.join(', ')} (from version #{source.version_string})")
+  locales
 end
 
 platform :ios do
@@ -103,41 +193,84 @@ platform :ios do
   desc "Bump, build and upload to TestFlight, then commit the bump as \"X.Y.Z\" and tag vX.Y.Z (no push)."
   desc "Usage: beta version:X.Y.Z [build:N] [changelog:\"What to test\"]"
   lane :beta do |options|
-    version = require_version!(options)
-    build_number = options[:build] && options[:build].to_s
-    if build_number && !build_number.match?(/\A\d+(\.\d+){0,2}\z/)
-      UI.user_error!("Pass build:N with digits and dots only (e.g. build:42 or build:2.11.11), got build:#{build_number}")
-    end
-    api_key = asc_api_key!
-    ensure_git_status_clean
-    UI.user_error!("Tag v#{version} already exists; pick a new version") if git_tag_exists(tag: "v#{version}")
-    # `build` would otherwise run pod install and its pbxproj churn would land in the release commit.
-    UI.user_error!("Pods out of sync: run `bundle exec pod install`, review/commit, then rerun") unless pods_in_sync?
+    version, build_number, api_key = preflight!(options)
 
-    bump(version: version, build: build_number)
-    step = :build
-    begin
-      ipa = build || lane_context[SharedValues::IPA_OUTPUT_PATH]
-      step = :upload
+    hints = {
+      upload: ["TestFlight upload failed", "If the build appears in TestFlight anyway, rerun with build:<higher number> " \
+                                           "(App Store Connect rejects a reused build number)."]
+    }
+    bump_build_and_ship(version, build_number, hints) do |ipa, step|
+      step.call(:upload)
       upload_to_testflight(
         api_key: api_key,
         ipa: ipa,
         skip_waiting_for_build_processing: true,
         changelog: options[:changelog]
       )
-    rescue Exception => e # also Ctrl-C: never leave the bump behind
-      sh("git", "checkout", "--", PBXPROJ)
-      if step == :build
-        UI.user_error!("Build failed: #{e.message}\nThe version bump in project.pbxproj was reverted. Fix the problem and rerun.")
-      end
-      UI.user_error!("TestFlight upload failed: #{e.message}\nThe version bump in project.pbxproj was reverted. " \
-                     "If the build appears in TestFlight anyway, rerun with build:<higher number> " \
-                     "(App Store Connect rejects a reused build number).")
     end
 
-    git_commit(path: PBXPROJ, message: version, allow_nothing_to_commit: true)
-    add_git_tag(tag: "v#{version}")
-    UI.success("Uploaded #{version} to TestFlight and committed/tagged locally.")
-    UI.important("Push when ready: git push && git push origin v#{version}")
+    commit_and_tag!(version, "Uploaded #{version} to TestFlight and committed/tagged locally.")
+  end
+
+  desc "Bump, build, upload to the App Store and submit for review; goes live automatically once approved."
+  desc "Then commits the bump as \"X.Y.Z\" and tags vX.Y.Z (no push). Sets only What's New and the release type as metadata."
+  desc "Usage: release version:X.Y.Z changelog:\"What's new\" [build:N]"
+  lane :release do |options|
+    changelog = options[:changelog].to_s.strip
+    UI.user_error!("Pass changelog:\"What's new\" (App Store Connect requires release notes for an update)") if changelog.empty?
+    UI.user_error!("changelog is #{changelog.length} characters; App Store Connect allows 4000") if changelog.length > 4000
+    version, build_number, api_key = preflight!(options)
+    release_notes = app_store_preflight!(version).to_h { |locale| [locale, changelog] }
+
+    # deliver reads metadata/screenshots from fastlane/metadata and fastlane/screenshots by default; those hold
+    # stale 2017 files. Point both at an empty directory so the release notes passed below are the only metadata.
+    empty_dir = Dir.mktmpdir("deliver-empty")
+    common = {
+      api_key: api_key,
+      app_version: version,
+      platform: "ios",
+      metadata_path: empty_dir,
+      screenshots_path: empty_dir,
+      skip_screenshots: true,
+      force: true, # no HTML preview prompt
+      # precheck refuses to run with an API key while it checks in-app purchases (its default); it only lints metadata.
+      run_precheck_before_submit: false
+    }
+    hints = {
+      upload: ["App Store upload failed", "If build #{build_number || version} shows up in App Store Connect anyway, " \
+                                          "rerun with build:<higher number> (App Store Connect rejects a reused build number)."],
+      submit: ["Submit for review failed", "Build #{build_number || version} was uploaded. If it finished processing, submit it by hand in " \
+                                           "App Store Connect (then `bundle exec fastlane bump version:#{version}#{build_number && " build:#{build_number}"}`, " \
+                                           "commit and tag v#{version} yourself); if Apple emailed an invalid-binary notice, fix it and " \
+                                           "rerun with build:<higher number>."]
+    }
+    begin
+      bump_build_and_ship(version, build_number, hints) do |ipa, step|
+        # 1. Create/select the version, set release notes + release type, upload the binary.
+        step.call(:upload)
+        upload_to_app_store(**common,
+          ipa: ipa,
+          skip_metadata: false,
+          release_notes: release_notes,
+          automatic_release: true,
+          phased_release: false,
+          submit_for_review: false)
+        # 2. Wait for processing, attach the build, submit. The ipa is not re-uploaded; deliver reads its
+        #    version/build number to find the processed build.
+        step.call(:submit)
+        upload_to_app_store(**common,
+          ipa: ipa,
+          skip_binary_upload: true,
+          skip_metadata: true,
+          skip_app_version_update: true,
+          submit_for_review: true,
+          # Only consulted when the processed build has no encryption answer (Info.plist sets it to false).
+          submission_information: { export_compliance_uses_encryption: false })
+      end
+    ensure
+      FileUtils.rm_rf(empty_dir)
+    end
+
+    commit_and_tag!(version, "Submitted #{version} for review; it goes live automatically once Apple approves. Committed/tagged locally.")
   end
 end
