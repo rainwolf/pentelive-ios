@@ -7,7 +7,7 @@
 //
 
 #import "PentePlayer.h"
-@import AFNetworking;
+#import <UIKit/UIKit.h>
 
 // Reads the compile-time `development` macro (PentePlayer.h) so Swift, which
 // can't import the macro, derives the same flag via `developmentEnabled()`.
@@ -438,21 +438,38 @@ BOOL developmentEnabled(void) { return development; }
                               @"https://www.pente.org/gameServer/avatar?name=%@",
                               encodedName]];
     NSURLRequest *avatarRequest = [NSURLRequest requestWithURL:url];
-    AFHTTPSessionManager *avatarManager = [[AFHTTPSessionManager alloc]
-        initWithSessionConfiguration:NSURLSessionConfiguration
-                                         .defaultSessionConfiguration];
-    avatarManager.responseSerializer = [AFImageResponseSerializer serializer];
+    // Same image scale AFImageResponseSerializer used.
+    CGFloat imageScale = [[UIScreen mainScreen] scale];
+    NSSet *imageContentTypes = [NSSet
+        setWithObjects:@"image/tiff", @"image/jpeg", @"image/gif", @"image/png",
+                       @"image/ico", @"image/x-icon", @"image/bmp",
+                       @"image/x-bmp", @"image/x-xbitmap", @"image/x-win-bitmap",
+                       nil];
 
     __weak typeof(self) weakSelf = self;
-    NSURLSessionDataTask *task = [avatarManager
-              dataTaskWithRequest:avatarRequest
-                   uploadProgress:nil
-                 downloadProgress:nil
-                completionHandler:^(NSURLResponse *response, id responseObject,
-                                    NSError *error) {
+    NSURLSessionDataTask *task = [[NSURLSession sharedSession]
+        dataTaskWithRequest:avatarRequest
+          completionHandler:^(NSData *data, NSURLResponse *response,
+                              NSError *error) {
                     __strong typeof(weakSelf) strongSelf = weakSelf;
                     if (!strongSelf) {
                         return;
+                    }
+                    // Mirrors AFImageResponseSerializer: no image on a
+                    // transport error or a non-image body; otherwise decode
+                    // at screen scale.
+                    UIImage *responseObject = nil;
+                    if (!error && data.length > 0 &&
+                        [imageContentTypes containsObject:response.MIMEType]) {
+                        UIImage *decoded = [UIImage imageWithData:data];
+                        if (decoded.images || !decoded.CGImage) {
+                            responseObject = decoded;
+                        } else {
+                            responseObject = [UIImage
+                                imageWithCGImage:decoded.CGImage
+                                           scale:imageScale
+                                     orientation:decoded.imageOrientation];
+                        }
                     }
                     dispatch_async(dispatch_get_main_queue(), ^{
                         [strongSelf.pendingAvatarChecks removeObject:username];
