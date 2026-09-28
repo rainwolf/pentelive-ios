@@ -13,6 +13,9 @@ end
 source 'https://github.com/CocoaPods/Specs.git'
 use_frameworks!
 use_modular_headers!
+# TEMP: silence third-party warnings while cleaning up our own. Revert before
+# merge; Pod warnings are being handled separately.
+inhibit_all_warnings!
 
 target "penteLive" do
 platform :ios, '15.0'
