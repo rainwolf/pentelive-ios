@@ -7,6 +7,7 @@
 //
 
 #import "KOTHTableViewController.h"
+#import "PenteAlert.h"
 #import "PenteNavigationViewController.h"
 #import "penteLive-Swift.h"
 @import TSMessages;
@@ -597,16 +598,11 @@ CGFloat bottomOffst = 0;
 
     [PenteHTTPClient sendRequest:request completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
         if (error) {
-            UIAlertView *alert = [[UIAlertView alloc]
-                    initWithTitle:@"Error"
-                          message:[NSString
-                                      stringWithFormat:@"Reason: %@",
-                                                       error.localizedDescription]
-                         delegate:nil
-                cancelButtonTitle:@"OK"
-                otherButtonTitles:nil];
-            //        [alert show];
-            [alert show];
+            [PenteAlert showWithTitle:@"Error"
+                              message:[NSString stringWithFormat:
+                                                    @"Reason: %@",
+                                                    error.localizedDescription]
+                    cancelButtonTitle:@"OK"];
             return;
         }
 
@@ -645,16 +641,12 @@ CGFloat bottomOffst = 0;
     [request setTimeoutInterval:7.0];
     [PenteHTTPClient sendRequest:request completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
     if (error) {
-        UIAlertView *alert = [[UIAlertView alloc]
-                initWithTitle:@"Error"
+        [PenteAlert
+                showWithTitle:@"Error"
                       message:[NSString
                                   stringWithFormat:@"Reason: %@",
                                                    error.localizedDescription]
-                     delegate:nil
-            cancelButtonTitle:@"OK"
-            otherButtonTitles:nil];
-        //        [alert show];
-        [alert show];
+            cancelButtonTitle:@"OK"];
         self.tableView.layer.borderWidth = 0.0;
         return;
     }

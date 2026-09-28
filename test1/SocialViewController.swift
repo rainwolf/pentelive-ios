@@ -269,7 +269,8 @@ class SocialViewController: UIViewController, UITableViewDelegate, UITableViewDa
     @objc func selectGame() {
         let gamePicker = UIPickerView()
         let pickerToolbar = UIToolbar(frame: CGRect(x: 0, y: 0, width: view.frame.size.width, height: 44))
-        pickerToolbar.barStyle = .blackTranslucent
+        pickerToolbar.barStyle = .black
+        pickerToolbar.isTranslucent = true
         let extraSpace = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
         let doneButton = UIBarButtonItem(title: NSLocalizedString("Done", comment: ""), style: .done, target: self, action: #selector(dismissPicker)) // method
         pickerToolbar.setItems([extraSpace, doneButton], animated: true)

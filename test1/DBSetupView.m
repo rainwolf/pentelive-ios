@@ -49,7 +49,8 @@
         // Setup UIToolbar for UIDatePicker
         datePickerToolbar = [[UIToolbar alloc]
             initWithFrame:CGRectMake(0, 0, self.frame.size.width, 44)];
-        [datePickerToolbar setBarStyle:UIBarStyleBlackTranslucent];
+        [datePickerToolbar setBarStyle:UIBarStyleBlack];
+        [datePickerToolbar setTranslucent:YES];
         UIBarButtonItem *extraSpace = [[UIBarButtonItem alloc]
             initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace
                                  target:nil

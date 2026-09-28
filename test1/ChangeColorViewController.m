@@ -11,6 +11,7 @@
 #import "HRColorMapView.h"
 #import "HRColorPickerView.h"
 @import UIColor_Hex;
+#import "PenteAlert.h"
 #import "PenteNavigationViewController.h"
 
 @implementation ChangeColorViewController {
@@ -85,19 +86,12 @@
                 .player.myColor = colorPickerView.color;
         }
         if (error) {
-            UIAlertView *alert = [[UIAlertView alloc]
-                    initWithTitle:NSLocalizedString(@"Error", nil)
-                          message:[NSString
-                                      stringWithFormat:NSLocalizedString(
-                                                           @"Reason: %@", nil),
-                                                       error.localizedDescription]
-                         delegate:nil
-                cancelButtonTitle:@"OK"
-                otherButtonTitles:nil];
-            //        [alert show];
-            [alert performSelectorOnMainThread:@selector(show)
-                                    withObject:nil
-                                 waitUntilDone:YES];
+            [PenteAlert showWithTitle:NSLocalizedString(@"Error", nil)
+                              message:[NSString stringWithFormat:
+                                                    NSLocalizedString(
+                                                        @"Reason: %@", nil),
+                                                    error.localizedDescription]
+                    cancelButtonTitle:@"OK"];
             return;
         }
         [super viewWillDisappear:animated];

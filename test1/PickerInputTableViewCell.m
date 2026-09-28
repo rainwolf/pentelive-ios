@@ -18,10 +18,10 @@
 
 - (void)initalizeInputView {
     self.picker = [[UIPickerView alloc] initWithFrame:CGRectZero];
-    self.picker.showsSelectionIndicator = YES;
     self.picker.autoresizingMask = UIViewAutoresizingFlexibleHeight;
 
-    if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
+    if ([UIDevice currentDevice].userInterfaceIdiom ==
+        UIUserInterfaceIdiomPad) {
         UIViewController *popoverContent = [[UIViewController alloc] init];
         popoverContent.view = self.picker;
         popoverController = [[UIPopoverController alloc]
@@ -48,7 +48,8 @@
 }
 
 - (UIView *)inputView {
-    if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
+    if ([UIDevice currentDevice].userInterfaceIdiom ==
+        UIUserInterfaceIdiomPad) {
         return nil;
     } else {
         return self.picker;
@@ -56,12 +57,14 @@
 }
 
 - (UIView *)inputAccessoryView {
-    if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
+    if ([UIDevice currentDevice].userInterfaceIdiom ==
+        UIUserInterfaceIdiomPad) {
         return nil;
     } else {
         if (!inputAccessoryView) {
             inputAccessoryView = [[UIToolbar alloc] init];
-            inputAccessoryView.barStyle = UIBarStyleBlackTranslucent;
+            inputAccessoryView.barStyle = UIBarStyleBlack;
+            inputAccessoryView.translucent = YES;
             inputAccessoryView.autoresizingMask =
                 UIViewAutoresizingFlexibleHeight;
             [inputAccessoryView sizeToFit];
@@ -108,7 +111,8 @@
     //	[[NSNotificationCenter defaultCenter] addObserver:self
     // selector:@selector(deviceDidRotate:)
     // name:UIDeviceOrientationDidChangeNotification object:nil];
-    if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
+    if ([UIDevice currentDevice].userInterfaceIdiom ==
+        UIUserInterfaceIdiomPad) {
         CGSize pickerSize = [self.picker sizeThatFits:CGSizeZero];
         CGRect frame = self.picker.frame;
         frame.size = pickerSize;
@@ -152,7 +156,8 @@
 }
 
 - (void)deviceDidRotate:(NSNotification *)notification {
-    if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
+    if ([UIDevice currentDevice].userInterfaceIdiom ==
+        UIUserInterfaceIdiomPad) {
         // we should only get this call if the popover is visible
         [popoverController presentPopoverFromRect:self.detailTextLabel.frame
                                            inView:self

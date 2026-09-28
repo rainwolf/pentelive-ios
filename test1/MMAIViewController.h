@@ -17,8 +17,7 @@
 // ].size.height - ( double )568 ) < DBL_EPSILON )
 
 @interface MMAIViewController
-    : UIViewController <PopoverViewDelegate, UIAlertViewDelegate,
-                        WKNavigationDelegate> {
+    : UIViewController <PopoverViewDelegate, WKNavigationDelegate> {
     NSMutableArray *movesList;
     NSString *playerStatsBaseString;
     NSMutableString *moveStatsString;

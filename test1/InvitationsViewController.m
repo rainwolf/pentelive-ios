@@ -7,6 +7,7 @@
 //
 
 #import "InvitationsViewController.h"
+#import "PenteAlert.h"
 #import "PenteNavigationViewController.h"
 #import "PopoverView.h"
 #import <QuartzCore/QuartzCore.h>
@@ -244,19 +245,6 @@
     }
     [privateSwitch setOn:[defaults boolForKey:@"lastInvitationPrivate"]];
     [super viewDidAppear:animated];
-}
-
-- (void)alertView:(UIAlertView *)alertView
-    clickedButtonAtIndex:(NSInteger)buttonIndex {
-    if (alertView.tag == 0) {
-        if (buttonIndex == 0) {
-            //                        NSLog(@"button 0");
-        } else if (buttonIndex == 1) {
-            //                        NSLog(@"button 1");
-            NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-            [defaults setBool:YES forKey:@"stopGamesLimitHassle"];
-        }
-    }
 }
 
 - (void)didReceiveMemoryWarning {
@@ -656,17 +644,12 @@ array, and add a new row to the table view
         [spinner stopAnimating];
 
         if (error) {
-            UIAlertView *alert = [[UIAlertView alloc]
-                    initWithTitle:NSLocalizedString(@"Error", nil)
-                          message:[NSString
-                                      stringWithFormat:NSLocalizedString(
-                                                           @"Reason: %@", nil),
-                                                       error.localizedDescription]
-                         delegate:nil
-                cancelButtonTitle:@"OK"
-                otherButtonTitles:nil];
-            //        [alert show];
-            [alert show];
+            [PenteAlert showWithTitle:NSLocalizedString(@"Error", nil)
+                              message:[NSString stringWithFormat:
+                                                    NSLocalizedString(
+                                                        @"Reason: %@", nil),
+                                                    error.localizedDescription]
+                    cancelButtonTitle:@"OK"];
             return;
         } else if ([dashboardString
                        rangeOfString:[NSString
@@ -674,18 +657,16 @@ array, and add a new row to the table view
                                                           opponentCell.textField
                                                               .text]]
                        .length != 0) {
-            UIAlertView *alert = [[UIAlertView alloc]
-                    initWithTitle:NSLocalizedString(@"Error", nil)
-                          message:[NSString
-                                      stringWithFormat:
-                                          NSLocalizedString(
-                                              @"The username %@ does not exist.",
-                                              nil),
-                                          opponentCell.textField.text]
-                         delegate:nil
-                cancelButtonTitle:NSLocalizedString(@"OK", nil)
-                otherButtonTitles:nil];
-            [alert show];
+            [PenteAlert
+                    showWithTitle:NSLocalizedString(@"Error", nil)
+                          message:
+                              [NSString
+                                  stringWithFormat:
+                                      NSLocalizedString(
+                                          @"The username %@ does not exist.",
+                                          nil),
+                                      opponentCell.textField.text]
+                cancelButtonTitle:NSLocalizedString(@"OK", nil)];
         } else {
             PenteNavigationViewController *navController =
                 (PenteNavigationViewController *)self.navigationController;
@@ -738,25 +719,6 @@ array, and add a new row to the table view
 // titleForHeaderInSection:(NSInteger)section
 //{
 //}
-
-- (void)viewDidUnload {
-    [self setRatedSwitch:nil];
-    [self setTimeCell:nil];
-    [self setGameCell:nil];
-    [self setRestrictionCell:nil];
-    [self setOpponentCell:nil];
-    [self setPrivateSwitch:nil];
-    [self setPlayAsCell:nil];
-    [self setPrivateCell:nil];
-    [self setPrivateCellLabel:nil];
-    [self setPlayAsLabel:nil];
-    [self setPlayAsDetailLabel:nil];
-    [self setPrivateSwitch:nil];
-    [self setPrivateCellLabel:nil];
-    [self setPrivateCellLabel:nil];
-    [self setSpinner:nil];
-    [super viewDidUnload];
-}
 
 - (IBAction)flipPrivateSwitch:(id)sender {
     CGFloat insetY = -((UITableView *)self.tableView).contentInset.top;

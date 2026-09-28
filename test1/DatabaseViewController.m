@@ -24,6 +24,7 @@
 #import "BoardViewController.h"
 #import "DBBoardView.h"
 #import "MMAI.h"
+#import "PenteAlert.h"
 #import "PenteGame.h"
 #import "PopoverView.h"
 #import "TSMessage.h"
@@ -421,24 +422,6 @@ BoardViewController *boardController;
             [aiButton setHidden:YES];
         }
     }
-}
-
-- (void)viewDidUnload {
-    [self setBoard:nil];
-    [self setZoomedBoard:nil];
-    [self setStone:nil];
-    [self setZoomedStone:nil];
-    [self setWhiteCapturesCountLabel:nil];
-    [self setBlackCapturesCountLabel:nil];
-    [self setWhiteStoneCaptures:nil];
-    [self setBlackStoneCaptures:nil];
-    [self setSpinner:nil];
-    [self setVerticalLine:nil];
-    [self setHorizontalLine:nil];
-    [self setMovesList:nil];
-    [self setBoardTapRecognizer:nil];
-    [super viewDidUnload];
-    // Release any retained subviews of the main view.
 }
 
 - (BOOL)shouldAutorotate {
@@ -851,17 +834,13 @@ BoardViewController *boardController;
              //            NSLog(@"kittyyyyyyString -\n%@-", dashboardString);
 
              if (error) {
-                 UIAlertView *alert = [[UIAlertView alloc]
-                         initWithTitle:NSLocalizedString(@"Error", nil)
+                 [PenteAlert
+                         showWithTitle:NSLocalizedString(@"Error", nil)
                                message:[NSString stringWithFormat:
                                                      NSLocalizedString(
                                                          @"Reason: %@", nil),
                                                      error.localizedDescription]
-                              delegate:nil
-                     cancelButtonTitle:@"OK"
-                     otherButtonTitles:nil];
-                 //        [alert show];
-                 [alert show];
+                     cancelButtonTitle:@"OK"];
                  [self.progressView stopAnimating];
                  [self.progressView removeFromSuperview];
                  return;
@@ -1366,7 +1345,7 @@ BoardViewController *boardController;
            withContentView:setupView
                   delegate:self];
     for (int i = 0; i < [setupView numberOfRowsInSection:0]; ++i) {
-        UITableViewCell *cell = [setupView
+        [setupView
             cellForRowAtIndexPath:[NSIndexPath indexPathForRow:i inSection:0]];
     }
     [messagePopover layoutSubviews];

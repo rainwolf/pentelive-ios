@@ -80,7 +80,6 @@
 - (UIView *)tableView:(UITableView *)tableView
     viewForHeaderInSection:(NSInteger)section;
 //- (void)adViewWillLeaveApplication:(GADBannerView *)bannerView;
-- (void)dashboardParse;
 - (void)refreshDashboard;
 - (void)parseMessages;
 - (void)toInvitationsWithPlayer:(NSString *)playerName;

@@ -45,11 +45,6 @@
     [self.tableView addSubview:pullToReloadHeaderView];
 }
 
-- (void)viewDidUnload {
-    [super viewDidUnload];
-    pullToReloadHeaderView = nil;
-}
-
 #pragma mark UIScrollViewDelegate
 
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView {

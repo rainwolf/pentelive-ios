@@ -23,6 +23,7 @@
 #import "BoardViewController.h"
 #import "BoardView.h"
 #import "DatabaseViewController.h"
+#import "PenteAlert.h"
 #import "PenteGame.h"
 #import "PopoverView.h"
 #import "TSMessage.h"
@@ -124,9 +125,6 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
     dPenteMove2 = -1;
     dPenteMove3 = -1;
     dPenteMove4 = -1;
-    whiteCaptures;
-    blackCaptures;
-    lastMove;
     swap2Move1 = -1;
     swap2Move2 = -1;
     swap2Move3 = -1;
@@ -410,34 +408,6 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
     }
 
     [super viewWillDisappear:animated];
-}
-
-- (void)viewDidUnload {
-    [self setBoard:nil];
-    [self setZoomedBoard:nil];
-    [self setStone:nil];
-    [self setZoomedStone:nil];
-    [self setSubmitButton:nil];
-    [self setPlayer2Button:nil];
-    [self setPlayer1Button:nil];
-    [self setDPenteChoiceLabel:nil];
-    [self setWhiteCapturesCountLabel:nil];
-    [self setBlackCapturesCountLabel:nil];
-    [self setWhiteStoneCaptures:nil];
-    [self setBlackStoneCaptures:nil];
-    [self setSpinner:nil];
-    [self setVerticalLine:nil];
-    [self setHorizontalLine:nil];
-    [self setMovesList:nil];
-    [self setCaptures:nil];
-    [self setBoardTapRecognizer:nil];
-    [self setReplyMessage:nil];
-    [self setReceivedMessage:nil];
-    [self setMessageButtonImageView:nil];
-    [self setMessageButton:nil];
-    [self setReceivedMessages:nil];
-    [super viewDidUnload];
-    // Release any retained subviews of the main view.
 }
 
 - (BOOL)shouldAutorotate {
@@ -2030,16 +2000,13 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                  return;
              [strongSelf->spinner stopAnimating];
              if (error) {
-                 UIAlertView *alert = [[UIAlertView alloc]
-                         initWithTitle:NSLocalizedString(@"Error", nil)
+                 [PenteAlert
+                         showWithTitle:NSLocalizedString(@"Error", nil)
                                message:[NSString stringWithFormat:
                                                      NSLocalizedString(
                                                          @"Reason: %@", nil),
                                                      error.localizedDescription]
-                              delegate:nil
-                     cancelButtonTitle:@"OK"
-                     otherButtonTitles:nil];
-                 [alert show];
+                     cancelButtonTitle:@"OK"];
                  return;
              }
              NSInteger status =
@@ -2067,16 +2034,13 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                     [body containsString:@"decision"] ||
                     [body containsString:@"Selected"])));
              if (rejected) {
-                 UIAlertView *alert = [[UIAlertView alloc]
-                         initWithTitle:NSLocalizedString(@"Move rejected", nil)
+                 [PenteAlert
+                         showWithTitle:NSLocalizedString(@"Move rejected", nil)
                                message:body.length
                                            ? body
                                            : NSLocalizedString(
                                                  @"Renju move rejected.", nil)
-                              delegate:nil
-                     cancelButtonTitle:@"OK"
-                     otherButtonTitles:nil];
-                 [alert show];
+                     cancelButtonTitle:@"OK"];
                  return;
              }
              strongSelf.drawArmed = NO; // consumed by this submitted move
@@ -2118,18 +2082,12 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
 }
 
 - (void)showAlertWithMessage:(NSString *)message {
-    UIAlertView *alert = [[UIAlertView alloc]
-            initWithTitle:NSLocalizedString(@"Error", nil)
+    [PenteAlert
+            showWithTitle:NSLocalizedString(@"Error", nil)
                   message:[NSString stringWithFormat:NSLocalizedString(
                                                          @"Reason: %@", nil),
                                                      message]
-                 delegate:nil
-        cancelButtonTitle:@"OK"
-        otherButtonTitles:nil];
-    //        [alert show];
-    [alert performSelectorOnMainThread:@selector(show)
-                            withObject:nil
-                         waitUntilDone:YES];
+        cancelButtonTitle:@"OK"];
 }
 
 - (void)replayGame {
@@ -2439,8 +2397,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                              strongSelf->receivedMessageView.contentInset.left -
                              strongSelf->receivedMessageView.contentInset.right,
                          strongSelf->receivedMessageView.font.lineHeight * 5)
-                              options:(NSStringDrawingUsesLineFragmentOrigin |
-                                       NSLineBreakByWordWrapping)
+                              options:NSStringDrawingUsesLineFragmentOrigin
                            attributes:fontAttributes
                               context:nil];
              [strongSelf->receivedMessageView
@@ -3000,8 +2957,6 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
             actionWithTitle:NSLocalizedString(@"yes, request undo", nil)
                       style:UIAlertActionStyleDefault
                     handler:^(UIAlertAction *action) {
-                        NSError *error = nil;
-                        NSURLResponse *response;
                         NSMutableURLRequest *request =
                             [[NSMutableURLRequest alloc] init];
 
@@ -3042,8 +2997,8 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                                           NSURLResponse *response,
                                           NSError *error) {
                                  if (error) {
-                                     UIAlertView *alert = [[UIAlertView alloc]
-                                             initWithTitle:NSLocalizedString(
+                                     [PenteAlert
+                                             showWithTitle:NSLocalizedString(
                                                                @"Error", nil)
                                                    message:
                                                        [NSString
@@ -3054,10 +3009,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                                                                    nil),
                                                                error
                                                                    .localizedDescription]
-                                                  delegate:nil
-                                         cancelButtonTitle:@"OK"
-                                         otherButtonTitles:nil];
-                                     [alert show];
+                                         cancelButtonTitle:@"OK"];
                                      return;
                                  }
                                  [weakSelf.navigationController
@@ -3131,8 +3083,6 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                     PenteNavigationViewController *navControllor =
                         (PenteNavigationViewController *)
                             self.navigationController;
-                    NSError *error = nil;
-                    NSURLResponse *response;
                     NSMutableURLRequest *request =
                         [[NSMutableURLRequest alloc] init];
 
@@ -3171,8 +3121,8 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                          completion:^(NSData *responseData,
                                       NSURLResponse *response, NSError *error) {
                              if (error) {
-                                 UIAlertView *alert = [[UIAlertView alloc]
-                                         initWithTitle:NSLocalizedString(
+                                 [PenteAlert
+                                         showWithTitle:NSLocalizedString(
                                                            @"Error", nil)
                                                message:
                                                    [NSString
@@ -3182,10 +3132,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                                                                nil),
                                                            error
                                                                .localizedDescription]
-                                              delegate:nil
-                                     cancelButtonTitle:@"OK"
-                                     otherButtonTitles:nil];
-                                 [alert show];
+                                     cancelButtonTitle:@"OK"];
                                  return;
                              }
                              [navControllor setDidMove:YES];
@@ -3198,8 +3145,6 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                   style:UIAlertActionStyleDestructive
                 handler:^(UIAlertAction *action) {
                     //                                                             PenteNavigationViewController *navControllor = (PenteNavigationViewController *) self.navigationController;
-                    NSError *error = nil;
-                    NSURLResponse *response;
                     NSMutableURLRequest *request =
                         [[NSMutableURLRequest alloc] init];
 
@@ -3238,8 +3183,8 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                          completion:^(NSData *responseData,
                                       NSURLResponse *response, NSError *error) {
                              if (error) {
-                                 UIAlertView *alert = [[UIAlertView alloc]
-                                         initWithTitle:NSLocalizedString(
+                                 [PenteAlert
+                                         showWithTitle:NSLocalizedString(
                                                            @"Error", nil)
                                                message:
                                                    [NSString
@@ -3249,10 +3194,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                                                                nil),
                                                            error
                                                                .localizedDescription]
-                                              delegate:nil
-                                     cancelButtonTitle:@"OK"
-                                     otherButtonTitles:nil];
-                                 [alert show];
+                                     cancelButtonTitle:@"OK"];
                                  return;
                              }
                              [weakSelf replayGame];
@@ -3322,8 +3264,8 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                          completion:^(NSData *responseData,
                                       NSURLResponse *response, NSError *error) {
                              if (error) {
-                                 UIAlertView *alert = [[UIAlertView alloc]
-                                         initWithTitle:NSLocalizedString(
+                                 [PenteAlert
+                                         showWithTitle:NSLocalizedString(
                                                            @"Error", nil)
                                                message:
                                                    [NSString
@@ -3333,10 +3275,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                                                                nil),
                                                            error
                                                                .localizedDescription]
-                                              delegate:nil
-                                     cancelButtonTitle:@"OK"
-                                     otherButtonTitles:nil];
-                                 [alert show];
+                                     cancelButtonTitle:@"OK"];
                                  return;
                              }
                              [navControllor setDidMove:YES];
@@ -3361,8 +3300,6 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
 }
 - (void)toDB {
     //    NSLog(@"%d",lastMove);
-    PenteNavigationViewController *navController =
-        (PenteNavigationViewController *)self.navigationController;
     if (!isGoGame) {
         [[NSUserDefaults standardUserDefaults] setObject:[self.game gameType]
                                                   forKey:@"DBGame"];
@@ -3624,8 +3561,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                                      receivedMessageView.contentInset.left -
                                      receivedMessageView.contentInset.right,
                                  receivedMessageView.font.lineHeight * 5)
-                     options:(NSStringDrawingUsesLineFragmentOrigin |
-                              NSLineBreakByWordWrapping)
+                     options:NSStringDrawingUsesLineFragmentOrigin
                   attributes:fontAttributes
                      context:nil];
     [receivedMessageView setText:receivedMessage];
@@ -4200,9 +4136,10 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
 
 - (void)showScore {
     [self showTerritory:nil];
-    int whiteT = [whiteTerritory count], blackT = [blackTerritory count],
-        whiteS = [[self getMovesForValue:1] count],
-        blackS = [[self getMovesForValue:2] count];
+    int whiteT = (int)[whiteTerritory count],
+        blackT = (int)[blackTerritory count],
+        whiteS = (int)[[self getMovesForValue:1] count],
+        blackS = (int)[[self getMovesForValue:2] count];
     UIAlertController *alert = [UIAlertController
         alertControllerWithTitle:NSLocalizedString(@"score", nil)
                          message:[NSString
@@ -4234,9 +4171,10 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
 
 - (void)evaluateDeadStones {
     [self showTerritory:nil];
-    int whiteT = [whiteTerritory count], blackT = [blackTerritory count],
-        whiteS = [[self getMovesForValue:1] count],
-        blackS = [[self getMovesForValue:2] count];
+    int whiteT = (int)[whiteTerritory count],
+        blackT = (int)[blackTerritory count],
+        whiteS = (int)[[self getMovesForValue:1] count],
+        blackS = (int)[[self getMovesForValue:2] count];
     UIAlertController *alert = [UIAlertController
         alertControllerWithTitle:
             [NSString stringWithFormat:
@@ -4414,8 +4352,6 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                                                 nil)
                                       style:UIAlertActionStyleDefault
                                     handler:^(UIAlertAction *action) {
-                                        NSError *error;
-
                                         NSString *post = [NSString
                                             stringWithFormat:@"sid=%@&command="
                                                              @"request&mobile=",
@@ -4471,9 +4407,8 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                                                              @"Error: Cancel "
                                                              @"request already "
                                                              @"exists."]) {
-                                                     UIAlertView *alert = [[UIAlertView
-                                                         alloc]
-                                                             initWithTitle:
+                                                     [PenteAlert
+                                                             showWithTitle:
                                                                  NSLocalizedString(
                                                                      @"Error",
                                                                      nil)
@@ -4497,12 +4432,9 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                                                                            @"s"
                                                                            @".",
                                                                            nil)
-                                                                  delegate:nil
                                                          cancelButtonTitle:
                                                              NSLocalizedString(
-                                                                 @"OK", nil)
-                                                         otherButtonTitles:nil];
-                                                     [alert show];
+                                                                 @"OK", nil)];
                                                  } else {
                                                      PenteNavigationViewController
                                                          *navControllor =
@@ -4893,7 +4825,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
 
 - (void)printAbstractBoard {
     for (int i = 0; i < 19; i++) {
-        NSLog([NSString
+        NSLog(@"%@", [NSString
             stringWithFormat:NSLocalizedString(@"%d %d %d %d %d %d %d %d %d %d "
                                                @"%d %d %d %d %d %d %d %d %d ",
                                                nil),

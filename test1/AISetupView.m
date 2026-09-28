@@ -110,7 +110,8 @@
                 idx = 0;
             }
             [picker selectRow:idx inComponent:0 animated:NO];
-            cell.textField.text = [NSString stringWithFormat:@"%ld", (idx + 1)];
+            cell.textField.text =
+                [NSString stringWithFormat:@"%ld", (long)(idx + 1)];
 
             difficultyCell = cell;
         }

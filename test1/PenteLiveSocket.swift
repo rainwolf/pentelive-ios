@@ -229,7 +229,7 @@ import UIKit
     func reLogin() {
         let url = URL(string: "https://\(server)/gameServer/bootMeMobile.jsp")
         let session = URLSession.shared
-        _ = session.dataTask(with: url!, completionHandler: { (_: Data?, _: URLResponse?, error: Error?) in
+        session.dataTask(with: url!, completionHandler: { (_: Data?, _: URLResponse?, error: Error?) in
             if error == nil {
                 self.login()
             }
