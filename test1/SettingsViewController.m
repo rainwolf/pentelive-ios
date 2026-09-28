@@ -14,6 +14,7 @@
 #import "MMAIViewController.h"
 #import "RMStore.h"
 #import "penteLive-Swift.h"
+#import "PenteAlert.h"
 @import TSMessages;
 @import InAppSettingsKit.IASKSpecifier;
 
@@ -250,9 +251,8 @@
                     //            NSLog(@"kittyyyyyyString -%@-", dashboardString);
 
                     if (error) {
-                        UIAlertView *alert = [[UIAlertView alloc]
-                                initWithTitle:@"Error"
-                                      message:[NSString stringWithFormat:
+                        [PenteAlert showWithTitle:@"Error"
+                                          message:[NSString stringWithFormat:
                                                             NSLocalizedString(
                                                                 @"Trouble connecting "
                                                                 @"to pente.org, "
@@ -260,47 +260,32 @@
                                                                 @"a bit.\nReason: %@",
                                                                 nil),
                                                             error.localizedDescription]
-                                     delegate:nil
-                            cancelButtonTitle:@"OK"
-                            otherButtonTitles:nil];
-                        [alert show];
+                                cancelButtonTitle:@"OK"];
                     } else if ([dashboardString isEqualToString:@""]) {
                         [weakSelf2.navC setLoggedIn:NO];
-                        UIAlertView *alert = [[UIAlertView alloc]
-                                initWithTitle:@"Error"
-                                      message:@"pente.org appears to be down, "
-                                              @"please try again later."
-                                     delegate:nil
-                            cancelButtonTitle:@"OK"
-                            otherButtonTitles:nil];
-                        [alert show];
+                        [PenteAlert showWithTitle:@"Error"
+                                          message:@"pente.org appears to be down, "
+                                                  @"please try again later."
+                                cancelButtonTitle:@"OK"];
 
                     } else if ([dashboardString
                                    rangeOfString:
                                        @"Invalid name or password, please try again."]
                                    .length != 0) {
                         [weakSelf2.navC setLoggedIn:NO];
-                        UIAlertView *alert = [[UIAlertView alloc]
-                                initWithTitle:NSLocalizedString(
-                                                  @"Wrong username or password", nil)
-                                      message:nil
-                                     delegate:nil
-                            cancelButtonTitle:@"OK"
-                            otherButtonTitles:nil];
-                        [alert show];
+                        [PenteAlert showWithTitle:NSLocalizedString(
+                                                      @"Wrong username or password", nil)
+                                          message:nil
+                                cancelButtonTitle:@"OK"];
                     } else if ([dashboardString
                                    rangeOfString:
                                        @"<h2>Pente.org is undergoing maintenance.</h2>"]
                                    .length != 0) {
-                        UIAlertView *alert = [[UIAlertView alloc]
-                                initWithTitle:@"Maintenance"
-                                      message:@"pente.org is undergoing maintenance, "
-                                              @"please "
-                                              @"try again in a few minutes."
-                                     delegate:nil
-                            cancelButtonTitle:@"OK"
-                            otherButtonTitles:nil];
-                        [alert show];
+                        [PenteAlert showWithTitle:@"Maintenance"
+                                          message:@"pente.org is undergoing maintenance, "
+                                                  @"please "
+                                                  @"try again in a few minutes."
+                                cancelButtonTitle:@"OK"];
                     } else {
                         [weakSelf2.navC setLoggedIn:YES];
                         [weakSelf2.navC setDidMove:YES];
@@ -329,70 +314,49 @@
              ![[username stringByTrimmingCharactersInSet:testChars]
                  isEqualToString:@""] ||
              ([username length] < 5) || ([username length] > 10))) {
-            UIAlertView *alert = [[UIAlertView alloc]
-                    initWithTitle:@"Error"
-                          message:NSLocalizedString(@"Please enter a username, "
-                                                    @"5 to 10 characters "
-                                                    @"long and consisting of "
-                                                    @"letters, digits, and "
-                                                    @"underscores only.",
-                                                    nil)
-                         delegate:nil
-                cancelButtonTitle:@"OK"
-                otherButtonTitles:nil];
-            [alert show];
+            [PenteAlert showWithTitle:@"Error"
+                              message:NSLocalizedString(@"Please enter a username, "
+                                                        @"5 to 10 characters "
+                                                        @"long and consisting of "
+                                                        @"letters, digits, and "
+                                                        @"underscores only.",
+                                                        nil)
+                    cancelButtonTitle:@"OK"];
             return;
         }
         if (((password == nil) ||
              ![[password stringByTrimmingCharactersInSet:testChars]
                  isEqualToString:@""] ||
              ([password length] < 5) || ([password length] > 16))) {
-            UIAlertView *alert = [[UIAlertView alloc]
-                    initWithTitle:@"Error"
-                          message:NSLocalizedString(@"Please enter a password, "
-                                                    @"5 to 16 characters "
-                                                    @"long and consisting of "
-                                                    @"letters, digits, and "
-                                                    @"underscores only.",
-                                                    nil)
-                         delegate:nil
-                cancelButtonTitle:@"OK"
-                otherButtonTitles:nil];
-            [alert show];
+            [PenteAlert showWithTitle:@"Error"
+                              message:NSLocalizedString(@"Please enter a password, "
+                                                        @"5 to 16 characters "
+                                                        @"long and consisting of "
+                                                        @"letters, digits, and "
+                                                        @"underscores only.",
+                                                        nil)
+                    cancelButtonTitle:@"OK"];
             return;
         }
         if (![passwordVerification isEqualToString:password]) {
-            UIAlertView *alert = [[UIAlertView alloc]
-                    initWithTitle:@"Error"
-                          message:NSLocalizedString(@"Passwords don't match.",
-                                                    nil)
-                         delegate:nil
-                cancelButtonTitle:@"OK"
-                otherButtonTitles:nil];
-            [alert show];
+            [PenteAlert showWithTitle:@"Error"
+                              message:NSLocalizedString(@"Passwords don't match.",
+                                                        nil)
+                    cancelButtonTitle:@"OK"];
             return;
         }
         if (emailAddress.length == 0) {
-            UIAlertView *alert = [[UIAlertView alloc]
-                    initWithTitle:@"Error"
-                          message:NSLocalizedString(
-                                      @"No email address provided.", nil)
-                         delegate:nil
-                cancelButtonTitle:@"OK"
-                otherButtonTitles:nil];
-            [alert show];
+            [PenteAlert showWithTitle:@"Error"
+                              message:NSLocalizedString(
+                                          @"No email address provided.", nil)
+                    cancelButtonTitle:@"OK"];
             return;
         }
         if (![defaults boolForKey:@"RatedPlayPolicyAccepted"]) {
-            UIAlertView *alert = [[UIAlertView alloc]
-                    initWithTitle:@"Error"
-                          message:
-                              @"You have to agree to Pente.org's Rated Play "
-                              @"Policy before signing up."
-                         delegate:nil
-                cancelButtonTitle:@"OK"
-                otherButtonTitles:nil];
-            [alert show];
+            [PenteAlert showWithTitle:@"Error"
+                              message:@"You have to agree to Pente.org's Rated Play "
+                                      @"Policy before signing up."
+                    cancelButtonTitle:@"OK"];
             return;
         }
 
@@ -433,59 +397,42 @@
             //                        dashboardString);
 
             if (error) {
-                UIAlertView *alert = [[UIAlertView alloc]
-                        initWithTitle:NSLocalizedString(@"Error", nil)
-                              message:[NSString stringWithFormat:
+                [PenteAlert showWithTitle:NSLocalizedString(@"Error", nil)
+                                  message:[NSString stringWithFormat:
                                                     @"Reason: %@",
                                                     error.localizedDescription]
-                             delegate:nil
-                    cancelButtonTitle:NSLocalizedString(@"OK", nil)
-                    otherButtonTitles:nil];
-                //        [alert show];
-                [alert show];
+                        cancelButtonTitle:NSLocalizedString(@"OK", nil)];
                 return;
             } else if ([dashboardString isEqualToString:@""]) {
                 [weakSelf.navC setLoggedIn:NO];
-                UIAlertView *alert = [[UIAlertView alloc]
-                        initWithTitle:NSLocalizedString(@"Error", nil)
-                              message:@"pente.org appears to be down, please try "
-                                      @"again later."
-                             delegate:nil
-                    cancelButtonTitle:NSLocalizedString(@"OK", nil)
-                    otherButtonTitles:nil];
-                [alert show];
+                [PenteAlert showWithTitle:NSLocalizedString(@"Error", nil)
+                                  message:@"pente.org appears to be down, please try "
+                                          @"again later."
+                        cancelButtonTitle:NSLocalizedString(@"OK", nil)];
 
             } else if ([dashboardString
                            rangeOfString:
                                @" is already taken, please choose another."]
                            .length != 0) {
                 [weakSelf.navC setLoggedIn:NO];
-                UIAlertView *alert = [[UIAlertView alloc]
-                        initWithTitle:NSLocalizedString(@"Error", nil)
-                              message:[NSString
-                                          stringWithFormat:
-                                              NSLocalizedString(
-                                                  @"The username %@ is already "
-                                                  @"taken, please choose another.",
-                                                  nil),
-                                              username]
-                             delegate:nil
-                    cancelButtonTitle:NSLocalizedString(@"OK", nil)
-                    otherButtonTitles:nil];
-                [alert show];
+                [PenteAlert showWithTitle:NSLocalizedString(@"Error", nil)
+                                  message:[NSString
+                                              stringWithFormat:
+                                                  NSLocalizedString(
+                                                      @"The username %@ is already "
+                                                      @"taken, please choose another.",
+                                                      nil),
+                                                  username]
+                        cancelButtonTitle:NSLocalizedString(@"OK", nil)];
             } else if ([dashboardString
                            rangeOfString:
                                @"<h2>Pente.org is undergoing maintenance.</h2>"]
                            .length != 0) {
-                UIAlertView *alert =
-                    [[UIAlertView alloc] initWithTitle:@"Maintenance"
-                                               message:@"pente.org is undergoing "
-                                                       @"maintenance, please try "
-                                                       @"again in a few minutes."
-                                              delegate:nil
-                                     cancelButtonTitle:@"OK"
-                                     otherButtonTitles:nil];
-                [alert show];
+                [PenteAlert showWithTitle:@"Maintenance"
+                                  message:@"pente.org is undergoing "
+                                          @"maintenance, please try "
+                                          @"again in a few minutes."
+                        cancelButtonTitle:@"OK"];
             } else {
                 [defaults removeObjectForKey:@"emailAddress"];
                 [defaults removeObjectForKey:@"passwordVerification"];
@@ -504,18 +451,29 @@
     //    }
     if ([specifier.key isEqualToString:@"HelpButton"]) {
         if (![self.navC loggedIn]) {
-            UIAlertView *alert = [[UIAlertView alloc]
-                    initWithTitle:NSLocalizedString(@"Error", nil)
-                          message:
-                              NSLocalizedString(
-                                  @"You need to be logged in to send a help "
-                                  @"message. Send an email instead?",
-                                  nil)
-                         delegate:self
-                cancelButtonTitle:NSLocalizedString(@"Cancel", nil)
-                otherButtonTitles:NSLocalizedString(@"Email", nil), nil];
-            [alert setTag:1];
-            [alert show];
+            [PenteAlert showWithTitle:NSLocalizedString(@"Error", nil)
+                              message:NSLocalizedString(@"You need to be logged in to send a help "
+                                                        @"message. Send an email instead?", nil)
+                    cancelButtonTitle:NSLocalizedString(@"Cancel", nil)
+                    otherButtonTitles:@[ NSLocalizedString(@"Email", nil) ]
+                              handler:^(NSInteger buttonIndex) {
+                if (buttonIndex == 1) {
+                    if ([MFMailComposeViewController canSendMail]) {
+                        MFMailComposeViewController *mailer = [[MFMailComposeViewController alloc] init];
+                        mailer.mailComposeDelegate = self;
+                        [mailer setSubject:[NSString stringWithFormat:@"iOS penteLive help for %@",
+                                               [[NSUserDefaults standardUserDefaults] objectForKey:@"username"]]];
+                        NSArray *toRecipients = [NSArray arrayWithObjects:@"rainwolf@submanifold.be", nil];
+                        [mailer setToRecipients:toRecipients];
+                        [self presentViewController:mailer animated:YES completion:nil];
+                    } else {
+                        [PenteAlert showWithTitle:NSLocalizedString(@"Error", nil)
+                                          message:NSLocalizedString(@"Your device is not configured to "
+                                                                    @"send mail", nil)
+                                cancelButtonTitle:NSLocalizedString(@"OK", nil)];
+                    }
+                }
+            }];
             return;
         }
 
@@ -550,16 +508,11 @@
                         isHTML:YES];
             [self presentViewController:mailer animated:YES completion:nil];
         } else {
-            UIAlertView *alert = [[UIAlertView alloc]
-                    initWithTitle:NSLocalizedString(@"Error", nil)
-                          message:
-                              NSLocalizedString(
-                                  @"Your device is not configured to send mail",
-                                  nil)
-                         delegate:nil
-                cancelButtonTitle:NSLocalizedString(@"OK", nil)
-                otherButtonTitles:nil];
-            [alert show];
+            [PenteAlert showWithTitle:NSLocalizedString(@"Error", nil)
+                              message:NSLocalizedString(
+                                          @"Your device is not configured to send mail",
+                                          nil)
+                    cancelButtonTitle:NSLocalizedString(@"OK", nil)];
         }
         return;
     }
@@ -1274,16 +1227,12 @@
 
             [PenteHTTPClient sendRequest:request completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
                 if (error) {
-                    UIAlertView *alert = [[UIAlertView alloc]
-                            initWithTitle:NSLocalizedString(@"Error", nil)
-                                  message:[NSString stringWithFormat:
-                                                        NSLocalizedString(
-                                                            @"Reason: %@", nil),
-                                                        error.localizedDescription]
-                                 delegate:nil
-                        cancelButtonTitle:@"OK"
-                        otherButtonTitles:nil];
-                    [alert show];
+                    [PenteAlert showWithTitle:NSLocalizedString(@"Error", nil)
+                                      message:[NSString stringWithFormat:
+                                                            NSLocalizedString(
+                                                                @"Reason: %@", nil),
+                                                            error.localizedDescription]
+                            cancelButtonTitle:@"OK"];
                     return;
                 }
             }];
@@ -1322,41 +1271,6 @@
     return newImage;
 }
 
-- (void)alertView:(UIAlertView *)alertView
-    clickedButtonAtIndex:(NSInteger)buttonIndex {
-    if (alertView.tag == 1) {
-        if (buttonIndex == 1) {
-            if ([MFMailComposeViewController canSendMail]) {
-                MFMailComposeViewController *mailer =
-                    [[MFMailComposeViewController alloc] init];
-                mailer.mailComposeDelegate = self;
-                [mailer
-                    setSubject:[NSString
-                                   stringWithFormat:
-                                       @"iOS penteLive help for %@",
-                                       [[NSUserDefaults standardUserDefaults]
-                                           objectForKey:@"username"]]];
-                NSArray *toRecipients =
-                    [NSArray arrayWithObjects:@"rainwolf@submanifold.be", nil];
-                [mailer setToRecipients:toRecipients];
-
-                [self presentViewController:mailer animated:YES completion:nil];
-            } else {
-                UIAlertView *alert = [[UIAlertView alloc]
-                        initWithTitle:NSLocalizedString(@"Error", nil)
-                              message:NSLocalizedString(
-                                          @"Your device is not configured to "
-                                          @"send mail",
-                                          nil)
-                             delegate:nil
-                    cancelButtonTitle:NSLocalizedString(@"OK", nil)
-                    otherButtonTitles:nil];
-                [alert show];
-            }
-        }
-    }
-}
-
 - (void)checkAndUpdateSettings {
     if (self.navC.player &&
         self.navC.player.emailMe !=
@@ -1390,15 +1304,11 @@
 
         [PenteHTTPClient sendRequest:request completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
             if (error) {
-                UIAlertView *alert = [[UIAlertView alloc]
-                        initWithTitle:NSLocalizedString(@"Error", nil)
-                              message:[NSString stringWithFormat:
+                [PenteAlert showWithTitle:NSLocalizedString(@"Error", nil)
+                                  message:[NSString stringWithFormat:
                                                     @"Reason: %@",
                                                     error.localizedDescription]
-                             delegate:nil
-                    cancelButtonTitle:NSLocalizedString(@"OK", nil)
-                    otherButtonTitles:nil];
-                [alert show];
+                        cancelButtonTitle:NSLocalizedString(@"OK", nil)];
             }
         }];
     }
@@ -1434,15 +1344,11 @@
 
         [PenteHTTPClient sendRequest:request completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
             if (error) {
-                UIAlertView *alert = [[UIAlertView alloc]
-                        initWithTitle:NSLocalizedString(@"Error", nil)
-                              message:[NSString stringWithFormat:
+                [PenteAlert showWithTitle:NSLocalizedString(@"Error", nil)
+                                  message:[NSString stringWithFormat:
                                                     @"Reason: %@",
                                                     error.localizedDescription]
-                             delegate:nil
-                    cancelButtonTitle:NSLocalizedString(@"OK", nil)
-                    otherButtonTitles:nil];
-                [alert show];
+                        cancelButtonTitle:NSLocalizedString(@"OK", nil)];
                 return;
             }
         }];
