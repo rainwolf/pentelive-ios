@@ -7,6 +7,7 @@
 //
 
 #import "InviteAIViewController.h"
+#import "PenteAlert.h"
 #import "PenteNavigationViewController.h"
 #import <QuartzCore/QuartzCore.h>
 
@@ -382,34 +383,26 @@ array, and add a new row to the table view
                      forKey:@"lastInvitedAIdifficulty"];
 
         if (error) {
-            UIAlertView *alert = [[UIAlertView alloc]
-                    initWithTitle:NSLocalizedString(@"Error", nil)
-                          message:[NSString
-                                      stringWithFormat:
-                                          NSLocalizedString(@"Reason: %@", nil),
-                                          error.localizedDescription]
-                         delegate:nil
-                cancelButtonTitle:@"OK"
-                otherButtonTitles:nil];
-            //        [alert show];
-            [alert show];
+            [PenteAlert showWithTitle:NSLocalizedString(@"Error", nil)
+                              message:[NSString stringWithFormat:
+                                                    NSLocalizedString(
+                                                        @"Reason: %@", nil),
+                                                    error.localizedDescription]
+                    cancelButtonTitle:@"OK"];
             return;
         } else if ([dashboardString
                        rangeOfString:
                            @"against the AI player. You can start a new "
                            @"one after finishing the current one."]
                        .location != NSNotFound) {
-            UIAlertView *alert = [[UIAlertView alloc]
-                    initWithTitle:NSLocalizedString(@"Error", nil)
+            [PenteAlert
+                    showWithTitle:NSLocalizedString(@"Error", nil)
                           message:
                               NSLocalizedString(
                                   @"The AI player will only play 1 game or set "
                                   @"of each game at a time.",
                                   nil)
-                         delegate:nil
-                cancelButtonTitle:NSLocalizedString(@"OK", nil)
-                otherButtonTitles:nil];
-            [alert show];
+                cancelButtonTitle:NSLocalizedString(@"OK", nil)];
 
         } else {
             PenteNavigationViewController *navController =

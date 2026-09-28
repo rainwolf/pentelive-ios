@@ -20,8 +20,7 @@
 // ].size.height - ( double )568 ) < DBL_EPSILON )
 
 @interface DatabaseViewController
-    : UIViewController <PopoverViewDelegate, UIAlertViewDelegate,
-                        WKNavigationDelegate> {
+    : UIViewController <PopoverViewDelegate, WKNavigationDelegate> {
     NSMutableArray *movesList, *captures;
     NSString *playerStatsBaseString, *game;
     NSMutableString *moveStatsString;

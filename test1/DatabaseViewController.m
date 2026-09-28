@@ -24,6 +24,7 @@
 #import "BoardViewController.h"
 #import "DBBoardView.h"
 #import "MMAI.h"
+#import "PenteAlert.h"
 #import "PenteGame.h"
 #import "PopoverView.h"
 #import "TSMessage.h"
@@ -833,17 +834,13 @@ BoardViewController *boardController;
              //            NSLog(@"kittyyyyyyString -\n%@-", dashboardString);
 
              if (error) {
-                 UIAlertView *alert = [[UIAlertView alloc]
-                         initWithTitle:NSLocalizedString(@"Error", nil)
+                 [PenteAlert
+                         showWithTitle:NSLocalizedString(@"Error", nil)
                                message:[NSString stringWithFormat:
                                                      NSLocalizedString(
                                                          @"Reason: %@", nil),
                                                      error.localizedDescription]
-                              delegate:nil
-                     cancelButtonTitle:@"OK"
-                     otherButtonTitles:nil];
-                 //        [alert show];
-                 [alert show];
+                     cancelButtonTitle:@"OK"];
                  [self.progressView stopAnimating];
                  [self.progressView removeFromSuperview];
                  return;

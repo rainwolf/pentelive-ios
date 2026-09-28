@@ -7,6 +7,7 @@
 //
 
 #import "KOTHChallengeView.h"
+#import "PenteAlert.h"
 #import "PentePlayer.h"
 
 @implementation KOTHChallengeView
@@ -290,17 +291,13 @@ NSArray<NSString *> *restrictions;
             //        [spinner performSelectorOnMainThread:@selector(stopAnimating)
             //        withObject:nil waitUntilDone:NO];
             if (error) {
-                UIAlertView *alert = [[UIAlertView alloc]
-                        initWithTitle:NSLocalizedString(@"Error", nil)
-                              message:[NSString
-                                          stringWithFormat:
-                                              NSLocalizedString(@"Reason: %@", nil),
-                                              error.localizedDescription]
-                             delegate:nil
-                    cancelButtonTitle:@"OK"
-                    otherButtonTitles:nil];
-                //        [alert show];
-                [alert show];
+                [PenteAlert
+                        showWithTitle:NSLocalizedString(@"Error", nil)
+                              message:[NSString stringWithFormat:
+                                                    NSLocalizedString(
+                                                        @"Reason: %@", nil),
+                                                    error.localizedDescription]
+                    cancelButtonTitle:@"OK"];
             } else {
                 if ([invitee isEqualToString:@""]) {
                     long openInvitationsLimit =
