@@ -124,9 +124,6 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
     dPenteMove2 = -1;
     dPenteMove3 = -1;
     dPenteMove4 = -1;
-    whiteCaptures;
-    blackCaptures;
-    lastMove;
     swap2Move1 = -1;
     swap2Move2 = -1;
     swap2Move3 = -1;
@@ -410,34 +407,6 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
     }
 
     [super viewWillDisappear:animated];
-}
-
-- (void)viewDidUnload {
-    [self setBoard:nil];
-    [self setZoomedBoard:nil];
-    [self setStone:nil];
-    [self setZoomedStone:nil];
-    [self setSubmitButton:nil];
-    [self setPlayer2Button:nil];
-    [self setPlayer1Button:nil];
-    [self setDPenteChoiceLabel:nil];
-    [self setWhiteCapturesCountLabel:nil];
-    [self setBlackCapturesCountLabel:nil];
-    [self setWhiteStoneCaptures:nil];
-    [self setBlackStoneCaptures:nil];
-    [self setSpinner:nil];
-    [self setVerticalLine:nil];
-    [self setHorizontalLine:nil];
-    [self setMovesList:nil];
-    [self setCaptures:nil];
-    [self setBoardTapRecognizer:nil];
-    [self setReplyMessage:nil];
-    [self setReceivedMessage:nil];
-    [self setMessageButtonImageView:nil];
-    [self setMessageButton:nil];
-    [self setReceivedMessages:nil];
-    [super viewDidUnload];
-    // Release any retained subviews of the main view.
 }
 
 - (BOOL)shouldAutorotate {
@@ -2439,8 +2408,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                              strongSelf->receivedMessageView.contentInset.left -
                              strongSelf->receivedMessageView.contentInset.right,
                          strongSelf->receivedMessageView.font.lineHeight * 5)
-                              options:(NSStringDrawingUsesLineFragmentOrigin |
-                                       NSLineBreakByWordWrapping)
+                              options:NSStringDrawingUsesLineFragmentOrigin
                            attributes:fontAttributes
                               context:nil];
              [strongSelf->receivedMessageView
@@ -3000,8 +2968,6 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
             actionWithTitle:NSLocalizedString(@"yes, request undo", nil)
                       style:UIAlertActionStyleDefault
                     handler:^(UIAlertAction *action) {
-                        NSError *error = nil;
-                        NSURLResponse *response;
                         NSMutableURLRequest *request =
                             [[NSMutableURLRequest alloc] init];
 
@@ -3131,8 +3097,6 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                     PenteNavigationViewController *navControllor =
                         (PenteNavigationViewController *)
                             self.navigationController;
-                    NSError *error = nil;
-                    NSURLResponse *response;
                     NSMutableURLRequest *request =
                         [[NSMutableURLRequest alloc] init];
 
@@ -3198,8 +3162,6 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                   style:UIAlertActionStyleDestructive
                 handler:^(UIAlertAction *action) {
                     //                                                             PenteNavigationViewController *navControllor = (PenteNavigationViewController *) self.navigationController;
-                    NSError *error = nil;
-                    NSURLResponse *response;
                     NSMutableURLRequest *request =
                         [[NSMutableURLRequest alloc] init];
 
@@ -3361,8 +3323,6 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
 }
 - (void)toDB {
     //    NSLog(@"%d",lastMove);
-    PenteNavigationViewController *navController =
-        (PenteNavigationViewController *)self.navigationController;
     if (!isGoGame) {
         [[NSUserDefaults standardUserDefaults] setObject:[self.game gameType]
                                                   forKey:@"DBGame"];
@@ -3624,8 +3584,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                                      receivedMessageView.contentInset.left -
                                      receivedMessageView.contentInset.right,
                                  receivedMessageView.font.lineHeight * 5)
-                     options:(NSStringDrawingUsesLineFragmentOrigin |
-                              NSLineBreakByWordWrapping)
+                     options:NSStringDrawingUsesLineFragmentOrigin
                   attributes:fontAttributes
                      context:nil];
     [receivedMessageView setText:receivedMessage];
@@ -4200,9 +4159,10 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
 
 - (void)showScore {
     [self showTerritory:nil];
-    int whiteT = [whiteTerritory count], blackT = [blackTerritory count],
-        whiteS = [[self getMovesForValue:1] count],
-        blackS = [[self getMovesForValue:2] count];
+    int whiteT = (int)[whiteTerritory count],
+        blackT = (int)[blackTerritory count],
+        whiteS = (int)[[self getMovesForValue:1] count],
+        blackS = (int)[[self getMovesForValue:2] count];
     UIAlertController *alert = [UIAlertController
         alertControllerWithTitle:NSLocalizedString(@"score", nil)
                          message:[NSString
@@ -4234,9 +4194,10 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
 
 - (void)evaluateDeadStones {
     [self showTerritory:nil];
-    int whiteT = [whiteTerritory count], blackT = [blackTerritory count],
-        whiteS = [[self getMovesForValue:1] count],
-        blackS = [[self getMovesForValue:2] count];
+    int whiteT = (int)[whiteTerritory count],
+        blackT = (int)[blackTerritory count],
+        whiteS = (int)[[self getMovesForValue:1] count],
+        blackS = (int)[[self getMovesForValue:2] count];
     UIAlertController *alert = [UIAlertController
         alertControllerWithTitle:
             [NSString stringWithFormat:
@@ -4414,8 +4375,6 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                                                 nil)
                                       style:UIAlertActionStyleDefault
                                     handler:^(UIAlertAction *action) {
-                                        NSError *error;
-
                                         NSString *post = [NSString
                                             stringWithFormat:@"sid=%@&command="
                                                              @"request&mobile=",
@@ -4893,7 +4852,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
 
 - (void)printAbstractBoard {
     for (int i = 0; i < 19; i++) {
-        NSLog([NSString
+        NSLog(@"%@", [NSString
             stringWithFormat:NSLocalizedString(@"%d %d %d %d %d %d %d %d %d %d "
                                                @"%d %d %d %d %d %d %d %d %d ",
                                                nil),

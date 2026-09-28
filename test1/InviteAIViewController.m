@@ -432,17 +432,6 @@ array, and add a new row to the table view
 //{
 //}
 
-- (void)viewDidUnload {
-    [self setRatedSwitch:nil];
-    [self setGameCell:nil];
-    [self setOpponentCell:nil];
-    [self setPlayAsCell:nil];
-    [self setPlayAsLabel:nil];
-    [self setPlayAsDetailLabel:nil];
-    [self setSpinner:nil];
-    [super viewDidUnload];
-}
-
 - (IBAction)flipRatedSwitch:(id)sender {
     [self.tableView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:YES];
     [self.tableView setScrollEnabled:NO];

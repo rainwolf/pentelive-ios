@@ -427,7 +427,7 @@ InvitationsViewController *invitationVC;
     sendButton.layer.cornerRadius = 4.0f;
 
     spinner = [[UIActivityIndicatorView alloc]
-        initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
+        initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleMedium];
     spinner.color = [UIColor blueColor];
 
     [self.view addSubview:toField];
@@ -1179,7 +1179,8 @@ InvitationsViewController *invitationVC;
 
 - (BOOL)textView:(UITextView *)textView
     shouldInteractWithURL:(NSURL *)URL
-                  inRange:(NSRange)characterRange {
+                  inRange:(NSRange)characterRange
+              interaction:(UITextItemInteraction)interaction {
     //    NSLog(@"kitty %@",URL);
     NSString *urlString = [URL absoluteString];
     if ([urlString rangeOfString:@"mobile&g="].location != NSNotFound) {

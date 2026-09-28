@@ -423,24 +423,6 @@ BoardViewController *boardController;
     }
 }
 
-- (void)viewDidUnload {
-    [self setBoard:nil];
-    [self setZoomedBoard:nil];
-    [self setStone:nil];
-    [self setZoomedStone:nil];
-    [self setWhiteCapturesCountLabel:nil];
-    [self setBlackCapturesCountLabel:nil];
-    [self setWhiteStoneCaptures:nil];
-    [self setBlackStoneCaptures:nil];
-    [self setSpinner:nil];
-    [self setVerticalLine:nil];
-    [self setHorizontalLine:nil];
-    [self setMovesList:nil];
-    [self setBoardTapRecognizer:nil];
-    [super viewDidUnload];
-    // Release any retained subviews of the main view.
-}
-
 - (BOOL)shouldAutorotate {
     UIInterfaceOrientation interfaceOrientation =
         [[UIApplication sharedApplication] statusBarOrientation];
@@ -1366,7 +1348,7 @@ BoardViewController *boardController;
            withContentView:setupView
                   delegate:self];
     for (int i = 0; i < [setupView numberOfRowsInSection:0]; ++i) {
-        UITableViewCell *cell = [setupView
+        [setupView
             cellForRowAtIndexPath:[NSIndexPath indexPathForRow:i inSection:0]];
     }
     [messagePopover layoutSubviews];

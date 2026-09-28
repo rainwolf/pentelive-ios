@@ -28,13 +28,6 @@
 #define usernameKey @"username"
 #define passwordKey @"password"
 
-// serverColor arrives as e.g. "white (p1)" or "black (p2)"
-static NSString *parseStoneColor(NSString *serverColor) {
-    if ([serverColor hasPrefix:@"white"]) return @"white";
-    if ([serverColor hasPrefix:@"black"]) return @"black";
-    return @"";
-}
-
 #define MESSAGESSECTION 0
 #define INVITATIONSSECTION 1
 #define ACTIVEGAMESSECTION 2
@@ -3500,10 +3493,10 @@ array, and add a new row to the table view
     [self.tableView setUserInteractionEnabled:NO];
 
     [self updateKothSectionWithItems:dashboard.hills
-                            tbHills:dashboard.flags.tbHills];
+                            tbHills:(int)dashboard.flags.tbHills];
 
     [[self.player ratingStats] setArray:dashboard.ratingStats];
-    [self.player setTbRatings:dashboard.flags.tbRatings];
+    [self.player setTbRatings:(int)dashboard.flags.tbRatings];
 
     [self updateSection:SENTINVITATIONSSECTION
                newItems:[dashboard.sentInvitations mutableCopy]
@@ -3573,7 +3566,7 @@ array, and add a new row to the table view
                 deleteRowsAtIndexPaths:indexSet
                       withRowAnimation:UITableViewRowAnimationFade];
         }
-        [self.player setHills:items];
+        [self.player setHills:[items mutableCopy]];
         if (!kothCollapsed) {
             indexSet = [[NSMutableArray alloc] init];
             for (int i = 0; i < totalHills; ++i) {
@@ -3586,7 +3579,7 @@ array, and add a new row to the table view
                       withRowAnimation:UITableViewRowAnimationFade];
         }
     } else {
-        [self.player setHills:items];
+        [self.player setHills:[items mutableCopy]];
     }
 
     int totalTB = 0;

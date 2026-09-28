@@ -23,7 +23,7 @@ class LivePlayer: NSObject {
     func getNameString() -> NSAttributedString {
         let text = NSMutableAttributedString(string: name)
         if subscriber {
-            text.addAttribute(NSAttributedString.Key.foregroundColor, value: color, range: NSRange(location: 0, length: name.count))
+            text.addAttribute(NSAttributedString.Key.foregroundColor, value: color as Any, range: NSRange(location: 0, length: name.count))
             text.addAttribute(NSAttributedString.Key.font, value: UIFont(name: "HelveticaNeue-Bold", size: 17)!, range: NSRange(location: 0, length: name.count))
         } else {
             text.addAttribute(NSAttributedString.Key.font, value: UIFont(name: "HelveticaNeue", size: 17)!, range: NSRange(location: 0, length: name.count))

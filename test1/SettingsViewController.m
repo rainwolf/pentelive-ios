@@ -20,7 +20,7 @@
 #define usernameKey @"username"
 #define passwordKey @"password"
 
-@interface SettingsViewController ()
+@interface SettingsViewController () <UINavigationControllerDelegate>
 
 @end
 
@@ -667,7 +667,9 @@
 
     if ([[specifier type] isEqualToString:kIASKOpenURLSpecifier]) {
         [[UIApplication sharedApplication]
-            openURL:[NSURL URLWithString:specifier.file]];
+                      openURL:[NSURL URLWithString:specifier.file]
+                      options:@{}
+            completionHandler:nil];
     }
 }
 
@@ -1270,7 +1272,6 @@
                                  dataUsingEncoding:NSUTF8StringEncoding]];
             [request setHTTPBody:body];
 
-            __weak typeof(self) weakSelf = self;
             [PenteHTTPClient sendRequest:request completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
                 if (error) {
                     UIAlertView *alert = [[UIAlertView alloc]
@@ -1387,7 +1388,6 @@
 
         [request setHTTPShouldUsePipelining:YES];
 
-        __weak typeof(self) weakSelf = self;
         [PenteHTTPClient sendRequest:request completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
             if (error) {
                 UIAlertView *alert = [[UIAlertView alloc]
@@ -1432,7 +1432,6 @@
 
         [request setHTTPShouldUsePipelining:YES];
 
-        __weak typeof(self) weakSelf = self;
         [PenteHTTPClient sendRequest:request completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
             if (error) {
                 UIAlertView *alert = [[UIAlertView alloc]

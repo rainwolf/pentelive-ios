@@ -739,25 +739,6 @@ array, and add a new row to the table view
 //{
 //}
 
-- (void)viewDidUnload {
-    [self setRatedSwitch:nil];
-    [self setTimeCell:nil];
-    [self setGameCell:nil];
-    [self setRestrictionCell:nil];
-    [self setOpponentCell:nil];
-    [self setPrivateSwitch:nil];
-    [self setPlayAsCell:nil];
-    [self setPrivateCell:nil];
-    [self setPrivateCellLabel:nil];
-    [self setPlayAsLabel:nil];
-    [self setPlayAsDetailLabel:nil];
-    [self setPrivateSwitch:nil];
-    [self setPrivateCellLabel:nil];
-    [self setPrivateCellLabel:nil];
-    [self setSpinner:nil];
-    [super viewDidUnload];
-}
-
 - (IBAction)flipPrivateSwitch:(id)sender {
     CGFloat insetY = -((UITableView *)self.tableView).contentInset.top;
     [self.tableView scrollRectToVisible:CGRectMake(0, insetY, 1, 1)

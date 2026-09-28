@@ -242,24 +242,6 @@
     [super viewWillDisappear:animated];
 }
 
-- (void)viewDidUnload {
-    [self setBoard:nil];
-    [self setZoomedBoard:nil];
-    [self setStone:nil];
-    [self setZoomedStone:nil];
-    [self setWhiteCapturesCountLabel:nil];
-    [self setBlackCapturesCountLabel:nil];
-    [self setWhiteStoneCaptures:nil];
-    [self setBlackStoneCaptures:nil];
-    [self setSpinner:nil];
-    [self setVerticalLine:nil];
-    [self setHorizontalLine:nil];
-    [self setMovesList:nil];
-    [self setBoardTapRecognizer:nil];
-    [super viewDidUnload];
-    // Release any retained subviews of the main view.
-}
-
 - (BOOL)shouldAutorotate {
     UIInterfaceOrientation interfaceOrientation =
         [[UIApplication sharedApplication] statusBarOrientation];
@@ -606,8 +588,8 @@
 - (void)replayGame:(unsigned long)untilMove {
     SwiftPenteGame *game = [self referee];
     MoveResult *result = [game replay:[aiPlayer moves] until:(int)untilMove];
-    whiteCaptures = game.whiteCaptures;
-    blackCaptures = game.blackCaptures;
+    whiteCaptures = (int)game.whiteCaptures;
+    blackCaptures = (int)game.blackCaptures;
 
     // Mirror the engine's board into the shared C array the views render.
     // stoneAt: -> 0 empty / 1 white / 2 black / -1 masked; the -1 overlay is

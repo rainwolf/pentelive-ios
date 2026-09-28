@@ -107,7 +107,8 @@
         [self addSubview:arrowImage];
 
         activityView = [[UIActivityIndicatorView alloc]
-            initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
+            initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleMedium];
+        activityView.color = [UIColor grayColor];
         activityView.frame =
             CGRectMake(25.0f, frame.size.height - 38.0f, 20.0f, 20.0f);
         activityView.hidesWhenStopped = YES;
@@ -159,16 +160,16 @@
     BOOL previousFlip = !CGAffineTransformIsIdentity(arrowImage.transform);
     if (flip == previousFlip)
         return; // same
+    void (^changes)(void) = ^{
+        if (!flip)
+            self->arrowImage.transform = CGAffineTransformIdentity;
+        else
+            self->arrowImage.transform = CGAffineTransformMakeRotation(M_PI);
+    };
     if (animated) {
-        [UIView beginAnimations:nil context:NULL];
-        [UIView setAnimationDuration:0.18];
-    }
-    if (!flip)
-        arrowImage.transform = CGAffineTransformIdentity;
-    else
-        arrowImage.transform = CGAffineTransformMakeRotation(M_PI);
-    if (animated) {
-        [UIView commitAnimations];
+        [UIView animateWithDuration:0.18 animations:changes];
+    } else {
+        changes();
     }
 }
 
@@ -251,26 +252,34 @@
 /* begin loading, set edge offset so that the loading will be shown */
 - (void)startReloading:(UITableView *)tableView animated:(BOOL)animated {
     [self setStatus:kPullStatusLoading animated:animated];
+    void (^changes)(void) = ^{
+        tableView.contentInset = UIEdgeInsetsMake(60.0f, 0.0f, 0.0f, 0.0f);
+    };
     if (animated) {
-        [UIView beginAnimations:nil context:NULL];
-        [UIView setAnimationDuration:0.2];
-    }
-    tableView.contentInset = UIEdgeInsetsMake(60.0f, 0.0f, 0.0f, 0.0f);
-    if (animated) {
-        [UIView commitAnimations];
+        [UIView animateWithDuration:0.2
+                              delay:0
+                            options:UIViewAnimationOptionAllowUserInteraction
+                         animations:changes
+                         completion:nil];
+    } else {
+        changes();
     }
     //	AudioServicesPlayAlertSound(pull2Sound);
 }
 
 - (void)finishReloading:(UITableView *)tableView animated:(BOOL)animated {
     [self setStatus:kPullStatusPullDownToReload animated:animated];
+    void (^changes)(void) = ^{
+        [tableView setContentInset:UIEdgeInsetsMake(0.0f, 0.0f, 0.0f, 0.0f)];
+    };
     if (animated) {
-        [UIView beginAnimations:nil context:NULL];
-        [UIView setAnimationDuration:.3];
-    }
-    [tableView setContentInset:UIEdgeInsetsMake(0.0f, 0.0f, 0.0f, 0.0f)];
-    if (animated) {
-        [UIView commitAnimations];
+        [UIView animateWithDuration:.3
+                              delay:0
+                            options:UIViewAnimationOptionAllowUserInteraction
+                         animations:changes
+                         completion:nil];
+    } else {
+        changes();
     }
     //	AudioServicesPlayAlertSound(popSound);
 }

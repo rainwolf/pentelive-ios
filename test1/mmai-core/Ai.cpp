@@ -210,14 +210,13 @@ CAi::CAi(int game1, int lvl, bool openingBook1, const char *filesDir) {
         reset();
 
 
-        short *table1 = new short int [tsize*4];
 
 
 		ifstream file (tblPath.c_str(), ios::in|ios::binary|ios::ate);//[943][4]
         unsigned char *fileDataArray;
         int fileCntr = 0;
 		if (file.is_open()) {
-			int filesize = file.tellg();
+			int filesize = (int)file.tellg();
 			// printf("pente tbl size %d \n", filesize);
 			file.seekg (0, ios::beg);
    //    for (int x=0; x<3772; x++) file.read((char*)&table1[x], sizeof(short));
@@ -254,7 +253,7 @@ CAi::CAi(int game1, int lvl, bool openingBook1, const char *filesDir) {
 		ifstream file2 (scsPath.c_str(), ios::in|ios::binary|ios::ate);
         fileCntr = 0;
 		if (file2.is_open()) {
-			int file2size = file2.tellg();
+			int file2size = (int)file2.tellg();
 			file2.seekg (0, ios::beg);
       // for (int x=0; x<12768; x++) file2.read((char*)&scores[x], sizeof(short));
 			fileDataArray = new unsigned char[12768*2];
@@ -283,7 +282,7 @@ CAi::CAi(int game1, int lvl, bool openingBook1, const char *filesDir) {
 		ifstream file3 (penPath.c_str(), ios::in|ios::binary|ios::ate);
         fileCntr = 0;
 		if (file3.is_open()) {
-			int file3size = file3.tellg();
+			int file3size = (int)file3.tellg();
 			file3.seekg (0, ios::beg);
 			fileDataArray = new unsigned char[file3size];
 			file3.read((char*)fileDataArray, file3size);
