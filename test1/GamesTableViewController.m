@@ -24,6 +24,7 @@
 #import "UIButton+Badge.h"
 
 #import "penteLive-Swift.h"
+#import "PenteAlert.h"
 
 #define usernameKey @"username"
 #define passwordKey @"password"
@@ -365,15 +366,11 @@ CGFloat bottomOffset = 0;
                                        rangeOfString:
                                            @"<h2>Pente.org is undergoing maintenance.</h2>"]
                                        .length != 0) {
-                            UIAlertView *alert =
-                                [[UIAlertView alloc] initWithTitle:@"Maintenance"
-                                                           message:@"pente.org is undergoing "
-                                                                   @"maintenance, please try "
-                                                                   @"again in a few minutes."
-                                                          delegate:nil
-                                                 cancelButtonTitle:NSLocalizedString(@"OK", nil)
-                                                 otherButtonTitles:nil];
-                            [alert show];
+                            [PenteAlert showWithTitle:@"Maintenance"
+                                              message:@"pente.org is undergoing "
+                                                      @"maintenance, please try "
+                                                      @"again in a few minutes."
+                                    cancelButtonTitle:NSLocalizedString(@"OK", nil)];
                             //            [self performSegueWithIdentifier:@"settingsTap"
                             //            sender:self]; settingsViewController.showAIOption =
                             //            YES;
@@ -414,15 +411,11 @@ CGFloat bottomOffset = 0;
                                rangeOfString:
                                    @"<h2>Pente.org is undergoing maintenance.</h2>"]
                                .length != 0) {
-                    UIAlertView *alert =
-                        [[UIAlertView alloc] initWithTitle:@"Maintenance"
-                                                   message:@"pente.org is undergoing "
-                                                           @"maintenance, please try "
-                                                           @"again in a few minutes."
-                                                  delegate:nil
-                                         cancelButtonTitle:NSLocalizedString(@"OK", nil)
-                                         otherButtonTitles:nil];
-                    [alert show];
+                    [PenteAlert showWithTitle:@"Maintenance"
+                                      message:@"pente.org is undergoing "
+                                              @"maintenance, please try "
+                                              @"again in a few minutes."
+                            cancelButtonTitle:NSLocalizedString(@"OK", nil)];
                     //            [self performSegueWithIdentifier:@"settingsTap"
                     //            sender:self]; settingsViewController.showAIOption =
                     //            YES;
@@ -2365,19 +2358,12 @@ array, and add a new row to the table view
     __weak typeof(self) weakSelf = self;
     [PenteHTTPClient sendRequest:request completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
         if (error) {
-            UIAlertView *alert = [[UIAlertView alloc]
-                    initWithTitle:NSLocalizedString(@"Error", nil)
-                          message:[NSString
-                                      stringWithFormat:NSLocalizedString(
-                                                           @"Reason: %@", nil),
-                                                       error.localizedDescription]
-                         delegate:nil
-                cancelButtonTitle:NSLocalizedString(@"OK", nil)
-                otherButtonTitles:nil];
-            //        [alert show];
-            [alert performSelectorOnMainThread:@selector(show)
-                                    withObject:nil
-                                 waitUntilDone:YES];
+            [PenteAlert showWithTitle:NSLocalizedString(@"Error", nil)
+                              message:[NSString
+                                          stringWithFormat:NSLocalizedString(
+                                                               @"Reason: %@", nil),
+                                                           error.localizedDescription]
+                    cancelButtonTitle:NSLocalizedString(@"OK", nil)];
             return;
         }
         //    NSData *responseData = [PenteHTTPClient sendSynchronousRequest:request
@@ -2509,19 +2495,12 @@ array, and add a new row to the table view
     __weak typeof(self) weakSelf = self;
     [PenteHTTPClient sendRequest:request completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
         if (error) {
-            UIAlertView *alert = [[UIAlertView alloc]
-                    initWithTitle:NSLocalizedString(@"Error", nil)
-                          message:[NSString
-                                      stringWithFormat:NSLocalizedString(
-                                                           @"Reason: %@", nil),
-                                                       error.localizedDescription]
-                         delegate:nil
-                cancelButtonTitle:NSLocalizedString(@"OK", nil)
-                otherButtonTitles:nil];
-            //        [alert show];
-            [alert performSelectorOnMainThread:@selector(show)
-                                    withObject:nil
-                                 waitUntilDone:YES];
+            [PenteAlert showWithTitle:NSLocalizedString(@"Error", nil)
+                              message:[NSString
+                                          stringWithFormat:NSLocalizedString(
+                                                               @"Reason: %@", nil),
+                                                           error.localizedDescription]
+                    cancelButtonTitle:NSLocalizedString(@"OK", nil)];
             return;
         }
         //    NSData *responseData = [PenteHTTPClient sendSynchronousRequest:request
@@ -2689,28 +2668,28 @@ array, and add a new row to the table view
             integerForKey:@"openInvitationsLimit"];
         //        if (true || openInvitationsLimit <= 1) {
         if (openInvitationsLimit <= 1) {
-            UIAlertView *alert = [[UIAlertView alloc]
-                    initWithTitle:NSLocalizedString(
-                                      @"Public invitations limit reached", nil)
-                          message:
-                              NSLocalizedString(
-                                  @"After posting a public invitation, you you "
-                                  @"will "
-                                  @"be able to accept 2 more. To post a public "
-                                  @"invitation, select humans in the play menu "
-                                  @"and "
-                                  @"leave the opponent field "
-                                  @"blank.\n\nSubscribers "
-                                  @"can accept public invitations without "
-                                  @"limits.",
-                                  nil)
-                         delegate:self
-                cancelButtonTitle:NSLocalizedString(@"Got it.", nil)
-                otherButtonTitles:NSLocalizedString(@"Post now", nil),
-                                  NSLocalizedString(@"Subscription info", nil),
-                                  nil];
-            [alert setTag:2];
-            [alert show];
+            [PenteAlert showWithTitle:NSLocalizedString(@"Public invitations limit reached", nil)
+                              message:NSLocalizedString(@"After posting a public invitation, you you "
+                                                        @"will "
+                                                        @"be able to accept 2 more. To post a public "
+                                                        @"invitation, select humans in the play menu "
+                                                        @"and "
+                                                        @"leave the opponent field "
+                                                        @"blank.\n\nSubscribers "
+                                                        @"can accept public invitations without "
+                                                        @"limits.",
+                                                        nil)
+                    cancelButtonTitle:NSLocalizedString(@"Got it.", nil)
+                    otherButtonTitles:@[ NSLocalizedString(@"Post now", nil),
+                                         NSLocalizedString(@"Subscription info", nil) ]
+                              handler:^(NSInteger buttonIndex) {
+                if (buttonIndex == 1) {
+                    [self performSegueWithIdentifier:@"addInvitationsTap" sender:self];
+                } else if (buttonIndex == 2) {
+                    ((PenteNavigationViewController *)self.navigationController).showSubscribe = YES;
+                    [self performSegueWithIdentifier:@"settingsTap" sender:self];
+                }
+            }];
             return;
         }
         if (openInvitationsLimit > 1) {
@@ -3014,19 +2993,12 @@ array, and add a new row to the table view
         __weak typeof(self) weakSelf = self;
         [PenteHTTPClient sendRequest:request completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
             if (error) {
-                UIAlertView *alert = [[UIAlertView alloc]
-                        initWithTitle:NSLocalizedString(@"Error", nil)
-                              message:[NSString
-                                          stringWithFormat:
-                                              NSLocalizedString(@"Reason: %@", nil),
-                                              error.localizedDescription]
-                             delegate:nil
-                    cancelButtonTitle:NSLocalizedString(@"OK", nil)
-                    otherButtonTitles:nil];
-                //        [alert show];
-                [alert performSelectorOnMainThread:@selector(show)
-                                        withObject:nil
-                                     waitUntilDone:YES];
+                [PenteAlert showWithTitle:NSLocalizedString(@"Error", nil)
+                                  message:[NSString
+                                              stringWithFormat:NSLocalizedString(
+                                                                   @"Reason: %@", nil),
+                                                               error.localizedDescription]
+                        cancelButtonTitle:NSLocalizedString(@"OK", nil)];
                 return;
             }
             //        NSData *responseData = [NSURLConnection
@@ -3090,19 +3062,12 @@ array, and add a new row to the table view
         __weak typeof(self) weakSelf = self;
         [PenteHTTPClient sendRequest:request completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
             if (error) {
-                UIAlertView *alert = [[UIAlertView alloc]
-                        initWithTitle:NSLocalizedString(@"Error", nil)
-                              message:[NSString
-                                          stringWithFormat:
-                                              NSLocalizedString(@"Reason: %@", nil),
-                                              error.localizedDescription]
-                             delegate:nil
-                    cancelButtonTitle:NSLocalizedString(@"OK", nil)
-                    otherButtonTitles:nil];
-                //        [alert show];
-                [alert performSelectorOnMainThread:@selector(show)
-                                        withObject:nil
-                                     waitUntilDone:YES];
+                [PenteAlert showWithTitle:NSLocalizedString(@"Error", nil)
+                                  message:[NSString
+                                              stringWithFormat:NSLocalizedString(
+                                                                   @"Reason: %@", nil),
+                                                               error.localizedDescription]
+                        cancelButtonTitle:NSLocalizedString(@"OK", nil)];
                 return;
             }
             //    NSData *responseData = [NSURLConnection
@@ -3167,19 +3132,12 @@ array, and add a new row to the table view
         __weak typeof(self) weakSelf = self;
         [PenteHTTPClient sendRequest:request completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
             if (error) {
-                UIAlertView *alert = [[UIAlertView alloc]
-                        initWithTitle:NSLocalizedString(@"Error", nil)
-                              message:[NSString
-                                          stringWithFormat:
-                                              NSLocalizedString(@"Reason: %@", nil),
-                                              error.localizedDescription]
-                             delegate:nil
-                    cancelButtonTitle:NSLocalizedString(@"OK", nil)
-                    otherButtonTitles:nil];
-                //        [alert show];
-                [alert performSelectorOnMainThread:@selector(show)
-                                        withObject:nil
-                                     waitUntilDone:YES];
+                [PenteAlert showWithTitle:NSLocalizedString(@"Error", nil)
+                                  message:[NSString
+                                              stringWithFormat:NSLocalizedString(
+                                                                   @"Reason: %@", nil),
+                                                               error.localizedDescription]
+                        cancelButtonTitle:NSLocalizedString(@"OK", nil)];
                 return;
             }
             //    NSData *responseData = [NSURLConnection
@@ -3271,16 +3229,12 @@ array, and add a new row to the table view
             __strong typeof(weakSelf) strongSelf = weakSelf;
             if (!strongSelf) return;
             if (error) {
-                UIAlertView *alert = [[UIAlertView alloc]
-                        initWithTitle:NSLocalizedString(@"Error", nil)
-                              message:[NSString
-                                          stringWithFormat:
-                                              NSLocalizedString(@"Reason: %@", nil),
-                                              error.localizedDescription]
-                             delegate:nil
-                    cancelButtonTitle:NSLocalizedString(@"OK", nil)
-                    otherButtonTitles:nil];
-                [alert show];
+                [PenteAlert showWithTitle:NSLocalizedString(@"Error", nil)
+                                  message:[NSString
+                                              stringWithFormat:NSLocalizedString(
+                                                                   @"Reason: %@", nil),
+                                                               error.localizedDescription]
+                        cancelButtonTitle:NSLocalizedString(@"OK", nil)];
                 return;
             }
             NSString *dashboardString =
@@ -3292,14 +3246,10 @@ array, and add a new row to the table view
                       options:0
                         range:movesRange];
             if (movesRange.location != NSNotFound) {
-                UIAlertView *alert = [[UIAlertView alloc]
-                        initWithTitle:NSLocalizedString(@"Error", nil)
-                              message:NSLocalizedString(
-                                          @"A cancel request already exists.", nil)
-                             delegate:nil
-                    cancelButtonTitle:NSLocalizedString(@"OK", nil)
-                    otherButtonTitles:nil];
-                [alert show];
+                [PenteAlert showWithTitle:NSLocalizedString(@"Error", nil)
+                                  message:NSLocalizedString(
+                                              @"A cancel request already exists.", nil)
+                        cancelButtonTitle:NSLocalizedString(@"OK", nil)];
                 strongSelf.tableView.layer.borderWidth = 0.0;
                 [strongSelf.tableView setEditing:FALSE animated:TRUE];
             } else {
@@ -3312,18 +3262,12 @@ array, and add a new row to the table view
 }
 
 - (void)showErrorAlertWithMessage:(NSString *)message {
-    UIAlertView *alert = [[UIAlertView alloc]
-            initWithTitle:NSLocalizedString(@"Error", nil)
-                  message:[NSString stringWithFormat:NSLocalizedString(
-                                                         @"Reason: %@", nil),
-                                                     message]
-                 delegate:nil
-        cancelButtonTitle:NSLocalizedString(@"OK", nil)
-        otherButtonTitles:nil];
-    //            [alert show];
-    [alert performSelectorOnMainThread:@selector(show)
-                            withObject:nil
-                         waitUntilDone:YES];
+    [PenteAlert showWithTitle:NSLocalizedString(@"Error", nil)
+                      message:[NSString
+                                  stringWithFormat:NSLocalizedString(
+                                                       @"Reason: %@", nil),
+                                                   message]
+            cancelButtonTitle:NSLocalizedString(@"OK", nil)];
     dispatch_async(dispatch_get_main_queue(), ^{
         [self performSelector:@selector(pullDownToReloadActionFinished)
                    withObject:nil];
@@ -3805,25 +3749,28 @@ array, and add a new row to the table view
                 0) {
                 if (!alreadyAskedAboutInvitations) {
                     if (![defaults boolForKey:@"doNotRemindOpenInvitation"]) {
-                        UIAlertView *alert = [[UIAlertView alloc]
-                                initWithTitle:NSLocalizedString(
-                                                  @"Nothing to see here", nil)
-                                      message:NSLocalizedString(
-                                                  @"You have no ongoing games, "
-                                                  @"shall we post "
-                                                  @"an open invitation and get "
-                                                  @"you started?",
-                                                  nil)
-                                     delegate:self
-                            cancelButtonTitle:NSLocalizedString(
-                                                  @"Remind me next time.", nil)
-                            otherButtonTitles:NSLocalizedString(@"Sure!", nil),
-                                              NSLocalizedString(
-                                                  @"Do not remind me again.",
-                                                  nil),
-                                              nil];
-                        [alert setTag:0];
-                        [alert show];
+                        [PenteAlert showWithTitle:NSLocalizedString(@"Nothing to see here", nil)
+                                          message:NSLocalizedString(@"You have no ongoing games, shall we post "
+                                                                    @"an open invitation and get you started?", nil)
+                                cancelButtonTitle:NSLocalizedString(@"Remind me next time.", nil)
+                                otherButtonTitles:@[ NSLocalizedString(@"Sure!", nil),
+                                                     NSLocalizedString(@"Do not remind me again.", nil) ]
+                                          handler:^(NSInteger buttonIndex) {
+                            self->alreadyAskedAboutInvitations = YES;
+                            if (buttonIndex == 1) {
+                                [PenteAlert showWithTitle:NSLocalizedString(@"How to?", nil)
+                                                  message:NSLocalizedString(@"Pick any game but leave the opponent field "
+                                                                            @"empty and everyone will see your invitation.", nil)
+                                        cancelButtonTitle:NSLocalizedString(@"Got it!", nil)
+                                        otherButtonTitles:nil
+                                                  handler:^(NSInteger howToIndex) {
+                                    [self performSegueWithIdentifier:@"addInvitationsTap" sender:self];
+                                }];
+                            } else if (buttonIndex == 2) {
+                                NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+                                [defaults setBool:YES forKey:@"doNotRemindOpenInvitation"];
+                            }
+                        }];
                     }
                 }
             }
@@ -4028,16 +3975,12 @@ array, and add a new row to the table view
                                   encoding:NSUTF8StringEncoding];
 
         if (error) {
-            UIAlertView *alert = [[UIAlertView alloc]
-                    initWithTitle:NSLocalizedString(@"Error", nil)
-                          message:[NSString stringWithFormat:
-                                                NSLocalizedString(
-                                                    @"Reason: %@", nil),
-                                                error.localizedDescription]
-                         delegate:nil
-                cancelButtonTitle:NSLocalizedString(@"OK", nil)
-                otherButtonTitles:nil];
-            [alert show];
+            [PenteAlert showWithTitle:NSLocalizedString(@"Error", nil)
+                              message:[NSString
+                                          stringWithFormat:NSLocalizedString(
+                                                               @"Reason: %@", nil),
+                                                           error.localizedDescription]
+                    cancelButtonTitle:NSLocalizedString(@"OK", nil)];
             [strongSelf.progressView stopAnimating];
             [strongSelf.progressView removeFromSuperview];
             return;
@@ -4318,45 +4261,6 @@ array, and add a new row to the table view
         return;
     }
     [self performSegueWithIdentifier:@"databaseSegue" sender:self];
-}
-
-- (void)alertView:(UIAlertView *)alertView
-    clickedButtonAtIndex:(NSInteger)buttonIndex {
-    if (alertView.tag == 0) {
-        alreadyAskedAboutInvitations = YES;
-        if (buttonIndex == 0) {
-            //            NSLog(@"button 0");
-        } else if (buttonIndex == 1) {
-            //            NSLog(@"button 1");
-            UIAlertView *alert = [[UIAlertView alloc]
-                    initWithTitle:NSLocalizedString(@"How to?", nil)
-                          message:
-                              NSLocalizedString(
-                                  @"Pick any game but leave the opponent field "
-                                  @"empty and everyone will see your "
-                                  @"invitation.",
-                                  nil)
-                         delegate:self
-                cancelButtonTitle:NSLocalizedString(@"Got it!", nil)
-                otherButtonTitles:nil, nil];
-            [alert setTag:1];
-            [alert show];
-        } else if (buttonIndex == 2) {
-            //            NSLog(@"button 2");
-            NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-            [defaults setBool:YES forKey:@"doNotRemindOpenInvitation"];
-        }
-    } else if (alertView.tag == 1) {
-        [self performSegueWithIdentifier:@"addInvitationsTap" sender:self];
-    } else if (alertView.tag == 2) {
-        if (buttonIndex == 1) {
-            [self performSegueWithIdentifier:@"addInvitationsTap" sender:self];
-        } else if (buttonIndex == 2) {
-            ((PenteNavigationViewController *)self.navigationController)
-                .showSubscribe = YES;
-            [self performSegueWithIdentifier:@"settingsTap" sender:self];
-        }
-    }
 }
 
 - (NSString *)replaceWithSmileys:(NSString *)inStr {
