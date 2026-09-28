@@ -8,6 +8,7 @@
 
 #import "MessagesViewController.h"
 #import "InvitationsViewController.h"
+#import "PenteAlert.h"
 #import "penteLive-Swift.h"
 #import <QuartzCore/QuartzCore.h>
 
@@ -439,33 +440,22 @@ InvitationsViewController *invitationVC;
 
 - (void)sendButtonTap:(UIButton *)sender {
     if (!messageID && ([toField.text length] == 0)) {
-        UIAlertView *alert = [[UIAlertView alloc]
-                initWithTitle:NSLocalizedString(@"No recipient entered.", nil)
+        [PenteAlert
+                showWithTitle:NSLocalizedString(@"No recipient entered.", nil)
                       message:nil
-                     delegate:nil
-            cancelButtonTitle:@"OK"
-            otherButtonTitles:nil];
-        [alert show];
+            cancelButtonTitle:@"OK"];
         return;
     }
     if ([subjectField.text length] == 0) {
-        UIAlertView *alert = [[UIAlertView alloc]
-                initWithTitle:NSLocalizedString(@"No subject entered.", nil)
-                      message:nil
-                     delegate:nil
-            cancelButtonTitle:@"OK"
-            otherButtonTitles:nil];
-        [alert show];
+        [PenteAlert showWithTitle:NSLocalizedString(@"No subject entered.", nil)
+                          message:nil
+                cancelButtonTitle:@"OK"];
         return;
     }
     if ([replyMessageView.text length] == 0) {
-        UIAlertView *alert = [[UIAlertView alloc]
-                initWithTitle:NSLocalizedString(@"No message found.", nil)
-                      message:nil
-                     delegate:nil
-            cancelButtonTitle:@"OK"
-            otherButtonTitles:nil];
-        [alert show];
+        [PenteAlert showWithTitle:NSLocalizedString(@"No message found.", nil)
+                          message:nil
+                cancelButtonTitle:@"OK"];
         return;
     }
 
@@ -521,35 +511,26 @@ InvitationsViewController *invitationVC;
         //    NSLog(@"kitty %@", dashboardString);
 
         if (error) {
-            UIAlertView *alert = [[UIAlertView alloc]
-                    initWithTitle:NSLocalizedString(@"Error", nil)
-                          message:[NSString
-                                      stringWithFormat:NSLocalizedString(
-                                                           @"Reason: %@", nil),
-                                                       error.localizedDescription]
-                         delegate:nil
-                cancelButtonTitle:@"OK"
-                otherButtonTitles:nil];
-            //        [alert show];
-            [alert show];
+            [PenteAlert showWithTitle:NSLocalizedString(@"Error", nil)
+                              message:[NSString stringWithFormat:
+                                                    NSLocalizedString(
+                                                        @"Reason: %@", nil),
+                                                    error.localizedDescription]
+                    cancelButtonTitle:@"OK"];
         } else if ([dashboardString
                        rangeOfString:[NSString stringWithFormat:
                                                    @"Error: Player %@ not found.",
                                                    strongSelf->toField.text]]
                        .length != 0) {
-            UIAlertView *alert = [[UIAlertView alloc]
-                    initWithTitle:NSLocalizedString(@"Error", nil)
+            [PenteAlert
+                    showWithTitle:NSLocalizedString(@"Error", nil)
                           message:[NSString
-                                      stringWithFormat:
-                                          NSLocalizedString(
-                                              @"The username %@ does not exist.",
-                                              nil),
-                                          strongSelf->toField.text]
-                         delegate:nil
-                cancelButtonTitle:@"OK"
-                otherButtonTitles:nil];
-            //        [alert show];
-            [alert show];
+                                      stringWithFormat:NSLocalizedString(
+                                                           @"The username %@ "
+                                                           @"does not exist.",
+                                                           nil),
+                                                       strongSelf->toField.text]
+                cancelButtonTitle:@"OK"];
         } else {
             if ([strongSelf->toField.text length] > 0) {
                 NSString *opponent = [strongSelf->toField.text lowercaseString];
@@ -651,19 +632,6 @@ InvitationsViewController *invitationVC;
     [NSThread detachNewThreadSelector:@selector(challenge)
                              toTarget:self
                            withObject:nil];
-}
-
-- (void)alertView:(UIAlertView *)alertView
-    clickedButtonAtIndex:(NSInteger)buttonIndex {
-    if (alertView.tag == 0) {
-        if (buttonIndex == 0) {
-            //                        NSLog(@"button 0");
-        } else if (buttonIndex == 1) {
-            //                        NSLog(@"button 1");
-            NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-            [defaults setBool:YES forKey:@"stopGamesLimitHassle"];
-        }
-    }
 }
 
 - (void)challenge {

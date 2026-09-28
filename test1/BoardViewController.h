@@ -20,7 +20,7 @@
 
 @interface BoardViewController
     : UIViewController <UITextViewDelegate, PopoverViewDelegate,
-                        WKNavigationDelegate, UIAlertViewDelegate> {
+                        WKNavigationDelegate> {
     Game *game;
     NSMutableArray *movesList, *captures, *receivedMessages;
     NSString *receivedMessage, *replyMessage, *playerStatsBaseString;
