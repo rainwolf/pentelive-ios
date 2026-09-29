@@ -20,6 +20,7 @@
 #import "SettingsViewController.h"
 #import "WhosOnlineView.h"
 #import <QuartzCore/QuartzCore.h>
+@import StoreKit;
 @import TSMessages;
 @import UserNotifications;
 #import "UIBarButtonItem+Badge.h"

@@ -41,7 +41,8 @@ import StoreKit
 
     /// Starts listening for transactions that arrive outside a purchase call
     /// (renewals, Ask-to-Buy approvals, unfinished transactions at launch).
-    /// Every transaction is finished, verified or not, as RMStore did.
+    /// Every transaction is finished, verified or not, as the StoreKit 1
+    /// observer did before.
     @objc func start() {
         guard updatesTask == nil else { return }
         updatesTask = Task.detached(priority: .background) {

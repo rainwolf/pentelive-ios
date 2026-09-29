@@ -11,7 +11,6 @@
 #import "BoardViewController.h"
 #import "GamesTableViewController.h"
 //@import Firebase;
-@import RMStore;
 #import "PenteNavigationViewController.h"
 #import "SceneDelegate.h"
 @import TSMessages;
@@ -159,23 +158,20 @@
 
     [[TSMessageView appearance] setAlpha:0.9f];
 
-    NSSet *products = [NSSet setWithArray:@[ @"1YRNOADSORLIMITS" ]];
-    [[RMStore defaultStore] requestProducts:products
-        success:^(NSArray *products, NSArray *invalidProductIdentifiers) {
+    [[SubscriptionStore shared]
+        loadProductWithCompletion:^(SubscriptionProduct *product,
+                                    NSError *error) {
+            if (product == nil) {
+                NSLog(@"Something went wrong, %@", error);
+                return;
+            }
             // Async completion: resolve the scene root when the block runs, not
             // when it was created. This method runs before the scene connects.
             PenteNavigationViewController *nav =
                 [AppDelegate rootNavigationController];
-            for (SKProduct *product in products) {
-                if ([product.productIdentifier
-                        isEqualToString:@"1YRNOADSORLIMITS"]) {
-                    [nav setSubscription:product];
-                }
-            }
-        }
-        failure:^(NSError *error) {
-            NSLog(@"Something went wrong");
+            [nav setSubscription:product];
         }];
+    [[SubscriptionStore shared] start];
 
     if ([[NSUserDefaults standardUserDefaults]
             boolForKey:@"shouldSendReceipt"]) {

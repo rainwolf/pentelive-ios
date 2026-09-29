@@ -12,7 +12,6 @@
 #import "GamesTableViewController.h"
 #import "IASKSettingsReader.h"
 #import "MMAIViewController.h"
-#import "RMStore.h"
 #import "penteLive-Swift.h"
 #import "PenteAlert.h"
 @import TSMessages;
@@ -703,12 +702,7 @@ static NSString *PenteHexStringForColor(UIColor *color) {
     if (self.navC.subscription == nil) {
         return;
     }
-    SKProduct *product = self.navC.subscription;
-    NSNumberFormatter *numberFormatter = [[NSNumberFormatter alloc] init];
-    [numberFormatter setFormatterBehavior:NSNumberFormatterBehavior10_4];
-    [numberFormatter setNumberStyle:NSNumberFormatterCurrencyStyle];
-    [numberFormatter setLocale:product.priceLocale];
-    NSString *formattedPrice = [numberFormatter stringFromNumber:product.price];
+    NSString *formattedPrice = self.navC.subscription.displayPrice;
 
     UILabel *subscribeText = [[UILabel alloc]
         initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width * 9 / 10,
@@ -865,8 +859,10 @@ static NSString *PenteHexStringForColor(UIColor *color) {
 }
 - (void)subscribe:(UIButton *)sender {
     subscribing = YES;
-    [[RMStore defaultStore] addPayment:self.navC.subscription.productIdentifier
-        success:^(SKPaymentTransaction *transaction) {
+    [[SubscriptionStore shared] purchaseWithCompletion:^(
+                                    SubscriptionPurchaseResult result,
+                                    NSError *error) {
+        if (result == SubscriptionPurchaseResultPurchased) {
             [[NSUserDefaults standardUserDefaults]
                 setBool:YES
                  forKey:@"shouldSendReceipt"];
@@ -969,9 +965,43 @@ static NSString *PenteHexStringForColor(UIColor *color) {
                                     canBeDismissedByUser:YES];
                 }
             }];
-        }
-        failure:^(SKPaymentTransaction *transaction, NSError *error) {
+        } else if (result == SubscriptionPurchaseResultCancelled) {
+            // The user backed out of the App Store sheet: nothing to report.
+            subscribing = NO;
+            [self.progressView stopAnimating];
+            [self.progressView removeFromSuperview];
+        } else if (result == SubscriptionPurchaseResultPending) {
+            // Ask to Buy / Strong Customer Authentication: not bought yet.
+            subscribing = NO;
+            [self.progressView stopAnimating];
+            [self.progressView removeFromSuperview];
+            [TSMessage
+                showNotificationInViewController:self.navigationController
+                                           title:NSLocalizedString(
+                                                     @"Purchase pending", nil)
+                                        subtitle:NSLocalizedString(
+                                                     @"The purchase is waiting "
+                                                     @"for approval",
+                                                     nil)
+                                           image:nil
+                                            type:
+                                                TSMessageNotificationTypeMessage
+                                        duration:
+                                            TSMessageNotificationDurationAutomatic
+                                        callback:^{
+                                            [TSMessage
+                                                dismissActiveNotification];
+                                        }
+                                     buttonTitle:nil
+                                  buttonCallback:nil
+                                      atPosition:
+                                          TSMessageNotificationPositionBottom
+                            canBeDismissedByUser:YES];
+        } else {
+            NSString *reason =
+                error.localizedFailureReason ?: error.localizedDescription;
             dispatch_async(dispatch_get_main_queue(), ^{
+                subscribing = NO;
                 [self.progressView stopAnimating];
                 [self.progressView removeFromSuperview];
                 [TSMessage
@@ -984,8 +1014,7 @@ static NSString *PenteHexStringForColor(UIColor *color) {
                                                     stringWithFormat:
                                                         NSLocalizedString(
                                                             @"Reason: %@", nil),
-                                                        error
-                                                            .localizedFailureReason]
+                                                        reason]
                                                image:nil
                                                 type:
                                                     TSMessageNotificationTypeWarning
@@ -1000,10 +1029,10 @@ static NSString *PenteHexStringForColor(UIColor *color) {
                                           atPosition:
                                               TSMessageNotificationPositionBottom
                                 canBeDismissedByUser:YES];
-                NSLog(@"Something went wrong, %@",
-                      error.localizedFailureReason);
+                NSLog(@"Something went wrong, %@", reason);
             });
-        }];
+        }
+    }];
 
     [popoverView dismiss];
 }
@@ -1042,8 +1071,8 @@ static NSString *PenteHexStringForColor(UIColor *color) {
 
     NSLog(@"start restore");
 
-    [[RMStore defaultStore]
-        restoreTransactionsOnSuccess:^(NSArray *transactions) {
+    [[SubscriptionStore shared] restoreWithCompletion:^(NSError *error) {
+        if (error == nil) {
             [[NSUserDefaults standardUserDefaults]
                 setBool:YES
                  forKey:@"shouldSendReceipt"];
@@ -1177,8 +1206,7 @@ static NSString *PenteHexStringForColor(UIColor *color) {
                                     canBeDismissedByUser:YES];
                 }
             }];
-        }
-        failure:^(NSError *error) {
+        } else {
             NSLog(@"Something went wrong, %@", error.localizedFailureReason);
             dispatch_async(dispatch_get_main_queue(), ^{
                 [self.progressView stopAnimating];
@@ -1212,7 +1240,8 @@ static NSString *PenteHexStringForColor(UIColor *color) {
                 NSLog(@"Something went wrong, %@",
                       error.localizedFailureReason);
             });
-        }];
+        }
+    }];
 }
 
 - (void)popoverViewDidDismiss:(PopoverView *)popoverView {
