@@ -198,6 +198,12 @@
             boolForKey:@"shouldSendReceipt"]) {
         NSURL *receiptURL = [[NSBundle mainBundle] appStoreReceiptURL];
         NSData *receipt = [NSData dataWithContentsOfURL:receiptURL];
+        if (receipt == nil) {
+            // No receipt on disk yet (e.g. a development install). Keep the
+            // flag so a later launch sends it once one exists.
+            NSLog(@"No App Store receipt to send yet");
+            return;
+        }
 
         NSString *url =
             @"https://www.pente.org/gameServer/iOSReceiptValidation";
@@ -729,6 +735,9 @@ static NSString *DSGAlertComponentOrNil(NSArray<NSString *> *components,
 
 - (NSString *)URLEncodedString_ch:(NSString *)input {
     NSMutableString *output = [NSMutableString string];
+    if (input == nil) {
+        return output;
+    }
     const unsigned char *source = (const unsigned char *)[input UTF8String];
     int sourceLen = (int)strlen((const char *)source);
     for (int i = 0; i < sourceLen; ++i) {

@@ -887,6 +887,44 @@ static NSString *PenteHexStringForColor(UIColor *color) {
                  forKey:@"shouldSendReceipt"];
             NSURL *receiptURL = [[NSBundle mainBundle] appStoreReceiptURL];
             NSData *receipt = [NSData dataWithContentsOfURL:receiptURL];
+            if (receipt == nil) {
+                // No receipt to send yet: keep shouldSendReceipt so the launch
+                // retry registers the purchase, and report it like a failed
+                // registration POST.
+                subscribing = NO;
+                [self.progressView stopAnimating];
+                [self.progressView removeFromSuperview];
+                [TSMessage
+                    showNotificationInViewController:self.navigationController
+                                               title:NSLocalizedString(
+                                                         @"Purchase "
+                                                         @"registration "
+                                                         @"failed",
+                                                         nil)
+                                            subtitle:NSLocalizedString(
+                                                         @"The app will "
+                                                         @"retry purchase "
+                                                         @"registration at "
+                                                         @"pente.org "
+                                                         @"every time the "
+                                                         @"app starts",
+                                                         nil)
+                                               image:nil
+                                                type:
+                                                    TSMessageNotificationTypeWarning
+                                            duration:
+                                                TSMessageNotificationDurationAutomatic
+                                            callback:^{
+                                                [TSMessage
+                                                    dismissActiveNotification];
+                                            }
+                                         buttonTitle:nil
+                                      buttonCallback:nil
+                                          atPosition:
+                                              TSMessageNotificationPositionBottom
+                                canBeDismissedByUser:YES];
+                return;
+            }
 
             NSString *url =
                 @"https://www.pente.org/gameServer/iOSReceiptValidation";
@@ -1101,6 +1139,42 @@ static NSString *PenteHexStringForColor(UIColor *color) {
                  forKey:@"shouldSendReceipt"];
             NSURL *receiptURL = [[NSBundle mainBundle] appStoreReceiptURL];
             NSData *receipt = [NSData dataWithContentsOfURL:receiptURL];
+            if (receipt == nil) {
+                // No receipt means nothing to restore: answer as the server
+                // does for an invalid receipt.
+                [[NSUserDefaults standardUserDefaults]
+                    setBool:NO
+                     forKey:@"shouldSendReceipt"];
+                subscribing = NO;
+                [self.progressView stopAnimating];
+                [self.progressView removeFromSuperview];
+                [TSMessage
+                    showNotificationInViewController:self.navigationController
+                                               title:NSLocalizedString(
+                                                         @"Purchase "
+                                                         @"restore failed",
+                                                         nil)
+                                            subtitle:
+                                                NSLocalizedString(
+                                                    @"No valid purchase to "
+                                                    @"restore",
+                                                    nil)
+                                               image:nil
+                                                type:
+                                                    TSMessageNotificationTypeSuccess
+                                            duration:
+                                                TSMessageNotificationDurationAutomatic
+                                            callback:^{
+                                                [TSMessage
+                                                    dismissActiveNotification];
+                                            }
+                                         buttonTitle:nil
+                                      buttonCallback:nil
+                                          atPosition:
+                                              TSMessageNotificationPositionBottom
+                                canBeDismissedByUser:YES];
+                return;
+            }
 
             NSString *url =
                 @"https://www.pente.org/gameServer/iOSReceiptValidation";
@@ -1472,6 +1546,9 @@ static NSString *PenteHexStringForColor(UIColor *color) {
 
 - (NSString *)URLEncodedString_ch:(NSString *)input {
     NSMutableString *output = [NSMutableString string];
+    if (input == nil) {
+        return output;
+    }
     const unsigned char *source = (const unsigned char *)[input UTF8String];
     int sourceLen = (int)strlen((const char *)source);
     for (int i = 0; i < sourceLen; ++i) {
