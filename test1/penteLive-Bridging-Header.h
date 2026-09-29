@@ -8,6 +8,7 @@
 @import TSMessages;
 // #import "TSMessageView.h"
 #import "PentePopover.h"
+#import "PenteBanner.h"
 //@import SVWebViewController;
 #import "BoardViewController.h"
 @import AFWebViewController;
