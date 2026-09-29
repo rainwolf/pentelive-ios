@@ -12,6 +12,30 @@
 
 static NSObject<HTAutocompleteDataSource> *DefaultAutocompleteDataSource = nil;
 
+static CGSize HTCharWrappedTextSize(NSString *text, UIFont *font,
+                                    CGSize constraintSize)
+{
+    NSMutableParagraphStyle *paragraphStyle =
+        [[NSMutableParagraphStyle alloc] init];
+    paragraphStyle.lineBreakMode = NSLineBreakByCharWrapping;
+
+    NSMutableDictionary *attributes = [NSMutableDictionary
+        dictionaryWithObject:paragraphStyle
+                      forKey:NSParagraphStyleAttributeName];
+    if (font)
+    {
+        attributes[NSFontAttributeName] = font;
+    }
+
+    CGSize size =
+        [text boundingRectWithSize:constraintSize
+                           options:NSStringDrawingUsesLineFragmentOrigin
+                        attributes:attributes
+                           context:nil]
+            .size;
+    return CGSizeMake(ceil(size.width), ceil(size.height));
+}
+
 @interface HTAutocompleteTextField ()
 
 @property (nonatomic, strong) NSString *autocompleteString;
@@ -113,13 +137,13 @@ static NSObject<HTAutocompleteDataSource> *DefaultAutocompleteDataSource = nil;
     CGRect returnRect = CGRectZero;
     CGRect textRect = [self textRectForBounds:self.bounds];
     
-    CGSize prefixTextSize = [self.text sizeWithFont:self.font
-                                  constrainedToSize:textRect.size
-                                      lineBreakMode:NSLineBreakByCharWrapping];
+    CGSize prefixTextSize =
+        HTCharWrappedTextSize(self.text, self.font, textRect.size);
     
-    CGSize autocompleteTextSize = [self.autocompleteString sizeWithFont:self.font
-                                                  constrainedToSize:CGSizeMake(textRect.size.width-prefixTextSize.width, textRect.size.height)
-                                                      lineBreakMode:NSLineBreakByCharWrapping];
+    CGSize autocompleteTextSize = HTCharWrappedTextSize(
+        self.autocompleteString, self.font,
+        CGSizeMake(textRect.size.width - prefixTextSize.width,
+                   textRect.size.height));
     
     returnRect = CGRectMake(textRect.origin.x + prefixTextSize.width + self.autocompleteTextOffset.x,
                             textRect.origin.y + self.autocompleteTextOffset.y,
