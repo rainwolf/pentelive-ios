@@ -175,7 +175,7 @@
         }];
     [[NSNotificationCenter defaultCenter]
         addObserver:self
-           selector:@selector(sendPendingReceipt)
+           selector:@selector(receiptNeedsSendingNotification:)
                name:SubscriptionStore.receiptNeedsSendingNotification
              object:nil];
     [[SubscriptionStore shared] start];
@@ -183,6 +183,19 @@
     [self sendPendingReceipt];
 
     return YES;
+}
+
+// SubscriptionStore reported a transaction no purchase or restore caller
+// registers (Ask-to-Buy approval, renewal). A StoreKit 2 transaction does not
+// rewrite the receipt on disk, so refresh it before sending. Only here, never
+// at plain launch: the refresh can show an Apple ID sign-in prompt.
+- (void)receiptNeedsSendingNotification:(NSNotification *)notification {
+    [[SubscriptionStore shared] refreshReceiptWithCompletion:^(NSError *error) {
+        if (error != nil) {
+            NSLog(@"Receipt refresh failed: %@", error);
+        }
+        [self sendPendingReceipt];
+    }];
 }
 
 // Uploads the App Store receipt to pente.org while shouldSendReceipt is set.

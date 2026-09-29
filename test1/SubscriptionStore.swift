@@ -54,6 +54,10 @@ import StoreKit
     /// Transactions purchase() already returned to its caller, in case the
     /// updates listener sees them after the call has ended.
     private var purchaseHandledIDs = Set<UInt64>()
+    /// The receipt refresh in flight, retained until StoreKit reports back,
+    /// and every caller waiting on it: overlapping calls share one request.
+    private var receiptRefreshRequest: SKReceiptRefreshRequest?
+    private var receiptRefreshCompletions: [(NSError?) -> Void] = []
 
     private override init() {
         super.init()
@@ -134,7 +138,29 @@ import StoreKit
         }
     }
 
+    /// Asks StoreKit 1 for a fresh App Store receipt on disk. A StoreKit 2
+    /// purchase or restore does not rewrite the receipt, and the server reads
+    /// the new subscription from it. May show an Apple ID sign-in prompt, so
+    /// only call it from flows the user started, never at plain launch.
+    @objc func refreshReceipt(completion: @escaping (NSError?) -> Void) {
+        receiptRefreshCompletions.append(completion)
+        guard receiptRefreshRequest == nil else { return }
+        let request = SKReceiptRefreshRequest()
+        request.delegate = self
+        receiptRefreshRequest = request
+        request.start()
+    }
+
     // MARK: - Private
+
+    /// Ends `request` once: a callback for any other request is ignored.
+    private func finishReceiptRefresh(_ request: SKRequest, error: NSError?) {
+        guard request === receiptRefreshRequest else { return }
+        receiptRefreshRequest = nil
+        let completions = receiptRefreshCompletions
+        receiptRefreshCompletions = []
+        completions.forEach { $0(error) }
+    }
 
     private func resolveProduct() async throws -> Product {
         if let product {
@@ -200,5 +226,22 @@ import StoreKit
     private static func error(_ description: String) -> NSError {
         NSError(domain: "SubscriptionStore", code: 1,
                 userInfo: [NSLocalizedDescriptionKey: description])
+    }
+}
+
+/// StoreKit can call these off the main queue: hop to main before touching
+/// state or calling back.
+extension SubscriptionStore: SKRequestDelegate {
+    nonisolated func requestDidFinish(_ request: SKRequest) {
+        Task { @MainActor in
+            self.finishReceiptRefresh(request, error: nil)
+        }
+    }
+
+    nonisolated func request(_ request: SKRequest, didFailWithError error: Error) {
+        let error = error as NSError
+        Task { @MainActor in
+            self.finishReceiptRefresh(request, error: error)
+        }
     }
 }
