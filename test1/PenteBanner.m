@@ -52,18 +52,12 @@ static UIColor *PenteBannerBackgroundColor(PenteBannerType type) {
     }
 }
 
-/// The TSMessages default design's text colour for each type.
-static UIColor *PenteBannerTextColor(PenteBannerType type) {
-    switch (type) {
-    case PenteBannerTypeWarning:
-        return PenteBannerRGB(0x484638);
-    case PenteBannerTypeError:
-    case PenteBannerTypeSuccess:
-        return PenteBannerRGB(0xFFFFFF);
-    case PenteBannerTypeMessage:
-    default:
-        return PenteBannerRGB(0x727C83);
-    }
+/// Text, icon and button colour on the solid card (iOS 15-25): black for every
+/// type. The app has always overridden the TSMessages design's text colours to
+/// black (TSMessageView appearance in AppDelegate), so this is what users see
+/// today, and it reads on all four backgrounds.
+static UIColor *PenteBannerSolidTextColor(void) {
+    return [UIColor blackColor];
 }
 
 /// Text colour on the tinted glass. At kPenteBannerGlassTintAlpha the tint sets
@@ -150,7 +144,7 @@ static NSString *PenteBannerSymbolName(PenteBannerType type) {
 @implementation PenteBannerView
 
 - (void)buildContent {
-    UIColor *textColor = PenteBannerTextColor(self.type);
+    UIColor *textColor = PenteBannerSolidTextColor();
 
     // Card background: tinted Liquid Glass on iOS 26+, solid colour before.
     UIView *background;
