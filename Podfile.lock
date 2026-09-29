@@ -7,7 +7,6 @@ PODS:
   - HexColors (2.3.0)
   - InAppSettingsKit (3.9.2)
   - NSHash (1.1.0)
-  - PopoverView (0.0.2)
   - TSMessages (0.9.13):
     - HexColors (~> 2.3.0)
   - TUSafariActivity (1.0.4)
@@ -18,7 +17,6 @@ DEPENDENCIES:
   - CocoaAsyncSocket
   - InAppSettingsKit
   - NSHash (~> 1.1.0)
-  - PopoverView (from `https://github.com/runway20/PopoverView.git`)
   - TSMessages (from `https://github.com/rainwolf/TSMessages.git`)
   - UIBarButtonItem-Badge (from `https://github.com/rainwolf/UIBarButtonItem-Badge.git`)
 
@@ -33,17 +31,12 @@ SPEC REPOS:
     - TUSafariActivity
 
 EXTERNAL SOURCES:
-  PopoverView:
-    :git: https://github.com/runway20/PopoverView.git
   TSMessages:
     :git: https://github.com/rainwolf/TSMessages.git
   UIBarButtonItem-Badge:
     :git: https://github.com/rainwolf/UIBarButtonItem-Badge.git
 
 CHECKOUT OPTIONS:
-  PopoverView:
-    :commit: b542c8660bd448923cfd05e677577238f91d91e4
-    :git: https://github.com/runway20/PopoverView.git
   TSMessages:
     :commit: c638015178dcb81fc2b9147e777fbf37cc09c909
     :git: https://github.com/rainwolf/TSMessages.git
@@ -58,11 +51,10 @@ SPEC CHECKSUMS:
   HexColors: 6ad3947c3447a055a3aa8efa859def096351fe5f
   InAppSettingsKit: 960d91fde94cae12a007c2272e34700a171df600
   NSHash: 61d598c6d48957c5557f1eef0aeafd6ef5ec5fb7
-  PopoverView: 51d31a7f2398afbff710dc7933a357bf2c3cbe72
   TSMessages: eb3cf27b6900684a21bad4fe9ea426e287b8c839
   TUSafariActivity: afc55a00965377939107ce4fdc7f951f62454546
   UIBarButtonItem-Badge: 8f5ed4d32d32dbb03034d4f273d02c8da680236b
 
-PODFILE CHECKSUM: 3622e8e81548eed3d0c6863bb2f23f751da3fb34
+PODFILE CHECKSUM: 510c5538fdd0b640aa27e2016cd09171cde1c676
 
 COCOAPODS: 1.16.2

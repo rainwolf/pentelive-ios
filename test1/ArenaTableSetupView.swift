@@ -14,7 +14,7 @@ class ArenaTableSetupView: UITableView, UITableViewDelegate, UITableViewDataSour
     var me: String
     var data: [String: Any]?
     var socket: PenteLiveSocket!
-    var popoverView: PopoverView?
+    weak var popoverView: PentePopover?
 
     init(data: [String: Any], socket: PenteLiveSocket,  me: String) {
         self.me = me

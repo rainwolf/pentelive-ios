@@ -11,7 +11,6 @@ import UIKit
 class ArenaJoinRequestList: UITableView, UITableViewDelegate, UITableViewDataSource {
     var me: String!
     var socket: PenteLiveSocket!
-    var popoverView: PopoverView?
     var data: [String] = []
     var tableAndPlayers: TablesAndPlayer!
     var tableId: Int!
@@ -129,7 +128,6 @@ class ArenaJoinRequestList: UITableView, UITableViewDelegate, UITableViewDataSou
     func tableView(_: UITableView, didSelectRowAt indexPath: IndexPath) {
         let event = ["dsgArenaAcceptTableJoinEvent": ["player": self.me!, "playerToAccept": data[indexPath.row], "table": tableId!]]
         socket.sendEvent(eventDictionary: event)
-//        popoverView?.dismiss()
     }
 
     func tableView(_: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {

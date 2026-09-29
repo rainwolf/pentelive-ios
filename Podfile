@@ -18,7 +18,6 @@ target "penteLive" do
 platform :ios, '15.0'
 #   use_frameworks!
     pod 'TSMessages', :git => 'https://github.com/rainwolf/TSMessages.git'
-    pod 'PopoverView', :git => 'https://github.com/runway20/PopoverView.git'
 #   pod 'SVWebViewController', :git => 'https://github.com/TransitApp/SVWebViewController.git'
     pod 'InAppSettingsKit'
     pod 'NSHash', '~> 1.1.0'
