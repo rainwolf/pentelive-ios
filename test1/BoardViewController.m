@@ -382,10 +382,13 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
         }
     }
     CGFloat screenHeight = UIScreen.mainScreen.bounds.size.height;
+    UIWindowScene *windowScene =
+        self.navigationController.view.window.windowScene
+            ?: self.view.window.windowScene;
     CGFloat newOriginY =
         screenHeight -
         self.navigationController.navigationBar.frame.size.height -
-        [UIApplication sharedApplication].statusBarFrame.size.height;
+        windowScene.statusBarManager.statusBarFrame.size.height;
     playerStats.frame = CGRectMake(
         2, submitButton.frame.origin.y + 3 + submitButton.frame.size.height,
         self.view.bounds.size.width - 4,
@@ -412,7 +415,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
 
 - (BOOL)shouldAutorotate {
     UIInterfaceOrientation interfaceOrientation =
-        [[UIApplication sharedApplication] statusBarOrientation];
+        self.view.window.windowScene.interfaceOrientation;
     return (
         (interfaceOrientation != UIInterfaceOrientationPortraitUpsideDown) &&
         (interfaceOrientation != UIInterfaceOrientationLandscapeLeft) &&

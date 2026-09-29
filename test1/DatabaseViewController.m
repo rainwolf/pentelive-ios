@@ -216,10 +216,13 @@ BoardViewController *boardController;
     [playerStats setNavigationDelegate:self];
     //    playerStats.contentInset = UIEdgeInsetsMake(-5.0,0.0,0,0.0);
     CGFloat screenHeight = UIScreen.mainScreen.bounds.size.height;
+    UIWindowScene *windowScene =
+        self.navigationController.view.window.windowScene
+            ?: self.view.window.windowScene;
     CGFloat newOriginY =
         screenHeight -
         self.navigationController.navigationBar.frame.size.height -
-        [UIApplication sharedApplication].statusBarFrame.size.height;
+        windowScene.statusBarManager.statusBarFrame.size.height;
     playerStats.frame =
         CGRectMake(2,
                    blackStoneCaptures.frame.origin.y + 3 +
@@ -426,7 +429,7 @@ BoardViewController *boardController;
 
 - (BOOL)shouldAutorotate {
     UIInterfaceOrientation interfaceOrientation =
-        [[UIApplication sharedApplication] statusBarOrientation];
+        self.view.window.windowScene.interfaceOrientation;
     return (
         (interfaceOrientation != UIInterfaceOrientationPortraitUpsideDown) &&
         (interfaceOrientation != UIInterfaceOrientationLandscapeLeft) &&

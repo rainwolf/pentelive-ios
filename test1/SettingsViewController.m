@@ -48,7 +48,7 @@
 
 - (BOOL)shouldAutorotate {
     UIInterfaceOrientation interfaceOrientation =
-        [[UIApplication sharedApplication] statusBarOrientation];
+        self.view.window.windowScene.interfaceOrientation;
     return (
         (interfaceOrientation != UIInterfaceOrientationPortraitUpsideDown) &&
         (interfaceOrientation != UIInterfaceOrientationLandscapeLeft) &&
