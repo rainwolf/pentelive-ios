@@ -14,7 +14,7 @@
 #import "MMAIViewController.h"
 #import "penteLive-Swift.h"
 #import "PenteAlert.h"
-@import TSMessages;
+#import "PenteBanner.h"
 @import InAppSettingsKit.IASKSpecifier;
 
 #define usernameKey @"username"
@@ -910,7 +910,7 @@ static NSString *PenteHexStringForColor(UIColor *color) {
                     subscribing = NO;
                     [self.progressView stopAnimating];
                     [self.progressView removeFromSuperview];
-                    [TSMessage
+                    [PenteBanner
                         showNotificationInViewController:self.navigationController
                                                    title:NSLocalizedString(
                                                              @"Purchase "
@@ -927,17 +927,17 @@ static NSString *PenteHexStringForColor(UIColor *color) {
                                                              nil)
                                                    image:nil
                                                     type:
-                                                        TSMessageNotificationTypeWarning
+                                                        PenteBannerTypeWarning
                                                 duration:
-                                                    TSMessageNotificationDurationAutomatic
+                                                    PenteBannerDurationAutomatic
                                                 callback:^{
-                                                    [TSMessage
+                                                    [PenteBanner
                                                         dismissActiveNotification];
                                                 }
                                              buttonTitle:nil
                                           buttonCallback:nil
                                               atPosition:
-                                                  TSMessageNotificationPositionBottom
+                                                  PenteBannerPositionBottom
                                     canBeDismissedByUser:YES];
                     return;
                 }
@@ -986,7 +986,7 @@ static NSString *PenteHexStringForColor(UIColor *color) {
                         [[NSUserDefaults standardUserDefaults]
                             setBool:NO
                              forKey:@"shouldSendReceipt"];
-                        [TSMessage
+                        [PenteBanner
                             showNotificationInViewController:
                                 weakSelf.navigationController
                                                        title:NSLocalizedString(
@@ -997,20 +997,20 @@ static NSString *PenteHexStringForColor(UIColor *color) {
                                                     subtitle:nil
                                                        image:nil
                                                         type:
-                                                            TSMessageNotificationTypeSuccess
+                                                            PenteBannerTypeSuccess
                                                     duration:
-                                                        TSMessageNotificationDurationAutomatic
+                                                        PenteBannerDurationAutomatic
                                                     callback:^{
-                                                        [TSMessage
+                                                        [PenteBanner
                                                             dismissActiveNotification];
                                                     }
                                                  buttonTitle:nil
                                               buttonCallback:nil
                                                   atPosition:
-                                                      TSMessageNotificationPositionBottom
+                                                      PenteBannerPositionBottom
                                         canBeDismissedByUser:YES];
                     } else {
-                        [TSMessage
+                        [PenteBanner
                             showNotificationInViewController:
                                 weakSelf.navigationController
                                                        title:NSLocalizedString(
@@ -1028,17 +1028,17 @@ static NSString *PenteHexStringForColor(UIColor *color) {
                                                                  nil)
                                                        image:nil
                                                         type:
-                                                            TSMessageNotificationTypeWarning
+                                                            PenteBannerTypeWarning
                                                     duration:
-                                                        TSMessageNotificationDurationAutomatic
+                                                        PenteBannerDurationAutomatic
                                                     callback:^{
-                                                        [TSMessage
+                                                        [PenteBanner
                                                             dismissActiveNotification];
                                                     }
                                                  buttonTitle:nil
                                               buttonCallback:nil
                                                   atPosition:
-                                                      TSMessageNotificationPositionBottom
+                                                      PenteBannerPositionBottom
                                         canBeDismissedByUser:YES];
                     }
                 }];
@@ -1053,7 +1053,7 @@ static NSString *PenteHexStringForColor(UIColor *color) {
             subscribing = NO;
             [self.progressView stopAnimating];
             [self.progressView removeFromSuperview];
-            [TSMessage
+            [PenteBanner
                 showNotificationInViewController:self.navigationController
                                            title:NSLocalizedString(
                                                      @"Purchase pending", nil)
@@ -1063,17 +1063,17 @@ static NSString *PenteHexStringForColor(UIColor *color) {
                                                      nil)
                                            image:nil
                                             type:
-                                                TSMessageNotificationTypeMessage
+                                                PenteBannerTypeMessage
                                         duration:
-                                            TSMessageNotificationDurationAutomatic
+                                            PenteBannerDurationAutomatic
                                         callback:^{
-                                            [TSMessage
+                                            [PenteBanner
                                                 dismissActiveNotification];
                                         }
                                      buttonTitle:nil
                                   buttonCallback:nil
                                       atPosition:
-                                          TSMessageNotificationPositionBottom
+                                          PenteBannerPositionBottom
                             canBeDismissedByUser:YES];
         } else {
             NSString *reason =
@@ -1082,7 +1082,7 @@ static NSString *PenteHexStringForColor(UIColor *color) {
                 subscribing = NO;
                 [self.progressView stopAnimating];
                 [self.progressView removeFromSuperview];
-                [TSMessage
+                [PenteBanner
                     showNotificationInViewController:self.navigationController
                                                title:NSLocalizedString(
                                                          @"Purchase failed",
@@ -1095,17 +1095,17 @@ static NSString *PenteHexStringForColor(UIColor *color) {
                                                         reason]
                                                image:nil
                                                 type:
-                                                    TSMessageNotificationTypeWarning
+                                                    PenteBannerTypeWarning
                                             duration:
-                                                TSMessageNotificationDurationAutomatic
+                                                PenteBannerDurationAutomatic
                                             callback:^{
-                                                [TSMessage
+                                                [PenteBanner
                                                     dismissActiveNotification];
                                             }
                                          buttonTitle:nil
                                       buttonCallback:nil
                                           atPosition:
-                                              TSMessageNotificationPositionBottom
+                                              PenteBannerPositionBottom
                                 canBeDismissedByUser:YES];
                 NSLog(@"Something went wrong, %@", reason);
             });
@@ -1117,7 +1117,7 @@ static NSString *PenteHexStringForColor(UIColor *color) {
 
 - (void)restorePurchase {
     if (!self.navC.loggedIn) {
-        [TSMessage
+        [PenteBanner
             showNotificationInViewController:self.navigationController
                                        title:NSLocalizedString(
                                                  @"Purchase restore failed",
@@ -1127,15 +1127,15 @@ static NSString *PenteHexStringForColor(UIColor *color) {
                                             @"You need to be logged in first",
                                             nil)
                                        image:nil
-                                        type:TSMessageNotificationTypeError
+                                        type:PenteBannerTypeError
                                     duration:
-                                        TSMessageNotificationDurationAutomatic
+                                        PenteBannerDurationAutomatic
                                     callback:^{
-                                        [TSMessage dismissActiveNotification];
+                                        [PenteBanner dismissActiveNotification];
                                     }
                                  buttonTitle:nil
                               buttonCallback:nil
-                                  atPosition:TSMessageNotificationPositionBottom
+                                  atPosition:PenteBannerPositionBottom
                         canBeDismissedByUser:YES];
         return;
     }
@@ -1174,7 +1174,7 @@ static NSString *PenteHexStringForColor(UIColor *color) {
                     subscribing = NO;
                     [self.progressView stopAnimating];
                     [self.progressView removeFromSuperview];
-                    [TSMessage
+                    [PenteBanner
                         showNotificationInViewController:self.navigationController
                                                    title:NSLocalizedString(
                                                              @"Purchase "
@@ -1184,17 +1184,17 @@ static NSString *PenteHexStringForColor(UIColor *color) {
                                                              .localizedDescription
                                                    image:nil
                                                     type:
-                                                        TSMessageNotificationTypeWarning
+                                                        PenteBannerTypeWarning
                                                 duration:
-                                                    TSMessageNotificationDurationAutomatic
+                                                    PenteBannerDurationAutomatic
                                                 callback:^{
-                                                    [TSMessage
+                                                    [PenteBanner
                                                         dismissActiveNotification];
                                                 }
                                              buttonTitle:nil
                                           buttonCallback:nil
                                               atPosition:
-                                                  TSMessageNotificationPositionBottom
+                                                  PenteBannerPositionBottom
                                     canBeDismissedByUser:YES];
                     return;
                 }
@@ -1209,7 +1209,7 @@ static NSString *PenteHexStringForColor(UIColor *color) {
                     subscribing = NO;
                     [self.progressView stopAnimating];
                     [self.progressView removeFromSuperview];
-                    [TSMessage
+                    [PenteBanner
                         showNotificationInViewController:self.navigationController
                                                    title:NSLocalizedString(
                                                              @"Purchase "
@@ -1222,17 +1222,17 @@ static NSString *PenteHexStringForColor(UIColor *color) {
                                                         nil)
                                                    image:nil
                                                     type:
-                                                        TSMessageNotificationTypeSuccess
+                                                        PenteBannerTypeSuccess
                                                 duration:
-                                                    TSMessageNotificationDurationAutomatic
+                                                    PenteBannerDurationAutomatic
                                                 callback:^{
-                                                    [TSMessage
+                                                    [PenteBanner
                                                         dismissActiveNotification];
                                                 }
                                              buttonTitle:nil
                                           buttonCallback:nil
                                               atPosition:
-                                                  TSMessageNotificationPositionBottom
+                                                  PenteBannerPositionBottom
                                     canBeDismissedByUser:YES];
                     return;
                 }
@@ -1282,7 +1282,7 @@ static NSString *PenteHexStringForColor(UIColor *color) {
                         [[NSUserDefaults standardUserDefaults]
                             setBool:NO
                              forKey:@"shouldSendReceipt"];
-                        [TSMessage
+                        [PenteBanner
                             showNotificationInViewController:
                                 weakSelf.navigationController
                                                        title:
@@ -1293,24 +1293,24 @@ static NSString *PenteHexStringForColor(UIColor *color) {
                                                     subtitle:nil
                                                        image:nil
                                                         type:
-                                                            TSMessageNotificationTypeSuccess
+                                                            PenteBannerTypeSuccess
                                                     duration:
-                                                        TSMessageNotificationDurationAutomatic
+                                                        PenteBannerDurationAutomatic
                                                     callback:^{
-                                                        [TSMessage
+                                                        [PenteBanner
                                                             dismissActiveNotification];
                                                     }
                                                  buttonTitle:nil
                                               buttonCallback:nil
                                                   atPosition:
-                                                      TSMessageNotificationPositionBottom
+                                                      PenteBannerPositionBottom
                                         canBeDismissedByUser:YES];
                     } else if ([dashboardString
                                    containsString:@"invalid receipt"]) {
                         [[NSUserDefaults standardUserDefaults]
                             setBool:NO
                              forKey:@"shouldSendReceipt"];
-                        [TSMessage
+                        [PenteBanner
                             showNotificationInViewController:
                                 weakSelf.navigationController
                                                        title:NSLocalizedString(
@@ -1324,20 +1324,20 @@ static NSString *PenteHexStringForColor(UIColor *color) {
                                                             nil)
                                                        image:nil
                                                         type:
-                                                            TSMessageNotificationTypeSuccess
+                                                            PenteBannerTypeSuccess
                                                     duration:
-                                                        TSMessageNotificationDurationAutomatic
+                                                        PenteBannerDurationAutomatic
                                                     callback:^{
-                                                        [TSMessage
+                                                        [PenteBanner
                                                             dismissActiveNotification];
                                                     }
                                                  buttonTitle:nil
                                               buttonCallback:nil
                                                   atPosition:
-                                                      TSMessageNotificationPositionBottom
+                                                      PenteBannerPositionBottom
                                         canBeDismissedByUser:YES];
                     } else {
-                        [TSMessage
+                        [PenteBanner
                             showNotificationInViewController:
                                 weakSelf.navigationController
                                                        title:NSLocalizedString(
@@ -1354,17 +1354,17 @@ static NSString *PenteHexStringForColor(UIColor *color) {
                                                             nil)
                                                        image:nil
                                                         type:
-                                                            TSMessageNotificationTypeWarning
+                                                            PenteBannerTypeWarning
                                                     duration:
-                                                        TSMessageNotificationDurationAutomatic
+                                                        PenteBannerDurationAutomatic
                                                     callback:^{
-                                                        [TSMessage
+                                                        [PenteBanner
                                                             dismissActiveNotification];
                                                     }
                                                  buttonTitle:nil
                                               buttonCallback:nil
                                                   atPosition:
-                                                      TSMessageNotificationPositionBottom
+                                                      PenteBannerPositionBottom
                                         canBeDismissedByUser:YES];
                     }
                 }];
@@ -1377,7 +1377,7 @@ static NSString *PenteHexStringForColor(UIColor *color) {
                 subscribing = NO;
                 [self.progressView stopAnimating];
                 [self.progressView removeFromSuperview];
-                [TSMessage
+                [PenteBanner
                     showNotificationInViewController:self.navigationController
                                                title:NSLocalizedString(
                                                          @"Purchase failed",
@@ -1390,17 +1390,17 @@ static NSString *PenteHexStringForColor(UIColor *color) {
                                                         reason]
                                                image:nil
                                                 type:
-                                                    TSMessageNotificationTypeWarning
+                                                    PenteBannerTypeWarning
                                             duration:
-                                                TSMessageNotificationDurationAutomatic
+                                                PenteBannerDurationAutomatic
                                             callback:^{
-                                                [TSMessage
+                                                [PenteBanner
                                                     dismissActiveNotification];
                                             }
                                          buttonTitle:nil
                                       buttonCallback:nil
                                           atPosition:
-                                              TSMessageNotificationPositionBottom
+                                              PenteBannerPositionBottom
                                 canBeDismissedByUser:YES];
                 NSLog(@"Something went wrong, %@", reason);
             });

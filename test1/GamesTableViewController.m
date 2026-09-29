@@ -21,7 +21,7 @@
 #import "WhosOnlineView.h"
 #import <QuartzCore/QuartzCore.h>
 @import StoreKit;
-@import TSMessages;
+#import "PenteBanner.h"
 @import UserNotifications;
 #import "UIBarButtonItem+Badge.h"
 #import "UIButton+Badge.h"
@@ -1514,7 +1514,7 @@ CGFloat bottomOffset = 0;
 
 - (void)sectionTap:(UIGestureRecognizer *)gestureRecognizer {
 
-    [TSMessage dismissActiveNotification];
+    [PenteBanner dismissActiveNotification];
 
     //    NSLog(@"kittySection %i",gestureRecognizer.view.tag);
     int section = (int)gestureRecognizer.view.tag;
@@ -2011,7 +2011,7 @@ array, and add a new row to the table view
      animated:YES];
      */
 
-    [TSMessage dismissActiveNotification];
+    [PenteBanner dismissActiveNotification];
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
 
     if (indexPath.section == MESSAGESSECTION) {

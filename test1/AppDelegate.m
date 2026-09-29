@@ -13,7 +13,7 @@
 //@import Firebase;
 #import "PenteNavigationViewController.h"
 #import "SceneDelegate.h"
-@import TSMessages;
+#import "PenteBanner.h"
 @import UserNotifications;
 #import "penteLive-Swift.h"
 
@@ -155,11 +155,6 @@
     AudioServicesCreateSystemSoundID((__bridge CFURLRef)broadcastSndURL,
                                      &broadcastSndID);
 
-    [[TSMessageView appearance] setContentTextColor:[UIColor blackColor]];
-    [[TSMessageView appearance] setTitleTextColor:[UIColor blackColor]];
-
-    [[TSMessageView appearance] setAlpha:0.9f];
-
     [[SubscriptionStore shared]
         loadProductWithCompletion:^(SubscriptionProduct *product,
                                     NSError *error) {
@@ -285,10 +280,9 @@
 
         // Async completion: resolve the scene root when the block runs, not when
         // it was created — this method runs before the scene connects. The nil
-        // guard is not optional: handed a nil presenting view controller,
-        // TSMessage falls back to the app-wide key window's root view
-        // controller, the deprecated API this migration is moving away from. An
-        // early return keeps that path dormant.
+        // guard is not optional: PenteBanner has no presenting view controller
+        // to host in when handed nil, so an early return keeps the banner
+        // paths dormant until the navigation controller exists.
         PenteNavigationViewController *nav =
             [AppDelegate rootNavigationController];
         if (!nav) {
@@ -299,7 +293,7 @@
             [[NSUserDefaults standardUserDefaults]
                 setBool:NO
                  forKey:@"shouldSendReceipt"];
-            [TSMessage
+            [PenteBanner
                 showNotificationInViewController:nav
                                            title:NSLocalizedString(
                                                      @"Purchase registration "
@@ -308,23 +302,23 @@
                                         subtitle:nil
                                            image:nil
                                             type:
-                                                TSMessageNotificationTypeSuccess
+                                                PenteBannerTypeSuccess
                                         duration:
-                                            TSMessageNotificationDurationAutomatic
+                                            PenteBannerDurationAutomatic
                                         callback:^{
-                                            [TSMessage
+                                            [PenteBanner
                                                 dismissActiveNotification];
                                         }
                                      buttonTitle:nil
                                   buttonCallback:nil
                                       atPosition:
-                                          TSMessageNotificationPositionBottom
+                                          PenteBannerPositionBottom
                             canBeDismissedByUser:YES];
         } else if ([dashboardString containsString:@"invalid receipt"]) {
             [[NSUserDefaults standardUserDefaults]
                 setBool:NO
                  forKey:@"shouldSendReceipt"];
-            [TSMessage
+            [PenteBanner
                 showNotificationInViewController:nav
                                            title:NSLocalizedString(
                                                      @"Purchase restore failed",
@@ -335,20 +329,20 @@
                                                 nil)
                                            image:nil
                                             type:
-                                                TSMessageNotificationTypeSuccess
+                                                PenteBannerTypeSuccess
                                         duration:
-                                            TSMessageNotificationDurationAutomatic
+                                            PenteBannerDurationAutomatic
                                         callback:^{
-                                            [TSMessage
+                                            [PenteBanner
                                                 dismissActiveNotification];
                                         }
                                      buttonTitle:nil
                                   buttonCallback:nil
                                       atPosition:
-                                          TSMessageNotificationPositionBottom
+                                          PenteBannerPositionBottom
                             canBeDismissedByUser:YES];
         } else {
-            [TSMessage
+            [PenteBanner
                 showNotificationInViewController:nav
                                            title:NSLocalizedString(
                                                      @"Purchase registration "
@@ -362,17 +356,17 @@
                                                 nil)
                                            image:nil
                                             type:
-                                                TSMessageNotificationTypeWarning
+                                                PenteBannerTypeWarning
                                         duration:
-                                            TSMessageNotificationDurationAutomatic
+                                            PenteBannerDurationAutomatic
                                         callback:^{
-                                            [TSMessage
+                                            [PenteBanner
                                                 dismissActiveNotification];
                                         }
                                      buttonTitle:nil
                                   buttonCallback:nil
                                       atPosition:
-                                          TSMessageNotificationPositionBottom
+                                          PenteBannerPositionBottom
                             canBeDismissedByUser:YES];
         }
         }];
@@ -484,7 +478,7 @@ static NSString *DSGAlertComponentOrNil(NSArray<NSString *> *components,
 
     // One resolution for the whole method. Deliberately not guarded here: every
     // use below is a plain message send, which is a no-op on nil exactly as it
-    // was when the retired app-global window was nil. The TSMessage
+    // was when the retired app-global window was nil. The PenteBanner
     // presentations at the end of the method get an explicit guard instead,
     // where nil actually matters.
     PenteNavigationViewController *nav = [AppDelegate rootNavigationController];
@@ -644,10 +638,9 @@ static NSString *DSGAlertComponentOrNil(NSArray<NSString *> *components,
                                  @"%@ wants to play a live game of %@.", nil),
                              player, game];
     }
-    // Nil guard covering both TSMessage branches below. Not optional: handed a
-    // nil presenting view controller, TSMessage falls back to the app-wide key
-    // window's root view controller, the deprecated API this migration is moving
-    // away from. An early return keeps that path dormant.
+    // Nil guard covering both PenteBanner branches below. Not optional: with a
+    // nil presenting view controller PenteBanner has nowhere to host the banner,
+    // so an early return keeps that path dormant.
     if (!nav) {
         return;
     }
@@ -660,13 +653,13 @@ static NSString *DSGAlertComponentOrNil(NSArray<NSString *> *components,
     if (isKeyed ||
         ![message
             containsString:@"device has been registered for notifications"]) {
-        [TSMessage
+        [PenteBanner
             showNotificationInViewController:nav
             title:title
             subtitle:message
             image:nil
-            type:TSMessageNotificationTypeMessage
-            duration:TSMessageNotificationDurationAutomatic
+            type:PenteBannerTypeMessage
+            duration:PenteBannerDurationAutomatic
             callback:^{
                 // Re-resolved, NOT captured from the enclosing nav: this block
                 // outlives the method, and the root can legitimately change
@@ -689,12 +682,12 @@ static NSString *DSGAlertComponentOrNil(NSArray<NSString *> *components,
             }
             buttonTitle:buttonTitle
             buttonCallback:^{
-                [TSMessage dismissActiveNotification];
+                [PenteBanner dismissActiveNotification];
             }
-            atPosition:TSMessageNotificationPositionBottom
+            atPosition:PenteBannerPositionBottom
             canBeDismissedByUser:YES];
     } else {
-        [TSMessage
+        [PenteBanner
             showNotificationInViewController:nav
                                        title:NSLocalizedString(
                                                  @"Registration success!", nil)
@@ -704,15 +697,15 @@ static NSString *DSGAlertComponentOrNil(NSArray<NSString *> *components,
                                             @"for push notifications",
                                             nil)
                                        image:nil
-                                        type:TSMessageNotificationTypeSuccess
+                                        type:PenteBannerTypeSuccess
                                     duration:
-                                        TSMessageNotificationDurationAutomatic
+                                        PenteBannerDurationAutomatic
                                     callback:nil
                                  buttonTitle:buttonTitle
                               buttonCallback:^{
-                                  [TSMessage dismissActiveNotification];
+                                  [PenteBanner dismissActiveNotification];
                               }
-                                  atPosition:TSMessageNotificationPositionBottom
+                                  atPosition:PenteBannerPositionBottom
                         canBeDismissedByUser:YES];
     }
 }
@@ -724,14 +717,14 @@ static NSString *DSGAlertComponentOrNil(NSArray<NSString *> *components,
          withCompletionHandler:
              (void (^)(UNNotificationPresentationOptions))completionHandler {
     // Where foreground pushes arrive now that a delegate exists. Same payload,
-    // same handler, so the in-app TSMessage banner, the notification sound and
+    // same handler, so the in-app PenteBanner banner, the notification sound and
     // the dashboard refresh are literally the code that ran before.
     [self handleRemoteNotificationUserInfo:presentedNotification.request.content
                                               .userInfo];
 
-    // None, not banner/sound: the app presents its own TSMessage banner and
+    // None, not banner/sound: the app presents its own PenteBanner banner and
     // plays its own sound (honouring the in-app sound preference). Asking iOS
-    // to present as well would put a system banner on top of the TSMessage one
+    // to present as well would put a system banner on top of the PenteBanner one
     // and play the push sound over the app's — exactly the double-handling this
     // change has to avoid. Suppressing the system presentation reproduces
     // pre-delegate behaviour, where iOS never displayed a foreground push.

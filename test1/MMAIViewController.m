@@ -25,8 +25,7 @@
 #import "MMAI.h"
 #import "PenteGame.h"
 #import "penteLive-Swift.h"
-#import "TSMessage.h"
-#import "TSMessageView.h"
+#import "PenteBanner.h"
 #import <QuartzCore/QuartzCore.h>
 
 // GADBannerView *bannerView_;
@@ -645,7 +644,7 @@
             }
         }
         dispatch_async(dispatch_get_main_queue(), ^{
-            [TSMessage
+            [PenteBanner
                 showNotificationInViewController:self.navigationController
                                            title:NSLocalizedString(@"Game Over",
                                                                    nil)
@@ -653,18 +652,18 @@
                                            image:nil
                                             type:
                                                 (iWin
-                                                     ? TSMessageNotificationTypeSuccess
-                                                     : TSMessageNotificationTypeError)
+                                                     ? PenteBannerTypeSuccess
+                                                     : PenteBannerTypeError)
                                             duration:
-                                                TSMessageNotificationDurationAutomatic
+                                                PenteBannerDurationAutomatic
                                         callback:^{
-                                            [TSMessage
+                                            [PenteBanner
                                                 dismissActiveNotification];
                                         }
                                      buttonTitle:nil
                                   buttonCallback:nil
                                       atPosition:
-                                          TSMessageNotificationPositionBottom
+                                          PenteBannerPositionBottom
                             canBeDismissedByUser:YES];
         });
     }

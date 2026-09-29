@@ -10,7 +10,7 @@
 #import "PenteAlert.h"
 #import "PenteNavigationViewController.h"
 #import "penteLive-Swift.h"
-@import TSMessages;
+#import "PenteBanner.h"
 
 @interface PlayerTableViewCell : UITableViewCell {
     UILabel *ratingLabel;
@@ -243,7 +243,7 @@ CGFloat bottomOffst = 0;
 
 - (void)viewWillDisappear:(BOOL)animated {
     [super viewWillDisappear:animated];
-    [TSMessage dismissActiveNotification];
+    [PenteBanner dismissActiveNotification];
     // Only when still up; a no-op for a popover that is already gone.
     if (actionPopover.isPresented) {
         [actionPopover dismiss];
@@ -383,24 +383,24 @@ CGFloat bottomOffst = 0;
     if (hillSummary.gameId < 50 && indexPath.section == 0) {
         return;
     }
-    [TSMessage dismissActiveNotification];
+    [PenteBanner dismissActiveNotification];
     if (indexPath.section == 0) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            [TSMessage showNotificationInViewController:self
+            [PenteBanner showNotificationInViewController:self
                 title:NSLocalizedString(@"Tap again here to confirm", nil)
                 subtitle:nil
                 image:nil
-                type:TSMessageNotificationTypeWarning
-                duration:TSMessageNotificationDurationEndless
+                type:PenteBannerTypeWarning
+                duration:PenteBannerDurationEndless
                 callback:^{
-                    [TSMessage dismissActiveNotification];
+                    [PenteBanner dismissActiveNotification];
                     [self joinLeave];
                 }
                 buttonTitle:NSLocalizedString(@"cancel", nil)
                 buttonCallback:^{
-                    [TSMessage dismissActiveNotification];
+                    [PenteBanner dismissActiveNotification];
                 }
-                atPosition:TSMessageNotificationPositionNavBarOverlay
+                atPosition:PenteBannerPositionNavBarOverlay
                 canBeDismissedByUser:YES];
         });
     } else {

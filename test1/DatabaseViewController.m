@@ -27,8 +27,7 @@
 #import "MMAI.h"
 #import "PenteAlert.h"
 #import "PenteGame.h"
-#import "TSMessage.h"
-#import "TSMessageView.h"
+#import "PenteBanner.h"
 #import "penteLive-Swift.h"
 #import <QuartzCore/QuartzCore.h>
 
