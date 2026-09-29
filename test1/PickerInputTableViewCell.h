@@ -10,17 +10,13 @@
 
 @class PickerInputTableViewCell;
 
-@interface PickerInputTableViewCell
-    : UITableViewCell <UIKeyInput, UIPopoverControllerDelegate> {
-    // For iPad
-    UIPopoverController *popoverController;
+@interface PickerInputTableViewCell : UITableViewCell <UIKeyInput> {
     UIToolbar *inputAccessoryView;
     UIPickerView *picker;
     BOOL resign;
 }
 @property(atomic) BOOL resign;
 @property(nonatomic, strong) UIPickerView *picker;
-@property(nonatomic, retain) UIPopoverController *popoverController;
 
 - (void)doResign;
 
