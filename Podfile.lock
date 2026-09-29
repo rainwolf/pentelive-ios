@@ -4,11 +4,8 @@ PODS:
     - TUSafariActivity (~> 1.0.4)
   - ARChromeActivity (1.0.6)
   - CocoaAsyncSocket (7.6.5)
-  - HexColors (2.3.0)
   - InAppSettingsKit (3.9.2)
   - NSHash (1.1.0)
-  - TSMessages (0.9.13):
-    - HexColors (~> 2.3.0)
   - TUSafariActivity (1.0.4)
   - UIBarButtonItem-Badge (0.0.1)
 
@@ -17,7 +14,6 @@ DEPENDENCIES:
   - CocoaAsyncSocket
   - InAppSettingsKit
   - NSHash (~> 1.1.0)
-  - TSMessages (from `https://github.com/rainwolf/TSMessages.git`)
   - UIBarButtonItem-Badge (from `https://github.com/rainwolf/UIBarButtonItem-Badge.git`)
 
 SPEC REPOS:
@@ -25,21 +21,15 @@ SPEC REPOS:
     - AFWebViewController
     - ARChromeActivity
     - CocoaAsyncSocket
-    - HexColors
     - InAppSettingsKit
     - NSHash
     - TUSafariActivity
 
 EXTERNAL SOURCES:
-  TSMessages:
-    :git: https://github.com/rainwolf/TSMessages.git
   UIBarButtonItem-Badge:
     :git: https://github.com/rainwolf/UIBarButtonItem-Badge.git
 
 CHECKOUT OPTIONS:
-  TSMessages:
-    :commit: c638015178dcb81fc2b9147e777fbf37cc09c909
-    :git: https://github.com/rainwolf/TSMessages.git
   UIBarButtonItem-Badge:
     :commit: 8ec19330e7bec195a6dc0cf10024340959cc972b
     :git: https://github.com/rainwolf/UIBarButtonItem-Badge.git
@@ -48,13 +38,11 @@ SPEC CHECKSUMS:
   AFWebViewController: 3cee572a8e043f3ca7c5b5906dac149cb740ed1f
   ARChromeActivity: 5dcf9b9f09323761f992aff3525cdd777f83609d
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
-  HexColors: 6ad3947c3447a055a3aa8efa859def096351fe5f
   InAppSettingsKit: 960d91fde94cae12a007c2272e34700a171df600
   NSHash: 61d598c6d48957c5557f1eef0aeafd6ef5ec5fb7
-  TSMessages: eb3cf27b6900684a21bad4fe9ea426e287b8c839
   TUSafariActivity: afc55a00965377939107ce4fdc7f951f62454546
   UIBarButtonItem-Badge: 8f5ed4d32d32dbb03034d4f273d02c8da680236b
 
-PODFILE CHECKSUM: 510c5538fdd0b640aa27e2016cd09171cde1c676
+PODFILE CHECKSUM: 8905a585efe08511c24ff0e30ae8450c17675f3d
 
 COCOAPODS: 1.16.2
