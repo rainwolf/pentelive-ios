@@ -217,8 +217,11 @@
                              username, password];
         PenteWebViewController *webVC =
             [[PenteWebViewController alloc] initWithAddress:address];
-        [vc.navigationController pushViewController:webVC animated:YES];
-        [vc.actionPopoverView dismiss];
+        GamesTableViewController *gamesVC = vc;
+        [vc dismissActionPopoverThen:^{
+            [gamesVC.navigationController pushViewController:webVC
+                                                    animated:YES];
+        }];
     }
 
     //    NSString *username = [[NSUserDefaults standardUserDefaults]

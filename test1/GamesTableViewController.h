@@ -15,7 +15,7 @@
 #import "PenteSpinnerOverlay.h"
 #import "InvitationsViewController.h"
 #import "SettingsViewController.h"
-@import PopoverView;
+#import "PentePopover.h"
 
 @interface GameTableViewCell : UITableViewCell {
     UILabel *ratingLabel;
@@ -26,8 +26,7 @@
 
 @interface GamesTableViewController
     : UIPullToReloadTableViewController <UIGestureRecognizerDelegate,
-                                         NSURLConnectionDelegate,
-                                         PopoverViewDelegate> {
+                                         NSURLConnectionDelegate> {
     PentePlayer *player;
     Game *selectedGame;
     BoardViewController *boardController;
@@ -43,7 +42,7 @@
     GameTableViewCell *selectedInvitationCell, *selectedPublicInvitationCell;
     BOOL alreadyAskedAboutInvitations;
     int gamesLimit;
-    PopoverView *actionPopoverView;
+    PentePopover *actionPopoverView;
     PenteSpinnerOverlay *progressView;
     SettingsViewController *settingsViewController;
 }
@@ -67,7 +66,7 @@
 @property(atomic) int gamesLimit;
 @property(nonatomic, retain) GameTableViewCell *selectedInvitationCell,
     *selectedPublicInvitationCell;
-@property(nonatomic, retain, readwrite) PopoverView *actionPopoverView;
+@property(nonatomic, retain, readwrite) PentePopover *actionPopoverView;
 @property(strong, nonatomic) PenteSpinnerOverlay *progressView;
 @property(nonatomic, retain) SettingsViewController *settingsViewController;
 
@@ -83,5 +82,7 @@
 - (void)refreshDashboard;
 - (void)parseMessages;
 - (void)toInvitationsWithPlayer:(NSString *)playerName;
+/// Dismisses actionPopoverView (if any), then runs `then` once it is gone.
+- (void)dismissActionPopoverThen:(void (^)(void))then;
 
 @end
