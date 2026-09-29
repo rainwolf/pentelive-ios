@@ -9,7 +9,6 @@
 #import "PenteSpinnerOverlay.h"
 #import "SettingsViewController.h"
 #import "AppDelegate.h"
-#import "ChangeColorViewController.h"
 #import "GamesTableViewController.h"
 #import "IASKSettingsReader.h"
 #import "MMAIViewController.h"
@@ -22,13 +21,37 @@
 #define usernameKey @"username"
 #define passwordKey @"password"
 
-@interface SettingsViewController () <UINavigationControllerDelegate>
+@interface SettingsViewController () <UINavigationControllerDelegate,
+                                       UIColorPickerViewControllerDelegate>
 
 @end
+
+// Six lowercase hex digits (no leading '#') of the colour in sRGB, alpha
+// dropped. Same rounding and format as the old UIColor+Hex -cssString.
+static NSString *PenteHexStringForColor(UIColor *color) {
+    CGColorSpaceRef srgb = CGColorSpaceCreateWithName(kCGColorSpaceSRGB);
+    CGColorRef converted = CGColorCreateCopyByMatchingToColorSpace(
+        srgb, kCGRenderingIntentDefault, color.CGColor, NULL);
+    CGColorSpaceRelease(srgb);
+    if (converted == NULL || CGColorGetNumberOfComponents(converted) < 3) {
+        if (converted != NULL) {
+            CGColorRelease(converted);
+        }
+        return @"000000";
+    }
+    const CGFloat *c = CGColorGetComponents(converted);
+    uint red = (uint)roundf(MIN(MAX(c[0], 0.0), 1.0) * 255.f);
+    uint green = (uint)roundf(MIN(MAX(c[1], 0.0), 1.0) * 255.f);
+    uint blue = (uint)roundf(MIN(MAX(c[2], 0.0), 1.0) * 255.f);
+    CGColorRelease(converted);
+    return [NSString
+        stringWithFormat:@"%06x", (red << 16) | (green << 8) | blue];
+}
 
 @implementation SettingsViewController {
     UIImagePickerController *picker;
     BOOL subscribing;
+    UIColor *colorPickerInitialColor;
 }
 @synthesize username;
 @synthesize password;
@@ -46,6 +69,47 @@
 //    }
 //    return self;
 //}
+
+#pragma mark - UIColorPickerViewControllerDelegate
+
+- (void)colorPickerViewControllerDidFinish:
+    (UIColorPickerViewController *)viewController {
+    UIColor *color = viewController.selectedColor;
+    NSString *hex = PenteHexStringForColor(color);
+    if ([hex isEqualToString:PenteHexStringForColor(colorPickerInitialColor)]) {
+        return;
+    }
+    NSString *post = [NSString stringWithFormat:@"changeNameColor=%@", hex];
+    NSData *postData = [post dataUsingEncoding:NSASCIIStringEncoding
+                          allowLossyConversion:YES];
+    NSString *postLength =
+        [NSString stringWithFormat:@"%lu", (unsigned long)[postData length]];
+
+    NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
+    [request
+        setURL:[NSURL URLWithString:
+                          @"https://www.pente.org/gameServer/changeColor"]];
+    [request setHTTPMethod:@"POST"];
+    [request setValue:postLength forHTTPHeaderField:@"Content-Length"];
+    [request setValue:@"application/x-www-form-urlencoded"
+        forHTTPHeaderField:@"Content-Type"];
+    [request setHTTPBody:postData];
+    [request setTimeoutInterval:7.0];
+    [PenteHTTPClient sendRequest:request completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
+        if (error == nil) {
+            ((PenteNavigationViewController *)self.navigationController)
+                .player.myColor = color;
+        }
+        if (error) {
+            [PenteAlert showWithTitle:NSLocalizedString(@"Error", nil)
+                              message:[NSString stringWithFormat:
+                                                    NSLocalizedString(
+                                                        @"Reason: %@", nil),
+                                                    error.localizedDescription]
+                    cancelButtonTitle:@"OK"];
+        }
+    }];
+}
 
 - (BOOL)shouldAutorotate {
     UIInterfaceOrientation interfaceOrientation =
@@ -562,11 +626,17 @@
         if (!self.navC.player.subscriber) {
             return;
         }
-        ChangeColorViewController *vc = [[ChangeColorViewController alloc]
-            initWithColor:((PenteNavigationViewController *)
-                               self.navigationController)
-                              .player.myColor];
-        [self.navigationController pushViewController:vc animated:YES];
+        UIColor *currentColor = self.navC.player.myColor;
+        if (currentColor == nil) {
+            currentColor = [UIColor blackColor];
+        }
+        colorPickerInitialColor = currentColor;
+        UIColorPickerViewController *colorPicker =
+            [[UIColorPickerViewController alloc] init];
+        colorPicker.supportsAlpha = NO;
+        colorPicker.selectedColor = currentColor;
+        colorPicker.delegate = self;
+        [self presentViewController:colorPicker animated:YES completion:nil];
     }
     if ([specifier.key isEqualToString:@"changeAvatarButton"]) {
         //        NSLog([NSString stringWithFormat:@"kitty wth %@", self.navC]);

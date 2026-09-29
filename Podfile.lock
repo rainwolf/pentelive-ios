@@ -4,7 +4,6 @@ PODS:
     - TUSafariActivity (~> 1.0.4)
   - ARChromeActivity (1.0.6)
   - CocoaAsyncSocket (7.6.5)
-  - Color-Picker-for-iOS (2.0.2)
   - HexColors (2.3.0)
   - InAppSettingsKit (3.9.2)
   - NSHash (1.1.0)
@@ -16,35 +15,27 @@ PODS:
     - HexColors (~> 2.3.0)
   - TUSafariActivity (1.0.4)
   - UIBarButtonItem-Badge (0.0.1)
-  - "UIColor+Hex (1.0.1)":
-    - "UIColor+Hex/NSColor (= 1.0.1)"
-    - "UIColor+Hex/UIColor (= 1.0.1)"
-  - "UIColor+Hex/UIColor (1.0.1)"
 
 DEPENDENCIES:
   - AFWebViewController (~> 1.0)
   - CocoaAsyncSocket
-  - Color-Picker-for-iOS (~> 2.0)
   - InAppSettingsKit
   - NSHash (~> 1.1.0)
   - PopoverView (from `https://github.com/runway20/PopoverView.git`)
   - RMStore (~> 0.7)
   - TSMessages (from `https://github.com/rainwolf/TSMessages.git`)
   - UIBarButtonItem-Badge (from `https://github.com/rainwolf/UIBarButtonItem-Badge.git`)
-  - "UIColor+Hex"
 
 SPEC REPOS:
   https://github.com/CocoaPods/Specs.git:
     - AFWebViewController
     - ARChromeActivity
     - CocoaAsyncSocket
-    - Color-Picker-for-iOS
     - HexColors
     - InAppSettingsKit
     - NSHash
     - RMStore
     - TUSafariActivity
-    - "UIColor+Hex"
 
 EXTERNAL SOURCES:
   PopoverView:
@@ -69,7 +60,6 @@ SPEC CHECKSUMS:
   AFWebViewController: 3cee572a8e043f3ca7c5b5906dac149cb740ed1f
   ARChromeActivity: 5dcf9b9f09323761f992aff3525cdd777f83609d
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
-  Color-Picker-for-iOS: 1fe5c2bdad770aff88150393bb920e6718d03535
   HexColors: 6ad3947c3447a055a3aa8efa859def096351fe5f
   InAppSettingsKit: 960d91fde94cae12a007c2272e34700a171df600
   NSHash: 61d598c6d48957c5557f1eef0aeafd6ef5ec5fb7
@@ -78,8 +68,7 @@ SPEC CHECKSUMS:
   TSMessages: eb3cf27b6900684a21bad4fe9ea426e287b8c839
   TUSafariActivity: afc55a00965377939107ce4fdc7f951f62454546
   UIBarButtonItem-Badge: 8f5ed4d32d32dbb03034d4f273d02c8da680236b
-  "UIColor+Hex": 9fee91bb8e19f17dd40a79ae1e98949a6a84489d
 
-PODFILE CHECKSUM: c58b04e98e3f2048b28e446d9c5c7cd492cb129c
+PODFILE CHECKSUM: 5b49f2dfc39e75f836b28c14de483d1a94e78ff7
 
 COCOAPODS: 1.16.2
