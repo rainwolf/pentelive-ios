@@ -239,12 +239,13 @@ typedef NS_ENUM(NSInteger, PentePopoverState) {
     for (void (^completion)(void) in completions) {
         completion();
     }
-    // Drop the content once gone, so callers that keep the popover in a
-    // property don't keep its content (which often points back at them)
-    // alive. Last: clearing owner may release the final strong reference to
-    // self, so nothing on self is touched afterwards.
+    // The content stays alive for as long as the caller holds this popover,
+    // as it did with the old pod: some content (the picker cells) refuses to
+    // resign first responder and must not be freed while UIKit still points
+    // at it. Last: clearing owner may release the final strong reference to
+    // self, so nothing on self is touched afterwards (the local keeps the
+    // controller alive through the call).
     PentePopoverContentController *host = controller;
-    controller = nil;
     host.owner = nil;
 }
 
