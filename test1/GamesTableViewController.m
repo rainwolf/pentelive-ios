@@ -3823,7 +3823,9 @@ array, and add a new row to the table view
                 daysPassed = [lastRated timeIntervalSinceNow] / -86400.0;
             }
             if (!lastRated || daysPassed > 120) {
-                UIWindowScene *scene = self.view.window.windowScene;
+                UIWindowScene *scene =
+                    self.navigationController.view.window.windowScene
+                        ?: self.view.window.windowScene;
                 if (scene) {
                     [SKStoreReviewController requestReviewInScene:scene];
                 }
