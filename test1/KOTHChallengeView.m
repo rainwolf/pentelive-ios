@@ -12,7 +12,7 @@
 
 @implementation KOTHChallengeView
 @synthesize timeoutCell, restrictionCell;
-@synthesize popoverView;
+@synthesize popover;
 @synthesize invitee;
 @synthesize gameId;
 
@@ -331,7 +331,7 @@ NSArray<NSString *> *restrictions;
                 }
             }
 
-            [popoverView dismiss];
+            [popover dismiss];
         }];
     }
 }

@@ -9,7 +9,6 @@
 #import "InvitationsViewController.h"
 #import "PenteAlert.h"
 #import "PenteNavigationViewController.h"
-#import "PopoverView.h"
 #import <QuartzCore/QuartzCore.h>
 
 #define IS_IPHONE_5                                                            \

@@ -36,7 +36,7 @@ class PlayerTableCell: UITableViewCell {
     }
 }
 
-@objc class RoomViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, UITextFieldDelegate, PopoverViewDelegate {
+@objc class RoomViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, UITextFieldDelegate {
     @objc var room: GameRoom
     var socket: PenteLiveSocket!
     var segmentControl = UISegmentedControl(items: [NSLocalizedString("players", comment: ""), NSLocalizedString("tables", comment: "")])
@@ -510,11 +510,10 @@ class PlayerTableCell: UITableViewCell {
 
     @objc func createArenaTable() {
         self.setupView?.frame = CGRect(x: 0, y: 0, width: 4 * self.view.frame.width / 5, height: 360)
-        let popover = PopoverView()
         self.setupView?.reloadData()
-        self.setupView?.popoverView = popover
-        popover.delegate = self
-        popover.show(at: CGPoint(x: view.bounds.size.width - 20, y: view.frame.origin.y), in: view, withContentView: setupView)
+        if let setupView = self.setupView {
+            setupView.popoverView = PentePopover.showContentView(setupView, title: nil, at: CGPoint(x: view.bounds.size.width - 20, y: view.frame.origin.y), in: view, onDismiss: nil)
+        }
     }
     
     func arenaRequestJoinTableEvent(event: [String: Any]) {

@@ -7,7 +7,7 @@
 @import CocoaAsyncSocket;
 @import TSMessages;
 // #import "TSMessageView.h"
-@import PopoverView;
+#import "PentePopover.h"
 //@import SVWebViewController;
 #import "BoardViewController.h"
 @import AFWebViewController;

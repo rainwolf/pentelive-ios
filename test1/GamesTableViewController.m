@@ -6,6 +6,7 @@
 //  Copyright (c) 2012 Triade. All rights reserved.
 //
 
+#import "PenteSpinnerOverlay.h"
 #import "GamesTableViewController.h"
 #import "PenteGame.h"
 #import "PentePlayer.h"
@@ -19,6 +20,7 @@
 #import "SettingsViewController.h"
 #import "WhosOnlineView.h"
 #import <QuartzCore/QuartzCore.h>
+@import StoreKit;
 @import TSMessages;
 @import UserNotifications;
 #import "UIBarButtonItem+Badge.h"
@@ -61,7 +63,7 @@
     kothCollapsed;
 @synthesize selectedInvitationCell, selectedPublicInvitationCell;
 @synthesize gamesLimit;
-@synthesize actionPopoverView;
+@synthesize actionPopover;
 @synthesize progressView;
 @synthesize settingsViewController;
 
@@ -168,12 +170,9 @@ CGFloat bottomOffset = 0;
             setInteger:3
                 forKey:@"openInvitationsLimit"];
     }
-    self.progressView = [[ICDMaterialActivityIndicatorView alloc]
-                 initWithFrame:CGRectMake(0, 0, self.view.frame.size.width,
-                                          self.view.frame.size.height)
-        activityIndicatorStyle:ICDMaterialActivityIndicatorViewStyleLarge];
-    [self.progressView setBackgroundColor:[UIColor whiteColor]];
-    [self.progressView setAlpha:0.75];
+    self.progressView = [[PenteSpinnerOverlay alloc]
+        initWithFrame:CGRectMake(0, 0, self.view.frame.size.width,
+                                 self.view.frame.size.height)];
 
     if ([[UIDevice currentDevice] userInterfaceIdiom] ==
         UIUserInterfaceIdiomPhone) {
@@ -3909,30 +3908,57 @@ array, and add a new row to the table view
     }
     [buttonsArray addObject:button];
 
-    actionPopoverView = [PopoverView
-        showPopoverAtPoint:CGPointMake(self.view.bounds.size.width - 20,
-                                       self.tableView.contentOffset.y)
-                    inView:self.view
-             withViewArray:buttonsArray
-                  delegate:self];
+    actionPopover =
+        [PentePopover showViews:buttonsArray
+                          title:nil
+                        atPoint:CGPointMake(self.view.bounds.size.width - 20,
+                                            self.tableView.contentOffset.y)
+                         inView:self.view
+                      onDismiss:[self actionPopoverOnDismiss]];
+}
+
+/// The side effect every action popover had on dismissal.
+- (void (^)(void))actionPopoverOnDismiss {
+    __weak typeof(self) weakSelf = self;
+    return ^{
+        [weakSelf.progressView stopAnimating];
+        [weakSelf.progressView removeFromSuperview];
+    };
+}
+
+/// Dismisses the action popover (if any), then runs `then`. Navigation and
+/// new popovers go in `then`, because UIKit refuses to present while the
+/// popover is still animating out.
+- (void)dismissActionPopoverThen:(void (^)(void))then {
+    if (actionPopover != nil) {
+        [actionPopover dismissWithCompletion:then];
+    } else {
+        then();
+    }
 }
 
 - (void)toSocial {
-    [actionPopoverView dismiss];
-    SocialViewController *vc =
-        [[SocialViewController alloc] initWithPlayer:player];
-    [self.navigationController pushViewController:vc animated:YES];
+    [self dismissActionPopoverThen:^{
+        SocialViewController *vc =
+            [[SocialViewController alloc] initWithPlayer:self->player];
+        [self.navigationController pushViewController:vc animated:YES];
+    }];
 }
 
 - (void)toComposer {
-    [actionPopoverView dismiss];
-    [self performSegueWithIdentifier:@"messagesTap" sender:self];
+    [self dismissActionPopoverThen:^{
+        [self performSegueWithIdentifier:@"messagesTap" sender:self];
+    }];
     //    [self performSegueWithIdentifier:@"inviteAItap" sender:self];
 }
 
 - (void)showStats {
-    [actionPopoverView dismiss];
+    [self dismissActionPopoverThen:^{
+        [self presentStats];
+    }];
+}
 
+- (void)presentStats {
     CGFloat maxHeight = floor(self.view.frame.size.height * 4 / (5 * 44)) * 44;
 
     RatingStatsView *ratingView = [[RatingStatsView alloc]
@@ -3947,19 +3973,23 @@ array, and add a new row to the table view
     //    [ratingView setUserInteractionEnabled:NO];
     [ratingView setVc:self];
 
-    actionPopoverView = [PopoverView
-        showPopoverAtPoint:CGPointMake(self.view.bounds.size.width - 20,
-                                       self.tableView.contentOffset.y)
-                    inView:self.view
-                 withTitle:@"rating stats"
-           withContentView:ratingView
-                  delegate:self];
-    [actionPopoverView layoutSubviews];
+    actionPopover = [PentePopover
+        showContentView:ratingView
+                  title:@"rating stats"
+                atPoint:CGPointMake(self.view.bounds.size.width - 20,
+                                    self.tableView.contentOffset.y)
+                 inView:self.view
+              onDismiss:[self actionPopoverOnDismiss]];
     //    [ratingView setFrame: frame];
 }
 
 - (void)showOnlinePlayers {
-    [actionPopoverView dismiss];
+    [self dismissActionPopoverThen:^{
+        [self loadOnlinePlayers];
+    }];
+}
+
+- (void)loadOnlinePlayers {
     NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
     NSString *url =
         [NSString stringWithFormat:@"https://www.pente.org/gameServer/"
@@ -4045,24 +4075,17 @@ array, and add a new row to the table view
         [playersView setRooms:rooms];
         //            [self.playersView setPlayers:players];
         [playersView setVc:strongSelf];
-        strongSelf.actionPopoverView = [PopoverView
-            showPopoverAtPoint:CGPointMake(
-                                   strongSelf.view.bounds.size.width - 20,
-                                   strongSelf.tableView.contentOffset.y)
-                        inView:strongSelf.view
-                     withTitle:NSLocalizedString(@"who's online", nil)
-               withContentView:playersView
-                      delegate:strongSelf];
-        [strongSelf.actionPopoverView layoutSubviews];
+        strongSelf.actionPopover = [PentePopover
+            showContentView:playersView
+                      title:NSLocalizedString(@"who's online", nil)
+                    atPoint:CGPointMake(strongSelf.view.bounds.size.width - 20,
+                                        strongSelf.tableView.contentOffset.y)
+                     inView:strongSelf.view
+                  onDismiss:[strongSelf actionPopoverOnDismiss]];
         [playersView flashScrollIndicators];
     }];
 
     //    [ratingView setFrame: frame];
-}
-
-- (void)popoverViewDidDismiss:(PopoverView *)popoverView {
-    [self.progressView stopAnimating];
-    [self.progressView removeFromSuperview];
 }
 
 - (void)showInvitationActions {
@@ -4163,58 +4186,60 @@ array, and add a new row to the table view
         bttn.frame = frame;
     }
 
-    actionPopoverView = [PopoverView
-        showPopoverAtPoint:CGPointMake(self.view.bounds.size.width - 80,
-                                       self.tableView.contentOffset.y)
-                    inView:self.view
-             withViewArray:buttonsArray
-                  delegate:self];
-    //    actionPopoverView = [PopoverView showPopoverAtPoint:
-    //    CGPointMake(100.0f, 100.0f) inView:self.view withViewArray:
-    //    buttonsArray delegate:self]; actionPopoverView = [PopoverView
-    //    showPopoverAtPoint: CGPointMake(100.0f, 100.0f) inView:self.view
-    //    withViewArray: buttonsArray delegate:self]; actionPopoverView=
-    //    [PopoverView showPopoverAtPoint:CGPointMake(100.0f, 100.0f)
-    //    inView:self.tableView withTitle:@"test" withContentView:button
-    //    delegate:self];
+    actionPopover =
+        [PentePopover showViews:buttonsArray
+                          title:nil
+                        atPoint:CGPointMake(self.view.bounds.size.width - 80,
+                                            self.tableView.contentOffset.y)
+                         inView:self.view
+                      onDismiss:[self actionPopoverOnDismiss]];
 }
 
 - (void)toLive {
-    [actionPopoverView dismiss];
-    LobbyViewController *vc = [[LobbyViewController alloc] init];
-    [self.navigationController pushViewController:vc animated:YES];
+    [self dismissActionPopoverThen:^{
+        LobbyViewController *vc = [[LobbyViewController alloc] init];
+        [self.navigationController pushViewController:vc animated:YES];
+    }];
 }
 - (void)toRegularInvitations {
-    [actionPopoverView dismiss];
-    [self performSegueWithIdentifier:@"addInvitationsTap" sender:self];
+    [self dismissActionPopoverThen:^{
+        [self performSegueWithIdentifier:@"addInvitationsTap" sender:self];
+    }];
     //    [self performSegueWithIdentifier:@"inviteAItap" sender:self];
 }
 - (void)toInvitationsWithPlayer:(NSString *)playerName {
-    [actionPopoverView dismiss];
-    if (![playerName isEqualToString:username]) {
-        PenteNavigationViewController *navController =
-            (PenteNavigationViewController *)self.navigationController;
-        [navController setChallengedUser:playerName];
-        [self performSegueWithIdentifier:@"addInvitationsTap" sender:self];
-    } else {
-        PenteWebViewController *webVC = [[PenteWebViewController alloc]
-            initWithAddress:
-                [NSString stringWithFormat:@"https://www.pente.org/"
-                                           @"gameServer/profile?viewName=%@",
-                                           username]];
-        [self.navigationController pushViewController:webVC animated:YES];
-    }
+    [self dismissActionPopoverThen:^{
+        if (![playerName isEqualToString:self->username]) {
+            PenteNavigationViewController *navController =
+                (PenteNavigationViewController *)self.navigationController;
+            [navController setChallengedUser:playerName];
+            [self performSegueWithIdentifier:@"addInvitationsTap" sender:self];
+        } else {
+            PenteWebViewController *webVC = [[PenteWebViewController alloc]
+                initWithAddress:[NSString stringWithFormat:
+                                              @"https://www.pente.org/"
+                                              @"gameServer/profile?viewName=%@",
+                                              self->username]];
+            [self.navigationController pushViewController:webVC animated:YES];
+        }
+    }];
 }
 - (void)toMMAI {
-    [actionPopoverView dismiss];
-    [self performSegueWithIdentifier:@"MMAItap" sender:self];
+    [self dismissActionPopoverThen:^{
+        [self performSegueWithIdentifier:@"MMAItap" sender:self];
+    }];
 }
 - (void)toAIInvitations {
-    [actionPopoverView dismiss];
-    [self performSegueWithIdentifier:@"inviteAItap" sender:self];
+    [self dismissActionPopoverThen:^{
+        [self performSegueWithIdentifier:@"inviteAItap" sender:self];
+    }];
 }
 - (void)toDatabase {
-    [actionPopoverView dismiss];
+    [self dismissActionPopoverThen:^{
+        [self openDatabase];
+    }];
+}
+- (void)openDatabase {
     if (player && !player.dbAccess) {
         UIAlertController *subscribersOnlyController = [UIAlertController
             alertControllerWithTitle:NSLocalizedString(@"Level up your game",

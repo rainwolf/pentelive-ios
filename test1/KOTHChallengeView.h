@@ -6,7 +6,7 @@
 //  Copyright © 2016 Triade. All rights reserved.
 //
 
-#import "PopoverView.h"
+#import "PentePopover.h"
 #import "SimplePickerInputTableViewCell.h"
 #import "penteLive-Swift.h"
 #import <UIKit/UIKit.h>
@@ -15,13 +15,13 @@
     : UITableView <UITableViewDelegate, UITableViewDataSource,
                    UIPickerViewDataSource, UIPickerViewDelegate> {
     InputPickerCell *timeoutCell, *restrictionCell;
-    PopoverView *popoverView;
+    PentePopover *popover;
     NSString *invitee;
     int gameId;
 }
 @property(nonatomic, retain, readwrite) InputPickerCell *timeoutCell,
     *restrictionCell;
-@property(nonatomic, retain, readwrite) PopoverView *popoverView;
+@property(nonatomic, retain, readwrite) PentePopover *popover;
 @property(nonatomic, retain, readwrite) NSString *gameStr, *invitee;
 @property(atomic, assign, readwrite) int gameId;
 - (void)dismissPicker:(id)sender;

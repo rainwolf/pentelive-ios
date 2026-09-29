@@ -217,8 +217,11 @@
                              username, password];
         PenteWebViewController *webVC =
             [[PenteWebViewController alloc] initWithAddress:address];
-        [vc.navigationController pushViewController:webVC animated:YES];
-        [vc.actionPopoverView dismiss];
+        GamesTableViewController *gamesVC = vc;
+        [vc dismissActionPopoverThen:^{
+            [gamesVC.navigationController pushViewController:webVC
+                                                    animated:YES];
+        }];
     }
 
     //    NSString *username = [[NSUserDefaults standardUserDefaults]
@@ -250,7 +253,7 @@
     //    stringWithFormat:@"https://www.pente.org/gameServer/viewLiveGames?p=%@&g=%@",
     //    username, game]; SVWebViewController *webViewController =
     //    [[SVWebViewController alloc] initWithAddress: urlString];
-    //    [vc.actionPopoverView dismiss];
+    //    [vc.actionPopover dismiss];
     //    [vc.navigationController pushViewController:webViewController
     //    animated:YES];
 }

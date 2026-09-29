@@ -11,7 +11,6 @@
 #import "BoardViewController.h"
 #import "GamesTableViewController.h"
 //@import Firebase;
-@import RMStore;
 #import "PenteNavigationViewController.h"
 #import "SceneDelegate.h"
 @import TSMessages;
@@ -30,6 +29,8 @@
     // that method for why the payload itself is the key.
     NSDictionary *_lastHandledUserInfo;
     NSTimeInterval _lastHandledAt;
+    // Main-queue only; see -sendPendingReceipt.
+    BOOL _receiptPostInFlight;
 }
 @synthesize notification;
 @synthesize sndID, broadcastSndID;
@@ -159,28 +160,94 @@
 
     [[TSMessageView appearance] setAlpha:0.9f];
 
-    NSSet *products = [NSSet setWithArray:@[ @"1YRNOADSORLIMITS" ]];
-    [[RMStore defaultStore] requestProducts:products
-        success:^(NSArray *products, NSArray *invalidProductIdentifiers) {
+    [[SubscriptionStore shared]
+        loadProductWithCompletion:^(SubscriptionProduct *product,
+                                    NSError *error) {
+            if (product == nil) {
+                NSLog(@"Something went wrong, %@", error);
+                return;
+            }
             // Async completion: resolve the scene root when the block runs, not
             // when it was created. This method runs before the scene connects.
             PenteNavigationViewController *nav =
                 [AppDelegate rootNavigationController];
-            for (SKProduct *product in products) {
-                if ([product.productIdentifier
-                        isEqualToString:@"1YRNOADSORLIMITS"]) {
-                    [nav setSubscription:product];
-                }
-            }
-        }
-        failure:^(NSError *error) {
-            NSLog(@"Something went wrong");
+            [nav setSubscription:product];
         }];
+    [[NSNotificationCenter defaultCenter]
+        addObserver:self
+           selector:@selector(receiptNeedsSendingNotification:)
+               name:SubscriptionStore.receiptNeedsSendingNotification
+             object:nil];
+    [[SubscriptionStore shared] start];
 
+    // Refresh at launch only to retry a purchase or restore whose refresh
+    // failed: the refresh can show an Apple ID sign-in prompt.
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    if ([defaults boolForKey:@"shouldSendReceipt"] &&
+        [defaults boolForKey:@"shouldRefreshReceipt"]) {
+        [self refreshReceiptThenSend];
+    } else {
+        [self sendPendingReceipt];
+    }
+
+    return YES;
+}
+
+// SubscriptionStore reported a transaction no purchase or restore caller
+// registers (Ask-to-Buy approval, renewal). A StoreKit 2 transaction does not
+// rewrite the receipt on disk, so an initial purchase refreshes it before
+// sending. A renewal is sent as before: once a refresh or a StoreKit 1
+// purchase has written the subscription into the receipt on disk,
+// verifyReceipt's latest_receipt_info reports its renewals.
+- (void)receiptNeedsSendingNotification:(NSNotification *)notification {
+    NSNumber *needsRefresh =
+        notification.userInfo[SubscriptionStore.needsReceiptRefreshKey];
+    if (![needsRefresh boolValue]) {
+        [self sendPendingReceipt];
+        return;
+    }
+    [[NSUserDefaults standardUserDefaults] setBool:YES
+                                            forKey:@"shouldRefreshReceipt"];
+    [self refreshReceiptThenSend];
+}
+
+// Refreshes the receipt, then sends it. SubscriptionStore clears
+// shouldRefreshReceipt when a refresh succeeds. While it is still set the
+// receipt on disk lacks the purchase, and the server would call it invalid and
+// clear shouldSendReceipt, so skip the POST and keep both flags for the next
+// launch.
+- (void)refreshReceiptThenSend {
+    [[SubscriptionStore shared] refreshReceiptWithCompletion:^(NSError *error) {
+        if (error != nil) {
+            NSLog(@"Receipt refresh failed: %@", error);
+        }
+        if ([[NSUserDefaults standardUserDefaults]
+                boolForKey:@"shouldRefreshReceipt"]) {
+            return;
+        }
+        [self sendPendingReceipt];
+    }];
+}
+
+// Uploads the App Store receipt to pente.org while shouldSendReceipt is set.
+// Runs at launch and whenever SubscriptionStore reports a transaction that no
+// purchase or restore caller registers (Ask-to-Buy approval, renewal). Always
+// on the main queue, so the in-flight flag keeps a second trigger from racing
+// the first POST on the flag.
+- (void)sendPendingReceipt {
+    if (_receiptPostInFlight) {
+        return;
+    }
     if ([[NSUserDefaults standardUserDefaults]
             boolForKey:@"shouldSendReceipt"]) {
         NSURL *receiptURL = [[NSBundle mainBundle] appStoreReceiptURL];
         NSData *receipt = [NSData dataWithContentsOfURL:receiptURL];
+        if (receipt == nil) {
+            // No receipt on disk yet (e.g. a development install). Keep the
+            // flag so a later launch sends it once one exists.
+            NSLog(@"No App Store receipt to send yet");
+            return;
+        }
 
         NSString *url =
             @"https://www.pente.org/gameServer/iOSReceiptValidation";
@@ -208,7 +275,9 @@
 
         //    [request setHTTPShouldUsePipelining: YES];
 
+        _receiptPostInFlight = YES;
         [PenteHTTPClient sendRequest:request completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
+        _receiptPostInFlight = NO;
         NSString *dashboardString =
             [[NSString alloc] initWithData:responseData
                                   encoding:NSUTF8StringEncoding];
@@ -308,8 +377,6 @@
         }
         }];
     }
-
-    return YES;
 }
 
 - (void)applicationWillTerminate:(UIApplication *)application {
@@ -712,6 +779,9 @@ static NSString *DSGAlertComponentOrNil(NSArray<NSString *> *components,
 
 - (NSString *)URLEncodedString_ch:(NSString *)input {
     NSMutableString *output = [NSMutableString string];
+    if (input == nil) {
+        return output;
+    }
     const unsigned char *source = (const unsigned char *)[input UTF8String];
     int sourceLen = (int)strlen((const char *)source);
     for (int i = 0; i < sourceLen; ++i) {

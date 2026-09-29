@@ -8,7 +8,7 @@
 
 #import "KOTHChallengeView.h"
 #import "PentePlayer.h"
-#import "PopoverView.h"
+#import "PentePopover.h"
 #import <UIKit/UIKit.h>
 
 @class Hill;
@@ -27,18 +27,18 @@
 @end
 
 @interface KOTHTableViewController
-    : UITableViewController <PopoverViewDelegate, UIScrollViewDelegate> {
+    : UITableViewController <UIScrollViewDelegate> {
     Hill *hill;
     KingOfTheHill *hillSummary;
     PentePlayer *player;
-    PopoverView *actionPopoverView;
+    PentePopover *actionPopover;
     KOTHChallengeView *challengeView;
 }
 
 @property(nonatomic, retain, readwrite) PentePlayer *player;
 @property(nonatomic, retain, readwrite) Hill *hill;
 @property(nonatomic, retain, readwrite) KingOfTheHill *hillSummary;
-@property(nonatomic, retain, readwrite) PopoverView *actionPopoverView;
+@property(nonatomic, retain, readwrite) PentePopover *actionPopover;
 @property(nonatomic, retain, readwrite) KOTHChallengeView *challengeView;
 
 @end

@@ -25,7 +25,6 @@
 #import "MMAI.h"
 #import "PenteGame.h"
 #import "penteLive-Swift.h"
-#import "PopoverView.h"
 #import "TSMessage.h"
 #import "TSMessageView.h"
 #import <QuartzCore/QuartzCore.h>
@@ -722,17 +721,16 @@
 
 - (void)showSetup {
 
-    messagePopover = [PopoverView
-        showPopoverAtPoint:CGPointMake(self.view.bounds.size.width - 20, 0)
-                    inView:self.view
-                 withTitle:NSLocalizedString(@"settings", nil)
-           withContentView:setupView
-                  delegate:self];
-    [messagePopover layoutSubviews];
-}
-
-- (void)popoverViewDidDismiss:(PopoverView *)popoverView {
-    [setupView.difficultyCell.textField resignFirstResponder];
+    __weak typeof(self) weakSelf = self;
+    messagePopover = [PentePopover
+        showContentView:setupView
+                  title:NSLocalizedString(@"settings", nil)
+                atPoint:CGPointMake(self.view.bounds.size.width - 20, 0)
+                 inView:self.view
+              onDismiss:^{
+                  [weakSelf.setupView.difficultyCell
+                          .textField resignFirstResponder];
+              }];
 }
 
 @end

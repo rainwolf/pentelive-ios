@@ -20,7 +20,7 @@ class TableNavigationBar: UINavigationBar {
     }
 }
 
-class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizerDelegate, PopoverViewDelegate, UIPickerViewDelegate, UIPickerViewDataSource {
+class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecognizerDelegate, UIPickerViewDelegate, UIPickerViewDataSource {
     var socket: PenteLiveSocket!
     var table: Table!
     let board: LiveBoard!
@@ -46,7 +46,6 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
     var setupView: TableSetupView?
     var arenaJoinRequestView: ArenaJoinRequestList?
     weak var arenaJoinRequestVC: UIViewController?
-    var popoverView: PopoverView?
     var isArenaTable = false
 
     enum RenjuBoardMode { case idle, placing, offering, selecting }
@@ -442,10 +441,10 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
 
     @objc func showSettings() {
         if me == table.owner, table.state.state == .notStarted {
-            let popover = PopoverView()
             setupView?.reloadData()
-            popover.delegate = self
-            popover.show(at: CGPoint(x: view.bounds.size.width - 20, y: board.frame.origin.y), in: view, withContentView: setupView)
+            if let setupView = setupView {
+                PentePopover.showContentView(setupView, title: nil, at: CGPoint(x: view.bounds.size.width - 20, y: board.frame.origin.y), in: view, onDismiss: nil)
+            }
         }
     }
 
@@ -538,7 +537,6 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
     }
 
     func showTablePlayers() {
-        let popover = PopoverView()
         let playerView = TablePlayers(frame: CGRect(x: 0, y: 0, width: 260, height: view.frame.size.height * 2 / 3), style: .plain)
         playerView.pentePlayer = pentePlayer
         playerView.game = table.game
@@ -548,8 +546,7 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
         playerView.layer.borderWidth = 1.0
         playerView.layer.cornerRadius = 1.0
         playerView.reloadData()
-        popover.delegate = self
-        popover.show(at: CGPoint(x: view.bounds.size.width - 20, y: board.frame.origin.y), in: view, withContentView: playerView)
+        PentePopover.showContentView(playerView, title: nil, at: CGPoint(x: view.bounds.size.width - 20, y: board.frame.origin.y), in: view, onDismiss: nil)
     }
 
     func showInvitationDialog() {

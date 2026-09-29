@@ -8,10 +8,12 @@
 
 //@import GoogleMobileAds;
 #import <UIKit/UIKit.h>
-@import StoreKit;
 // #import <GoogleMobileAds/GoogleMobileAds.h>
 #import "AppDelegate.h"
 #import "PentePlayer.h"
+
+// Swift class bridged to ObjC via penteLive-Swift.h (imported in the .m files).
+@class SubscriptionProduct;
 
 @interface PenteNavigationViewController : UINavigationController {
     BOOL loggedIn, didMove, messageDeleted, challengeCancelled, needHelp,
@@ -21,7 +23,7 @@
     //    GADBannerView *bannerView;
     NSDictionary *receivedNotification;
     PentePlayer *player;
-    SKProduct *subscription;
+    SubscriptionProduct *subscription;
 }
 @property(nonatomic, retain) NSString *activeGameToRemove,
     *unchallengedMessageID, *challengedUser;
@@ -31,7 +33,7 @@
 //@property(nonatomic,retain) GADBannerView *bannerView;
 @property(nonatomic, retain) NSDictionary *receivedNotification;
 @property(nonatomic, retain) PentePlayer *player;
-@property(nonatomic, retain) SKProduct *subscription;
+@property(nonatomic, retain) SubscriptionProduct *subscription;
 
 //- (void)adViewWillLeaveApplication:(GADBannerView *)bannerViewl;
 

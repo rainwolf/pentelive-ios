@@ -80,8 +80,11 @@
     }
     PenteWebViewController *webViewController =
         [[PenteWebViewController alloc] initWithAddress:urlString];
-    [vc.actionPopoverView dismiss];
-    [vc.navigationController pushViewController:webViewController animated:YES];
+    GamesTableViewController *gamesVC = vc;
+    [vc dismissActionPopoverThen:^{
+        [gamesVC.navigationController pushViewController:webViewController
+                                                animated:YES];
+    }];
 }
 
 - (void)addColorOfRating:(NSString *)rating

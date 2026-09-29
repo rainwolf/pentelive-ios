@@ -6,13 +6,12 @@
 //  Copyright (c) 2012 Triade. All rights reserved.
 //
 
+#import "PenteSpinnerOverlay.h"
 #import "SettingsViewController.h"
 #import "AppDelegate.h"
-#import "ChangeColorViewController.h"
 #import "GamesTableViewController.h"
 #import "IASKSettingsReader.h"
 #import "MMAIViewController.h"
-#import "RMStore.h"
 #import "penteLive-Swift.h"
 #import "PenteAlert.h"
 @import TSMessages;
@@ -21,13 +20,37 @@
 #define usernameKey @"username"
 #define passwordKey @"password"
 
-@interface SettingsViewController () <UINavigationControllerDelegate>
+@interface SettingsViewController () <UINavigationControllerDelegate,
+                                       UIColorPickerViewControllerDelegate>
 
 @end
+
+// Six lowercase hex digits (no leading '#') of the colour in sRGB, alpha
+// dropped. Same rounding and format as the old UIColor+Hex -cssString.
+static NSString *PenteHexStringForColor(UIColor *color) {
+    CGColorSpaceRef srgb = CGColorSpaceCreateWithName(kCGColorSpaceSRGB);
+    CGColorRef converted = CGColorCreateCopyByMatchingToColorSpace(
+        srgb, kCGRenderingIntentDefault, color.CGColor, NULL);
+    CGColorSpaceRelease(srgb);
+    if (converted == NULL || CGColorGetNumberOfComponents(converted) < 3) {
+        if (converted != NULL) {
+            CGColorRelease(converted);
+        }
+        return @"000000";
+    }
+    const CGFloat *c = CGColorGetComponents(converted);
+    uint red = (uint)roundf(MIN(MAX(c[0], 0.0), 1.0) * 255.f);
+    uint green = (uint)roundf(MIN(MAX(c[1], 0.0), 1.0) * 255.f);
+    uint blue = (uint)roundf(MIN(MAX(c[2], 0.0), 1.0) * 255.f);
+    CGColorRelease(converted);
+    return [NSString
+        stringWithFormat:@"%06x", (red << 16) | (green << 8) | blue];
+}
 
 @implementation SettingsViewController {
     UIImagePickerController *picker;
     BOOL subscribing;
+    UIColor *colorPickerInitialColor;
 }
 @synthesize username;
 @synthesize password;
@@ -45,6 +68,47 @@
 //    }
 //    return self;
 //}
+
+#pragma mark - UIColorPickerViewControllerDelegate
+
+- (void)colorPickerViewControllerDidFinish:
+    (UIColorPickerViewController *)viewController {
+    UIColor *color = viewController.selectedColor;
+    NSString *hex = PenteHexStringForColor(color);
+    if ([hex isEqualToString:PenteHexStringForColor(colorPickerInitialColor)]) {
+        return;
+    }
+    NSString *post = [NSString stringWithFormat:@"changeNameColor=%@", hex];
+    NSData *postData = [post dataUsingEncoding:NSASCIIStringEncoding
+                          allowLossyConversion:YES];
+    NSString *postLength =
+        [NSString stringWithFormat:@"%lu", (unsigned long)[postData length]];
+
+    NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
+    [request
+        setURL:[NSURL URLWithString:
+                          @"https://www.pente.org/gameServer/changeColor"]];
+    [request setHTTPMethod:@"POST"];
+    [request setValue:postLength forHTTPHeaderField:@"Content-Length"];
+    [request setValue:@"application/x-www-form-urlencoded"
+        forHTTPHeaderField:@"Content-Type"];
+    [request setHTTPBody:postData];
+    [request setTimeoutInterval:7.0];
+    [PenteHTTPClient sendRequest:request completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
+        if (error == nil) {
+            ((PenteNavigationViewController *)self.navigationController)
+                .player.myColor = color;
+        }
+        if (error) {
+            [PenteAlert showWithTitle:NSLocalizedString(@"Error", nil)
+                              message:[NSString stringWithFormat:
+                                                    NSLocalizedString(
+                                                        @"Reason: %@", nil),
+                                                    error.localizedDescription]
+                    cancelButtonTitle:@"OK"];
+        }
+    }];
+}
 
 - (BOOL)shouldAutorotate {
     UIInterfaceOrientation interfaceOrientation =
@@ -561,11 +625,17 @@
         if (!self.navC.player.subscriber) {
             return;
         }
-        ChangeColorViewController *vc = [[ChangeColorViewController alloc]
-            initWithColor:((PenteNavigationViewController *)
-                               self.navigationController)
-                              .player.myColor];
-        [self.navigationController pushViewController:vc animated:YES];
+        UIColor *currentColor = self.navC.player.myColor;
+        if (currentColor == nil) {
+            currentColor = [UIColor blackColor];
+        }
+        colorPickerInitialColor = currentColor;
+        UIColorPickerViewController *colorPicker =
+            [[UIColorPickerViewController alloc] init];
+        colorPicker.supportsAlpha = NO;
+        colorPicker.selectedColor = currentColor;
+        colorPicker.delegate = self;
+        [self presentViewController:colorPicker animated:YES completion:nil];
     }
     if ([specifier.key isEqualToString:@"changeAvatarButton"]) {
         //        NSLog([NSString stringWithFormat:@"kitty wth %@", self.navC]);
@@ -632,12 +702,7 @@
     if (self.navC.subscription == nil) {
         return;
     }
-    SKProduct *product = self.navC.subscription;
-    NSNumberFormatter *numberFormatter = [[NSNumberFormatter alloc] init];
-    [numberFormatter setFormatterBehavior:NSNumberFormatterBehavior10_4];
-    [numberFormatter setNumberStyle:NSNumberFormatterCurrencyStyle];
-    [numberFormatter setLocale:product.priceLocale];
-    NSString *formattedPrice = [numberFormatter stringFromNumber:product.price];
+    NSString *formattedPrice = self.navC.subscription.displayPrice;
 
     UILabel *subscribeText = [[UILabel alloc]
         initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width * 9 / 10,
@@ -757,121 +822,96 @@
     //        forState:UIControlStateNormal]; [subscribeButton
     //        setContentHorizontalAlignment:UIControlContentHorizontalAlignmentLeft];
 
-    self.progressView = [[ICDMaterialActivityIndicatorView alloc]
-                 initWithFrame:CGRectMake(0, 0, self.view.frame.size.width,
-                                          self.view.frame.size.height)
-        activityIndicatorStyle:ICDMaterialActivityIndicatorViewStyleLarge];
-    [self.progressView setBackgroundColor:[UIColor whiteColor]];
-    [self.progressView setAlpha:0.75];
+    // Don't orphan a spinner an earlier flow left up.
+    [self.progressView stopAnimating];
+    [self.progressView removeFromSuperview];
+    self.progressView = [[PenteSpinnerOverlay alloc]
+        initWithFrame:CGRectMake(0, 0, self.view.frame.size.width,
+                                 self.view.frame.size.height)];
     [self.progressView startAnimating];
     [self.view addSubview:self.progressView];
-    popoverView = [PopoverView
-        showPopoverAtPoint:CGPointMake(self.view.bounds.size.width / 2,
-                                       [self.tableView contentOffset].y)
-                    inView:self.view
-                 withTitle:NSLocalizedString(@"Subscribe today and", nil)
-             withViewArray:@[
-                 subscribeText, priceText, clearInfoText,
-                 privacyPolicyAndTOSText, eulaText, subscribeButton
-             ]
-                  delegate:self];
-    [popoverView setDelegate:self];
+    __weak typeof(self) weakSelf = self;
+    void (^onDismiss)(void) = ^{
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        if (strongSelf == nil) {
+            return;
+        }
+        if (!strongSelf->subscribing) {
+            [strongSelf.progressView stopAnimating];
+            [strongSelf.progressView removeFromSuperview];
+        }
+    };
+    popoverView =
+        [PentePopover showViews:@[
+            subscribeText, priceText, clearInfoText, privacyPolicyAndTOSText,
+            eulaText, subscribeButton
+        ]
+                          title:NSLocalizedString(@"Subscribe today and", nil)
+                        atPoint:CGPointMake(self.view.bounds.size.width / 2,
+                                            [self.tableView contentOffset].y)
+                         inView:self.view
+                      onDismiss:onDismiss];
+    if (popoverView == nil) {
+        // Nothing was shown, so don't leave the spinner up.
+        onDismiss();
+    }
 }
 
 - (void)openPrivacyPolicyAndTOS {
     PenteWebViewController *webViewController = [[PenteWebViewController alloc]
         initWithAddress:
             @"https://www.pente.org/help/helpWindow.jsp?file=privacyPolicy"];
-    [self.navigationController pushViewController:webViewController
-                                         animated:YES];
-    [navC setShowSubscribe:YES];
-    [popoverView dismiss];
+    [popoverView dismissWithCompletion:^{
+        [self.navigationController pushViewController:webViewController
+                                             animated:YES];
+        [self->navC setShowSubscribe:YES];
+    }];
 }
 - (void)openEULA {
     PenteWebViewController *webViewController = [[PenteWebViewController alloc]
         initWithAddress:@"https://www.pente.org/help/helpWindow.jsp?file=eula"];
-    [self.navigationController pushViewController:webViewController
-                                         animated:YES];
-    [navC setShowSubscribe:YES];
-    [popoverView dismiss];
+    [popoverView dismissWithCompletion:^{
+        [self.navigationController pushViewController:webViewController
+                                             animated:YES];
+        [self->navC setShowSubscribe:YES];
+    }];
 }
 - (void)subscribe:(UIButton *)sender {
     subscribing = YES;
-    [[RMStore defaultStore] addPayment:self.navC.subscription.productIdentifier
-        success:^(SKPaymentTransaction *transaction) {
+    [[SubscriptionStore shared] purchaseWithCompletion:^(
+                                    SubscriptionPurchaseResult result,
+                                    NSError *error) {
+        if (result == SubscriptionPurchaseResultPurchased) {
             [[NSUserDefaults standardUserDefaults]
                 setBool:YES
                  forKey:@"shouldSendReceipt"];
-            NSURL *receiptURL = [[NSBundle mainBundle] appStoreReceiptURL];
-            NSData *receipt = [NSData dataWithContentsOfURL:receiptURL];
-
-            NSString *url =
-                @"https://www.pente.org/gameServer/iOSReceiptValidation";
-            NSString *postString = [NSString
-                stringWithFormat:
-                    @"name=%@&receipt=%@",
-                    [[NSUserDefaults standardUserDefaults]
-                        stringForKey:usernameKey],
-                    [self URLEncodedString_ch:
-                              [receipt base64EncodedStringWithOptions:0]]];
-
-            NSData *postData =
-                [postString dataUsingEncoding:NSASCIIStringEncoding
-                         allowLossyConversion:YES];
-            NSString *postLength = [NSString
-                stringWithFormat:@"%lu", (unsigned long)[postData length]];
-
-            NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
-            [request setURL:[NSURL URLWithString:url]];
-            [request setHTTPMethod:@"POST"];
-            [request setValue:postLength forHTTPHeaderField:@"Content-Length"];
-            [request setValue:@"application/x-www-form-urlencoded"
-                forHTTPHeaderField:@"Content-Type"];
-            [request setHTTPBody:postData];
-            [request setTimeoutInterval:20.0];
-
-            //    [request setHTTPShouldUsePipelining: YES];
-
-            __weak typeof(self) weakSelf = self;
-            [PenteHTTPClient sendRequest:request completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
-                NSString *dashboardString =
-                    [[NSString alloc] initWithData:responseData
-                                          encoding:NSUTF8StringEncoding];
-                //        NSLog(dashboardString);
-
-                [weakSelf.progressView stopAnimating];
-                [weakSelf.progressView removeFromSuperview];
-                if ([dashboardString containsString:@"success"]) {
-                    [[NSUserDefaults standardUserDefaults]
-                        setBool:NO
-                         forKey:@"shouldSendReceipt"];
+            // A StoreKit 2 purchase does not rewrite the receipt on disk, so
+            // ask for a fresh one before reading it. shouldRefreshReceipt
+            // stays set until a refresh succeeds, and the launch retry
+            // refreshes again while it is.
+            [[NSUserDefaults standardUserDefaults]
+                setBool:YES
+                 forKey:@"shouldRefreshReceipt"];
+            [[SubscriptionStore shared] refreshReceiptWithCompletion:^(
+                                            NSError *refreshError) {
+                if (refreshError != nil) {
+                    NSLog(@"Receipt refresh failed: %@", refreshError);
+                }
+                BOOL receiptIsStale = [[NSUserDefaults standardUserDefaults]
+                    boolForKey:@"shouldRefreshReceipt"];
+                NSURL *receiptURL = [[NSBundle mainBundle] appStoreReceiptURL];
+                NSData *receipt = [NSData dataWithContentsOfURL:receiptURL];
+                if (receipt == nil || receiptIsStale) {
+                    // No receipt to send yet, or the refresh failed and the
+                    // receipt lacks the purchase (the server would call it
+                    // invalid): keep shouldSendReceipt so the launch retry
+                    // registers the purchase, and report it like a failed
+                    // registration POST.
+                    subscribing = NO;
+                    [self.progressView stopAnimating];
+                    [self.progressView removeFromSuperview];
                     [TSMessage
-                        showNotificationInViewController:
-                            weakSelf.navigationController
-                                                   title:NSLocalizedString(
-                                                             @"Purchase "
-                                                             @"registration "
-                                                             @"successful",
-                                                             nil)
-                                                subtitle:nil
-                                                   image:nil
-                                                    type:
-                                                        TSMessageNotificationTypeSuccess
-                                                duration:
-                                                    TSMessageNotificationDurationAutomatic
-                                                callback:^{
-                                                    [TSMessage
-                                                        dismissActiveNotification];
-                                                }
-                                             buttonTitle:nil
-                                          buttonCallback:nil
-                                              atPosition:
-                                                  TSMessageNotificationPositionBottom
-                                    canBeDismissedByUser:YES];
-                } else {
-                    [TSMessage
-                        showNotificationInViewController:
-                            weakSelf.navigationController
+                        showNotificationInViewController:self.navigationController
                                                    title:NSLocalizedString(
                                                              @"Purchase "
                                                              @"registration "
@@ -899,11 +939,147 @@
                                               atPosition:
                                                   TSMessageNotificationPositionBottom
                                     canBeDismissedByUser:YES];
+                    return;
                 }
+
+                NSString *url =
+                    @"https://www.pente.org/gameServer/iOSReceiptValidation";
+                NSString *postString = [NSString
+                    stringWithFormat:
+                        @"name=%@&receipt=%@",
+                        [[NSUserDefaults standardUserDefaults]
+                            stringForKey:usernameKey],
+                        [self URLEncodedString_ch:
+                                  [receipt base64EncodedStringWithOptions:0]]];
+
+                NSData *postData =
+                    [postString dataUsingEncoding:NSASCIIStringEncoding
+                             allowLossyConversion:YES];
+                NSString *postLength = [NSString
+                    stringWithFormat:@"%lu", (unsigned long)[postData length]];
+
+                NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
+                [request setURL:[NSURL URLWithString:url]];
+                [request setHTTPMethod:@"POST"];
+                [request setValue:postLength forHTTPHeaderField:@"Content-Length"];
+                [request setValue:@"application/x-www-form-urlencoded"
+                    forHTTPHeaderField:@"Content-Type"];
+                [request setHTTPBody:postData];
+                [request setTimeoutInterval:20.0];
+
+                //    [request setHTTPShouldUsePipelining: YES];
+
+                __weak typeof(self) weakSelf = self;
+                [PenteHTTPClient sendRequest:request completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
+                    NSString *dashboardString =
+                        [[NSString alloc] initWithData:responseData
+                                              encoding:NSUTF8StringEncoding];
+                    //        NSLog(dashboardString);
+
+                    __strong typeof(weakSelf) strongSelf = weakSelf;
+                    if (strongSelf != nil) {
+                        strongSelf->subscribing = NO;
+                    }
+                    [weakSelf.progressView stopAnimating];
+                    [weakSelf.progressView removeFromSuperview];
+                    if ([dashboardString containsString:@"success"]) {
+                        [[NSUserDefaults standardUserDefaults]
+                            setBool:NO
+                             forKey:@"shouldSendReceipt"];
+                        [TSMessage
+                            showNotificationInViewController:
+                                weakSelf.navigationController
+                                                       title:NSLocalizedString(
+                                                                 @"Purchase "
+                                                                 @"registration "
+                                                                 @"successful",
+                                                                 nil)
+                                                    subtitle:nil
+                                                       image:nil
+                                                        type:
+                                                            TSMessageNotificationTypeSuccess
+                                                    duration:
+                                                        TSMessageNotificationDurationAutomatic
+                                                    callback:^{
+                                                        [TSMessage
+                                                            dismissActiveNotification];
+                                                    }
+                                                 buttonTitle:nil
+                                              buttonCallback:nil
+                                                  atPosition:
+                                                      TSMessageNotificationPositionBottom
+                                        canBeDismissedByUser:YES];
+                    } else {
+                        [TSMessage
+                            showNotificationInViewController:
+                                weakSelf.navigationController
+                                                       title:NSLocalizedString(
+                                                                 @"Purchase "
+                                                                 @"registration "
+                                                                 @"failed",
+                                                                 nil)
+                                                    subtitle:NSLocalizedString(
+                                                                 @"The app will "
+                                                                 @"retry purchase "
+                                                                 @"registration at "
+                                                                 @"pente.org "
+                                                                 @"every time the "
+                                                                 @"app starts",
+                                                                 nil)
+                                                       image:nil
+                                                        type:
+                                                            TSMessageNotificationTypeWarning
+                                                    duration:
+                                                        TSMessageNotificationDurationAutomatic
+                                                    callback:^{
+                                                        [TSMessage
+                                                            dismissActiveNotification];
+                                                    }
+                                                 buttonTitle:nil
+                                              buttonCallback:nil
+                                                  atPosition:
+                                                      TSMessageNotificationPositionBottom
+                                        canBeDismissedByUser:YES];
+                    }
+                }];
             }];
-        }
-        failure:^(SKPaymentTransaction *transaction, NSError *error) {
+        } else if (result == SubscriptionPurchaseResultCancelled) {
+            // The user backed out of the App Store sheet: nothing to report.
+            subscribing = NO;
+            [self.progressView stopAnimating];
+            [self.progressView removeFromSuperview];
+        } else if (result == SubscriptionPurchaseResultPending) {
+            // Ask to Buy / Strong Customer Authentication: not bought yet.
+            subscribing = NO;
+            [self.progressView stopAnimating];
+            [self.progressView removeFromSuperview];
+            [TSMessage
+                showNotificationInViewController:self.navigationController
+                                           title:NSLocalizedString(
+                                                     @"Purchase pending", nil)
+                                        subtitle:NSLocalizedString(
+                                                     @"The purchase is waiting "
+                                                     @"for approval",
+                                                     nil)
+                                           image:nil
+                                            type:
+                                                TSMessageNotificationTypeMessage
+                                        duration:
+                                            TSMessageNotificationDurationAutomatic
+                                        callback:^{
+                                            [TSMessage
+                                                dismissActiveNotification];
+                                        }
+                                     buttonTitle:nil
+                                  buttonCallback:nil
+                                      atPosition:
+                                          TSMessageNotificationPositionBottom
+                            canBeDismissedByUser:YES];
+        } else {
+            NSString *reason =
+                error.localizedFailureReason ?: error.localizedDescription;
             dispatch_async(dispatch_get_main_queue(), ^{
+                subscribing = NO;
                 [self.progressView stopAnimating];
                 [self.progressView removeFromSuperview];
                 [TSMessage
@@ -916,8 +1092,7 @@
                                                     stringWithFormat:
                                                         NSLocalizedString(
                                                             @"Reason: %@", nil),
-                                                        error
-                                                            .localizedFailureReason]
+                                                        reason]
                                                image:nil
                                                 type:
                                                     TSMessageNotificationTypeWarning
@@ -932,10 +1107,10 @@
                                           atPosition:
                                               TSMessageNotificationPositionBottom
                                 canBeDismissedByUser:YES];
-                NSLog(@"Something went wrong, %@",
-                      error.localizedFailureReason);
+                NSLog(@"Something went wrong, %@", reason);
             });
-        }];
+        }
+    }];
 
     [popoverView dismiss];
 }
@@ -965,79 +1140,51 @@
         return;
     }
 
-    self.progressView = [[ICDMaterialActivityIndicatorView alloc]
-                 initWithFrame:CGRectMake(0, 0, self.view.frame.size.width,
-                                          self.view.frame.size.height)
-        activityIndicatorStyle:ICDMaterialActivityIndicatorViewStyleLarge];
-    [self.progressView setBackgroundColor:[UIColor whiteColor]];
-    [self.progressView setAlpha:0.75];
+    self.progressView = [[PenteSpinnerOverlay alloc]
+        initWithFrame:CGRectMake(0, 0, self.view.frame.size.width,
+                                 self.view.frame.size.height)];
     [self.progressView startAnimating];
     [self.view addSubview:self.progressView];
     subscribing = YES;
 
     NSLog(@"start restore");
 
-    [[RMStore defaultStore]
-        restoreTransactionsOnSuccess:^(NSArray *transactions) {
+    [[SubscriptionStore shared] restoreWithCompletion:^(NSError *error) {
+        if (error == nil) {
             [[NSUserDefaults standardUserDefaults]
                 setBool:YES
                  forKey:@"shouldSendReceipt"];
-            NSURL *receiptURL = [[NSBundle mainBundle] appStoreReceiptURL];
-            NSData *receipt = [NSData dataWithContentsOfURL:receiptURL];
-
-            NSString *url =
-                @"https://www.pente.org/gameServer/iOSReceiptValidation";
-            NSString *postString = [NSString
-                stringWithFormat:
-                    @"name=%@&receipt=%@",
-                    [[NSUserDefaults standardUserDefaults]
-                        stringForKey:usernameKey],
-                    [self URLEncodedString_ch:
-                              [receipt base64EncodedStringWithOptions:0]]];
-
-            NSData *postData =
-                [postString dataUsingEncoding:NSASCIIStringEncoding
-                         allowLossyConversion:YES];
-            NSString *postLength = [NSString
-                stringWithFormat:@"%lu", (unsigned long)[postData length]];
-
-            NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
-            [request setURL:[NSURL URLWithString:url]];
-            [request setHTTPMethod:@"POST"];
-            [request setValue:postLength forHTTPHeaderField:@"Content-Length"];
-            [request setValue:@"application/x-www-form-urlencoded"
-                forHTTPHeaderField:@"Content-Type"];
-            [request setHTTPBody:postData];
-            [request setTimeoutInterval:20.0];
-
-            //    [request setHTTPShouldUsePipelining: YES];
-
-            NSLog(@"before sending to server");
-            __weak typeof(self) weakSelf = self;
-            [PenteHTTPClient sendRequest:request completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
-                NSString *dashboardString =
-                    [[NSString alloc] initWithData:responseData
-                                          encoding:NSUTF8StringEncoding];
-                //        NSLog(dashboardString);
-
-                [weakSelf.progressView stopAnimating];
-                [weakSelf.progressView removeFromSuperview];
-                if ([dashboardString containsString:@"success"]) {
-                    [[NSUserDefaults standardUserDefaults]
-                        setBool:NO
-                         forKey:@"shouldSendReceipt"];
+            // A StoreKit 2 restore does not rewrite the receipt on disk, so
+            // ask for a fresh one before reading it. shouldRefreshReceipt
+            // stays set until a refresh succeeds, and the launch retry
+            // refreshes again while it is.
+            [[NSUserDefaults standardUserDefaults]
+                setBool:YES
+                 forKey:@"shouldRefreshReceipt"];
+            [[SubscriptionStore shared] refreshReceiptWithCompletion:^(
+                                            NSError *refreshError) {
+                if (refreshError != nil) {
+                    NSLog(@"Receipt refresh failed: %@", refreshError);
+                }
+                if ([[NSUserDefaults standardUserDefaults]
+                        boolForKey:@"shouldRefreshReceipt"]) {
+                    // The refresh failed: a stale receipt would read as
+                    // "no valid purchase". Keep shouldSendReceipt for the
+                    // launch retry and report the refresh error instead.
+                    subscribing = NO;
+                    [self.progressView stopAnimating];
+                    [self.progressView removeFromSuperview];
                     [TSMessage
-                        showNotificationInViewController:
-                            weakSelf.navigationController
-                                                   title:
-                                                       NSLocalizedString(
-                                                           @"Purchase restore "
-                                                           @"successful",
-                                                           nil)
-                                                subtitle:nil
+                        showNotificationInViewController:self.navigationController
+                                                   title:NSLocalizedString(
+                                                             @"Purchase "
+                                                             @"restore failed",
+                                                             nil)
+                                                subtitle:refreshError
+                                                             .localizedDescription
                                                    image:nil
                                                     type:
-                                                        TSMessageNotificationTypeSuccess
+                                                        TSMessageNotificationTypeWarning
                                                 duration:
                                                     TSMessageNotificationDurationAutomatic
                                                 callback:^{
@@ -1049,14 +1196,21 @@
                                               atPosition:
                                                   TSMessageNotificationPositionBottom
                                     canBeDismissedByUser:YES];
-                } else if ([dashboardString
-                               containsString:@"invalid receipt"]) {
+                    return;
+                }
+                NSURL *receiptURL = [[NSBundle mainBundle] appStoreReceiptURL];
+                NSData *receipt = [NSData dataWithContentsOfURL:receiptURL];
+                if (receipt == nil) {
+                    // No receipt means nothing to restore: answer as the server
+                    // does for an invalid receipt.
                     [[NSUserDefaults standardUserDefaults]
                         setBool:NO
                          forKey:@"shouldSendReceipt"];
+                    subscribing = NO;
+                    [self.progressView stopAnimating];
+                    [self.progressView removeFromSuperview];
                     [TSMessage
-                        showNotificationInViewController:
-                            weakSelf.navigationController
+                        showNotificationInViewController:self.navigationController
                                                    title:NSLocalizedString(
                                                              @"Purchase "
                                                              @"restore failed",
@@ -1080,42 +1234,147 @@
                                               atPosition:
                                                   TSMessageNotificationPositionBottom
                                     canBeDismissedByUser:YES];
-                } else {
-                    [TSMessage
-                        showNotificationInViewController:
-                            weakSelf.navigationController
-                                                   title:NSLocalizedString(
-                                                             @"Purchase "
-                                                             @"restore failed",
-                                                             nil)
-                                                subtitle:
-                                                    NSLocalizedString(
-                                                        @"The app will retry "
-                                                        @"purchase "
-                                                        @"restore at pente.org "
-                                                        @"every "
-                                                        @"time the app starts",
-                                                        nil)
-                                                   image:nil
-                                                    type:
-                                                        TSMessageNotificationTypeWarning
-                                                duration:
-                                                    TSMessageNotificationDurationAutomatic
-                                                callback:^{
-                                                    [TSMessage
-                                                        dismissActiveNotification];
-                                                }
-                                             buttonTitle:nil
-                                          buttonCallback:nil
-                                              atPosition:
-                                                  TSMessageNotificationPositionBottom
-                                    canBeDismissedByUser:YES];
+                    return;
                 }
+
+                NSString *url =
+                    @"https://www.pente.org/gameServer/iOSReceiptValidation";
+                NSString *postString = [NSString
+                    stringWithFormat:
+                        @"name=%@&receipt=%@",
+                        [[NSUserDefaults standardUserDefaults]
+                            stringForKey:usernameKey],
+                        [self URLEncodedString_ch:
+                                  [receipt base64EncodedStringWithOptions:0]]];
+
+                NSData *postData =
+                    [postString dataUsingEncoding:NSASCIIStringEncoding
+                             allowLossyConversion:YES];
+                NSString *postLength = [NSString
+                    stringWithFormat:@"%lu", (unsigned long)[postData length]];
+
+                NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
+                [request setURL:[NSURL URLWithString:url]];
+                [request setHTTPMethod:@"POST"];
+                [request setValue:postLength forHTTPHeaderField:@"Content-Length"];
+                [request setValue:@"application/x-www-form-urlencoded"
+                    forHTTPHeaderField:@"Content-Type"];
+                [request setHTTPBody:postData];
+                [request setTimeoutInterval:20.0];
+
+                //    [request setHTTPShouldUsePipelining: YES];
+
+                NSLog(@"before sending to server");
+                __weak typeof(self) weakSelf = self;
+                [PenteHTTPClient sendRequest:request completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
+                    NSString *dashboardString =
+                        [[NSString alloc] initWithData:responseData
+                                              encoding:NSUTF8StringEncoding];
+                    //        NSLog(dashboardString);
+
+                    __strong typeof(weakSelf) strongSelf = weakSelf;
+                    if (strongSelf != nil) {
+                        strongSelf->subscribing = NO;
+                    }
+                    [weakSelf.progressView stopAnimating];
+                    [weakSelf.progressView removeFromSuperview];
+                    if ([dashboardString containsString:@"success"]) {
+                        [[NSUserDefaults standardUserDefaults]
+                            setBool:NO
+                             forKey:@"shouldSendReceipt"];
+                        [TSMessage
+                            showNotificationInViewController:
+                                weakSelf.navigationController
+                                                       title:
+                                                           NSLocalizedString(
+                                                               @"Purchase restore "
+                                                               @"successful",
+                                                               nil)
+                                                    subtitle:nil
+                                                       image:nil
+                                                        type:
+                                                            TSMessageNotificationTypeSuccess
+                                                    duration:
+                                                        TSMessageNotificationDurationAutomatic
+                                                    callback:^{
+                                                        [TSMessage
+                                                            dismissActiveNotification];
+                                                    }
+                                                 buttonTitle:nil
+                                              buttonCallback:nil
+                                                  atPosition:
+                                                      TSMessageNotificationPositionBottom
+                                        canBeDismissedByUser:YES];
+                    } else if ([dashboardString
+                                   containsString:@"invalid receipt"]) {
+                        [[NSUserDefaults standardUserDefaults]
+                            setBool:NO
+                             forKey:@"shouldSendReceipt"];
+                        [TSMessage
+                            showNotificationInViewController:
+                                weakSelf.navigationController
+                                                       title:NSLocalizedString(
+                                                                 @"Purchase "
+                                                                 @"restore failed",
+                                                                 nil)
+                                                    subtitle:
+                                                        NSLocalizedString(
+                                                            @"No valid purchase to "
+                                                            @"restore",
+                                                            nil)
+                                                       image:nil
+                                                        type:
+                                                            TSMessageNotificationTypeSuccess
+                                                    duration:
+                                                        TSMessageNotificationDurationAutomatic
+                                                    callback:^{
+                                                        [TSMessage
+                                                            dismissActiveNotification];
+                                                    }
+                                                 buttonTitle:nil
+                                              buttonCallback:nil
+                                                  atPosition:
+                                                      TSMessageNotificationPositionBottom
+                                        canBeDismissedByUser:YES];
+                    } else {
+                        [TSMessage
+                            showNotificationInViewController:
+                                weakSelf.navigationController
+                                                       title:NSLocalizedString(
+                                                                 @"Purchase "
+                                                                 @"restore failed",
+                                                                 nil)
+                                                    subtitle:
+                                                        NSLocalizedString(
+                                                            @"The app will retry "
+                                                            @"purchase "
+                                                            @"restore at pente.org "
+                                                            @"every "
+                                                            @"time the app starts",
+                                                            nil)
+                                                       image:nil
+                                                        type:
+                                                            TSMessageNotificationTypeWarning
+                                                    duration:
+                                                        TSMessageNotificationDurationAutomatic
+                                                    callback:^{
+                                                        [TSMessage
+                                                            dismissActiveNotification];
+                                                    }
+                                                 buttonTitle:nil
+                                              buttonCallback:nil
+                                                  atPosition:
+                                                      TSMessageNotificationPositionBottom
+                                        canBeDismissedByUser:YES];
+                    }
+                }];
             }];
-        }
-        failure:^(NSError *error) {
-            NSLog(@"Something went wrong, %@", error.localizedFailureReason);
+        } else {
+            NSString *reason =
+                error.localizedFailureReason ?: error.localizedDescription;
+            NSLog(@"Something went wrong, %@", reason);
             dispatch_async(dispatch_get_main_queue(), ^{
+                subscribing = NO;
                 [self.progressView stopAnimating];
                 [self.progressView removeFromSuperview];
                 [TSMessage
@@ -1128,8 +1387,7 @@
                                                     stringWithFormat:
                                                         NSLocalizedString(
                                                             @"Reason: %@", nil),
-                                                        error
-                                                            .localizedFailureReason]
+                                                        reason]
                                                image:nil
                                                 type:
                                                     TSMessageNotificationTypeWarning
@@ -1144,17 +1402,10 @@
                                           atPosition:
                                               TSMessageNotificationPositionBottom
                                 canBeDismissedByUser:YES];
-                NSLog(@"Something went wrong, %@",
-                      error.localizedFailureReason);
+                NSLog(@"Something went wrong, %@", reason);
             });
-        }];
-}
-
-- (void)popoverViewDidDismiss:(PopoverView *)popoverView {
-    if (!subscribing) {
-        [self.progressView stopAnimating];
-        [self.progressView removeFromSuperview];
-    }
+        }
+    }];
 }
 
 - (void)imagePickerController:(UIImagePickerController *)pickr
@@ -1357,6 +1608,9 @@
 
 - (NSString *)URLEncodedString_ch:(NSString *)input {
     NSMutableString *output = [NSMutableString string];
+    if (input == nil) {
+        return output;
+    }
     const unsigned char *source = (const unsigned char *)[input UTF8String];
     int sourceLen = (int)strlen((const char *)source);
     for (int i = 0; i < sourceLen; ++i) {

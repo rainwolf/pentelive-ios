@@ -10,9 +10,9 @@
 #import "DBAISetupView.h"
 #import "DBBoardView.h"
 #import "DBSetupView.h"
-#import "ICDMaterialActivityIndicatorView.h"
+#import "PenteSpinnerOverlay.h"
 #import "PenteNavigationViewController.h"
-#import "PopoverView.h"
+#import "PentePopover.h"
 #import <UIKit/UIKit.h>
 @class MMAI;
 
@@ -20,17 +20,17 @@
 // ].size.height - ( double )568 ) < DBL_EPSILON )
 
 @interface DatabaseViewController
-    : UIViewController <PopoverViewDelegate, WKNavigationDelegate> {
+    : UIViewController <WKNavigationDelegate> {
     NSMutableArray *movesList, *captures;
     NSString *playerStatsBaseString, *game;
     NSMutableString *moveStatsString;
     WKWebView *playerStats;
-    PopoverView *messagePopover;
+    PentePopover *messagePopover;
     BOOL activeGame;
     MMAI *aiPlayer;
     DBSetupView *setupView;
     DBAISetupView *aiSetupView;
-    ICDMaterialActivityIndicatorView *progressView;
+    PenteSpinnerOverlay *progressView;
     UIButton *aiButton;
 }
 @property(atomic) BOOL activeGame;
@@ -49,7 +49,7 @@
 @property(weak, nonatomic) IBOutlet StoneView *blackStoneCaptures;
 @property(weak, nonatomic) IBOutlet UIActivityIndicatorView *spinner;
 @property(nonatomic, retain) WKWebView *playerStats;
-@property(nonatomic, retain) PopoverView *messagePopover;
+@property(nonatomic, retain) PentePopover *messagePopover;
 - (IBAction)goBackOneMoveSwipe:(UISwipeGestureRecognizer *)sender;
 
 @property(strong, nonatomic)
@@ -60,7 +60,7 @@
 @property(nonatomic, retain, readwrite) MMAI *aiPlayer;
 @property(nonatomic, retain, readwrite) DBSetupView *setupView;
 @property(nonatomic, retain, readwrite) DBAISetupView *aiSetupView;
-@property(strong, nonatomic) ICDMaterialActivityIndicatorView *progressView;
+@property(strong, nonatomic) PenteSpinnerOverlay *progressView;
 @property(nonatomic, retain, readwrite) UIButton *aiButton;
 - (void)startThinking;
 
