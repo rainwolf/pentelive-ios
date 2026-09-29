@@ -8,10 +8,14 @@
 
 #import "PickerInputTableViewCell.h"
 
+@interface PickerInputTableViewCell () <UIPopoverPresentationControllerDelegate>
+// For iPad: hosts self.picker as the content of a popover presentation.
+@property(nonatomic, strong) UIViewController *pickerHost;
+@end
+
 @implementation PickerInputTableViewCell
 @synthesize picker;
 @synthesize resign;
-@synthesize popoverController;
 // BOOL resign = NO;
 
 //@synthesize picker;
@@ -24,10 +28,35 @@
         UIUserInterfaceIdiomPad) {
         UIViewController *popoverContent = [[UIViewController alloc] init];
         popoverContent.view = self.picker;
-        popoverController = [[UIPopoverController alloc]
-            initWithContentViewController:popoverContent];
-        popoverController.delegate = self;
+        self.pickerHost = popoverContent;
     }
+}
+
+- (void)presentPickerPopover {
+    UIViewController *host = self.pickerHost;
+    if (host == nil || host.presentingViewController != nil) {
+        return;
+    }
+    UIResponder *responder = self.nextResponder;
+    while (responder != nil &&
+           ![responder isKindOfClass:[UIViewController class]]) {
+        responder = responder.nextResponder;
+    }
+    UIViewController *presenter = (UIViewController *)responder;
+    if (presenter == nil) {
+        return;
+    }
+    while (presenter.presentedViewController != nil) {
+        presenter = presenter.presentedViewController;
+    }
+    host.modalPresentationStyle = UIModalPresentationPopover;
+    UIPopoverPresentationController *popover =
+        host.popoverPresentationController;
+    popover.sourceView = self.contentView;
+    popover.sourceRect = self.detailTextLabel.frame;
+    popover.permittedArrowDirections = UIPopoverArrowDirectionAny;
+    popover.delegate = self;
+    [presenter presentViewController:host animated:YES completion:nil];
 }
 
 - (id)initWithStyle:(UITableViewCellStyle)style
@@ -117,11 +146,8 @@
         CGRect frame = self.picker.frame;
         frame.size = pickerSize;
         self.picker.frame = frame;
-        popoverController.popoverContentSize = pickerSize;
-        [popoverController presentPopoverFromRect:self.detailTextLabel.frame
-                                           inView:self
-                         permittedArrowDirections:UIPopoverArrowDirectionAny
-                                         animated:YES];
+        self.pickerHost.preferredContentSize = pickerSize;
+        [self presentPickerPopover];
         // resign the current first responder
         for (UIView *subview in self.superview.subviews) {
             if ([subview isFirstResponder]) {
@@ -159,10 +185,8 @@
     if ([UIDevice currentDevice].userInterfaceIdiom ==
         UIUserInterfaceIdiomPad) {
         // we should only get this call if the popover is visible
-        [popoverController presentPopoverFromRect:self.detailTextLabel.frame
-                                           inView:self
-                         permittedArrowDirections:UIPopoverArrowDirectionAny
-                                         animated:YES];
+        self.pickerHost.popoverPresentationController.sourceRect =
+            self.detailTextLabel.frame;
     } else {
         [self.picker setNeedsLayout];
     }
@@ -189,10 +213,18 @@
 }
 
 #pragma mark -
-#pragma mark UIPopoverControllerDelegate Protocol Methods
+#pragma mark UIPopoverPresentationControllerDelegate Protocol Methods
 
-- (void)popoverControllerDidDismissPopover:
-    (UIPopoverController *)popoverController {
+- (UIModalPresentationStyle)
+    adaptivePresentationStyleForPresentationController:
+        (UIPresentationController *)controller
+                                       traitCollection:(UITraitCollection *)
+                                                           traitCollection {
+    return UIModalPresentationNone;
+}
+
+- (void)presentationControllerDidDismiss:
+    (UIPresentationController *)presentationController {
     id tableView = self;
     while (![tableView isKindOfClass:[UITableView class]] &&
            [tableView respondsToSelector:@selector(superview)]) {

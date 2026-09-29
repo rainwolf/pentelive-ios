@@ -20,6 +20,7 @@
 #import "WhosOnlineView.h"
 #import <QuartzCore/QuartzCore.h>
 @import TSMessages;
+@import UserNotifications;
 #import "UIBarButtonItem+Badge.h"
 #import "UIButton+Badge.h"
 
@@ -3777,7 +3778,8 @@ array, and add a new row to the table view
         }
     }
     [navController setReceivedNotification:nil];
-    [[UIApplication sharedApplication] cancelAllLocalNotifications];
+    [[UNUserNotificationCenter currentNotificationCenter]
+        removeAllPendingNotificationRequests];
     long badgeNr = 0;
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
     if (![defaults boolForKey:@"badgeMyTurn"]) {
@@ -3821,7 +3823,12 @@ array, and add a new row to the table view
                 daysPassed = [lastRated timeIntervalSinceNow] / -86400.0;
             }
             if (!lastRated || daysPassed > 120) {
-                [SKStoreReviewController requestReview];
+                UIWindowScene *scene =
+                    self.navigationController.view.window.windowScene
+                        ?: self.view.window.windowScene;
+                if (scene) {
+                    [SKStoreReviewController requestReviewInScene:scene];
+                }
                 [[NSUserDefaults standardUserDefaults]
                     setObject:[NSDate date]
                        forKey:@"lastRatedApp"];

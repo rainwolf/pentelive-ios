@@ -101,16 +101,13 @@
               error:nil];
     [[AVAudioSession sharedInstance] setActive:YES error:nil];
 
-    if ([application
-            respondsToSelector:@selector(registerUserNotificationSettings:)]) {
-        [application registerUserNotificationSettings:
-                         [UIUserNotificationSettings
-                             settingsForTypes:(UIUserNotificationTypeSound |
-                                               UIUserNotificationTypeAlert |
-                                               UIUserNotificationTypeBadge)
-                                   categories:nil]];
-        [application registerForRemoteNotifications];
-    }
+    [[UNUserNotificationCenter currentNotificationCenter]
+        requestAuthorizationWithOptions:(UNAuthorizationOptionSound |
+                                         UNAuthorizationOptionAlert |
+                                         UNAuthorizationOptionBadge)
+                      completionHandler:^(BOOL granted, NSError *error){
+                      }];
+    [application registerForRemoteNotifications];
 
     // MUST be assigned before this method returns. When the app is launched by
     // a tapped notification, iOS delivers the response to this delegate during
