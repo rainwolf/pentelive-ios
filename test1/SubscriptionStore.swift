@@ -44,10 +44,13 @@ import StoreKit
 
     private var product: Product?
     private var updatesTask: Task<Void, Never>?
-    /// Purchase and restore calls in progress. Their ObjC callers POST the
-    /// receipt themselves, so the updates listener stays out of the way
-    /// meanwhile rather than racing them with a second POST.
+    /// Purchase and restore calls in progress. A call that succeeds has its
+    /// ObjC caller POST the receipt, so while any call is running the updates
+    /// listener holds its notification back rather than racing that POST.
     private var callerRegistrations = 0
+    /// An update was held back while a call was running; post once the last
+    /// call ends, unless a call's own POST has covered it meanwhile.
+    private var pendingReceiptNotification = false
     /// Transactions purchase() already returned to its caller, in case the
     /// updates listener sees them after the call has ended.
     private var purchaseHandledIDs = Set<UInt64>()
@@ -90,13 +93,15 @@ import StoreKit
     @objc func purchase(completion: @escaping (SubscriptionPurchaseResult, NSError?) -> Void) {
         Task { @MainActor in
             self.callerRegistrations += 1
-            defer { self.callerRegistrations -= 1 }
+            var callerPostsReceipt = false
+            defer { self.endCallerRegistration(callerPostsReceipt: callerPostsReceipt) }
             do {
                 let product = try await self.resolveProduct()
                 switch try await product.purchase() {
                 case .success(.verified(let transaction)):
                     self.purchaseHandledIDs.insert(transaction.id)
                     await transaction.finish()
+                    callerPostsReceipt = true
                     completion(.purchased, nil)
                 case .success(.unverified(let transaction, let verificationError)):
                     await transaction.finish()
@@ -117,9 +122,11 @@ import StoreKit
     @objc func restore(completion: @escaping (NSError?) -> Void) {
         Task { @MainActor in
             self.callerRegistrations += 1
-            defer { self.callerRegistrations -= 1 }
+            var callerPostsReceipt = false
+            defer { self.endCallerRegistration(callerPostsReceipt: callerPostsReceipt) }
             do {
                 try await AppStore.sync()
+                callerPostsReceipt = true
                 completion(nil)
             } catch {
                 completion(error as NSError)
@@ -141,23 +148,46 @@ import StoreKit
         return product
     }
 
+    /// Ends a purchase or restore call. `callerPostsReceipt` means its ObjC
+    /// caller is about to POST the receipt, which covers any update held back
+    /// so far (the receipt already contains it).
+    private func endCallerRegistration(callerPostsReceipt: Bool) {
+        callerRegistrations -= 1
+        if callerPostsReceipt {
+            pendingReceiptNotification = false
+        }
+        if callerRegistrations == 0 && pendingReceiptNotification {
+            pendingReceiptNotification = false
+            postReceiptNeedsSending()
+        }
+    }
+
+    private func postReceiptNeedsSending() {
+        NotificationCenter.default.post(
+            name: Self.receiptNeedsSendingNotification, object: nil)
+    }
+
     private func handleUpdate(_ result: VerificationResult<Transaction>) async {
         switch result {
         case .verified(let transaction):
-            // An approval or renewal nobody else will report: flag the receipt
-            // for upload before finishing, so a crash in between still leaves
-            // the launch retry armed.
-            let needsServer = transaction.productID == Self.productID
+            // Always flag the receipt for upload before finishing, so a crash
+            // or a call that ends without a POST still leaves the launch retry
+            // armed.
+            let isSubscription = transaction.productID == Self.productID
                 && transaction.revocationDate == nil
-                && callerRegistrations == 0
-                && !purchaseHandledIDs.contains(transaction.id)
-            if needsServer {
+            if isSubscription {
                 UserDefaults.standard.set(true, forKey: "shouldSendReceipt")
             }
             await transaction.finish()
-            if needsServer {
-                NotificationCenter.default.post(
-                    name: Self.receiptNeedsSendingNotification, object: nil)
+            // Only the immediate upload is gated: purchase() already returned
+            // this transaction to a caller that POSTs, or a call is running
+            // and the POST waits for it to end.
+            guard isSubscription,
+                  !purchaseHandledIDs.contains(transaction.id) else { return }
+            if callerRegistrations == 0 {
+                postReceiptNeedsSending()
+            } else {
+                pendingReceiptNotification = true
             }
         case .unverified(let transaction, let verificationError):
             NSLog("SubscriptionStore: finishing unverified transaction %llu (%@): %@",
