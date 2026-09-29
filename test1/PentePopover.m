@@ -1,0 +1,278 @@
+#import "PentePopover.h"
+
+// Spacing and title style carried over from PopoverView's configuration
+// (kBoxPadding, kTitleFont, kTitleColor).
+static const CGFloat kPentePopoverPadding = 10.0;
+
+typedef NS_ENUM(NSInteger, PentePopoverState) {
+    PentePopoverStatePresented,
+    PentePopoverStateDismissing,
+    PentePopoverStateDismissed,
+};
+
+@interface PentePopover () <UIPopoverPresentationControllerDelegate>
+@property(nonatomic, copy, nullable) void (^onDismiss)(void);
+@property(nonatomic, strong) NSMutableArray<void (^)(void)> *pendingCompletions;
+@property(nonatomic, assign) PentePopoverState state;
+- (void)finishDismissal;
+@end
+
+/// Hosts the stacked content inside the popover.
+@interface PentePopoverContentController : UIViewController
+@property(nonatomic, strong) UIView *container;
+/// Keeps the PentePopover alive while it is presented; cleared on dismissal.
+@property(nonatomic, strong, nullable) PentePopover *owner;
+@end
+
+@implementation PentePopoverContentController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    self.view.backgroundColor = [UIColor whiteColor];
+    [self.view addSubview:self.container];
+}
+
+- (void)viewDidLayoutSubviews {
+    [super viewDidLayoutSubviews];
+    // The safe area excludes the popover arrow.
+    UIEdgeInsets insets = self.view.safeAreaInsets;
+    CGRect frame = self.container.frame;
+    frame.origin = CGPointMake(insets.left + kPentePopoverPadding,
+                               insets.top + kPentePopoverPadding);
+    self.container.frame = frame;
+}
+
+- (void)viewDidDisappear:(BOOL)animated {
+    [super viewDidDisappear:animated];
+    // Safety net for a dismissal that bypasses both -dismissWithCompletion:
+    // and presentationControllerDidDismiss: (e.g. the presenter itself being
+    // dismissed). Deferred so those paths run first; finishDismissal is
+    // idempotent.
+    PentePopover *owner = self.owner;
+    if (owner == nil) {
+        return;
+    }
+    __weak typeof(self) weakSelf = self;
+    dispatch_async(dispatch_get_main_queue(), ^{
+        if (weakSelf.presentingViewController == nil) {
+            [owner finishDismissal];
+        }
+    });
+}
+
+@end
+
+@implementation PentePopover {
+    PentePopoverContentController *controller;
+}
+
++ (instancetype)showContentView:(UIView *)content
+                          title:(NSString *)title
+                        atPoint:(CGPoint)point
+                         inView:(UIView *)view
+                      onDismiss:(void (^)(void))onDismiss {
+    return [self showViews:@[ content ]
+                     title:title
+                   atPoint:point
+                    inView:view
+                 onDismiss:onDismiss];
+}
+
++ (instancetype)showViews:(NSArray<UIView *> *)views
+                    title:(NSString *)title
+                  atPoint:(CGPoint)point
+                   inView:(UIView *)view
+                onDismiss:(void (^)(void))onDismiss {
+    UIResponder *responder = view;
+    while (responder != nil &&
+           ![responder isKindOfClass:[UIViewController class]]) {
+        responder = responder.nextResponder;
+    }
+    UIViewController *presenter = (UIViewController *)responder;
+    if (presenter == nil || view.window == nil) {
+        NSLog(@"PentePopover: no presenting view controller for %@ (window: "
+              @"%@); not showing",
+              view, view.window);
+        return nil;
+    }
+    while (presenter.presentedViewController != nil) {
+        presenter = presenter.presentedViewController;
+    }
+
+    UIView *container = [self containerWithViews:views title:title];
+
+    PentePopover *popover = [[self alloc] init];
+    popover.onDismiss = onDismiss;
+    popover.pendingCompletions = [[NSMutableArray alloc] init];
+    popover.state = PentePopoverStatePresented;
+
+    PentePopoverContentController *host =
+        [[PentePopoverContentController alloc] init];
+    host.container = container;
+    host.owner = popover;
+    host.modalPresentationStyle = UIModalPresentationPopover;
+    host.overrideUserInterfaceStyle = UIUserInterfaceStyleLight;
+    host.preferredContentSize =
+        CGSizeMake(container.bounds.size.width + 2 * kPentePopoverPadding,
+                   container.bounds.size.height + 2 * kPentePopoverPadding);
+    popover->controller = host;
+
+    UIPopoverPresentationController *presentation =
+        host.popoverPresentationController;
+    presentation.sourceView = view;
+    presentation.sourceRect = CGRectMake(point.x, point.y, 1, 1);
+    presentation.permittedArrowDirections = UIPopoverArrowDirectionAny;
+    presentation.backgroundColor = [UIColor whiteColor];
+    presentation.delegate = popover;
+
+    [presenter presentViewController:host animated:YES completion:nil];
+    return popover;
+}
+
+/// Lays `views` out the way PopoverView's withTitle:withViewArray: did: the
+/// title on top, then the views stacked with kPentePopoverPadding between
+/// them, each centred (or stretched when exactly flexible-width) to the
+/// widest.
++ (UIView *)containerWithViews:(NSArray<UIView *> *)views
+                         title:(NSString *)title {
+    UIView *container = [[UIView alloc] initWithFrame:CGRectZero];
+    CGFloat totalWidth = 0;
+    CGFloat totalHeight = 0;
+
+    UILabel *titleLabel = nil;
+    if (title.length > 0) {
+        titleLabel = [[UILabel alloc] initWithFrame:CGRectZero];
+        titleLabel.backgroundColor = [UIColor clearColor];
+        titleLabel.font = [UIFont fontWithName:@"HelveticaNeue-Bold" size:16];
+        titleLabel.textAlignment = NSTextAlignmentCenter;
+        titleLabel.textColor = [UIColor colorWithRed:0.329
+                                               green:0.341
+                                                blue:0.353
+                                               alpha:1];
+        titleLabel.text = title;
+        [titleLabel sizeToFit];
+        totalWidth = titleLabel.bounds.size.width;
+        totalHeight = titleLabel.bounds.size.height + 2 * kPentePopoverPadding;
+        [container addSubview:titleLabel];
+    }
+
+    for (NSUInteger i = 0; i < views.count; i++) {
+        UIView *subview = views[i];
+        CGSize size = subview.frame.size;
+        subview.frame = CGRectMake(0, totalHeight, size.width, size.height);
+        totalHeight += size.height;
+        if (i + 1 < views.count) {
+            totalHeight += kPentePopoverPadding;
+        }
+        totalWidth = MAX(totalWidth, size.width);
+        [container addSubview:subview];
+    }
+
+    for (UIView *subview in views) {
+        CGRect frame = subview.frame;
+        if (subview.autoresizingMask == UIViewAutoresizingFlexibleWidth) {
+            frame.origin.x = 0;
+            frame.size.width = totalWidth;
+        } else {
+            frame.origin.x = floor((totalWidth - frame.size.width) / 2);
+        }
+        subview.frame = frame;
+    }
+
+    if (titleLabel != nil) {
+        CGSize titleSize = titleLabel.bounds.size;
+        titleLabel.frame = CGRectMake(floor((totalWidth - titleSize.width) / 2),
+                                      0, titleSize.width, titleSize.height);
+    }
+
+    container.frame = CGRectMake(0, 0, totalWidth, totalHeight);
+    return container;
+}
+
+- (BOOL)isPresented {
+    return self.state == PentePopoverStatePresented;
+}
+
+- (void)dismiss {
+    [self dismissWithCompletion:nil];
+}
+
+- (void)dismissWithCompletion:(void (^)(void))completion {
+    if (self.state == PentePopoverStateDismissed) {
+        if (completion != nil) {
+            completion();
+        }
+        return;
+    }
+    if (completion != nil) {
+        [self.pendingCompletions addObject:[completion copy]];
+    }
+    if (self.state == PentePopoverStateDismissing) {
+        return;
+    }
+    self.state = PentePopoverStateDismissing;
+    UIViewController *presenting = controller.presentingViewController;
+    if (presenting == nil) {
+        [self finishDismissal];
+        return;
+    }
+    // Dismiss from the presenting controller so anything presented on top of
+    // the popover (e.g. PickerInputTableViewCell's iPad picker) goes too.
+    [presenting dismissViewControllerAnimated:YES
+                                   completion:^{
+                                       [self finishDismissal];
+                                   }];
+}
+
+- (void)finishDismissal {
+    if (self.state == PentePopoverStateDismissed) {
+        return;
+    }
+    self.state = PentePopoverStateDismissed;
+    void (^onDismiss)(void) = self.onDismiss;
+    self.onDismiss = nil;
+    NSArray<void (^)(void)> *completions = [self.pendingCompletions copy];
+    [self.pendingCompletions removeAllObjects];
+    if (onDismiss != nil) {
+        onDismiss();
+    }
+    for (void (^completion)(void) in completions) {
+        completion();
+    }
+    // Drop the content once gone, so callers that keep the popover in a
+    // property don't keep its content (which often points back at them)
+    // alive. Last: clearing owner may release the final strong reference to
+    // self, so nothing on self is touched afterwards.
+    PentePopoverContentController *host = controller;
+    controller = nil;
+    host.owner = nil;
+}
+
+#pragma mark UIPopoverPresentationControllerDelegate
+
+- (UIModalPresentationStyle)adaptivePresentationStyleForPresentationController:
+    (UIPresentationController *)presentationController {
+    return UIModalPresentationNone;
+}
+
+- (UIModalPresentationStyle)
+    adaptivePresentationStyleForPresentationController:
+        (UIPresentationController *)presentationController
+                                       traitCollection:(UITraitCollection *)
+                                                           traitCollection {
+    return UIModalPresentationNone;
+}
+
+- (void)presentationControllerWillDismiss:
+    (UIPresentationController *)presentationController {
+    if (self.state == PentePopoverStatePresented) {
+        self.state = PentePopoverStateDismissing;
+    }
+}
+
+- (void)presentationControllerDidDismiss:
+    (UIPresentationController *)presentationController {
+    [self finishDismissal];
+}
+
+@end
