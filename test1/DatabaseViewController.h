@@ -12,7 +12,7 @@
 #import "DBSetupView.h"
 #import "PenteSpinnerOverlay.h"
 #import "PenteNavigationViewController.h"
-#import "PopoverView.h"
+#import "PentePopover.h"
 #import <UIKit/UIKit.h>
 @class MMAI;
 
@@ -20,12 +20,12 @@
 // ].size.height - ( double )568 ) < DBL_EPSILON )
 
 @interface DatabaseViewController
-    : UIViewController <PopoverViewDelegate, WKNavigationDelegate> {
+    : UIViewController <WKNavigationDelegate> {
     NSMutableArray *movesList, *captures;
     NSString *playerStatsBaseString, *game;
     NSMutableString *moveStatsString;
     WKWebView *playerStats;
-    PopoverView *messagePopover;
+    PentePopover *messagePopover;
     BOOL activeGame;
     MMAI *aiPlayer;
     DBSetupView *setupView;
@@ -49,7 +49,7 @@
 @property(weak, nonatomic) IBOutlet StoneView *blackStoneCaptures;
 @property(weak, nonatomic) IBOutlet UIActivityIndicatorView *spinner;
 @property(nonatomic, retain) WKWebView *playerStats;
-@property(nonatomic, retain) PopoverView *messagePopover;
+@property(nonatomic, retain) PentePopover *messagePopover;
 - (IBAction)goBackOneMoveSwipe:(UISwipeGestureRecognizer *)sender;
 
 @property(strong, nonatomic)

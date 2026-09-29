@@ -10,7 +10,7 @@
 #import "PenteNavigationViewController.h"
 #import <UIKit/UIKit.h>
 #import <WebKit/WebKit.h>
-@import PopoverView;
+#import "PentePopover.h"
 
 // #define IS_IPHONE_5 ( fabs( ( double )[ [ UIScreen mainScreen ] bounds
 // ].size.height - ( double )568 ) < DBL_EPSILON )
@@ -19,8 +19,7 @@
 @class SwiftPenteGame;
 
 @interface BoardViewController
-    : UIViewController <UITextViewDelegate, PopoverViewDelegate,
-                        WKNavigationDelegate> {
+    : UIViewController <UITextViewDelegate, WKNavigationDelegate> {
     Game *game;
     NSMutableArray *movesList, *captures, *receivedMessages;
     NSString *receivedMessage, *replyMessage, *playerStatsBaseString;
@@ -28,7 +27,7 @@
     UIImageView *messageButtonImageView;
     UITextView *receivedMessageView, *replyMessageView;
     WKWebView *playerStats;
-    PopoverView *messagePopover;
+    PentePopover *messagePopover;
     NSMutableDictionary *messagesHistory;
     BOOL activeGame, isLastMove;
     UIButton *lockButton;
@@ -80,7 +79,7 @@
 @property(nonatomic, retain) UIImageView *messageButtonImageView;
 @property(nonatomic, retain) UITextView *receivedMessageView, *replyMessageView;
 @property(nonatomic, retain) WKWebView *playerStats;
-@property(nonatomic, retain) PopoverView *messagePopover;
+@property(nonatomic, retain) PentePopover *messagePopover;
 - (IBAction)goForwardOneMoveSwipe:(UISwipeGestureRecognizer *)sender;
 - (IBAction)goBackOneMoveSwipe:(UISwipeGestureRecognizer *)sender;
 

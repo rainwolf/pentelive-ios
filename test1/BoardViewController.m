@@ -25,7 +25,6 @@
 #import "DatabaseViewController.h"
 #import "PenteAlert.h"
 #import "PenteGame.h"
-#import "PopoverView.h"
 #import "TSMessage.h"
 #import "penteLive-Swift.h"
 #import <NSHash/NSString+NSHash.h>
@@ -4284,8 +4283,15 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
     [messageButtonImageView stopAnimating];
     [receivedMessageView flashScrollIndicators];
 
-    messagePopover = [[PopoverView alloc] init];
-    [messagePopover setDelegate:self];
+    messagePopover = nil;
+    __weak typeof(self) weakSelf = self;
+    void (^onDismiss)(void) = ^{
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        if (strongSelf == nil) {
+            return;
+        }
+        strongSelf->replyMessage = strongSelf->replyMessageView.text;
+    };
 
     [replyMessageView
         setFrame:CGRectMake(0, 0, self.view.bounds.size.width - 40, 44)];
@@ -4295,30 +4301,36 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
     if (isLastMove) {
         if (activeGame) {
             if (![receivedMessage isEqualToString:@""]) {
-                [messagePopover
-                      showAtPoint:showPoint
-                           inView:self.view
-                    withViewArray:[NSArray arrayWithObjects:receivedMessageView,
-                                                            replyMessageView,
-                                                            nil]];
+                messagePopover = [PentePopover
+                    showViews:@[ receivedMessageView, replyMessageView ]
+                        title:nil
+                      atPoint:showPoint
+                       inView:self.view
+                    onDismiss:onDismiss];
             } else {
                 [replyMessageView
                     setFrame:CGRectMake(0, 0, self.view.bounds.size.width - 40,
                                         88)];
-                [messagePopover showAtPoint:showPoint
-                                     inView:self.view
-                            withContentView:replyMessageView];
+                messagePopover = [PentePopover showContentView:replyMessageView
+                                                         title:nil
+                                                       atPoint:showPoint
+                                                        inView:self.view
+                                                     onDismiss:onDismiss];
             }
             [self.replyMessageView becomeFirstResponder];
         } else if (![receivedMessage isEqualToString:@""]) {
-            [messagePopover showAtPoint:showPoint
-                                 inView:self.view
-                        withContentView:receivedMessageView];
+            messagePopover = [PentePopover showContentView:receivedMessageView
+                                                     title:nil
+                                                   atPoint:showPoint
+                                                    inView:self.view
+                                                 onDismiss:onDismiss];
         }
     } else if (![receivedMessage isEqualToString:@""]) {
-        [messagePopover showAtPoint:showPoint
-                             inView:self.view
-                    withContentView:receivedMessageView];
+        messagePopover = [PentePopover showContentView:receivedMessageView
+                                                 title:nil
+                                               atPoint:showPoint
+                                                inView:self.view
+                                             onDismiss:onDismiss];
     }
     //    [receivedMessageView sizeToFit];
 }
@@ -4757,10 +4769,6 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
         }
     }
     return output;
-}
-
-- (void)popoverViewDidDismiss:(PopoverView *)popoverView {
-    replyMessage = replyMessageView.text;
 }
 
 - (void)webView:(WKWebView *)webView

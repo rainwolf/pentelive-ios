@@ -6,7 +6,6 @@
 //  Copyright (c) 2012 Triade. All rights reserved.
 //
 
-#import "PopoverView.h"
 #import "SimplePickerInputTableViewCell.h"
 #import "StringInputTableViewCell.h"
 #import <UIKit/UIKit.h>

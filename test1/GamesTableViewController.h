@@ -42,7 +42,7 @@
     GameTableViewCell *selectedInvitationCell, *selectedPublicInvitationCell;
     BOOL alreadyAskedAboutInvitations;
     int gamesLimit;
-    PentePopover *actionPopoverView;
+    PentePopover *actionPopover;
     PenteSpinnerOverlay *progressView;
     SettingsViewController *settingsViewController;
 }
@@ -66,7 +66,7 @@
 @property(atomic) int gamesLimit;
 @property(nonatomic, retain) GameTableViewCell *selectedInvitationCell,
     *selectedPublicInvitationCell;
-@property(nonatomic, retain, readwrite) PentePopover *actionPopoverView;
+@property(nonatomic, retain, readwrite) PentePopover *actionPopover;
 @property(strong, nonatomic) PenteSpinnerOverlay *progressView;
 @property(nonatomic, retain) SettingsViewController *settingsViewController;
 
@@ -82,7 +82,7 @@
 - (void)refreshDashboard;
 - (void)parseMessages;
 - (void)toInvitationsWithPlayer:(NSString *)playerName;
-/// Dismisses actionPopoverView (if any), then runs `then` once it is gone.
+/// Dismisses actionPopover (if any), then runs `then` once it is gone.
 - (void)dismissActionPopoverThen:(void (^)(void))then;
 
 @end

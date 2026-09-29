@@ -27,7 +27,6 @@
 #import "MMAI.h"
 #import "PenteAlert.h"
 #import "PenteGame.h"
-#import "PopoverView.h"
 #import "TSMessage.h"
 #import "TSMessageView.h"
 #import "penteLive-Swift.h"
@@ -1081,7 +1080,17 @@ BoardViewController *boardController;
 }
 
 - (void)startThinking {
-    [messagePopover dismiss];
+    // The AI's spinner goes up once the popover (and its onDismiss) is gone.
+    if (messagePopover != nil) {
+        [messagePopover dismissWithCompletion:^{
+            [self beginThinking];
+        }];
+    } else {
+        [self beginThinking];
+    }
+}
+
+- (void)beginThinking {
     if (aiPlayer == nil) {
         //        NSLog(@"kitty");
         aiPlayer = [[MMAI alloc] init];
@@ -1339,17 +1348,16 @@ BoardViewController *boardController;
 
 - (void)showSetup {
     game = nil;
-    messagePopover = [PopoverView
-        showPopoverAtPoint:CGPointMake(self.view.bounds.size.width - 20, 0)
-                    inView:self.view
-                 withTitle:NSLocalizedString(@"search parameters", nil)
-           withContentView:setupView
-                  delegate:self];
+    messagePopover = [PentePopover
+        showContentView:setupView
+                  title:NSLocalizedString(@"search parameters", nil)
+                atPoint:CGPointMake(self.view.bounds.size.width - 20, 0)
+                 inView:self.view
+              onDismiss:[self setupPopoverOnDismiss]];
     for (int i = 0; i < [setupView numberOfRowsInSection:0]; ++i) {
         [setupView
             cellForRowAtIndexPath:[NSIndexPath indexPathForRow:i inSection:0]];
     }
-    [messagePopover layoutSubviews];
 }
 
 - (void)askAI:(UIButton *)sender {
@@ -1364,17 +1372,24 @@ BoardViewController *boardController;
         [aiSetupView setDataSource:aiSetupView];
         [aiSetupView setVc:self];
     }
-    messagePopover =
-        [PopoverView showPopoverAtPoint:CGPointMake(aiButton.center.x,
-                                                    aiButton.frame.origin.y)
-                                 inView:self.view
-                              withTitle:NSLocalizedString(@"ask the AI", nil)
-                        withContentView:aiSetupView
-                               delegate:self];
-    [messagePopover layoutSubviews];
+    messagePopover = [PentePopover
+        showContentView:aiSetupView
+                  title:NSLocalizedString(@"ask the AI", nil)
+                atPoint:CGPointMake(aiButton.center.x, aiButton.frame.origin.y)
+                 inView:self.view
+              onDismiss:[self setupPopoverOnDismiss]];
 }
 
-- (void)popoverViewDidDismiss:(PopoverView *)popoverView {
+/// Both popovers (search parameters and ask the AI) apply the search setup
+/// when they close, as the popover delegate's dismiss callback used to.
+- (void (^)(void))setupPopoverOnDismiss {
+    __weak typeof(self) weakSelf = self;
+    return ^{
+        [weakSelf setupPopoverDidDismiss];
+    };
+}
+
+- (void)setupPopoverDidDismiss {
     game = setupView.gameCell.textField.text;
     if ([game containsString:@"Gomoku"] || [game containsString:@"Connect6"]) {
         [whiteStoneCaptures setHidden:YES];

@@ -1,7 +1,7 @@
 #import "PentePopover.h"
 
-// Spacing and title style carried over from PopoverView's configuration
-// (kBoxPadding, kTitleFont, kTitleColor).
+// Spacing and title style carried over from the runway20 popover pod this
+// replaces (its kBoxPadding, kTitleFont and kTitleColor).
 static const CGFloat kPentePopoverPadding = 10.0;
 
 typedef NS_ENUM(NSInteger, PentePopoverState) {
@@ -129,7 +129,7 @@ typedef NS_ENUM(NSInteger, PentePopoverState) {
     return popover;
 }
 
-/// Lays `views` out the way PopoverView's withTitle:withViewArray: did: the
+/// Lays `views` out the way the old pod's withTitle:withViewArray: did: the
 /// title on top, then the views stacked with kPentePopoverPadding between
 /// them, each centred (or stretched when exactly flexible-width) to the
 /// widest.

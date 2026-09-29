@@ -182,7 +182,7 @@
 @synthesize hill;
 @synthesize hillSummary;
 @synthesize player;
-@synthesize actionPopoverView;
+@synthesize actionPopover;
 @synthesize challengeView;
 
 CGFloat bottomOffst = 0;
@@ -244,7 +244,10 @@ CGFloat bottomOffst = 0;
 - (void)viewWillDisappear:(BOOL)animated {
     [super viewWillDisappear:animated];
     [TSMessage dismissActiveNotification];
-    [actionPopoverView dismiss];
+    // Only when still up; a no-op for a popover that is already gone.
+    if (actionPopover.isPresented) {
+        [actionPopover dismiss];
+    }
 }
 
 - (CGFloat)tableView:(UITableView *)tableView
@@ -415,18 +418,17 @@ CGFloat bottomOffst = 0;
             [challengeView setInvitee:[playr name]];
             [challengeView setDelegate:challengeView];
             [challengeView setDataSource:challengeView];
-            actionPopoverView = [PopoverView
-                showPopoverAtPoint:CGPointMake(self.view.bounds.size.width / 2,
-                                               cellRect.origin.y +
-                                                   cellRect.size.height / 2)
-                            inView:self.view
-                         withTitle:[NSString
-                                       stringWithFormat:@"challenge %@",
-                                                        challengeView.invitee]
-                   withContentView:challengeView
-                          delegate:self];
-            [challengeView setPopoverView:actionPopoverView];
-            [actionPopoverView layoutSubviews];
+            actionPopover = [PentePopover
+                showContentView:challengeView
+                          title:[NSString
+                                    stringWithFormat:@"challenge %@",
+                                                     challengeView.invitee]
+                        atPoint:CGPointMake(self.view.bounds.size.width / 2,
+                                            cellRect.origin.y +
+                                                cellRect.size.height / 2)
+                         inView:self.view
+                      onDismiss:[self challengePopoverOnDismiss]];
+            [challengeView setPopover:actionPopover];
             ((PenteNavigationViewController *)self.navigationController)
                 .didMove = YES;
         } else {
@@ -466,9 +468,16 @@ CGFloat bottomOffst = 0;
     }
 }
 
-- (void)popoverViewDidDismiss:(PopoverView *)popoverView {
-    [challengeView dismissPicker:nil];
-    [self loadKoth];
+- (void (^)(void))challengePopoverOnDismiss {
+    __weak typeof(self) weakSelf = self;
+    return ^{
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        if (strongSelf == nil) {
+            return;
+        }
+        [strongSelf->challengeView dismissPicker:nil];
+        [strongSelf loadKoth];
+    };
 }
 
 - (void)showOpenChallengeView {
@@ -522,16 +531,14 @@ CGFloat bottomOffst = 0;
         [challengeView setInvitee:@""];
         [challengeView setDelegate:challengeView];
         [challengeView setDataSource:challengeView];
-        actionPopoverView = [PopoverView
-            showPopoverAtPoint:CGPointMake(self.view.bounds.size.width / 2,
-                                           [self.tableView contentOffset].y +
-                                               66)
-                        inView:self.view
-                     withTitle:NSLocalizedString(@"send open challenge", nil)
-               withContentView:challengeView
-                      delegate:self];
-        [challengeView setPopoverView:actionPopoverView];
-        [actionPopoverView layoutSubviews];
+        actionPopover = [PentePopover
+            showContentView:challengeView
+                      title:NSLocalizedString(@"send open challenge", nil)
+                    atPoint:CGPointMake(self.view.bounds.size.width / 2,
+                                        [self.tableView contentOffset].y + 66)
+                     inView:self.view
+                  onDismiss:[self challengePopoverOnDismiss]];
+        [challengeView setPopover:actionPopover];
         ((PenteNavigationViewController *)self.navigationController).didMove =
             YES;
     }

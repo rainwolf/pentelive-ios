@@ -827,35 +827,51 @@ static NSString *PenteHexStringForColor(UIColor *color) {
                                  self.view.frame.size.height)];
     [self.progressView startAnimating];
     [self.view addSubview:self.progressView];
-    popoverView = [PopoverView
-        showPopoverAtPoint:CGPointMake(self.view.bounds.size.width / 2,
-                                       [self.tableView contentOffset].y)
-                    inView:self.view
-                 withTitle:NSLocalizedString(@"Subscribe today and", nil)
-             withViewArray:@[
-                 subscribeText, priceText, clearInfoText,
-                 privacyPolicyAndTOSText, eulaText, subscribeButton
-             ]
-                  delegate:self];
-    [popoverView setDelegate:self];
+    __weak typeof(self) weakSelf = self;
+    void (^onDismiss)(void) = ^{
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        if (strongSelf == nil) {
+            return;
+        }
+        if (!strongSelf->subscribing) {
+            [strongSelf.progressView stopAnimating];
+            [strongSelf.progressView removeFromSuperview];
+        }
+    };
+    popoverView =
+        [PentePopover showViews:@[
+            subscribeText, priceText, clearInfoText, privacyPolicyAndTOSText,
+            eulaText, subscribeButton
+        ]
+                          title:NSLocalizedString(@"Subscribe today and", nil)
+                        atPoint:CGPointMake(self.view.bounds.size.width / 2,
+                                            [self.tableView contentOffset].y)
+                         inView:self.view
+                      onDismiss:onDismiss];
+    if (popoverView == nil) {
+        // Nothing was shown, so don't leave the spinner up.
+        onDismiss();
+    }
 }
 
 - (void)openPrivacyPolicyAndTOS {
     PenteWebViewController *webViewController = [[PenteWebViewController alloc]
         initWithAddress:
             @"https://www.pente.org/help/helpWindow.jsp?file=privacyPolicy"];
-    [self.navigationController pushViewController:webViewController
-                                         animated:YES];
-    [navC setShowSubscribe:YES];
-    [popoverView dismiss];
+    [popoverView dismissWithCompletion:^{
+        [self.navigationController pushViewController:webViewController
+                                             animated:YES];
+        [self->navC setShowSubscribe:YES];
+    }];
 }
 - (void)openEULA {
     PenteWebViewController *webViewController = [[PenteWebViewController alloc]
         initWithAddress:@"https://www.pente.org/help/helpWindow.jsp?file=eula"];
-    [self.navigationController pushViewController:webViewController
-                                         animated:YES];
-    [navC setShowSubscribe:YES];
-    [popoverView dismiss];
+    [popoverView dismissWithCompletion:^{
+        [self.navigationController pushViewController:webViewController
+                                             animated:YES];
+        [self->navC setShowSubscribe:YES];
+    }];
 }
 - (void)subscribe:(UIButton *)sender {
     subscribing = YES;
@@ -1242,13 +1258,6 @@ static NSString *PenteHexStringForColor(UIColor *color) {
             });
         }
     }];
-}
-
-- (void)popoverViewDidDismiss:(PopoverView *)popoverView {
-    if (!subscribing) {
-        [self.progressView stopAnimating];
-        [self.progressView removeFromSuperview];
-    }
 }
 
 - (void)imagePickerController:(UIImagePickerController *)pickr

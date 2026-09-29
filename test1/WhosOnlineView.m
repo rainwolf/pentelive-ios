@@ -253,7 +253,7 @@
     //    stringWithFormat:@"https://www.pente.org/gameServer/viewLiveGames?p=%@&g=%@",
     //    username, game]; SVWebViewController *webViewController =
     //    [[SVWebViewController alloc] initWithAddress: urlString];
-    //    [vc.actionPopoverView dismiss];
+    //    [vc.actionPopover dismiss];
     //    [vc.navigationController pushViewController:webViewController
     //    animated:YES];
 }

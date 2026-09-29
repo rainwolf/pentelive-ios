@@ -63,7 +63,7 @@
     kothCollapsed;
 @synthesize selectedInvitationCell, selectedPublicInvitationCell;
 @synthesize gamesLimit;
-@synthesize actionPopoverView;
+@synthesize actionPopover;
 @synthesize progressView;
 @synthesize settingsViewController;
 
@@ -3908,7 +3908,7 @@ array, and add a new row to the table view
     }
     [buttonsArray addObject:button];
 
-    actionPopoverView =
+    actionPopover =
         [PentePopover showViews:buttonsArray
                           title:nil
                         atPoint:CGPointMake(self.view.bounds.size.width - 20,
@@ -3930,8 +3930,8 @@ array, and add a new row to the table view
 /// new popovers go in `then`, because UIKit refuses to present while the
 /// popover is still animating out.
 - (void)dismissActionPopoverThen:(void (^)(void))then {
-    if (actionPopoverView != nil) {
-        [actionPopoverView dismissWithCompletion:then];
+    if (actionPopover != nil) {
+        [actionPopover dismissWithCompletion:then];
     } else {
         then();
     }
@@ -3973,7 +3973,7 @@ array, and add a new row to the table view
     //    [ratingView setUserInteractionEnabled:NO];
     [ratingView setVc:self];
 
-    actionPopoverView = [PentePopover
+    actionPopover = [PentePopover
         showContentView:ratingView
                   title:@"rating stats"
                 atPoint:CGPointMake(self.view.bounds.size.width - 20,
@@ -4075,7 +4075,7 @@ array, and add a new row to the table view
         [playersView setRooms:rooms];
         //            [self.playersView setPlayers:players];
         [playersView setVc:strongSelf];
-        strongSelf.actionPopoverView = [PentePopover
+        strongSelf.actionPopover = [PentePopover
             showContentView:playersView
                       title:NSLocalizedString(@"who's online", nil)
                     atPoint:CGPointMake(strongSelf.view.bounds.size.width - 20,
@@ -4186,7 +4186,7 @@ array, and add a new row to the table view
         bttn.frame = frame;
     }
 
-    actionPopoverView =
+    actionPopover =
         [PentePopover showViews:buttonsArray
                           title:nil
                         atPoint:CGPointMake(self.view.bounds.size.width - 80,
