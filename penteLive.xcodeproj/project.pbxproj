@@ -75,6 +75,7 @@
 		636A99E51E4136C800D08C5D /* footprint.png in Resources */ = {isa = PBXBuildFile; fileRef = 636A99E31E4136C800D08C5D /* footprint.png */; };
 		636A99E61E4136C800D08C5D /* footprint@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 636A99E41E4136C800D08C5D /* footprint@2x.png */; };
 		637885CF1E5CCA360064DCE3 /* PenteWebViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 637885CE1E5CCA360064DCE3 /* PenteWebViewController.swift */; };
+		7A1C0E5D2F3B4A6C8D9E0F33 /* SubscriptionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A1C0E5D2F3B4A6C8D9E0F32 /* SubscriptionStore.swift */; };
 		637BCC102FC627FE005F0446 /* ArenaJoinRequestList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 637BCC0F2FC627FE005F0446 /* ArenaJoinRequestList.swift */; };
 		637CC49416BAB32D00C4F10A /* PlainTableViewSectionHeader.png in Resources */ = {isa = PBXBuildFile; fileRef = 637CC49216BAB32D00C4F10A /* PlainTableViewSectionHeader.png */; };
 		637CC49516BAB32D00C4F10A /* PlainTableViewSectionHeader@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 637CC49316BAB32D00C4F10A /* PlainTableViewSectionHeader@2x.png */; };
@@ -350,6 +351,7 @@
 		636A99E31E4136C800D08C5D /* footprint.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = footprint.png; sourceTree = "<group>"; };
 		636A99E41E4136C800D08C5D /* footprint@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "footprint@2x.png"; sourceTree = "<group>"; };
 		637885CE1E5CCA360064DCE3 /* PenteWebViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PenteWebViewController.swift; sourceTree = "<group>"; };
+		7A1C0E5D2F3B4A6C8D9E0F32 /* SubscriptionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionStore.swift; sourceTree = "<group>"; };
 		6379451116AB74F200EA4ACA /* penteLive-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "penteLive-Info.plist"; sourceTree = "<group>"; };
 		6379451316AB75A000EA4ACA /* penteLive-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "penteLive-Info.plist"; path = "test1/penteLive-Info.plist"; sourceTree = "<group>"; };
 		637BCC0F2FC627FE005F0446 /* ArenaJoinRequestList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArenaJoinRequestList.swift; sourceTree = "<group>"; };
@@ -764,6 +766,7 @@
 				63B20FDB1D282A410090644D /* KOTHTableViewController.m */,
 				636A99E11E40DE2500D08C5D /* SocialViewController.swift */,
 				637885CE1E5CCA360064DCE3 /* PenteWebViewController.swift */,
+				7A1C0E5D2F3B4A6C8D9E0F32 /* SubscriptionStore.swift */,
 				636163A62019E5AA00D5E176 /* PenteGame.m */,
 				636163A82019E5C100D5E176 /* PenteGame.h */,
 				50436E8B3C992E62FFFC15D7 /* BoardVariantMapping.swift */,
@@ -1409,6 +1412,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				637885CF1E5CCA360064DCE3 /* PenteWebViewController.swift in Sources */,
+				7A1C0E5D2F3B4A6C8D9E0F33 /* SubscriptionStore.swift in Sources */,
 				63288F4D1DF198BF006F73EF /* HelperClasses.swift in Sources */,
 				633648111CF350C600F432E2 /* RatingStatsView.m in Sources */,
 				636163A72019E5AA00D5E176 /* PenteGame.m in Sources */,
