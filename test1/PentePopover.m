@@ -3,6 +3,7 @@
 // Spacing and title style carried over from the runway20 popover pod this
 // replaces (its kBoxPadding, kTitleFont and kTitleColor).
 static const CGFloat kPentePopoverPadding = 10.0;
+static const CGFloat kPentePopoverMargin = 10.0;
 
 typedef NS_ENUM(NSInteger, PentePopoverState) {
     PentePopoverStatePresented,
@@ -99,7 +100,16 @@ typedef NS_ENUM(NSInteger, PentePopoverState) {
         presenter = presenter.presentedViewController;
     }
 
-    UIView *container = [self containerWithViews:views title:title];
+    // Keep the popover inside the window with a 10 pt margin each side (the
+    // old pod's kHorizontalMargin); wider content is narrowed to fit.
+    UIWindow *window = view.window;
+    UIEdgeInsets safeArea = window.safeAreaInsets;
+    CGFloat maxContentWidth = window.bounds.size.width - safeArea.left -
+                              safeArea.right - 2 * kPentePopoverMargin -
+                              2 * kPentePopoverPadding;
+    UIView *container = [self containerWithViews:views
+                                           title:title
+                                        maxWidth:maxContentWidth];
 
     PentePopover *popover = [[self alloc] init];
     popover.onDismiss = onDismiss;
@@ -121,7 +131,9 @@ typedef NS_ENUM(NSInteger, PentePopoverState) {
         host.popoverPresentationController;
     presentation.sourceView = view;
     presentation.sourceRect = CGRectMake(point.x, point.y, 1, 1);
-    presentation.permittedArrowDirections = UIPopoverArrowDirectionAny;
+    // Up or down only, as the old pod: a sideways arrow eats into the width.
+    presentation.permittedArrowDirections =
+        UIPopoverArrowDirectionUp | UIPopoverArrowDirectionDown;
     presentation.backgroundColor = [UIColor whiteColor];
     presentation.delegate = popover;
 
@@ -132,12 +144,31 @@ typedef NS_ENUM(NSInteger, PentePopoverState) {
 /// Lays `views` out the way the old pod's withTitle:withViewArray: did: the
 /// title on top, then the views stacked with kPentePopoverPadding between
 /// them, each centred (or stretched when exactly flexible-width) to the
-/// widest.
+/// widest. Views wider than `maxWidth` are narrowed to it (their
+/// flexible-width subviews follow through autoresizing; multi-line labels get
+/// the height their text now needs).
 + (UIView *)containerWithViews:(NSArray<UIView *> *)views
-                         title:(NSString *)title {
+                         title:(NSString *)title
+                      maxWidth:(CGFloat)maxWidth {
     UIView *container = [[UIView alloc] initWithFrame:CGRectZero];
     CGFloat totalWidth = 0;
     CGFloat totalHeight = 0;
+    maxWidth = MAX(floor(maxWidth), 1);
+
+    for (UIView *subview in views) {
+        CGRect frame = subview.frame;
+        if (frame.size.width <= maxWidth) {
+            continue;
+        }
+        frame.size.width = maxWidth;
+        if ([subview isKindOfClass:[UILabel class]] &&
+            ((UILabel *)subview).numberOfLines != 1) {
+            frame.size.height =
+                ceil([subview sizeThatFits:CGSizeMake(maxWidth, CGFLOAT_MAX)]
+                         .height);
+        }
+        subview.frame = frame;
+    }
 
     UILabel *titleLabel = nil;
     if (title.length > 0) {
@@ -151,6 +182,11 @@ typedef NS_ENUM(NSInteger, PentePopoverState) {
                                                alpha:1];
         titleLabel.text = title;
         [titleLabel sizeToFit];
+        if (titleLabel.bounds.size.width > maxWidth) {
+            CGRect titleFrame = titleLabel.bounds;
+            titleFrame.size.width = maxWidth;
+            titleLabel.frame = titleFrame;
+        }
         totalWidth = titleLabel.bounds.size.width;
         totalHeight = titleLabel.bounds.size.height + 2 * kPentePopoverPadding;
         [container addSubview:titleLabel];
