@@ -12,7 +12,7 @@
 #import "UIPullToReloadTableViewController.h"
 #import <UIKit/UIKit.h>
 // #import "IASKAppSettingsViewController.h"
-#import "ICDMaterialActivityIndicatorView.h"
+#import "PenteSpinnerOverlay.h"
 #import "InvitationsViewController.h"
 #import "SettingsViewController.h"
 @import PopoverView;
@@ -44,7 +44,7 @@
     BOOL alreadyAskedAboutInvitations;
     int gamesLimit;
     PopoverView *actionPopoverView;
-    ICDMaterialActivityIndicatorView *progressView;
+    PenteSpinnerOverlay *progressView;
     SettingsViewController *settingsViewController;
 }
 @property(nonatomic, retain) PentePlayer *player;
@@ -68,7 +68,7 @@
 @property(nonatomic, retain) GameTableViewCell *selectedInvitationCell,
     *selectedPublicInvitationCell;
 @property(nonatomic, retain, readwrite) PopoverView *actionPopoverView;
-@property(strong, nonatomic) ICDMaterialActivityIndicatorView *progressView;
+@property(strong, nonatomic) PenteSpinnerOverlay *progressView;
 @property(nonatomic, retain) SettingsViewController *settingsViewController;
 
 - (void)tableView:(UITableView *)tableView

@@ -6,6 +6,7 @@
 //  Copyright (c) 2012 Triade. All rights reserved.
 //
 
+#import "PenteSpinnerOverlay.h"
 #import "SettingsViewController.h"
 #import "AppDelegate.h"
 #import "ChangeColorViewController.h"
@@ -757,12 +758,9 @@
     //        forState:UIControlStateNormal]; [subscribeButton
     //        setContentHorizontalAlignment:UIControlContentHorizontalAlignmentLeft];
 
-    self.progressView = [[ICDMaterialActivityIndicatorView alloc]
-                 initWithFrame:CGRectMake(0, 0, self.view.frame.size.width,
-                                          self.view.frame.size.height)
-        activityIndicatorStyle:ICDMaterialActivityIndicatorViewStyleLarge];
-    [self.progressView setBackgroundColor:[UIColor whiteColor]];
-    [self.progressView setAlpha:0.75];
+    self.progressView = [[PenteSpinnerOverlay alloc]
+        initWithFrame:CGRectMake(0, 0, self.view.frame.size.width,
+                                 self.view.frame.size.height)];
     [self.progressView startAnimating];
     [self.view addSubview:self.progressView];
     popoverView = [PopoverView
@@ -965,12 +963,9 @@
         return;
     }
 
-    self.progressView = [[ICDMaterialActivityIndicatorView alloc]
-                 initWithFrame:CGRectMake(0, 0, self.view.frame.size.width,
-                                          self.view.frame.size.height)
-        activityIndicatorStyle:ICDMaterialActivityIndicatorViewStyleLarge];
-    [self.progressView setBackgroundColor:[UIColor whiteColor]];
-    [self.progressView setAlpha:0.75];
+    self.progressView = [[PenteSpinnerOverlay alloc]
+        initWithFrame:CGRectMake(0, 0, self.view.frame.size.width,
+                                 self.view.frame.size.height)];
     [self.progressView startAnimating];
     [self.view addSubview:self.progressView];
     subscribing = YES;

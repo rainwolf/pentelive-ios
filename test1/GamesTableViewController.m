@@ -6,6 +6,7 @@
 //  Copyright (c) 2012 Triade. All rights reserved.
 //
 
+#import "PenteSpinnerOverlay.h"
 #import "GamesTableViewController.h"
 #import "PenteGame.h"
 #import "PentePlayer.h"
@@ -168,12 +169,9 @@ CGFloat bottomOffset = 0;
             setInteger:3
                 forKey:@"openInvitationsLimit"];
     }
-    self.progressView = [[ICDMaterialActivityIndicatorView alloc]
-                 initWithFrame:CGRectMake(0, 0, self.view.frame.size.width,
-                                          self.view.frame.size.height)
-        activityIndicatorStyle:ICDMaterialActivityIndicatorViewStyleLarge];
-    [self.progressView setBackgroundColor:[UIColor whiteColor]];
-    [self.progressView setAlpha:0.75];
+    self.progressView = [[PenteSpinnerOverlay alloc]
+        initWithFrame:CGRectMake(0, 0, self.view.frame.size.width,
+                                 self.view.frame.size.height)];
 
     if ([[UIDevice currentDevice] userInterfaceIdiom] ==
         UIUserInterfaceIdiomPhone) {

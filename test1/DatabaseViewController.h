@@ -10,7 +10,7 @@
 #import "DBAISetupView.h"
 #import "DBBoardView.h"
 #import "DBSetupView.h"
-#import "ICDMaterialActivityIndicatorView.h"
+#import "PenteSpinnerOverlay.h"
 #import "PenteNavigationViewController.h"
 #import "PopoverView.h"
 #import <UIKit/UIKit.h>
@@ -30,7 +30,7 @@
     MMAI *aiPlayer;
     DBSetupView *setupView;
     DBAISetupView *aiSetupView;
-    ICDMaterialActivityIndicatorView *progressView;
+    PenteSpinnerOverlay *progressView;
     UIButton *aiButton;
 }
 @property(atomic) BOOL activeGame;
@@ -60,7 +60,7 @@
 @property(nonatomic, retain, readwrite) MMAI *aiPlayer;
 @property(nonatomic, retain, readwrite) DBSetupView *setupView;
 @property(nonatomic, retain, readwrite) DBAISetupView *aiSetupView;
-@property(strong, nonatomic) ICDMaterialActivityIndicatorView *progressView;
+@property(strong, nonatomic) PenteSpinnerOverlay *progressView;
 @property(nonatomic, retain, readwrite) UIButton *aiButton;
 - (void)startThinking;
 

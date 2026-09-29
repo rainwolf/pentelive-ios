@@ -22,7 +22,6 @@ platform :ios, '15.0'
 #   pod 'SVWebViewController', :git => 'https://github.com/TransitApp/SVWebViewController.git'
     pod "Color-Picker-for-iOS", "~> 2.0"
     pod "UIColor+Hex"
-    pod 'ICDMaterialActivityIndicatorView'
     pod 'RMStore', '~> 0.7'
     pod 'InAppSettingsKit'
     pod 'NSHash', '~> 1.1.0'

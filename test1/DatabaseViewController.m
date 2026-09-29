@@ -20,6 +20,7 @@
 #define IS_IPHONE_6 (IS_IPHONE && SCREEN_MAX_LENGTH == 667.0)
 #define IS_IPHONE_6P (IS_IPHONE && SCREEN_MAX_LENGTH == 736.0)
 
+#import "PenteSpinnerOverlay.h"
 #import "DatabaseViewController.h"
 #import "BoardViewController.h"
 #import "DBBoardView.h"
@@ -247,12 +248,9 @@ BoardViewController *boardController;
         movesList = [[NSMutableArray alloc] init];
         [self resetState];
     }
-    self.progressView = [[ICDMaterialActivityIndicatorView alloc]
-                 initWithFrame:CGRectMake(0, 0, self.view.frame.size.width,
-                                          self.view.frame.size.height)
-        activityIndicatorStyle:ICDMaterialActivityIndicatorViewStyleLarge];
-    [self.progressView setBackgroundColor:[UIColor whiteColor]];
-    [self.progressView setAlpha:0.75];
+    self.progressView = [[PenteSpinnerOverlay alloc]
+        initWithFrame:CGRectMake(0, 0, self.view.frame.size.width,
+                                 self.view.frame.size.height)];
 }
 
 - (void)viewWillAppear:(BOOL)animated {

@@ -200,6 +200,7 @@
 		63EE6BFD2FC0CF280015D6F0 /* ArenaTableSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63EE6BFC2FC0CF280015D6F0 /* ArenaTableSetupView.swift */; };
 		63EF95CB2F6582CA001C269F /* PenteHTTPClient.m in Sources */ = {isa = PBXBuildFile; fileRef = 63EF95CA2F6582CA001C269F /* PenteHTTPClient.m */; };
 		FA5D13026A2FA2E0A2A27F38 /* PenteAlert.m in Sources */ = {isa = PBXBuildFile; fileRef = CA18254E693C7E19066ECB56 /* PenteAlert.m */; };
+		7A1C0E5D2F3B4A6C8D9E0F13 /* PenteSpinnerOverlay.m in Sources */ = {isa = PBXBuildFile; fileRef = 7A1C0E5D2F3B4A6C8D9E0F12 /* PenteSpinnerOverlay.m */; };
 		63EFAEAB1DB570A50029DA41 /* DatabaseViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 63EFAEAA1DB570A50029DA41 /* DatabaseViewController.m */; };
 		63EFAEAE1DB576F60029DA41 /* DBBoardView.m in Sources */ = {isa = PBXBuildFile; fileRef = 63EFAEAD1DB576F60029DA41 /* DBBoardView.m */; };
 		63EFAEB11DB579DB0029DA41 /* DBSetupView.m in Sources */ = {isa = PBXBuildFile; fileRef = 63EFAEB01DB579DB0029DA41 /* DBSetupView.m */; };
@@ -496,6 +497,8 @@
 		63EF95CA2F6582CA001C269F /* PenteHTTPClient.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PenteHTTPClient.m; sourceTree = "<group>"; };
 		41D62F7AEBDFB3F97F09C64F /* PenteAlert.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PenteAlert.h; sourceTree = "<group>"; };
 		CA18254E693C7E19066ECB56 /* PenteAlert.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PenteAlert.m; sourceTree = "<group>"; };
+		7A1C0E5D2F3B4A6C8D9E0F11 /* PenteSpinnerOverlay.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PenteSpinnerOverlay.h; sourceTree = "<group>"; };
+		7A1C0E5D2F3B4A6C8D9E0F12 /* PenteSpinnerOverlay.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PenteSpinnerOverlay.m; sourceTree = "<group>"; };
 		63EFAEA91DB570A50029DA41 /* DatabaseViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DatabaseViewController.h; sourceTree = "<group>"; };
 		63EFAEAA1DB570A50029DA41 /* DatabaseViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DatabaseViewController.m; sourceTree = "<group>"; };
 		63EFAEAC1DB576F60029DA41 /* DBBoardView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DBBoardView.h; sourceTree = "<group>"; };
@@ -751,6 +754,8 @@
 				63EF95CA2F6582CA001C269F /* PenteHTTPClient.m */,
 				41D62F7AEBDFB3F97F09C64F /* PenteAlert.h */,
 				CA18254E693C7E19066ECB56 /* PenteAlert.m */,
+				7A1C0E5D2F3B4A6C8D9E0F11 /* PenteSpinnerOverlay.h */,
+				7A1C0E5D2F3B4A6C8D9E0F12 /* PenteSpinnerOverlay.m */,
 				631B675D169DA7FE0098B3E1 /* Settings.bundle */,
 				63C4198A17B0E03200983B57 /* Images.xcassets */,
 				1B7A0C0F2E4D4A9B8C6D0001 /* LaunchScreen.storyboard */,
@@ -1339,7 +1344,6 @@
 				"${BUILT_PRODUCTS_DIR}/CocoaAsyncSocket/CocoaAsyncSocket.framework",
 				"${BUILT_PRODUCTS_DIR}/Color-Picker-for-iOS/Color_Picker_for_iOS.framework",
 				"${BUILT_PRODUCTS_DIR}/HexColors/HexColors.framework",
-				"${BUILT_PRODUCTS_DIR}/ICDMaterialActivityIndicatorView/ICDMaterialActivityIndicatorView.framework",
 				"${BUILT_PRODUCTS_DIR}/InAppSettingsKit/InAppSettingsKit.framework",
 				"${BUILT_PRODUCTS_DIR}/NSHash/NSHash.framework",
 				"${BUILT_PRODUCTS_DIR}/PopoverView/PopoverView.framework",
@@ -1356,7 +1360,6 @@
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/CocoaAsyncSocket.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Color_Picker_for_iOS.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/HexColors.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/ICDMaterialActivityIndicatorView.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/InAppSettingsKit.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/NSHash.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/PopoverView.framework",
@@ -1435,6 +1438,7 @@
 				63FEFC5A1689BFB30070E9AA /* UIPullToReloadTableViewController.m in Sources */,
 				63EF95CB2F6582CA001C269F /* PenteHTTPClient.m in Sources */,
 				FA5D13026A2FA2E0A2A27F38 /* PenteAlert.m in Sources */,
+				7A1C0E5D2F3B4A6C8D9E0F13 /* PenteSpinnerOverlay.m in Sources */,
 				636A99E21E40DE2500D08C5D /* SocialViewController.swift in Sources */,
 				63FEFD54168DFDA30070E9AA /* SettingsViewController.m in Sources */,
 				6396A37C1D38DE81004BC68D /* ChangeColorViewController.m in Sources */,

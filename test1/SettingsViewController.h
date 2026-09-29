@@ -6,7 +6,7 @@
 //  Copyright (c) 2012 Triade. All rights reserved.
 //
 
-#import "ICDMaterialActivityIndicatorView.h"
+#import "PenteSpinnerOverlay.h"
 #import "InAppSettingsKit/IASKAppSettingsViewController.h"
 #import "PenteNavigationViewController.h"
 #import "PopoverView.h"
@@ -17,7 +17,7 @@
           UIImagePickerControllerDelegate, PopoverViewDelegate> {
     NSString *username, *password;
     PopoverView *popoverView;
-    ICDMaterialActivityIndicatorView *progressView;
+    PenteSpinnerOverlay *progressView;
     PenteNavigationViewController *navC;
     BOOL showAIOption;
 }
@@ -25,7 +25,7 @@
 @property(nonatomic, retain) NSString *password;
 @property(nonatomic, retain) PopoverView *popoverView;
 @property(nonatomic, retain) PenteNavigationViewController *navC;
-@property(strong, nonatomic) ICDMaterialActivityIndicatorView *progressView;
+@property(strong, nonatomic) PenteSpinnerOverlay *progressView;
 @property(atomic, assign) BOOL showAIOption;
 
 //-(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath
