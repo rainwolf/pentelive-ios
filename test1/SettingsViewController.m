@@ -822,6 +822,9 @@ static NSString *PenteHexStringForColor(UIColor *color) {
     //        forState:UIControlStateNormal]; [subscribeButton
     //        setContentHorizontalAlignment:UIControlContentHorizontalAlignmentLeft];
 
+    // Don't orphan a spinner an earlier flow left up.
+    [self.progressView stopAnimating];
+    [self.progressView removeFromSuperview];
     self.progressView = [[PenteSpinnerOverlay alloc]
         initWithFrame:CGRectMake(0, 0, self.view.frame.size.width,
                                  self.view.frame.size.height)];
@@ -919,6 +922,10 @@ static NSString *PenteHexStringForColor(UIColor *color) {
                                           encoding:NSUTF8StringEncoding];
                 //        NSLog(dashboardString);
 
+                __strong typeof(weakSelf) strongSelf = weakSelf;
+                if (strongSelf != nil) {
+                    strongSelf->subscribing = NO;
+                }
                 [weakSelf.progressView stopAnimating];
                 [weakSelf.progressView removeFromSuperview];
                 if ([dashboardString containsString:@"success"]) {
@@ -1130,6 +1137,10 @@ static NSString *PenteHexStringForColor(UIColor *color) {
                                           encoding:NSUTF8StringEncoding];
                 //        NSLog(dashboardString);
 
+                __strong typeof(weakSelf) strongSelf = weakSelf;
+                if (strongSelf != nil) {
+                    strongSelf->subscribing = NO;
+                }
                 [weakSelf.progressView stopAnimating];
                 [weakSelf.progressView removeFromSuperview];
                 if ([dashboardString containsString:@"success"]) {
@@ -1223,8 +1234,11 @@ static NSString *PenteHexStringForColor(UIColor *color) {
                 }
             }];
         } else {
-            NSLog(@"Something went wrong, %@", error.localizedFailureReason);
+            NSString *reason =
+                error.localizedFailureReason ?: error.localizedDescription;
+            NSLog(@"Something went wrong, %@", reason);
             dispatch_async(dispatch_get_main_queue(), ^{
+                subscribing = NO;
                 [self.progressView stopAnimating];
                 [self.progressView removeFromSuperview];
                 [TSMessage
@@ -1237,8 +1251,7 @@ static NSString *PenteHexStringForColor(UIColor *color) {
                                                     stringWithFormat:
                                                         NSLocalizedString(
                                                             @"Reason: %@", nil),
-                                                        error
-                                                            .localizedFailureReason]
+                                                        reason]
                                                image:nil
                                                 type:
                                                     TSMessageNotificationTypeWarning
@@ -1253,8 +1266,7 @@ static NSString *PenteHexStringForColor(UIColor *color) {
                                           atPosition:
                                               TSMessageNotificationPositionBottom
                                 canBeDismissedByUser:YES];
-                NSLog(@"Something went wrong, %@",
-                      error.localizedFailureReason);
+                NSLog(@"Something went wrong, %@", reason);
             });
         }
     }];
