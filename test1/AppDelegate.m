@@ -29,6 +29,8 @@
     // that method for why the payload itself is the key.
     NSDictionary *_lastHandledUserInfo;
     NSTimeInterval _lastHandledAt;
+    // Main-queue only; see -sendPendingReceipt.
+    BOOL _receiptPostInFlight;
 }
 @synthesize notification;
 @synthesize sndID, broadcastSndID;
@@ -171,8 +173,27 @@
                 [AppDelegate rootNavigationController];
             [nav setSubscription:product];
         }];
+    [[NSNotificationCenter defaultCenter]
+        addObserver:self
+           selector:@selector(sendPendingReceipt)
+               name:SubscriptionStore.receiptNeedsSendingNotification
+             object:nil];
     [[SubscriptionStore shared] start];
 
+    [self sendPendingReceipt];
+
+    return YES;
+}
+
+// Uploads the App Store receipt to pente.org while shouldSendReceipt is set.
+// Runs at launch and whenever SubscriptionStore reports a transaction that no
+// purchase or restore caller registers (Ask-to-Buy approval, renewal). Always
+// on the main queue, so the in-flight flag keeps a second trigger from racing
+// the first POST on the flag.
+- (void)sendPendingReceipt {
+    if (_receiptPostInFlight) {
+        return;
+    }
     if ([[NSUserDefaults standardUserDefaults]
             boolForKey:@"shouldSendReceipt"]) {
         NSURL *receiptURL = [[NSBundle mainBundle] appStoreReceiptURL];
@@ -204,7 +225,9 @@
 
         //    [request setHTTPShouldUsePipelining: YES];
 
+        _receiptPostInFlight = YES;
         [PenteHTTPClient sendRequest:request completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
+        _receiptPostInFlight = NO;
         NSString *dashboardString =
             [[NSString alloc] initWithData:responseData
                                   encoding:NSUTF8StringEncoding];
@@ -304,8 +327,6 @@
         }
         }];
     }
-
-    return YES;
 }
 
 - (void)applicationWillTerminate:(UIApplication *)application {
