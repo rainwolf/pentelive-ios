@@ -187,9 +187,17 @@
 
 // SubscriptionStore reported a transaction no purchase or restore caller
 // registers (Ask-to-Buy approval, renewal). A StoreKit 2 transaction does not
-// rewrite the receipt on disk, so refresh it before sending. Only here, never
-// at plain launch: the refresh can show an Apple ID sign-in prompt.
+// rewrite the receipt on disk, so an initial purchase refreshes it before
+// sending; a renewal is sent as before, since the server's stored receipt
+// already covers it. Only here, never at plain launch: the refresh can show an
+// Apple ID sign-in prompt.
 - (void)receiptNeedsSendingNotification:(NSNotification *)notification {
+    NSNumber *needsRefresh =
+        notification.userInfo[SubscriptionStore.needsReceiptRefreshKey];
+    if (![needsRefresh boolValue]) {
+        [self sendPendingReceipt];
+        return;
+    }
     [[SubscriptionStore shared] refreshReceiptWithCompletion:^(NSError *error) {
         if (error != nil) {
             NSLog(@"Receipt refresh failed: %@", error);

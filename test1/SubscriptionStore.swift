@@ -39,6 +39,12 @@ import StoreKit
     /// transaction that no purchase or restore caller is registering.
     @objc static let receiptNeedsSendingNotification =
         Notification.Name("SubscriptionStoreReceiptNeedsSending")
+    /// `userInfo` key on that notification: an NSNumber BOOL, YES when one
+    /// of its transactions is an initial purchase (Ask-to-Buy approval, a
+    /// purchase interrupted by an app kill), so the receipt on disk needs a
+    /// refresh before it is sent. Renewals don't: the server's stored receipt
+    /// already brings them in through verifyReceipt's latest_receipt_info.
+    @objc static let needsReceiptRefreshKey = "needsReceiptRefresh"
 
     private static let productID = "1YRNOADSORLIMITS"
 
@@ -51,6 +57,8 @@ import StoreKit
     /// An update was held back while a call was running; post once the last
     /// call ends, unless a call's own POST has covered it meanwhile.
     private var pendingReceiptNotification = false
+    /// Whether any update held back so far needs a receipt refresh.
+    private var pendingReceiptNeedsRefresh = false
     /// Transactions purchase() already returned to its caller, in case the
     /// updates listener sees them after the call has ended.
     private var purchaseHandledIDs = Set<UInt64>()
@@ -181,16 +189,20 @@ import StoreKit
         callerRegistrations -= 1
         if callerPostsReceipt {
             pendingReceiptNotification = false
+            pendingReceiptNeedsRefresh = false
         }
         if callerRegistrations == 0 && pendingReceiptNotification {
+            let needsRefresh = pendingReceiptNeedsRefresh
             pendingReceiptNotification = false
-            postReceiptNeedsSending()
+            pendingReceiptNeedsRefresh = false
+            postReceiptNeedsSending(needsRefresh: needsRefresh)
         }
     }
 
-    private func postReceiptNeedsSending() {
+    private func postReceiptNeedsSending(needsRefresh: Bool) {
         NotificationCenter.default.post(
-            name: Self.receiptNeedsSendingNotification, object: nil)
+            name: Self.receiptNeedsSendingNotification, object: nil,
+            userInfo: [Self.needsReceiptRefreshKey: NSNumber(value: needsRefresh)])
     }
 
     private func handleUpdate(_ result: VerificationResult<Transaction>) async {
@@ -210,10 +222,12 @@ import StoreKit
             // and the POST waits for it to end.
             guard isSubscription,
                   !purchaseHandledIDs.contains(transaction.id) else { return }
+            let needsRefresh = transaction.originalID == transaction.id
             if callerRegistrations == 0 {
-                postReceiptNeedsSending()
+                postReceiptNeedsSending(needsRefresh: needsRefresh)
             } else {
                 pendingReceiptNotification = true
+                pendingReceiptNeedsRefresh = pendingReceiptNeedsRefresh || needsRefresh
             }
         case .unverified(let transaction, let verificationError):
             NSLog("SubscriptionStore: finishing unverified transaction %llu (%@): %@",
