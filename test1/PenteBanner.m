@@ -175,6 +175,11 @@ static NSString *PenteBannerSymbolName(PenteBannerType type) {
     newCenter.y += (self.position == PenteBannerPositionBottom ? -delta : delta) / 2.0;
     self.bounds = newBounds;
     self.center = newCenter;
+    // Keep the slide-out target past the screen edge: Top/NavBarOverlay cards
+    // grow downward (need more upward travel), Bottom cards grow upward.
+    CGAffineTransform off = self.offscreenTransform;
+    off.ty += (self.position == PenteBannerPositionBottom ? delta : -delta);
+    self.offscreenTransform = off;
 }
 
 - (void)buildContent {
@@ -324,6 +329,9 @@ static NSString *PenteBannerSymbolName(PenteBannerType type) {
         [actions addObject:[[UIAccessibilityCustomAction alloc]
                                initWithName:self.buttonTitle
                               actionHandler:^BOOL(UIAccessibilityCustomAction *action) {
+                                  if (weakSelf.state == PenteBannerStateAnimatingOut) {
+                                      return YES; // already dismissing: don't run the callback twice
+                                  }
                                   [weakSelf buttonTapped:nil];
                                   return YES;
                               }]];
@@ -382,6 +390,9 @@ static NSString *PenteBannerSymbolName(PenteBannerType type) {
 }
 
 - (void)buttonTapped:(id)sender {
+    if (self.state == PenteBannerStateAnimatingOut) {
+        return; // already dismissing: don't run the callback twice
+    }
     if (self.buttonCallback) {
         self.buttonCallback();
     }
@@ -645,7 +656,10 @@ static NSMutableArray<PenteBannerView *> *sQueue; // [0] is on screen unless sti
     banner.autoresizingMask = vertical | (capped ? (UIViewAutoresizingFlexibleLeftMargin |
                                                     UIViewAutoresizingFlexibleRightMargin)
                                                  : UIViewAutoresizingFlexibleWidth);
-    banner.minimumHeight = height == [banner heightForWidth:width] ? 0.0 : height;
+    // A NavBarOverlay card must never re-fit shorter than the bar it covers.
+    banner.minimumHeight = (banner.position == PenteBannerPositionNavBarOverlay && barShown)
+                               ? CGRectGetHeight(barFrame)
+                               : 0.0;
     banner.fittedWidth = width;
     [banner layoutIfNeeded];
 
