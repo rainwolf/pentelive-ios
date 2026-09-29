@@ -135,6 +135,11 @@ static NSString *PenteBannerSymbolName(PenteBannerType type) {
 @property (nonatomic) PenteBannerState state;
 /// Translation that puts the card just off the host's top or bottom edge.
 @property (nonatomic) CGAffineTransform offscreenTransform;
+/// Floor for the card's height (a NavBarOverlay card covers the bar) and the
+/// width its height was last computed for, so -layoutSubviews can re-fit text
+/// when the host is resized.
+@property (nonatomic) CGFloat minimumHeight;
+@property (nonatomic) CGFloat fittedWidth;
 @property (nonatomic, strong, nullable) PenteBannerWindowTracker *windowTracker;
 @property (nonatomic, strong) UIImageView *iconView;
 @property (nonatomic, strong) NSArray<UILabel *> *labels;
@@ -142,6 +147,35 @@ static NSString *PenteBannerSymbolName(PenteBannerType type) {
 @end
 
 @implementation PenteBannerView
+
+- (instancetype)initWithFrame:(CGRect)frame {
+    if ((self = [super initWithFrame:frame])) {
+        _offscreenTransform = CGAffineTransformIdentity; // fade-out may run before it is measured
+    }
+    return self;
+}
+
+- (void)layoutSubviews {
+    [super layoutSubviews];
+    CGFloat width = CGRectGetWidth(self.bounds);
+    if (self.fittedWidth <= 0.0 || width <= 0.0 || fabs(width - self.fittedWidth) < 0.5) {
+        return;
+    }
+    // Host resized (iPad split view, rotation): keep the anchored edge, re-fit the height.
+    self.fittedWidth = width;
+    CGFloat height = MAX([self heightForWidth:width], self.minimumHeight);
+    CGFloat delta = height - CGRectGetHeight(self.bounds);
+    if (fabs(delta) < 0.5) {
+        return;
+    }
+    // bounds/center rather than frame: the card may be mid-animation under a transform.
+    CGRect newBounds = self.bounds;
+    newBounds.size.height = height;
+    CGPoint newCenter = self.center;
+    newCenter.y += (self.position == PenteBannerPositionBottom ? -delta : delta) / 2.0;
+    self.bounds = newBounds;
+    self.center = newCenter;
+}
 
 - (void)buildContent {
     UIColor *textColor = PenteBannerSolidTextColor();
@@ -334,6 +368,9 @@ static NSString *PenteBannerSymbolName(PenteBannerType type) {
     if (tap.state != UIGestureRecognizerStateRecognized) {
         return;
     }
+    if (self.state == PenteBannerStateAnimatingOut || self.state == PenteBannerStateQueued) {
+        return; // already dismissing: don't run callback twice
+    }
     if (self.callback) {
         self.callback();
     }
@@ -354,6 +391,9 @@ static NSString *PenteBannerSymbolName(PenteBannerType type) {
 - (BOOL)accessibilityActivate {
     if (!self.callback && !self.dismissingEnabled) {
         return NO;
+    }
+    if (self.state == PenteBannerStateAnimatingOut || self.state == PenteBannerStateQueued) {
+        return YES; // already dismissing: don't run callback twice
     }
     if (self.callback) {
         self.callback();
@@ -547,6 +587,11 @@ static NSMutableArray<PenteBannerView *> *sQueue; // [0] is on screen unless sti
         host = viewController.view;
         [host addSubview:banner];
     }
+    // Joining the hierarchy can already have faded it out (Endless banner whose
+    // host is off-screen): skip the slide-in and the announcement.
+    if (banner.state != PenteBannerStateAnimatingIn) {
+        return;
+    }
 
     // Floating card: inset from the sides and safe area, capped in width on iPad.
     CGRect bounds = host.bounds; // origin is the content offset when host is a scroll view
@@ -591,10 +636,17 @@ static NSMutableArray<PenteBannerView *> *sQueue; // [0] is on screen unless sti
     }
 
     banner.frame = CGRectMake(x, y, width, height);
-    banner.autoresizingMask = UIViewAutoresizingFlexibleWidth |
-                              (banner.position == PenteBannerPositionBottom
-                                   ? UIViewAutoresizingFlexibleTopMargin
-                                   : UIViewAutoresizingFlexibleBottomMargin);
+    UIViewAutoresizing vertical = banner.position == PenteBannerPositionBottom
+                                      ? UIViewAutoresizingFlexibleTopMargin
+                                      : UIViewAutoresizingFlexibleBottomMargin;
+    // Capped card stays centred at fixed width; full-width card follows the host
+    // and re-fits its height in -layoutSubviews.
+    BOOL capped = width >= kPenteBannerMaxWidth;
+    banner.autoresizingMask = vertical | (capped ? (UIViewAutoresizingFlexibleLeftMargin |
+                                                    UIViewAutoresizingFlexibleRightMargin)
+                                                 : UIViewAutoresizingFlexibleWidth);
+    banner.minimumHeight = height == [banner heightForWidth:width] ? 0.0 : height;
+    banner.fittedWidth = width;
     [banner layoutIfNeeded];
 
     banner.offscreenTransform =
