@@ -180,7 +180,15 @@
              object:nil];
     [[SubscriptionStore shared] start];
 
-    [self sendPendingReceipt];
+    // Refresh at launch only to retry a purchase or restore whose refresh
+    // failed: the refresh can show an Apple ID sign-in prompt.
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    if ([defaults boolForKey:@"shouldSendReceipt"] &&
+        [defaults boolForKey:@"shouldRefreshReceipt"]) {
+        [self refreshReceiptThenSend];
+    } else {
+        [self sendPendingReceipt];
+    }
 
     return YES;
 }
@@ -188,9 +196,9 @@
 // SubscriptionStore reported a transaction no purchase or restore caller
 // registers (Ask-to-Buy approval, renewal). A StoreKit 2 transaction does not
 // rewrite the receipt on disk, so an initial purchase refreshes it before
-// sending; a renewal is sent as before, since the server's stored receipt
-// already covers it. Only here, never at plain launch: the refresh can show an
-// Apple ID sign-in prompt.
+// sending. A renewal is sent as before: once a refresh or a StoreKit 1
+// purchase has written the subscription into the receipt on disk,
+// verifyReceipt's latest_receipt_info reports its renewals.
 - (void)receiptNeedsSendingNotification:(NSNotification *)notification {
     NSNumber *needsRefresh =
         notification.userInfo[SubscriptionStore.needsReceiptRefreshKey];
@@ -198,9 +206,24 @@
         [self sendPendingReceipt];
         return;
     }
+    [[NSUserDefaults standardUserDefaults] setBool:YES
+                                            forKey:@"shouldRefreshReceipt"];
+    [self refreshReceiptThenSend];
+}
+
+// Refreshes the receipt, then sends it. SubscriptionStore clears
+// shouldRefreshReceipt when a refresh succeeds. While it is still set the
+// receipt on disk lacks the purchase, and the server would call it invalid and
+// clear shouldSendReceipt, so skip the POST and keep both flags for the next
+// launch.
+- (void)refreshReceiptThenSend {
     [[SubscriptionStore shared] refreshReceiptWithCompletion:^(NSError *error) {
         if (error != nil) {
             NSLog(@"Receipt refresh failed: %@", error);
+        }
+        if ([[NSUserDefaults standardUserDefaults]
+                boolForKey:@"shouldRefreshReceipt"]) {
+            return;
         }
         [self sendPendingReceipt];
     }];

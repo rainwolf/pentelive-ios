@@ -42,8 +42,9 @@ import StoreKit
     /// `userInfo` key on that notification: an NSNumber BOOL, YES when one
     /// of its transactions is an initial purchase (Ask-to-Buy approval, a
     /// purchase interrupted by an app kill), so the receipt on disk needs a
-    /// refresh before it is sent. Renewals don't: the server's stored receipt
-    /// already brings them in through verifyReceipt's latest_receipt_info.
+    /// refresh before it is sent. Renewals don't: once a refresh or a
+    /// StoreKit 1 purchase has written the subscription into the receipt on
+    /// disk, verifyReceipt's latest_receipt_info reports its renewals.
     @objc static let needsReceiptRefreshKey = "needsReceiptRefresh"
 
     private static let productID = "1YRNOADSORLIMITS"
@@ -66,6 +67,8 @@ import StoreKit
     /// and every caller waiting on it: overlapping calls share one request.
     private var receiptRefreshRequest: SKReceiptRefreshRequest?
     private var receiptRefreshCompletions: [(NSError?) -> Void] = []
+    /// A refresh StoreKit has not answered by then fails with a timeout.
+    private static let receiptRefreshTimeout: UInt64 = 30_000_000_000 // 30 s
 
     private override init() {
         super.init()
@@ -149,7 +152,10 @@ import StoreKit
     /// Asks StoreKit 1 for a fresh App Store receipt on disk. A StoreKit 2
     /// purchase or restore does not rewrite the receipt, and the server reads
     /// the new subscription from it. May show an Apple ID sign-in prompt, so
-    /// only call it from flows the user started, never at plain launch.
+    /// only call it from flows the user started, or at launch to retry a
+    /// refresh that failed (`shouldRefreshReceipt` still set). A successful
+    /// refresh clears the `shouldRefreshReceipt` user default before the
+    /// completion runs; a failed one, or a timeout, leaves it as it was.
     @objc func refreshReceipt(completion: @escaping (NSError?) -> Void) {
         receiptRefreshCompletions.append(completion)
         guard receiptRefreshRequest == nil else { return }
@@ -157,6 +163,13 @@ import StoreKit
         request.delegate = self
         receiptRefreshRequest = request
         request.start()
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: Self.receiptRefreshTimeout)
+            guard request === self.receiptRefreshRequest else { return }
+            request.cancel()
+            self.finishReceiptRefresh(request,
+                                      error: Self.error("Receipt refresh timed out"))
+        }
     }
 
     // MARK: - Private
@@ -165,6 +178,9 @@ import StoreKit
     private func finishReceiptRefresh(_ request: SKRequest, error: NSError?) {
         guard request === receiptRefreshRequest else { return }
         receiptRefreshRequest = nil
+        if error == nil {
+            UserDefaults.standard.set(false, forKey: "shouldRefreshReceipt")
+        }
         let completions = receiptRefreshCompletions
         receiptRefreshCompletions = []
         completions.forEach { $0(error) }

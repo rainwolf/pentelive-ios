@@ -886,18 +886,26 @@ static NSString *PenteHexStringForColor(UIColor *color) {
                 setBool:YES
                  forKey:@"shouldSendReceipt"];
             // A StoreKit 2 purchase does not rewrite the receipt on disk, so
-            // ask for a fresh one before reading it. On failure, fall through
-            // to the read: shouldSendReceipt stays set for the launch retry.
+            // ask for a fresh one before reading it. shouldRefreshReceipt
+            // stays set until a refresh succeeds, and the launch retry
+            // refreshes again while it is.
+            [[NSUserDefaults standardUserDefaults]
+                setBool:YES
+                 forKey:@"shouldRefreshReceipt"];
             [[SubscriptionStore shared] refreshReceiptWithCompletion:^(
                                             NSError *refreshError) {
                 if (refreshError != nil) {
                     NSLog(@"Receipt refresh failed: %@", refreshError);
                 }
+                BOOL receiptIsStale = [[NSUserDefaults standardUserDefaults]
+                    boolForKey:@"shouldRefreshReceipt"];
                 NSURL *receiptURL = [[NSBundle mainBundle] appStoreReceiptURL];
                 NSData *receipt = [NSData dataWithContentsOfURL:receiptURL];
-                if (receipt == nil) {
-                    // No receipt to send yet: keep shouldSendReceipt so the launch
-                    // retry registers the purchase, and report it like a failed
+                if (receipt == nil || receiptIsStale) {
+                    // No receipt to send yet, or the refresh failed and the
+                    // receipt lacks the purchase (the server would call it
+                    // invalid): keep shouldSendReceipt so the launch retry
+                    // registers the purchase, and report it like a failed
                     // registration POST.
                     subscribing = NO;
                     [self.progressView stopAnimating];
@@ -1147,12 +1155,48 @@ static NSString *PenteHexStringForColor(UIColor *color) {
                 setBool:YES
                  forKey:@"shouldSendReceipt"];
             // A StoreKit 2 restore does not rewrite the receipt on disk, so
-            // ask for a fresh one before reading it. On failure, fall through
-            // to the read: a missing or stale receipt is handled below.
+            // ask for a fresh one before reading it. shouldRefreshReceipt
+            // stays set until a refresh succeeds, and the launch retry
+            // refreshes again while it is.
+            [[NSUserDefaults standardUserDefaults]
+                setBool:YES
+                 forKey:@"shouldRefreshReceipt"];
             [[SubscriptionStore shared] refreshReceiptWithCompletion:^(
                                             NSError *refreshError) {
                 if (refreshError != nil) {
                     NSLog(@"Receipt refresh failed: %@", refreshError);
+                }
+                if ([[NSUserDefaults standardUserDefaults]
+                        boolForKey:@"shouldRefreshReceipt"]) {
+                    // The refresh failed: a stale receipt would read as
+                    // "no valid purchase". Keep shouldSendReceipt for the
+                    // launch retry and report the refresh error instead.
+                    subscribing = NO;
+                    [self.progressView stopAnimating];
+                    [self.progressView removeFromSuperview];
+                    [TSMessage
+                        showNotificationInViewController:self.navigationController
+                                                   title:NSLocalizedString(
+                                                             @"Purchase "
+                                                             @"restore failed",
+                                                             nil)
+                                                subtitle:refreshError
+                                                             .localizedDescription
+                                                   image:nil
+                                                    type:
+                                                        TSMessageNotificationTypeWarning
+                                                duration:
+                                                    TSMessageNotificationDurationAutomatic
+                                                callback:^{
+                                                    [TSMessage
+                                                        dismissActiveNotification];
+                                                }
+                                             buttonTitle:nil
+                                          buttonCallback:nil
+                                              atPosition:
+                                                  TSMessageNotificationPositionBottom
+                                    canBeDismissedByUser:YES];
+                    return;
                 }
                 NSURL *receiptURL = [[NSBundle mainBundle] appStoreReceiptURL];
                 NSData *receipt = [NSData dataWithContentsOfURL:receiptURL];
