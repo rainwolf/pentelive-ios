@@ -52,7 +52,7 @@
     host.modalPresentationStyle = UIModalPresentationPopover;
     UIPopoverPresentationController *popover =
         host.popoverPresentationController;
-    popover.sourceView = self;
+    popover.sourceView = self.contentView;
     popover.sourceRect = self.detailTextLabel.frame;
     popover.permittedArrowDirections = UIPopoverArrowDirectionAny;
     popover.delegate = self;
