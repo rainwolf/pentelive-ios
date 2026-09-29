@@ -68,7 +68,7 @@ import StoreKit
     private var receiptRefreshRequest: SKReceiptRefreshRequest?
     private var receiptRefreshCompletions: [(NSError?) -> Void] = []
     /// A refresh StoreKit has not answered by then fails with a timeout.
-    private static let receiptRefreshTimeout: UInt64 = 30_000_000_000 // 30 s
+    private static let receiptRefreshTimeout: UInt64 = 180_000_000_000 // 180 s
 
     private override init() {
         super.init()
