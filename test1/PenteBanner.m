@@ -214,7 +214,7 @@ static UIImage *PenteBannerIcon(PenteBannerType type) {
     if (self.subtitle.length) {
         UILabel *subtitleLabel = [[UILabel alloc] init];
         subtitleLabel.text = self.subtitle;
-        subtitleLabel.textColor = UIColor.secondaryLabelColor;
+        subtitleLabel.textColor = UIColor.labelColor;
         subtitleLabel.font = [[UIFontMetrics metricsForTextStyle:UIFontTextStyleFootnote]
             scaledFontForFont:[UIFont systemFontOfSize:13.0]];
         subtitleLabel.numberOfLines = 0;
