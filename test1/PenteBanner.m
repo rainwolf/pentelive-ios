@@ -205,7 +205,7 @@ static UIImage *PenteBannerIcon(PenteBannerType type) {
     titleLabel.text = self.title;
     titleLabel.textColor = UIColor.labelColor;
     titleLabel.font = [[UIFontMetrics metricsForTextStyle:UIFontTextStyleSubheadline]
-        scaledFontForFont:[UIFont systemFontOfSize:15.0 weight:UIFontWeightSemibold]];
+        scaledFontForFont:[UIFont systemFontOfSize:15.0 weight:UIFontWeightBold]];
     titleLabel.numberOfLines = 0;
 
     UIStackView *textStack = [[UIStackView alloc] initWithArrangedSubviews:@[ titleLabel ]];
@@ -216,7 +216,7 @@ static UIImage *PenteBannerIcon(PenteBannerType type) {
         subtitleLabel.text = self.subtitle;
         subtitleLabel.textColor = UIColor.labelColor;
         subtitleLabel.font = [[UIFontMetrics metricsForTextStyle:UIFontTextStyleFootnote]
-            scaledFontForFont:[UIFont systemFontOfSize:13.0]];
+            scaledFontForFont:[UIFont systemFontOfSize:13.0 weight:UIFontWeightSemibold]];
         subtitleLabel.numberOfLines = 0;
         [textStack addArrangedSubview:subtitleLabel];
     }
