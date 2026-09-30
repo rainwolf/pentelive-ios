@@ -16,12 +16,7 @@ static const CGFloat kPenteBannerPaddingH = 16.0;
 static const CGFloat kPenteBannerPaddingV = 12.0;
 static const CGFloat kPenteBannerSpacing = 12.0; // icon | text | button
 static const CGFloat kPenteBannerOffscreenSlack = 24.0; // clears the shadow when off screen
-
-/// Opacity of the type colour used as the glass tint. High enough that the tint,
-/// not whatever sits underneath, sets the card colour, so the glass text colours
-/// below keep their contrast; low enough to still read as glass. (1.0 measured
-/// barely different from 0.8.)
-static const CGFloat kPenteBannerGlassTintAlpha = 0.8;
+static const CGFloat kPenteBannerGlassEntranceTravel = 16.0; // glass nudges in, then materializes
 
 typedef NS_ENUM(NSInteger, PenteBannerState) {
     PenteBannerStateQueued = 0,
@@ -30,75 +25,50 @@ typedef NS_ENUM(NSInteger, PenteBannerState) {
     PenteBannerStateAnimatingOut
 };
 
-static UIColor *PenteBannerRGB(uint32_t rgb) {
-    return [UIColor colorWithRed:((rgb >> 16) & 0xFF) / 255.0
-                           green:((rgb >> 8) & 0xFF) / 255.0
-                            blue:(rgb & 0xFF) / 255.0
-                           alpha:1.0];
-}
-
-/// The TSMessages default design's background colour for each type.
-static UIColor *PenteBannerBackgroundColor(PenteBannerType type) {
-    switch (type) {
-    case PenteBannerTypeWarning:
-        return PenteBannerRGB(0xDAC43C);
-    case PenteBannerTypeError:
-        return PenteBannerRGB(0xDD3B41);
-    case PenteBannerTypeSuccess:
-        return PenteBannerRGB(0x76CF67);
-    case PenteBannerTypeMessage:
-    default:
-        return PenteBannerRGB(0xD4DDDF);
-    }
-}
-
-/// Text, icon and button colour on the solid card (iOS 15-25): black for every
-/// type. The app has always overridden the TSMessages design's text colours to
-/// black (TSMessageView appearance in AppDelegate), so this is what users see
-/// today, and it reads on all four backgrounds.
-static UIColor *PenteBannerSolidTextColor(void) {
-    return [UIColor blackColor];
-}
-
-/// Text colour on the tinted glass. At kPenteBannerGlassTintAlpha the tint sets
-/// the card colour in light and dark mode alike (measured on the simulator: grey
-/// ~#B1B6B8-#DBE1E3, yellow ~#B6A335-#E0CE61, green ~#66AB58-#90D783), so the
-/// TSMessages greys and white-on-green drop to 2:1 there. Near-black shades of
-/// each hue instead; red is the one tint that stays dark enough in dark mode for
-/// white, and light enough in light mode for the dark shade. Dynamic colours
-/// also follow the glass if it adapts to dark content underneath. Every pairing
-/// measured at least 4.5:1 (WCAG AA) in the verification screenshots.
-static UIColor *PenteBannerGlassTextColor(PenteBannerType type) {
-    switch (type) {
-    case PenteBannerTypeWarning:
-        return PenteBannerRGB(0x25230F);
-    case PenteBannerTypeError: {
-        UIColor *light = PenteBannerRGB(0x2E0709);
-        UIColor *dark = PenteBannerRGB(0xFFFFFF);
-        return [UIColor colorWithDynamicProvider:^UIColor *(UITraitCollection *traits) {
-            return traits.userInterfaceStyle == UIUserInterfaceStyleDark ? dark : light;
-        }];
-    }
-    case PenteBannerTypeSuccess:
-        return PenteBannerRGB(0x0A2A06);
-    case PenteBannerTypeMessage:
-    default:
-        return PenteBannerRGB(0x1F2528);
-    }
-}
-
+/// Filled SF Symbol that carries the banner type; the card itself is neutral.
 static NSString *PenteBannerSymbolName(PenteBannerType type) {
     switch (type) {
     case PenteBannerTypeWarning:
-        return @"exclamationmark.triangle";
+        return @"exclamationmark.triangle.fill";
     case PenteBannerTypeError:
-        return @"xmark.octagon";
+        return @"xmark.octagon.fill";
     case PenteBannerTypeSuccess:
-        return @"checkmark.circle";
+        return @"checkmark.circle.fill";
     case PenteBannerTypeMessage:
     default:
-        return @"info.circle";
+        return @"info.circle.fill";
     }
+}
+
+/// The type icon, drawn in palette mode so the inner glyph is opaque rather than
+/// a knockout showing whatever the card shows: a knocked-out "!" on the yellow
+/// triangle is illegible on light glass. Black "!" on yellow, white glyph on the
+/// others, in both appearances.
+static UIImage *PenteBannerIcon(PenteBannerType type) {
+    UIColor *glyph = UIColor.whiteColor;
+    UIColor *fill;
+    switch (type) {
+    case PenteBannerTypeWarning:
+        glyph = UIColor.blackColor;
+        fill = UIColor.systemYellowColor;
+        break;
+    case PenteBannerTypeError:
+        fill = UIColor.systemRedColor;
+        break;
+    case PenteBannerTypeSuccess:
+        fill = UIColor.systemGreenColor;
+        break;
+    case PenteBannerTypeMessage:
+    default:
+        fill = UIColor.systemBlueColor;
+        break;
+    }
+    UIImageSymbolConfiguration *config = [[UIImageSymbolConfiguration
+        configurationWithPointSize:22.0
+                            weight:UIImageSymbolWeightSemibold]
+        configurationByApplyingConfiguration:[UIImageSymbolConfiguration
+                                                 configurationWithPaletteColors:@[ glyph, fill ]]];
+    return [UIImage systemImageNamed:PenteBannerSymbolName(type) withConfiguration:config];
 }
 
 @class PenteBannerView;
@@ -144,6 +114,12 @@ static NSString *PenteBannerSymbolName(PenteBannerType type) {
 @property (nonatomic, strong) UIImageView *iconView;
 @property (nonatomic, strong) NSArray<UILabel *> *labels;
 @property (nonatomic, strong, nullable) UIButton *button;
+/// The card's effect view and the icon | text | button row on it.
+@property (nonatomic, strong) UIVisualEffectView *effectView;
+@property (nonatomic, strong) UIView *contentRow;
+/// iOS 26+: the glass, held back until the show animation assigns it to
+/// effectView so it materializes; nil on the frosted fallback.
+@property (nonatomic, strong, nullable) UIVisualEffect *glassEffect;
 @end
 
 @implementation PenteBannerView
@@ -157,6 +133,12 @@ static NSString *PenteBannerSymbolName(PenteBannerType type) {
 
 - (void)layoutSubviews {
     [super layoutSubviews];
+    if (self.layer.shadowOpacity > 0.0) {
+        // Frosted card: an explicit path, so the shadow follows the card's shape
+        // instead of being derived from the translucent blur view's pixels.
+        self.layer.shadowPath =
+            [UIBezierPath bezierPathWithRoundedRect:self.bounds cornerRadius:kPenteBannerCornerRadius].CGPath;
+    }
     CGFloat width = CGRectGetWidth(self.bounds);
     if (self.fittedWidth <= 0.0 || width <= 0.0 || fabs(width - self.fittedWidth) < 0.5) {
         return;
@@ -183,44 +165,37 @@ static NSString *PenteBannerSymbolName(PenteBannerType type) {
 }
 
 - (void)buildContent {
-    UIColor *textColor = PenteBannerSolidTextColor();
-
-    // Card background: tinted Liquid Glass on iOS 26+, solid colour before.
-    UIView *background;
-    UIView *contentHost;
+    // Card: plain (untinted) Liquid Glass on iOS 26+, a neutral frosted material
+    // before that. The type shows only through the coloured icon.
+    UIVisualEffectView *effectView;
     if (@available(iOS 26.0, *)) {
         UIGlassEffect *glass = [UIGlassEffect effectWithStyle:UIGlassEffectStyleRegular];
-        glass.tintColor = [PenteBannerBackgroundColor(self.type)
-            colorWithAlphaComponent:kPenteBannerGlassTintAlpha];
         glass.interactive = YES;
-        UIVisualEffectView *effectView = [[UIVisualEffectView alloc] initWithEffect:glass];
+        // Created without its effect: the show animation assigns glassEffect so
+        // the glass materializes instead of arriving fully formed.
+        effectView = [[UIVisualEffectView alloc] initWithEffect:nil];
         effectView.cornerConfiguration = [UICornerConfiguration
             configurationWithUniformRadius:[UICornerRadius fixedRadius:kPenteBannerCornerRadius]];
-        background = effectView;
-        contentHost = effectView.contentView;
-        textColor = PenteBannerGlassTextColor(self.type);
+        self.glassEffect = glass;
     }
-    if (background == nil) {
-        background = [[UIView alloc] init];
-        background.backgroundColor = PenteBannerBackgroundColor(self.type);
-        background.layer.cornerRadius = kPenteBannerCornerRadius;
-        background.layer.cornerCurve = kCACornerCurveContinuous;
-        contentHost = background;
+    if (effectView == nil) {
+        effectView = [[UIVisualEffectView alloc]
+            initWithEffect:[UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemThickMaterial]];
+        effectView.layer.cornerRadius = kPenteBannerCornerRadius;
+        effectView.layer.cornerCurve = kCACornerCurveContinuous;
+        effectView.clipsToBounds = YES;
         self.layer.shadowColor = [UIColor blackColor].CGColor;
         self.layer.shadowOpacity = 0.2;
         self.layer.shadowRadius = 10.0;
         self.layer.shadowOffset = CGSizeMake(0.0, 4.0);
     }
+    UIView *background = effectView;
+    UIView *contentHost = effectView.contentView;
+    self.effectView = effectView;
     background.translatesAutoresizingMaskIntoConstraints = NO;
     [self addSubview:background];
 
-    UIImageSymbolConfiguration *symbolConfig =
-        [UIImageSymbolConfiguration configurationWithPointSize:22.0
-                                                        weight:UIImageSymbolWeightSemibold];
-    UIImageView *icon = [[UIImageView alloc]
-        initWithImage:[UIImage systemImageNamed:PenteBannerSymbolName(self.type)
-                              withConfiguration:symbolConfig]];
-    icon.tintColor = textColor;
+    UIImageView *icon = [[UIImageView alloc] initWithImage:PenteBannerIcon(self.type)];
     icon.contentMode = UIViewContentModeCenter;
     [icon setContentHuggingPriority:UILayoutPriorityRequired forAxis:UILayoutConstraintAxisHorizontal];
     [icon setContentCompressionResistancePriority:UILayoutPriorityRequired
@@ -228,7 +203,7 @@ static NSString *PenteBannerSymbolName(PenteBannerType type) {
 
     UILabel *titleLabel = [[UILabel alloc] init];
     titleLabel.text = self.title;
-    titleLabel.textColor = textColor;
+    titleLabel.textColor = UIColor.labelColor;
     titleLabel.font = [[UIFontMetrics metricsForTextStyle:UIFontTextStyleSubheadline]
         scaledFontForFont:[UIFont systemFontOfSize:15.0 weight:UIFontWeightSemibold]];
     titleLabel.numberOfLines = 0;
@@ -239,7 +214,7 @@ static NSString *PenteBannerSymbolName(PenteBannerType type) {
     if (self.subtitle.length) {
         UILabel *subtitleLabel = [[UILabel alloc] init];
         subtitleLabel.text = self.subtitle;
-        subtitleLabel.textColor = textColor;
+        subtitleLabel.textColor = UIColor.secondaryLabelColor;
         subtitleLabel.font = [[UIFontMetrics metricsForTextStyle:UIFontTextStyleFootnote]
             scaledFontForFont:[UIFont systemFontOfSize:13.0]];
         subtitleLabel.numberOfLines = 0;
@@ -257,8 +232,10 @@ static NSString *PenteBannerSymbolName(PenteBannerType type) {
     if (self.buttonTitle.length) {
         UIButtonConfiguration *config = [UIButtonConfiguration plainButtonConfiguration];
         config.title = self.buttonTitle;
-        config.baseForegroundColor = textColor;
-        config.background.backgroundColor = [textColor colorWithAlphaComponent:0.18];
+        // Neutral capsule: label-coloured text on a subtle system fill. Not a
+        // glass button, which would put glass on the card's glass.
+        config.baseForegroundColor = UIColor.labelColor;
+        config.background.backgroundColor = UIColor.tertiarySystemFillColor;
         config.cornerStyle = UIButtonConfigurationCornerStyleCapsule;
         config.contentInsets = NSDirectionalEdgeInsetsMake(6.0, 12.0, 6.0, 12.0);
         config.titleTextAttributesTransformer =
@@ -279,6 +256,7 @@ static NSString *PenteBannerSymbolName(PenteBannerType type) {
         self.button = button;
     }
     [contentHost addSubview:row];
+    self.contentRow = row;
 
     // Lets the card grow taller than its content (NavBarOverlay covering the
     // bar) while the row stays vertically centred.
@@ -667,7 +645,17 @@ static NSMutableArray<PenteBannerView *> *sQueue; // [0] is on screen unless sti
         banner.position == PenteBannerPositionBottom
             ? CGAffineTransformMakeTranslation(0.0, CGRectGetMaxY(bounds) - y + kPenteBannerOffscreenSlack)
             : CGAffineTransformMakeTranslation(0.0, -(y + height - CGRectGetMinY(bounds) + kPenteBannerOffscreenSlack));
-    banner.transform = banner.offscreenTransform;
+    if (banner.glassEffect != nil) {
+        // Glass materializes (lensing grows in) where it lands, from a short
+        // nudge off its anchored edge: a full slide would spend the
+        // materialize off screen or under the bar. The content fades in with it.
+        banner.transform = CGAffineTransformMakeTranslation(
+            0.0, banner.position == PenteBannerPositionBottom ? kPenteBannerGlassEntranceTravel
+                                                              : -kPenteBannerGlassEntranceTravel);
+        banner.contentRow.alpha = 0.0;
+    } else {
+        banner.transform = banner.offscreenTransform;
+    }
 
     // TSMessage's iOS 7 style animation: 0.3 + 0.1 s spring, damping 0.8.
     [UIView animateWithDuration:kPenteBannerAnimationDuration + 0.1
@@ -678,6 +666,10 @@ static NSMutableArray<PenteBannerView *> *sQueue; // [0] is on screen unless sti
                 UIViewAnimationOptionAllowUserInteraction
         animations:^{
             banner.transform = CGAffineTransformIdentity;
+            if (banner.glassEffect != nil) {
+                banner.effectView.effect = banner.glassEffect; // materialize
+                banner.contentRow.alpha = 1.0;
+            }
         }
         completion:^(BOOL finished) {
             if (banner.state == PenteBannerStateAnimatingIn) { // not already on its way out
@@ -714,6 +706,12 @@ static NSMutableArray<PenteBannerView *> *sQueue; // [0] is on screen unless sti
         options:UIViewAnimationOptionBeginFromCurrentState
         animations:^{
             banner.transform = banner.offscreenTransform;
+            if (banner.glassEffect != nil) {
+                // Dematerialize through the effect and fade only the content:
+                // alpha on the effect view or its ancestors breaks the glass.
+                banner.effectView.effect = nil;
+                banner.contentRow.alpha = 0.0;
+            }
         }
         completion:^(BOOL finished) {
             [banner removeFromSuperview];

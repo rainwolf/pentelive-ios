@@ -27,8 +27,9 @@ FOUNDATION_EXPORT PenteBannerDuration const PenteBannerDurationAutomatic;
 FOUNDATION_EXPORT PenteBannerDuration const PenteBannerDurationEndless;
 
 /// Replacement for TSMessage. Shows a floating card banner (Liquid Glass on
-/// iOS 26+, solid colour before that) in the presenting view controller's
-/// navigation controller view, one banner at a time, in FIFO order. A banner
+/// iOS 26+, a frosted material before that; the type shows as a coloured icon)
+/// in the presenting view controller's navigation controller view, one banner
+/// at a time, in FIFO order. A banner
 /// whose title and subtitle match one already queued or showing is dropped.
 /// Safe to call from any thread; all work happens on the main thread.
 @interface PenteBanner : NSObject
