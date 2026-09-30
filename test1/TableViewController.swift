@@ -454,19 +454,19 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
         board.goTerritory = table.goTerritoryByPlayer; zoomedBoard.goTerritory = table.goTerritoryByPlayer
         board.setNeedsDisplay(); zoomedBoard.setNeedsDisplay()
 
-        TSMessage.showNotification(in: self, title: "score", subtitle: table.getGoScoreString(), image: nil, type: TSMessageNotificationType.message, duration: TimeInterval(TSMessageNotificationDuration.endless.rawValue), callback: {
-            TSMessage.dismissActiveNotification()
+        PenteBanner.showNotification(in: self, title: "score", subtitle: table.getGoScoreString(), image: nil, type: PenteBannerType.message, duration: TimeInterval(PenteBannerDuration.endless.rawValue), callback: {
+            PenteBanner.dismissActiveNotification()
             if self.table.state.goState == .play {
                 self.board.clearGoStructures(); self.zoomedBoard.clearGoStructures()
                 self.board.setNeedsDisplay(); self.zoomedBoard.setNeedsDisplay()
             }
         }, buttonTitle: NSLocalizedString("dismiss", comment: ""), buttonCallback: {
-            TSMessage.dismissActiveNotification()
+            PenteBanner.dismissActiveNotification()
             if self.table.state.goState == .play {
                 self.board.clearGoStructures(); self.zoomedBoard.clearGoStructures()
                 self.board.setNeedsDisplay(); self.zoomedBoard.setNeedsDisplay()
             }
-        }, at: TSMessageNotificationPosition.bottom, canBeDismissedByUser: true)
+        }, at: PenteBannerPosition.bottom, canBeDismissedByUser: true)
     }
 
     @objc func showOptions() {
@@ -656,11 +656,11 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
     @objc func toggleDrawOffer() {
         setDrawArmed(!drawArmed)
         if drawArmed {
-            TSMessage.showNotification(in: self,
+            PenteBanner.showNotification(in: self,
                                        title: NSLocalizedString("Draw offer", comment: ""),
                                        subtitle: NSLocalizedString("Draw offer will be sent with your move", comment: ""),
-                                       type: TSMessageNotificationType.message,
-                                       duration: TimeInterval(TSMessageNotificationDuration.automatic.rawValue),
+                                       type: PenteBannerType.message,
+                                       duration: TimeInterval(PenteBannerDuration.automatic.rawValue),
                                        canBeDismissedByUser: true)
         }
     }
@@ -1102,11 +1102,11 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
             board.goTerritory = table.goTerritoryByPlayer
         }
         if table.showMarkStones(player: me) {
-            TSMessage.showNotification(in: self, title: NSLocalizedString("Double pass", comment: ""), subtitle: NSLocalizedString("Your opponent made a pass as well, mark dead stones and end with a pass", comment: ""), image: nil, type: TSMessageNotificationType.message, duration: TimeInterval(TSMessageNotificationDuration.endless.rawValue), callback: {
-                TSMessage.dismissActiveNotification()
+            PenteBanner.showNotification(in: self, title: NSLocalizedString("Double pass", comment: ""), subtitle: NSLocalizedString("Your opponent made a pass as well, mark dead stones and end with a pass", comment: ""), image: nil, type: PenteBannerType.message, duration: TimeInterval(PenteBannerDuration.endless.rawValue), callback: {
+                PenteBanner.dismissActiveNotification()
             }, buttonTitle: NSLocalizedString("dismiss", comment: ""), buttonCallback: {
-                TSMessage.dismissActiveNotification()
-            }, at: TSMessageNotificationPosition.bottom, canBeDismissedByUser: true)
+                PenteBanner.dismissActiveNotification()
+            }, at: PenteBannerPosition.bottom, canBeDismissedByUser: true)
 
         } else if table.showEvaluateStones(player: me) {
 //            print("showGoDialog evaluate")

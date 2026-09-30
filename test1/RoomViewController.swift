@@ -1037,7 +1037,7 @@ class PlayerTableCell: UITableViewCell {
                 let bootedPlayer = event["toBoot"] as! String
                 let playerName = event["player"] as! String
                 if self.me == bootedPlayer {
-                    TSMessage.showNotification(in: self, title: NSLocalizedString("You were booted by \(playerName)", comment: ""), subtitle: NSLocalizedString("You can join this table again in 5 minutes", comment: ""), type: TSMessageNotificationType.error, duration: TimeInterval(TSMessageNotificationDuration.automatic.rawValue), canBeDismissedByUser: true)
+                    PenteBanner.showNotification(in: self, title: NSLocalizedString("You were booted by \(playerName)", comment: ""), subtitle: NSLocalizedString("You can join this table again in 5 minutes", comment: ""), type: PenteBannerType.error, duration: TimeInterval(PenteBannerDuration.automatic.rawValue), canBeDismissedByUser: true)
                 } else {
                     self.tableViewController?.bootEvent(player: bootedPlayer, by: playerName)
                 }
@@ -1049,7 +1049,7 @@ class PlayerTableCell: UITableViewCell {
         let error = event["error"] as! Int
         if error == 22 {
             DispatchQueue.main.async {
-                TSMessage.showNotification(in: self, title: NSLocalizedString("Error joining table", comment: ""), subtitle: NSLocalizedString("You were booted, you can join again after 5 minutes", comment: ""), type: TSMessageNotificationType.error, duration: TimeInterval(TSMessageNotificationDuration.automatic.rawValue), canBeDismissedByUser: true)
+                PenteBanner.showNotification(in: self, title: NSLocalizedString("Error joining table", comment: ""), subtitle: NSLocalizedString("You were booted, you can join again after 5 minutes", comment: ""), type: PenteBannerType.error, duration: TimeInterval(PenteBannerDuration.automatic.rawValue), canBeDismissedByUser: true)
             }
         }
     }

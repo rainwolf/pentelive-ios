@@ -5,8 +5,7 @@
 
 #import "PenteNavigationViewController.h"
 @import CocoaAsyncSocket;
-@import TSMessages;
-// #import "TSMessageView.h"
+#import "PenteBanner.h"
 #import "PentePopover.h"
 //@import SVWebViewController;
 #import "BoardViewController.h"

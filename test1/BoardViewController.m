@@ -25,7 +25,7 @@
 #import "DatabaseViewController.h"
 #import "PenteAlert.h"
 #import "PenteGame.h"
-#import "TSMessage.h"
+#import "PenteBanner.h"
 #import "penteLive-Swift.h"
 #import <NSHash/NSString+NSHash.h>
 #import <QuartzCore/QuartzCore.h>
@@ -605,7 +605,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
     [zoomedStone setNeedsDisplay];
     activeGame = YES;
     dispatch_async(dispatch_get_main_queue(), ^{
-        [TSMessage
+        [PenteBanner
             showNotificationInViewController:self.navigationController
                                        title:NSLocalizedString(@"Swap2 PASS",
                                                                nil)
@@ -615,15 +615,15 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                                             @"decide",
                                             nil)
                                        image:nil
-                                        type:TSMessageNotificationTypeMessage
+                                        type:PenteBannerTypeMessage
                                     duration:
-                                        TSMessageNotificationDurationAutomatic
+                                        PenteBannerDurationAutomatic
                                     callback:^{
-                                        [TSMessage dismissActiveNotification];
+                                        [PenteBanner dismissActiveNotification];
                                     }
                                  buttonTitle:nil
                               buttonCallback:nil
-                                  atPosition:TSMessageNotificationPositionBottom
+                                  atPosition:PenteBannerPositionBottom
                         canBeDismissedByUser:YES];
     });
 }
@@ -1802,7 +1802,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
     self.drawArmed = !self.drawArmed;
     [self updateRenjuTbButtons];
     if (self.drawArmed) {
-        [TSMessage
+        [PenteBanner
             showNotificationInViewController:self.navigationController
                                        title:NSLocalizedString(@"Draw offer",
                                                                nil)
@@ -1812,15 +1812,15 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                                             @"you move",
                                             nil)
                                        image:nil
-                                        type:TSMessageNotificationTypeMessage
+                                        type:PenteBannerTypeMessage
                                     duration:
-                                        TSMessageNotificationDurationAutomatic
+                                        PenteBannerDurationAutomatic
                                     callback:^{
-                                        [TSMessage dismissActiveNotification];
+                                        [PenteBanner dismissActiveNotification];
                                     }
                                  buttonTitle:nil
                               buttonCallback:nil
-                                  atPosition:TSMessageNotificationPositionBottom
+                                  atPosition:PenteBannerPositionBottom
                         canBeDismissedByUser:YES];
     }
 }
@@ -2772,7 +2772,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                              iWin = NO;
                          }
                      }
-                     [TSMessage
+                     [PenteBanner
                          showNotificationInViewController:
                              strongSelf.navigationController
                                                     title:NSLocalizedString(
@@ -2781,18 +2781,18 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                                                     image:nil
                                                      type:
                                                          (iWin
-                                                              ? TSMessageNotificationTypeSuccess
-                                                              : TSMessageNotificationTypeError)
+                                                              ? PenteBannerTypeSuccess
+                                                              : PenteBannerTypeError)
                                                      duration:
-                                                         TSMessageNotificationDurationAutomatic
+                                                         PenteBannerDurationAutomatic
                                                  callback:^{
-                                                     [TSMessage
+                                                     [PenteBanner
                                                          dismissActiveNotification];
                                                  }
                                               buttonTitle:nil
                                            buttonCallback:nil
                                                atPosition:
-                                                   TSMessageNotificationPositionBottom
+                                                   PenteBannerPositionBottom
                                      canBeDismissedByUser:YES];
                  }
              }
@@ -2831,7 +2831,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
              } else if (drawOffered) {
                  // Not my turn: I offered; waiting for opponent to reply.
                  dispatch_async(dispatch_get_main_queue(), ^{
-                     [TSMessage
+                     [PenteBanner
                          showNotificationInViewController:strongSelf
                                                               .navigationController
                                                     title:NSLocalizedString(
@@ -2844,17 +2844,17 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                                                          nil)
                                                     image:nil
                                                      type:
-                                                         TSMessageNotificationTypeMessage
+                                                         PenteBannerTypeMessage
                                                  duration:
-                                                     TSMessageNotificationDurationAutomatic
+                                                     PenteBannerDurationAutomatic
                                                  callback:^{
-                                                     [TSMessage
+                                                     [PenteBanner
                                                          dismissActiveNotification];
                                                  }
                                               buttonTitle:nil
                                            buttonCallback:nil
                                                atPosition:
-                                                   TSMessageNotificationPositionBottom
+                                                   PenteBannerPositionBottom
                                      canBeDismissedByUser:YES];
                  });
              }
