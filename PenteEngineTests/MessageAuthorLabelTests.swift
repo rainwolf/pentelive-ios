@@ -22,4 +22,11 @@ final class MessageAuthorLabelTests: XCTestCase {
         XCTAssertNil(MessageAuthorLabel.display(forSeat: "", iAmP1: true, opponentName: "bob", text: "hi"))
         XCTAssertNil(MessageAuthorLabel.display(forSeat: "x", iAmP1: true, opponentName: "bob", text: "hi"))
     }
+
+    func testSeatTwoIsMeForPlayerTwo() {
+        XCTAssertEqual(MessageAuthorLabel.display(forSeat: "2", iAmP1: false, opponentName: "alice", text: "hi"), " me: hi")
+        XCTAssertTrue(MessageAuthorLabel.isMine(forSeat: "2", iAmP1: false))
+        XCTAssertEqual(MessageAuthorLabel.display(forSeat: "2", iAmP1: true, opponentName: "bob", text: "hi"), " bob: hi")
+        XCTAssertFalse(MessageAuthorLabel.isMine(forSeat: "2", iAmP1: true))
+    }
 }
