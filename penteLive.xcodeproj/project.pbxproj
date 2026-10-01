@@ -200,6 +200,7 @@
 		63EE6BFD2FC0CF280015D6F0 /* ArenaTableSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63EE6BFC2FC0CF280015D6F0 /* ArenaTableSetupView.swift */; };
 		63EF95CB2F6582CA001C269F /* PenteHTTPClient.m in Sources */ = {isa = PBXBuildFile; fileRef = 63EF95CA2F6582CA001C269F /* PenteHTTPClient.m */; };
 		FA5D13026A2FA2E0A2A27F38 /* PenteAlert.m in Sources */ = {isa = PBXBuildFile; fileRef = CA18254E693C7E19066ECB56 /* PenteAlert.m */; };
+		4844F81E8598D2F9ED04CF80 /* PenteBadge.m in Sources */ = {isa = PBXBuildFile; fileRef = A9AB4C36CF0CF7C3D38F97D8 /* PenteBadge.m */; };
 		49EB299ADFD07A0177F01792 /* PenteBanner.m in Sources */ = {isa = PBXBuildFile; fileRef = AA6E9C65F1C971669AADF4B8 /* PenteBanner.m */; };
 		7A1C0E5D2F3B4A6C8D9E0F13 /* PenteSpinnerOverlay.m in Sources */ = {isa = PBXBuildFile; fileRef = 7A1C0E5D2F3B4A6C8D9E0F12 /* PenteSpinnerOverlay.m */; };
 		7A1C0E5D2F3B4A6C8D9E0F43 /* PentePopover.m in Sources */ = {isa = PBXBuildFile; fileRef = 7A1C0E5D2F3B4A6C8D9E0F42 /* PentePopover.m */; };
@@ -498,6 +499,8 @@
 		63EF95CA2F6582CA001C269F /* PenteHTTPClient.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PenteHTTPClient.m; sourceTree = "<group>"; };
 		41D62F7AEBDFB3F97F09C64F /* PenteAlert.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PenteAlert.h; sourceTree = "<group>"; };
 		CA18254E693C7E19066ECB56 /* PenteAlert.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PenteAlert.m; sourceTree = "<group>"; };
+		BB3C419E7F4171209CFAE4B4 /* PenteBadge.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PenteBadge.h; sourceTree = "<group>"; };
+		A9AB4C36CF0CF7C3D38F97D8 /* PenteBadge.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PenteBadge.m; sourceTree = "<group>"; };
 		819EC6C86FFC440551990A4A /* PenteBanner.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PenteBanner.h; sourceTree = "<group>"; };
 		AA6E9C65F1C971669AADF4B8 /* PenteBanner.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PenteBanner.m; sourceTree = "<group>"; };
 		7A1C0E5D2F3B4A6C8D9E0F11 /* PenteSpinnerOverlay.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PenteSpinnerOverlay.h; sourceTree = "<group>"; };
@@ -759,6 +762,8 @@
 				63EF95CA2F6582CA001C269F /* PenteHTTPClient.m */,
 				41D62F7AEBDFB3F97F09C64F /* PenteAlert.h */,
 				CA18254E693C7E19066ECB56 /* PenteAlert.m */,
+				BB3C419E7F4171209CFAE4B4 /* PenteBadge.h */,
+				A9AB4C36CF0CF7C3D38F97D8 /* PenteBadge.m */,
 				819EC6C86FFC440551990A4A /* PenteBanner.h */,
 				AA6E9C65F1C971669AADF4B8 /* PenteBanner.m */,
 				7A1C0E5D2F3B4A6C8D9E0F11 /* PenteSpinnerOverlay.h */,
@@ -1429,6 +1434,7 @@
 				63FEFC5A1689BFB30070E9AA /* UIPullToReloadTableViewController.m in Sources */,
 				63EF95CB2F6582CA001C269F /* PenteHTTPClient.m in Sources */,
 				FA5D13026A2FA2E0A2A27F38 /* PenteAlert.m in Sources */,
+				4844F81E8598D2F9ED04CF80 /* PenteBadge.m in Sources */,
 				49EB299ADFD07A0177F01792 /* PenteBanner.m in Sources */,
 				7A1C0E5D2F3B4A6C8D9E0F13 /* PenteSpinnerOverlay.m in Sources */,
 				7A1C0E5D2F3B4A6C8D9E0F43 /* PentePopover.m in Sources */,

@@ -23,8 +23,7 @@
 @import StoreKit;
 #import "PenteBanner.h"
 @import UserNotifications;
-#import "UIBarButtonItem+Badge.h"
-#import "UIButton+Badge.h"
+#import "PenteBadge.h"
 
 #import "penteLive-Swift.h"
 #import "PenteAlert.h"
@@ -3391,11 +3390,11 @@ array, and add a new row to the table view
             [inviteButton setBadge:nil];
         }
     } else {
-        inviteButton.badgeValue = livePlayers;
-        [inviteButton setBadgeBGColor:[UIColor colorWithRed:(8.0 / 255)
-                                                      green:(52.0 / 255)
-                                                       blue:(29.0 / 255)
-                                                      alpha:1.0]];
+        [inviteButton pente_setBadgeValue:livePlayers
+                                    color:[UIColor colorWithRed:(8.0 / 255)
+                                                          green:(52.0 / 255)
+                                                           blue:(29.0 / 255)
+                                                          alpha:1.0]];
     }
     if (@available(iOS 26.0, *)) {
         if ([onlineFollowing intValue] > 0) {
@@ -3410,11 +3409,11 @@ array, and add a new row to the table view
             moreButton.badge = nil;
         }
     } else {
-        moreButton.badgeValue = onlineFollowing;
-        [moreButton setBadgeBGColor:[UIColor colorWithRed:(8.0 / 255)
-                                                    green:(52.0 / 255)
-                                                     blue:(29.0 / 255)
-                                                    alpha:1.0]];
+        [moreButton pente_setBadgeValue:onlineFollowing
+                                  color:[UIColor colorWithRed:(8.0 / 255)
+                                                        green:(52.0 / 255)
+                                                         blue:(29.0 / 255)
+                                                        alpha:1.0]];
     }
 
     if (wantsToSeeAvatars) {
@@ -3880,13 +3879,21 @@ array, and add a new row to the table view
     [button addTarget:self
                   action:@selector(showOnlinePlayers)
         forControlEvents:UIControlEventTouchUpInside];
-    button.shouldHideBadgeAtZero = YES;
-    button.badgeValue = onlineFollowing;
-    [button setBadgeBGColor:[UIColor colorWithRed:(8.0 / 255)
-                                            green:(52.0 / 255)
-                                             blue:(29.0 / 255)
-                                            alpha:1.0]];
+    UILabel *badge =
+        [button pente_setBadgeValue:onlineFollowing
+                              color:[UIColor colorWithRed:(8.0 / 255)
+                                                    green:(52.0 / 255)
+                                                     blue:(29.0 / 255)
+                                                    alpha:1.0]];
     [button sizeToFit];
+    if (badge != nil) {
+        // Room for the badge after the title, so it does not cover the text.
+        CGRect buttonFrame = button.frame;
+        buttonFrame.size.width += badge.bounds.size.width;
+        button.frame = buttonFrame;
+        button.contentHorizontalAlignment =
+            UIControlContentHorizontalAlignmentLeft;
+    }
     if (button.frame.size.width > frame.size.width) {
         frame = button.frame;
     }
@@ -4173,13 +4180,22 @@ array, and add a new row to the table view
     [button addTarget:self
                   action:@selector(toLive)
         forControlEvents:UIControlEventTouchUpInside];
-    button.shouldHideBadgeAtZero = YES;
-    button.badgeValue = livePlayers;
+    UILabel *badge =
+        [button pente_setBadgeValue:livePlayers
+                              color:[UIColor colorWithRed:(8.0 / 255)
+                                                    green:(52.0 / 255)
+                                                     blue:(29.0 / 255)
+                                                    alpha:1.0]];
     [button sizeToFit];
     if (button.frame.size.width > frame.size.width) {
         frame = button.frame;
     }
     [buttonsArray addObject:button];
+    if (badge != nil) {
+        // Room for the badge after the longest title, so it does not cover
+        // the text.
+        frame.size.width += badge.bounds.size.width;
+    }
     for (UIButton *bttn in buttonsArray) {
         bttn.contentHorizontalAlignment =
             UIControlContentHorizontalAlignmentLeft;
