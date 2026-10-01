@@ -4,7 +4,6 @@
 //
 
 #import "PenteNavigationViewController.h"
-@import CocoaAsyncSocket;
 #import "PenteBanner.h"
 #import "PentePopover.h"
 //@import SVWebViewController;
