@@ -117,7 +117,7 @@
     // Installing it also changes where foreground pushes land: with a delegate
     // present iOS calls
     // -userNotificationCenter:willPresentNotification:withCompletionHandler:
-    // instead of the legacy -application:didReceiveRemoteNotification:. Both
+    // instead of -application:didReceiveRemoteNotification:fetchCompletionHandler:. Both
     // are wired to the same -handleRemoteNotificationUserInfo:, so the
     // foreground banner/sound/refresh behaviour is unchanged.
     [UNUserNotificationCenter currentNotificationCenter].delegate = self;
@@ -418,14 +418,20 @@
 }
 
 - (void)application:(UIApplication *)application
-    didReceiveRemoteNotification:(NSDictionary *)userInfo {
-    // Pre-scene / no-UN-delegate path. Retained rather than deleted so nothing
-    // depends on iOS choosing one delivery route over the other; both routes
-    // land in the single implementation below. Now that a notification-centre
-    // delegate exists this is expected never to fire; the log says so out loud
-    // rather than leaving it to inference.
-    NSLog(@"penteliveee: push via legacy didReceiveRemote");
+    didReceiveRemoteNotification:(NSDictionary *)userInfo
+          fetchCompletionHandler:
+              (void (^)(UIBackgroundFetchResult))completionHandler {
+    // The non-deprecated route for any push iOS does not hand to the
+    // UNUserNotificationCenter delegate. That notably includes the empty-alert
+    // `silentNotification` push the server (MoveServlet) sends after each
+    // move, which refreshes the dashboard. The app declares no
+    // UIBackgroundModes remote-notification, so this only runs while the app
+    // is in the foreground. The duplicate guard in
+    // -handleRemoteNotificationUserInfo: absorbs any double delivery. The log
+    // says which route fired rather than leaving it to inference.
+    NSLog(@"penteliveee: push via didReceiveRemote fetchCompletionHandler");
     [self handleRemoteNotificationUserInfo:userInfo];
+    completionHandler(UIBackgroundFetchResultNoData);
 }
 
 /// Bounds-checked component access for the alert-body parsers below.
@@ -446,7 +452,7 @@ static NSString *DSGAlertComponentOrNil(NSArray<NSString *> *components,
 
 /// The one implementation of "a push arrived while the app is running".
 ///
-/// Called from the legacy -application:didReceiveRemoteNotification: and from
+/// Called from -application:didReceiveRemoteNotification:fetchCompletionHandler: and from
 /// -userNotificationCenter:willPresentNotification:withCompletionHandler:.
 /// iOS calls only one of the two for any given push, but that is its choice,
 /// not something the app can enforce, so the duplicate guard below makes a
