@@ -29,6 +29,8 @@
     WKWebView *playerStats;
     PentePopover *messagePopover;
     NSMutableDictionary *messagesHistory;
+    NSMutableDictionary *messageAuthorsHistory;
+    BOOL iAmPlayer1;
     BOOL activeGame, isLastMove;
     UIButton *lockButton;
     SwiftPenteGame *engine;
