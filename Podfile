@@ -20,6 +20,5 @@ platform :ios, '15.0'
 #   pod 'SVWebViewController', :git => 'https://github.com/TransitApp/SVWebViewController.git'
     pod 'InAppSettingsKit'
     pod 'NSHash', '~> 1.1.0'
-    pod 'CocoaAsyncSocket'
 end
 
