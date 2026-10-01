@@ -2,13 +2,11 @@ PODS:
   - CocoaAsyncSocket (7.6.5)
   - InAppSettingsKit (3.9.2)
   - NSHash (1.1.0)
-  - UIBarButtonItem-Badge (0.0.1)
 
 DEPENDENCIES:
   - CocoaAsyncSocket
   - InAppSettingsKit
   - NSHash (~> 1.1.0)
-  - UIBarButtonItem-Badge (from `https://github.com/rainwolf/UIBarButtonItem-Badge.git`)
 
 SPEC REPOS:
   https://github.com/CocoaPods/Specs.git:
@@ -16,21 +14,11 @@ SPEC REPOS:
     - InAppSettingsKit
     - NSHash
 
-EXTERNAL SOURCES:
-  UIBarButtonItem-Badge:
-    :git: https://github.com/rainwolf/UIBarButtonItem-Badge.git
-
-CHECKOUT OPTIONS:
-  UIBarButtonItem-Badge:
-    :commit: 8ec19330e7bec195a6dc0cf10024340959cc972b
-    :git: https://github.com/rainwolf/UIBarButtonItem-Badge.git
-
 SPEC CHECKSUMS:
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
   InAppSettingsKit: 960d91fde94cae12a007c2272e34700a171df600
   NSHash: 61d598c6d48957c5557f1eef0aeafd6ef5ec5fb7
-  UIBarButtonItem-Badge: 8f5ed4d32d32dbb03034d4f273d02c8da680236b
 
-PODFILE CHECKSUM: c9ea23fec0d17569710b05104deb77615f9351a0
+PODFILE CHECKSUM: 109fcb14354ca8b884184a710ec8be04293c5e32
 
 COCOAPODS: 1.16.2
