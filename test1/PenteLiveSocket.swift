@@ -6,100 +6,145 @@
 //  Copyright © 2016 Triade. All rights reserved.
 //
 
+import Network
 import UIKit
 
-@objc class PenteLiveSocket: NSObject, GCDAsyncSocketDelegate {
-    var socket: GCDAsyncSocket!
+@objc class PenteLiveSocket: NSObject {
+    var connection: NWConnection!
     var separator: Data
     weak var room: RoomViewController!
     var server: String
     var port: Int
     var me: String
+    // All connection callbacks, and so processEvent, run on this serial queue.
+    private let queue = DispatchQueue(label: "penteLiveDelegateQueue")
+    // Bytes after the last 0xFF separator, carried over to the next read. Only touched on queue.
+    private var readBuffer = Data()
+    // Set by the first terminal path (error, server close or disconnect()). Only touched on queue.
+    private var closed = false
 
     init(server: String, port: Int, room: RoomViewController) {
-//        self.socket = GCDAsyncSocket()
         self.server = server
         self.port = port
         self.room = room
         me = "guest"
         separator = Data([255])
         super.init()
-        socket = GCDAsyncSocket(delegate: self, delegateQueue: DispatchQueue(label: "penteLiveDelegateQueue"))
-        do {
-            print("connecting: \(server):\(port)")
-            try socket.connect(toHost: server, onPort: UInt16(port), withTimeout: 5)
-        } catch {
-            print("connecting error: \(error.localizedDescription)")
-            let alertController = UIAlertController(title: NSLocalizedString("Error", comment: ""), message: NSLocalizedString("There was an error getting the game rooms. Reason: \(error.localizedDescription)", comment: ""), preferredStyle: .alert)
-            alertController.addAction(UIAlertAction(title: NSLocalizedString("Dismiss", comment: ""), style: UIAlertAction.Style.default, handler: nil))
-            //            self.present(alertController, animated: true, completion: nil)
-        }
-    }
-
-    func socketDidSecure(_: GCDAsyncSocket) {
-        print("did secure")
-        socket.readData(to: separator, withTimeout: -1, tag: 0)
-    }
-
-    func socket(_: GCDAsyncSocket, didConnectToHost _: String, port _: UInt16) {
-//        return
-//        print(room.pentePlayer?.playerName)
-        let url = URL(string: "https://\(server)")
-//        if room.pentePlayer?.playerName == "guest" {
-//            var username = (UserDefaults.standard.string(forKey: "username")!).lowercased()
-//            var password = UserDefaults.standard.string(forKey: "password")!
-//            var username = (UserDefaults.standard.string(forKey: "username")!).lowercased()
-//            var password = UserDefaults.standard.string(forKey: "password")!
-//            let url = URL(string: "https://\(server)/gameServer/login.jsp?name2=\(username)&password2=\(password)")
-//        } else {
-//
-//        }
-        let session = URLSession.shared
-        session.dataTask(with: url!, completionHandler: { (_: Data?, _: URLResponse?, _: Error?) in
-        }).resume()
-
-        print("connected")
-        var tlsSettings: [String: NSObject] = [:]
-        tlsSettings.updateValue(server as NSObject, forKey: String(kCFStreamSSLPeerName))
+        let tcpOptions = NWProtocolTCP.Options()
+        tcpOptions.connectionTimeout = 5
+        let tlsOptions = NWProtocolTLS.Options()
+        sec_protocol_options_set_tls_server_name(tlsOptions.securityProtocolOptions, server)
         if development {
-            tlsSettings.updateValue(Bool(booleanLiteral: true) as NSObject, forKey: GCDAsyncSocketManuallyEvaluateTrust)
+            // localhost dev server only: accept any certificate. Production keeps the system's
+            // default trust evaluation against the server name.
+            sec_protocol_options_set_verify_block(tlsOptions.securityProtocolOptions, { _, _, completionHandler in
+                completionHandler(true)
+            }, queue)
         }
-        socket.startTLS(tlsSettings)
-        let seconds = 0.3
-        DispatchQueue.main.asyncAfter(deadline: .now() + seconds) {
-            self.login()
+        let parameters = NWParameters(tls: tlsOptions, tcp: tcpOptions)
+        connection = NWConnection(host: NWEndpoint.Host(server), port: NWEndpoint.Port(integerLiteral: UInt16(port)), using: parameters)
+        connection.stateUpdateHandler = { [weak self] state in
+            self?.connectionStateChanged(state)
+        }
+        print("connecting: \(server):\(port)")
+        connection.start(queue: queue)
+    }
+
+    deinit {
+        connection.cancel()
+    }
+
+    private func connectionStateChanged(_ state: NWConnection.State) {
+        switch state {
+        case .ready:
+            // TCP is connected and TLS is up.
+            print("connected")
+            let url = URL(string: "https://\(server)")
+            let session = URLSession.shared
+            session.dataTask(with: url!, completionHandler: { (_: Data?, _: URLResponse?, _: Error?) in
+            }).resume()
+            let seconds = 0.3
+            DispatchQueue.main.asyncAfter(deadline: .now() + seconds) { [weak self] in
+                self?.login()
+            }
+            print("did secure")
+            readNextChunk()
+        case let .waiting(error):
+            // No route or DNS failure. Fail fast instead of letting NWConnection wait for a better path.
+            close(error: error)
+        case let .failed(error):
+            close(error: error)
+        default:
+            break
         }
     }
 
-    func socket(_: GCDAsyncSocket, didReceive _: SecTrust, completionHandler: @escaping (Bool) -> Void) {
-        completionHandler(true)
-    }
-
-    func socketDidDisconnect(_: GCDAsyncSocket, withError err: Error?) {
-        if err != nil {
-            DispatchQueue.main.async {
-                self.room.disconnected()
+    private func readNextChunk() {
+        connection.receive(minimumIncompleteLength: 1, maximumLength: 65536) { [weak self] content, _, isComplete, error in
+            guard let self = self, !self.closed else { return }
+            if let content = content, !content.isEmpty {
+                self.readBuffer.append(content)
+                for message in PenteLiveSocket.extractMessages(from: &self.readBuffer) {
+                    let jsonString = String(bytes: message, encoding: .utf8)
+                    self.processEvent(eventString: jsonString!)
+                }
+            }
+            if let error = error {
+                self.close(error: error)
+            } else if isComplete {
+                self.close(error: NSError(domain: "PenteLiveSocket", code: 7, userInfo: [NSLocalizedDescriptionKey: "Socket closed by remote peer"]))
+            } else {
+                self.readNextChunk()
             }
         }
-//        print("disconnected \(sock.connectedHost)")
-//        print("disconnected \(sock.connectedPort)")
-        print("disconnected \(String(describing: err?.localizedDescription))")
     }
 
-    func socket(_: GCDAsyncSocket, didRead data: Data, withTag _: Int) {
-//        for byte in data {
-//            print("\(byte),", separator: ",", terminator: "")
-//        }
-        let jsonString = String(bytes: data.subdata(in: 0 ..< data.count - 1), encoding: .utf8)
-//        print("socket read: \(jsonString!)")
-        socket.readData(to: separator, withTimeout: -1, tag: 0)
-        processEvent(eventString: jsonString!)
+    // Splits complete 0xFF-terminated messages off the front of buffer, without their separator.
+    // An unterminated tail stays in buffer for the next read.
+    static func extractMessages(from buffer: inout Data, separator: UInt8 = 255) -> [Data] {
+        var messages: [Data] = []
+        var start = buffer.startIndex
+        while let end = buffer[start...].firstIndex(of: separator) {
+            messages.append(Data(buffer[start ..< end]))
+            start = buffer.index(after: end)
+        }
+        buffer = Data(buffer[start...])
+        return messages
     }
 
-    func socket(_: GCDAsyncSocket, didWriteDataWithTag _: Int) {}
+    // Terminal error path: tells the room once, on main. Must be called on queue.
+    private func close(error: Error) {
+        guard !closed else { return }
+        closed = true
+        connection.cancel()
+        print("disconnected \(String(describing: error.localizedDescription))")
+        DispatchQueue.main.async { [weak room = self.room] in
+            room?.disconnected()
+        }
+    }
 
+    // App-initiated close: as before, the room is not told.
     func disconnect() {
-        socket.disconnect()
+        queue.async {
+            guard !self.closed else { return }
+            self.closed = true
+            self.connection.cancel()
+            print("disconnected nil")
+        }
+    }
+
+    // A write that has not been handed to the network stack within timeout closes the connection with an error.
+    private func write(_ data: Data, timeout: TimeInterval) {
+        let timeoutItem = DispatchWorkItem { [weak self] in
+            self?.close(error: NSError(domain: "PenteLiveSocket", code: 5, userInfo: [NSLocalizedDescriptionKey: "Write operation timed out"]))
+        }
+        queue.asyncAfter(deadline: .now() + timeout, execute: timeoutItem)
+        connection.send(content: data, completion: .contentProcessed { [weak self] error in
+            timeoutItem.cancel()
+            if let error = error {
+                self?.close(error: error)
+            }
+        })
     }
 
     func processEvent(eventString: String) {
@@ -209,7 +254,7 @@ import UIKit
             let loginStr = "{\"dsgLoginEvent\":{\"guest\":true,\"time\":0}}"
             var loginData = loginStr.data(using: .utf8)
             loginData?.append(separator)
-            socket.write(loginData!, withTimeout: 5, tag: 1)
+            write(loginData!, timeout: 5)
         } else {
             let username = UserDefaults.standard.string(forKey: "username")!.lowercased()
             let password = UserDefaults.standard.string(forKey: "password")!
@@ -222,7 +267,7 @@ import UIKit
             let loginStr = "{\"dsgLoginEvent\":{\"player\":\"\(username)\",\"password\":\"\(password)\",\"guest\":false,\"time\":0}}"
             var loginData = loginStr.data(using: .utf8)
             loginData?.append(separator)
-            socket.write(loginData!, withTimeout: 5, tag: 1)
+            write(loginData!, timeout: 5)
         }
     }
 
@@ -239,7 +284,7 @@ import UIKit
     func sendEvent(eventData: Data) {
         var data = eventData
         data.append(separator)
-        socket.write(data, withTimeout: 30, tag: 1)
+        write(data, timeout: 30)
     }
 
     func sendEvent(eventString: String) {
@@ -259,6 +304,6 @@ import UIKit
     func replyPing(pingString: String) {
         var data = pingString.data(using: .utf8)
         data?.append(separator)
-        socket.write(data!, withTimeout: 30, tag: 1)
+        write(data!, timeout: 30)
     }
 }
