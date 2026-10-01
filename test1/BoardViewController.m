@@ -2123,6 +2123,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
     [self setReplyMessage:@""];
     [self setReceivedMessage:nil];
     messagesHistory = [[NSMutableDictionary alloc] init];
+    messageAuthorsHistory = [[NSMutableDictionary alloc] init];
     isLastMove = YES;
 
     //    NSString *tmpStr = [NSString
@@ -2200,6 +2201,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
              [strongSelf.game setRatedNot:jsonResponse[@"rated"]];
              [strongSelf.game setPrivateGame:jsonResponse[@"privateGame"]];
              iAmP1 = [myUsername isEqualToString:p1Name];
+             strongSelf->iAmPlayer1 = iAmP1;
              [strongSelf.game setGameType:jsonResponse[@"gameName"]];
              isGoGame = ([strongSelf.game.gameType hasPrefix:@"Go"] &&
                          ![strongSelf.game.gameType hasPrefix:@"Gomoku"]) ||
@@ -2248,91 +2250,41 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                      setObject:tmpStr
                         forKey:[atMoves objectAtIndex:i]];
              }
+             [strongSelf->messageAuthorsHistory removeAllObjects];
+             id authorsField = jsonResponse[@"messageAuthors"];
+             if ([authorsField isKindOfClass:[NSString class]] && [authorsField length] > 0) {
+                 NSArray *authors = [authorsField componentsSeparatedByString:@","];
+                 for (NSUInteger i = 0; i < [authors count] && i < [atMoves count]; ++i) {
+                     [strongSelf->messageAuthorsHistory setObject:authors[i] forKey:atMoves[i]];
+                 }
+             }
 
              [strongSelf->receivedMessageView
                  setFont:[UIFont fontWithName:@"HelveticaNeue-Bold"
                                          size:15.35f]];
-             if ([strongSelf->messagesHistory
-                     objectForKey:[NSString
-                                      stringWithFormat:
-                                          @"%lu",
-                                          (unsigned long)
-                                              [strongSelf->movesList count]]]) {
-                 if (([[strongSelf.game myColor] isEqualToString:@"white"] &&
-                      (([strongSelf->movesList count] % 2) == 1)) ||
-                     ([[strongSelf.game myColor] isEqualToString:@"black"] &&
-                      (([strongSelf->movesList count] % 2) == 0))) {
+             NSString *key = [NSString
+                 stringWithFormat:@"%lu",
+                                  (unsigned long)[strongSelf->movesList count]];
+             if ([strongSelf->messagesHistory objectForKey:key]) {
+                 NSString *serverLabel = [MessageAuthorLabel
+                     displayForSeat:strongSelf->messageAuthorsHistory[key]
+                              iAmP1:strongSelf->iAmPlayer1
+                       opponentName:[strongSelf.game opponentName]
+                               text:strongSelf->messagesHistory[key]];
+                 if (serverLabel) {
                      [strongSelf->receivedMessageView
-                         setFont:[UIFont fontWithName:@"HelveticaNeue"
-                                                 size:15.35f]];
-                     strongSelf->receivedMessage = [NSString
-                         stringWithFormat:
-                             @" me: %@",
-                             [strongSelf->messagesHistory
-                                 objectForKey:[NSString
-                                                  stringWithFormat:
-                                                      @"%lu",
-                                                      (unsigned long)
-                                                          [strongSelf->movesList
-                                                                  count]]]];
+                         setFont:[UIFont
+                                     fontWithName:([MessageAuthorLabel
+                                                      isMineForSeat:strongSelf->messageAuthorsHistory[key]
+                                                              iAmP1:strongSelf->iAmPlayer1]
+                                                       ? @"HelveticaNeue"
+                                                       : @"HelveticaNeue-Bold")
+                                             size:15.35f]];
+                     strongSelf->receivedMessage = serverLabel;
                  } else {
-                     [strongSelf->receivedMessageView
-                         setFont:[UIFont fontWithName:@"HelveticaNeue-Bold"
-                                                 size:15.35f]];
-                     strongSelf->receivedMessage = [NSString
-                         stringWithFormat:
-                             @" %@: %@", [strongSelf.game opponentName],
-                             [strongSelf->messagesHistory
-                                 objectForKey:[NSString
-                                                  stringWithFormat:
-                                                      @"%lu",
-                                                      (unsigned long)
-                                                          [strongSelf->movesList
-                                                                  count]]]];
-                 }
-                 if (([[strongSelf.game gameType]
-                          isEqualToString:@"Connect6"] &&
-                      [[strongSelf.game myColor] isEqualToString:@"white"] &&
-                      (([strongSelf->movesList count] % 4) == 1)) ||
-                     ([[strongSelf.game gameType]
-                          isEqualToString:@"Connect6"] &&
-                      [[strongSelf.game myColor] isEqualToString:@"black"] &&
-                      (([strongSelf->movesList count] % 4) == 3))) {
-                     [strongSelf->receivedMessageView
-                         setFont:[UIFont fontWithName:@"HelveticaNeue"
-                                                 size:15.35f]];
-                     strongSelf->receivedMessage = [NSString
-                         stringWithFormat:
-                             @" me: %@",
-                             [strongSelf->messagesHistory
-                                 objectForKey:[NSString
-                                                  stringWithFormat:
-                                                      @"%lu",
-                                                      (unsigned long)
-                                                          [strongSelf->movesList
-                                                                  count]]]];
-                 } else if ([[strongSelf.game gameType]
-                                isEqualToString:@"Connect6"]) {
-                     [strongSelf->receivedMessageView
-                         setFont:[UIFont fontWithName:@"HelveticaNeue-Bold"
-                                                 size:15.35f]];
-                     strongSelf->receivedMessage = [NSString
-                         stringWithFormat:
-                             @" %@: %@", [strongSelf.game opponentName],
-                             [strongSelf->messagesHistory
-                                 objectForKey:[NSString
-                                                  stringWithFormat:
-                                                      @"%lu",
-                                                      (unsigned long)
-                                                          [strongSelf->movesList
-                                                                  count]]]];
-                 }
-                 if (isGoGame) {
-                     if (([[strongSelf.game myColor]
-                              isEqualToString:@"black"] &&
+                     if (([[strongSelf.game myColor] isEqualToString:@"white"] &&
                           (([strongSelf->movesList count] % 2) == 1)) ||
-                         ([[strongSelf.game myColor]
-                              isEqualToString:@"white"] &&
+                         ([[strongSelf.game myColor] isEqualToString:@"black"] &&
                           (([strongSelf->movesList count] % 2) == 0))) {
                          [strongSelf->receivedMessageView
                              setFont:[UIFont fontWithName:@"HelveticaNeue"
@@ -2341,13 +2293,12 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                              stringWithFormat:
                                  @" me: %@",
                                  [strongSelf->messagesHistory
-                                     objectForKey:
-                                         [NSString
-                                             stringWithFormat:
-                                                 @"%lu",
-                                                 (unsigned long)
-                                                     [strongSelf->movesList
-                                                             count]]]];
+                                     objectForKey:[NSString
+                                                      stringWithFormat:
+                                                          @"%lu",
+                                                          (unsigned long)
+                                                              [strongSelf->movesList
+                                                                      count]]]];
                      } else {
                          [strongSelf->receivedMessageView
                              setFont:[UIFont fontWithName:@"HelveticaNeue-Bold"
@@ -2356,13 +2307,87 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                              stringWithFormat:
                                  @" %@: %@", [strongSelf.game opponentName],
                                  [strongSelf->messagesHistory
-                                     objectForKey:
-                                         [NSString
-                                             stringWithFormat:
-                                                 @"%lu",
-                                                 (unsigned long)
-                                                     [strongSelf->movesList
-                                                             count]]]];
+                                     objectForKey:[NSString
+                                                      stringWithFormat:
+                                                          @"%lu",
+                                                          (unsigned long)
+                                                              [strongSelf->movesList
+                                                                      count]]]];
+                     }
+                     if (([[strongSelf.game gameType]
+                              isEqualToString:@"Connect6"] &&
+                          [[strongSelf.game myColor] isEqualToString:@"white"] &&
+                          (([strongSelf->movesList count] % 4) == 1)) ||
+                         ([[strongSelf.game gameType]
+                              isEqualToString:@"Connect6"] &&
+                          [[strongSelf.game myColor] isEqualToString:@"black"] &&
+                          (([strongSelf->movesList count] % 4) == 3))) {
+                         [strongSelf->receivedMessageView
+                             setFont:[UIFont fontWithName:@"HelveticaNeue"
+                                                     size:15.35f]];
+                         strongSelf->receivedMessage = [NSString
+                             stringWithFormat:
+                                 @" me: %@",
+                                 [strongSelf->messagesHistory
+                                     objectForKey:[NSString
+                                                      stringWithFormat:
+                                                          @"%lu",
+                                                          (unsigned long)
+                                                              [strongSelf->movesList
+                                                                      count]]]];
+                     } else if ([[strongSelf.game gameType]
+                                    isEqualToString:@"Connect6"]) {
+                         [strongSelf->receivedMessageView
+                             setFont:[UIFont fontWithName:@"HelveticaNeue-Bold"
+                                                     size:15.35f]];
+                         strongSelf->receivedMessage = [NSString
+                             stringWithFormat:
+                                 @" %@: %@", [strongSelf.game opponentName],
+                                 [strongSelf->messagesHistory
+                                     objectForKey:[NSString
+                                                      stringWithFormat:
+                                                          @"%lu",
+                                                          (unsigned long)
+                                                              [strongSelf->movesList
+                                                                      count]]]];
+                     }
+                     if (isGoGame) {
+                         if (([[strongSelf.game myColor]
+                                  isEqualToString:@"black"] &&
+                              (([strongSelf->movesList count] % 2) == 1)) ||
+                             ([[strongSelf.game myColor]
+                                  isEqualToString:@"white"] &&
+                              (([strongSelf->movesList count] % 2) == 0))) {
+                             [strongSelf->receivedMessageView
+                                 setFont:[UIFont fontWithName:@"HelveticaNeue"
+                                                         size:15.35f]];
+                             strongSelf->receivedMessage = [NSString
+                                 stringWithFormat:
+                                     @" me: %@",
+                                     [strongSelf->messagesHistory
+                                         objectForKey:
+                                             [NSString
+                                                 stringWithFormat:
+                                                     @"%lu",
+                                                     (unsigned long)
+                                                         [strongSelf->movesList
+                                                                 count]]]];
+                         } else {
+                             [strongSelf->receivedMessageView
+                                 setFont:[UIFont fontWithName:@"HelveticaNeue-Bold"
+                                                         size:15.35f]];
+                             strongSelf->receivedMessage = [NSString
+                                 stringWithFormat:
+                                     @" %@: %@", [strongSelf.game opponentName],
+                                     [strongSelf->messagesHistory
+                                         objectForKey:
+                                             [NSString
+                                                 stringWithFormat:
+                                                     @"%lu",
+                                                     (unsigned long)
+                                                         [strongSelf->movesList
+                                                                 count]]]];
+                         }
                      }
                  }
              } else {
@@ -3463,72 +3488,36 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
 
     isLastMove = (untilMove == [movesList count]);
     [messageButtonImageView stopAnimating];
-    if ([messagesHistory
-            objectForKey:[NSString stringWithFormat:@"%i", untilMove]]) {
+    NSString *key = [NSString stringWithFormat:@"%i", untilMove];
+    if ([messagesHistory objectForKey:key]) {
         [self notifyNewMessage];
-        if (([[self.game myColor] isEqualToString:@"white"] &&
-             ((untilMove % 2) == 1)) ||
-            ([[self.game myColor] isEqualToString:@"black"] &&
-             ((untilMove % 2) == 0))) {
-            [receivedMessageView setFont:[UIFont fontWithName:@"HelveticaNeue"
-                                                         size:15.35f]];
-            receivedMessage = [NSString
-                stringWithFormat:
-                    @" me: %@",
-                    [messagesHistory
-                        objectForKey:[NSString
-                                         stringWithFormat:@"%i", untilMove]]];
+        NSString *serverLabel = [MessageAuthorLabel
+            displayForSeat:messageAuthorsHistory[key]
+                     iAmP1:iAmPlayer1
+              opponentName:[self.game opponentName]
+                      text:messagesHistory[key]];
+        if (serverLabel) {
+            [receivedMessageView
+                setFont:[UIFont fontWithName:([MessageAuthorLabel
+                                                  isMineForSeat:messageAuthorsHistory[key]
+                                                          iAmP1:iAmPlayer1]
+                                                   ? @"HelveticaNeue"
+                                                   : @"HelveticaNeue-Bold")
+                                         size:15.35f]];
+            receivedMessage = serverLabel;
         } else {
-            [receivedMessageView
-                setFont:[UIFont fontWithName:@"HelveticaNeue-Bold"
-                                        size:15.35f]];
-            receivedMessage = [NSString
-                stringWithFormat:
-                    @" %@: %@", [self.game opponentName],
-                    [messagesHistory
-                        objectForKey:[NSString
-                                         stringWithFormat:@"%i", untilMove]]];
-        }
-        if (([[self.game gameType] isEqualToString:@"Connect6"] &&
-             [[self.game myColor] isEqualToString:@"white"] &&
-             ((untilMove % 4) == 1)) ||
-            ([[self.game gameType] isEqualToString:@"Connect6"] &&
-             [[self.game myColor] isEqualToString:@"black"] &&
-             ((untilMove % 4) == 3))) {
-            [receivedMessageView setFont:[UIFont fontWithName:@"HelveticaNeue"
-                                                         size:15.35f]];
-            receivedMessage = [NSString
-                stringWithFormat:
-                    @" me: %@",
-                    [messagesHistory
-                        objectForKey:[NSString
-                                         stringWithFormat:@"%i", untilMove]]];
-        } else if ([[self.game gameType] isEqualToString:@"Connect6"]) {
-            [receivedMessageView
-                setFont:[UIFont fontWithName:@"HelveticaNeue-Bold"
-                                        size:15.35f]];
-            receivedMessage = [NSString
-                stringWithFormat:
-                    @" %@: %@", [self.game opponentName],
-                    [messagesHistory
-                        objectForKey:[NSString
-                                         stringWithFormat:@"%i", untilMove]]];
-        }
-        if (isGoGame) {
-            [receivedMessageView setFont:[UIFont fontWithName:@"HelveticaNeue"
-                                                         size:15.35f]];
-            if (([[self.game myColor] isEqualToString:@"black"] &&
+            if (([[self.game myColor] isEqualToString:@"white"] &&
                  ((untilMove % 2) == 1)) ||
-                ([[self.game myColor] isEqualToString:@"white"] &&
+                ([[self.game myColor] isEqualToString:@"black"] &&
                  ((untilMove % 2) == 0))) {
+                [receivedMessageView setFont:[UIFont fontWithName:@"HelveticaNeue"
+                                                             size:15.35f]];
                 receivedMessage = [NSString
                     stringWithFormat:
                         @" me: %@",
                         [messagesHistory
                             objectForKey:[NSString
-                                             stringWithFormat:@"%lu",
-                                                              (unsigned long)
-                                                                  untilMove]]];
+                                             stringWithFormat:@"%i", untilMove]]];
             } else {
                 [receivedMessageView
                     setFont:[UIFont fontWithName:@"HelveticaNeue-Bold"
@@ -3538,9 +3527,61 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
                         @" %@: %@", [self.game opponentName],
                         [messagesHistory
                             objectForKey:[NSString
-                                             stringWithFormat:@"%lu",
-                                                              (unsigned long)
-                                                                  untilMove]]];
+                                             stringWithFormat:@"%i", untilMove]]];
+            }
+            if (([[self.game gameType] isEqualToString:@"Connect6"] &&
+                 [[self.game myColor] isEqualToString:@"white"] &&
+                 ((untilMove % 4) == 1)) ||
+                ([[self.game gameType] isEqualToString:@"Connect6"] &&
+                 [[self.game myColor] isEqualToString:@"black"] &&
+                 ((untilMove % 4) == 3))) {
+                [receivedMessageView setFont:[UIFont fontWithName:@"HelveticaNeue"
+                                                             size:15.35f]];
+                receivedMessage = [NSString
+                    stringWithFormat:
+                        @" me: %@",
+                        [messagesHistory
+                            objectForKey:[NSString
+                                             stringWithFormat:@"%i", untilMove]]];
+            } else if ([[self.game gameType] isEqualToString:@"Connect6"]) {
+                [receivedMessageView
+                    setFont:[UIFont fontWithName:@"HelveticaNeue-Bold"
+                                            size:15.35f]];
+                receivedMessage = [NSString
+                    stringWithFormat:
+                        @" %@: %@", [self.game opponentName],
+                        [messagesHistory
+                            objectForKey:[NSString
+                                             stringWithFormat:@"%i", untilMove]]];
+            }
+            if (isGoGame) {
+                [receivedMessageView setFont:[UIFont fontWithName:@"HelveticaNeue"
+                                                             size:15.35f]];
+                if (([[self.game myColor] isEqualToString:@"black"] &&
+                     ((untilMove % 2) == 1)) ||
+                    ([[self.game myColor] isEqualToString:@"white"] &&
+                     ((untilMove % 2) == 0))) {
+                    receivedMessage = [NSString
+                        stringWithFormat:
+                            @" me: %@",
+                            [messagesHistory
+                                objectForKey:[NSString
+                                                 stringWithFormat:@"%lu",
+                                                                  (unsigned long)
+                                                                      untilMove]]];
+                } else {
+                    [receivedMessageView
+                        setFont:[UIFont fontWithName:@"HelveticaNeue-Bold"
+                                                size:15.35f]];
+                    receivedMessage = [NSString
+                        stringWithFormat:
+                            @" %@: %@", [self.game opponentName],
+                            [messagesHistory
+                                objectForKey:[NSString
+                                                 stringWithFormat:@"%lu",
+                                                                  (unsigned long)
+                                                                      untilMove]]];
+                }
             }
         }
         [receivedMessageView setText:receivedMessage];
