@@ -173,7 +173,6 @@ platform :ios do
         scheme: "test1",
         configuration: "Release",
         clean: true,
-        xcargs: "SWIFT_ENABLE_EXPLICIT_MODULES=NO",
         export_method: "app-store",
         export_options: {
           signingStyle: "automatic",
