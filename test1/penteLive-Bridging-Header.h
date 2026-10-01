@@ -9,6 +9,5 @@
 #import "PentePopover.h"
 //@import SVWebViewController;
 #import "BoardViewController.h"
-@import AFWebViewController;
 #import "PenteGame.h"
 #import "PenteHTTPClient.h"

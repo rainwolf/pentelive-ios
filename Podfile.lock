@@ -1,16 +1,10 @@
 PODS:
-  - AFWebViewController (1.3):
-    - ARChromeActivity (~> 1.0.4)
-    - TUSafariActivity (~> 1.0.4)
-  - ARChromeActivity (1.0.6)
   - CocoaAsyncSocket (7.6.5)
   - InAppSettingsKit (3.9.2)
   - NSHash (1.1.0)
-  - TUSafariActivity (1.0.4)
   - UIBarButtonItem-Badge (0.0.1)
 
 DEPENDENCIES:
-  - AFWebViewController (~> 1.0)
   - CocoaAsyncSocket
   - InAppSettingsKit
   - NSHash (~> 1.1.0)
@@ -18,12 +12,9 @@ DEPENDENCIES:
 
 SPEC REPOS:
   https://github.com/CocoaPods/Specs.git:
-    - AFWebViewController
-    - ARChromeActivity
     - CocoaAsyncSocket
     - InAppSettingsKit
     - NSHash
-    - TUSafariActivity
 
 EXTERNAL SOURCES:
   UIBarButtonItem-Badge:
@@ -35,14 +26,11 @@ CHECKOUT OPTIONS:
     :git: https://github.com/rainwolf/UIBarButtonItem-Badge.git
 
 SPEC CHECKSUMS:
-  AFWebViewController: 3cee572a8e043f3ca7c5b5906dac149cb740ed1f
-  ARChromeActivity: 5dcf9b9f09323761f992aff3525cdd777f83609d
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
   InAppSettingsKit: 960d91fde94cae12a007c2272e34700a171df600
   NSHash: 61d598c6d48957c5557f1eef0aeafd6ef5ec5fb7
-  TUSafariActivity: afc55a00965377939107ce4fdc7f951f62454546
   UIBarButtonItem-Badge: 8f5ed4d32d32dbb03034d4f273d02c8da680236b
 
-PODFILE CHECKSUM: 8905a585efe08511c24ff0e30ae8450c17675f3d
+PODFILE CHECKSUM: c9ea23fec0d17569710b05104deb77615f9351a0
 
 COCOAPODS: 1.16.2
