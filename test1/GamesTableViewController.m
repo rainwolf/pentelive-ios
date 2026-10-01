@@ -3379,13 +3379,13 @@ array, and add a new row to the table view
     onlineFollowing = flags.onlineFollowing;
     if (@available(iOS 26.0, *)) {
         if ([livePlayers intValue] > 0) {
-            [inviteButton setBadge:[UIBarButtonItemBadge
-                                       badgeWithString:livePlayers]];
-            [inviteButton.badge
-                setBackgroundColor:[UIColor colorWithRed:(8.0 / 255)
-                                                   green:(52.0 / 255)
-                                                    blue:(29.0 / 255)
-                                                   alpha:1.0]];
+            UIBarButtonItemBadge *badge =
+                [UIBarButtonItemBadge badgeWithString:livePlayers];
+            badge.backgroundColor = [UIColor colorWithRed:(8.0 / 255)
+                                                    green:(52.0 / 255)
+                                                     blue:(29.0 / 255)
+                                                    alpha:1.0];
+            [inviteButton setBadge:badge];
         } else {
             [inviteButton setBadge:nil];
         }
