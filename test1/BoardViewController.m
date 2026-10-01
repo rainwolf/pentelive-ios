@@ -27,7 +27,6 @@
 #import "PenteGame.h"
 #import "PenteBanner.h"
 #import "penteLive-Swift.h"
-#import <NSHash/NSString+NSHash.h>
 #import <QuartzCore/QuartzCore.h>
 
 #define usernameKey @"username"

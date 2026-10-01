@@ -17,8 +17,6 @@ use_modular_headers!
 target "penteLive" do
 platform :ios, '15.0'
 #   use_frameworks!
-#   pod 'SVWebViewController', :git => 'https://github.com/TransitApp/SVWebViewController.git'
     pod 'InAppSettingsKit'
-    pod 'NSHash', '~> 1.1.0'
 end
 

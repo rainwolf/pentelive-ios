@@ -1,20 +1,16 @@
 PODS:
   - InAppSettingsKit (3.9.2)
-  - NSHash (1.1.0)
 
 DEPENDENCIES:
   - InAppSettingsKit
-  - NSHash (~> 1.1.0)
 
 SPEC REPOS:
   https://github.com/CocoaPods/Specs.git:
     - InAppSettingsKit
-    - NSHash
 
 SPEC CHECKSUMS:
   InAppSettingsKit: 960d91fde94cae12a007c2272e34700a171df600
-  NSHash: 61d598c6d48957c5557f1eef0aeafd6ef5ec5fb7
 
-PODFILE CHECKSUM: 5487e0e821109ae57b5907b415aec52aa11c869f
+PODFILE CHECKSUM: 86b9e534634ab0440f04b129373c9bb894838a4e
 
 COCOAPODS: 1.16.2
