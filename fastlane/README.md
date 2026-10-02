@@ -25,6 +25,8 @@ Release: `bundle exec fastlane release version:2.11.11 changelog:"What's new"`. 
 - `changelog:` (required) becomes the App Store "What's New" text, in every language the version has.
 - `build:N` sets `CURRENT_PROJECT_VERSION` (digits and dots); defaults to the version, the project convention.
 
+Or run `./release`: it checks you are on an up-to-date, clean `main`, asks for the version and release notes, runs the lane and pushes the commit and tag.
+
 It bumps and builds, creates version 2.11.11 in App Store Connect, uploads the build, waits for Apple to
 finish processing it (often 10-30 minutes; the wait has no timeout, and Ctrl-C there is safe), and submits
 it for review. Once approved it goes live by itself. Then it commits the bump as `2.11.11` and tags

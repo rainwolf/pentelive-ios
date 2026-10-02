@@ -1,0 +1,123 @@
+#!/usr/bin/env bash
+# Interactive wrapper around the fastlane release lane: checks git, asks for the version and the release
+# notes, runs `bundle exec fastlane release`, then pushes the release commit and tag. Run from anywhere:
+#   ./release
+set -euo pipefail
+cd "$(dirname "${BASH_SOURCE[0]}")"
+# Count release-note characters, not bytes, whatever the caller's locale.
+export LC_ALL=en_US.UTF-8
+
+PBXPROJ=penteLive.xcodeproj/project.pbxproj
+APP_TARGET=penteLive # as in the Fastfile
+NOTES_MAX=4000       # App Store Connect's "What's New" limit, as in the Fastfile
+
+die() { echo "release: $*" >&2; exit 1; }
+# Prompts on stderr, so they show even when stdin is piped; the answer is trimmed; EOF (Ctrl-D) aborts.
+ask() { printf '%s' "$1" >&2; read -r REPLY || die "no input; aborted, nothing changed"; }
+# One value from the project file, by plist key path (object ids contain no dots).
+px() { plutil -extract "$1" raw -o - "$PBXPROJ" 2>/dev/null; }
+
+# Prints the app target's build setting $1, which every configuration must set to the same value
+# (the lane's bump sets it on each configuration of the app target only).
+app_setting() {
+  local root n i t target="" list c cfg value values="" first="" different=""
+  root=$(px rootObject) || die "can't parse $PBXPROJ"
+  n=$(px "objects.$root.targets") || die "no targets in $PBXPROJ"
+  for ((i = 0; i < n; i++)); do
+    t=$(px "objects.$root.targets.$i") || die "can't read target $i in $PBXPROJ"
+    [[ $(px "objects.$t.name") == "$APP_TARGET" ]] || continue
+    [[ -z $target ]] || die "more than one $APP_TARGET target in $PBXPROJ"
+    target=$t
+  done
+  [[ -n $target ]] || die "no $APP_TARGET target in $PBXPROJ"
+  list=$(px "objects.$target.buildConfigurationList") &&
+    n=$(px "objects.$list.buildConfigurations") && ((n > 0)) ||
+    die "no build configurations for $APP_TARGET in $PBXPROJ"
+  for ((i = 0; i < n; i++)); do
+    c=$(px "objects.$list.buildConfigurations.$i") || die "can't read $APP_TARGET configuration $i in $PBXPROJ"
+    cfg=$(px "objects.$c.name") || cfg="#$i"
+    value=$(px "objects.$c.buildSettings.$1") || die "$APP_TARGET's $cfg configuration doesn't set $1 in $PBXPROJ"
+    values+="${values:+, }$cfg=$value"
+    [[ $i == 0 ]] && first=$value
+    [[ $value == "$first" ]] || different=1
+  done
+  [[ -z $different ]] || die "$APP_TARGET's configurations disagree on $1 ($values); make them match first"
+  printf '%s\n' "$first"
+}
+
+# The lane commits and tags on the current branch; release only from an up-to-date main.
+branch=$(git rev-parse --abbrev-ref HEAD)
+[[ $branch == main ]] || die "on branch $branch; switch to main first"
+# Untracked files count too, as in the lane's own check (ensure_git_status_clean).
+[[ -z $(git status --porcelain) ]] || die "uncommitted changes or untracked files; commit, stash or remove them first"
+git fetch --quiet origin main
+read -r ahead behind < <(git rev-list --left-right --count main...origin/main) ||
+  die "can't compare main with origin/main"
+((behind == 0)) || die "local main is $behind commit(s) behind origin/main; pull first"
+((ahead == 0)) || die "local main is $ahead commit(s) ahead of origin/main; push or drop them first"
+
+name=$(app_setting MARKETING_VERSION)
+default=""
+[[ $name =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]] &&
+  default="${BASH_REMATCH[1]}.${BASH_REMATCH[2]}.$((10#${BASH_REMATCH[3]} + 1))"
+
+while true; do
+  ask "Version${default:+ [$default]}: "
+  version=${REPLY:-$default}
+  [[ $version =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] && break
+  echo "Version must look like X.Y.Z (e.g. ${default:-2.11.11})." >&2
+done
+# The lane checks local tags only; a tag only on origin would make the push fail after the submission.
+# --exit-code: 0 = found, 2 = not found, anything else = couldn't ask origin.
+rc=0
+git ls-remote --quiet --exit-code --tags origin "refs/tags/v$version" >/dev/null || rc=$?
+((rc != 0)) || die "tag v$version already exists on origin; pick a new version"
+((rc == 2)) || die "can't list tags on origin (git ls-remote exit $rc)"
+
+while true; do
+  echo "Release notes (every language, max $NOTES_MAX characters); finish with an empty line or Ctrl-D:" >&2
+  notes="" eof=1
+  while IFS= read -r line || [[ -n $line ]]; do
+    [[ -z $line ]] && { eof=0; break; }
+    notes+="$line"$'\n'
+  done
+  # Trim leading/trailing whitespace (the lane strips the notes the same way).
+  notes="${notes#"${notes%%[![:space:]]*}"}"
+  notes="${notes%"${notes##*[![:space:]]}"}"
+  if [[ -z $notes ]]; then
+    ((eof)) && die "no release notes; aborted, nothing changed"
+    echo "Release notes can't be empty." >&2
+  elif ((${#notes} > NOTES_MAX)); then
+    echo "Release notes are ${#notes} characters; App Store Connect allows $NOTES_MAX." >&2
+  else
+    break
+  fi
+done
+
+cat >&2 <<EOF
+
+  Version:      $name -> $version
+  Build:        $version
+  Target:       App Store (submitted for review; goes live automatically once approved)
+  Release notes:
+$(sed 's/^/    /' <<<"$notes")
+
+EOF
+ask "Submit to the App Store? [y/N] "
+[[ $REPLY == [yY] ]] || die "aborted, nothing changed"
+
+# The notes go as one argv element; fastlane splits key:value on the first ':' only, so newlines survive.
+if bundle exec fastlane release "version:$version" "changelog:$notes"; then :; else
+  rc=$?
+  echo "release: fastlane release failed (exit $rc); nothing was pushed. Follow the lane's advice above." \
+    "If it says to rerun with build:<higher number>, run the lane directly (./release always uses build = version):" \
+    "bundle exec fastlane release version:$version changelog:\"...\" build:N; after that, or after submitting," \
+    "committing and tagging by hand, push with: git push --atomic origin main v$version" >&2
+  exit "$rc"
+fi
+
+git push --atomic origin main "v$version" ||
+  die "pushing failed; the release is submitted, committed and tagged locally. Retry with:" \
+    "git push --atomic origin main v$version (if origin/main moved meanwhile, first run: git pull --no-rebase origin main," \
+    "which keeps the tagged commit on main)"
+echo "Submitted $version for review and pushed main and v$version."
