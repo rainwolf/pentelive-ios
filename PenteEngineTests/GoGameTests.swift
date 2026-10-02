@@ -61,4 +61,21 @@ final class GoGameTests: XCTestCase {
         XCTAssertEqual(go.territory(forPlayer: 1), [0], "corner is black-exclusive territory")
         XCTAssertEqual(go.territory(forPlayer: 2), [], "white has no exclusive territory")
     }
+
+    // Black 41 takes white 40 in a ko shape: 40 becomes the ko point.
+    private static let koMoves = [31, 32, 49, 50, 39, 42, 0, 40, 41]
+
+    func testSingleStoneKoCaptureSetsKoPoint() {
+        let go = GoGame(gridSize: 9)
+        go.replay(GoGameTests.koMoves, until: GoGameTests.koMoves.count)
+        XCTAssertEqual(go.stone(at: 40), 0, "white 40 captured")
+        XCTAssertEqual(go.koMove, 40, "immediate retake at 40 is ko")
+    }
+
+    // Server GoState clears the ko after any move that does not capture exactly one stone.
+    func testKoClearsAfterNonCapturingMove() {
+        let go = GoGame(gridSize: 9)
+        go.replay(GoGameTests.koMoves + [80], until: GoGameTests.koMoves.count + 1)
+        XCTAssertEqual(go.koMove, -1, "ko ban lasts only for the immediate reply")
+    }
 }

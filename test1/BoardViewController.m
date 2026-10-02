@@ -97,17 +97,10 @@ char coordinateLetters[19] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J', 'K',
 NSString *hideString, *cancelMsg;
 LegacyPenteGame *penteGame;
 
-NSMutableDictionary<NSNumber *, NSMutableDictionary<NSNumber *, NSNumber *> *>
-    *goStoneGroupIDsByPlayer;
-NSMutableDictionary<
-    NSNumber *, NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *>
-    *goStoneGroupsByPlayerAndID;
 int koMove = -1, gridSize = 19;
 NSMutableArray<NSNumber *> *deadWhiteStones, *deadBlackStones, *whiteTerritory,
     *blackTerritory;
 BOOL goMarkStones = NO, goEvaluateDeadStones = NO, go = NO, isGoGame = NO;
-NSMutableDictionary<NSNumber *, NSNumber *> *goStoneGroupIDs;
-NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
 
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -1387,7 +1380,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
             break;
 
         } else if (((go && abstractGoBoard[i][j] == 0) ||
-                    (!goMarkStones && abstractBoard[i][j] == 0)) &&
+                    (!go && !goMarkStones && abstractBoard[i][j] == 0)) &&
                    activeGame) {
             stone.center = CGPointMake(cellSize * j + cellSize / 2,
                                        cellSize * i + cellSize / 2);
@@ -3683,6 +3676,8 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
         [self setValue:(int)[goGame stoneAt:pos] forPosition:pos];
     }
     koMove = (int)[goGame koMove];
+    whiteCaptures = (int)[goGame whiteCaptures];
+    blackCaptures = (int)[goGame blackCaptures];
 
     [board setBlackDeadStones:deadBlackStones];
     [board setWhiteDeadStones:deadWhiteStones];
@@ -3715,66 +3710,6 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
     }
 }
 
-- (void)
-    makeCapturesWithMove:(int)move
-              withGroups:
-                  (NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *>
-                       *)groupsByID
-                  andIDs:(NSMutableDictionary<NSNumber *, NSNumber *> *)
-                             stoneGroupIDs
-          andAlterGroups:(BOOL)alter {
-    int captures = 0;
-    koMove = -1;
-
-    if (move % gridSize != 0) {
-        int neighborStone = move - 1;
-        NSNumber *neighborStoneID =
-            [stoneGroupIDs objectForKey:[NSNumber numberWithInt:neighborStone]];
-        captures = [self getCapturesOfMove:move
-                                withGroups:groupsByID
-                                    andIDs:stoneGroupIDs
-                                  captures:captures
-                             neighborStone:neighborStone
-                           neighborStoneID:neighborStoneID
-                            andAlterGroups:alter];
-    }
-    if (move % gridSize != gridSize - 1) {
-        int neighborStone = move + 1;
-        NSNumber *neighborStoneID =
-            [stoneGroupIDs objectForKey:[NSNumber numberWithInt:neighborStone]];
-        captures = [self getCapturesOfMove:move
-                                withGroups:groupsByID
-                                    andIDs:stoneGroupIDs
-                                  captures:captures
-                             neighborStone:neighborStone
-                           neighborStoneID:neighborStoneID
-                            andAlterGroups:alter];
-    }
-    if (move / gridSize != 0) {
-        int neighborStone = move - gridSize;
-        NSNumber *neighborStoneID =
-            [stoneGroupIDs objectForKey:[NSNumber numberWithInt:neighborStone]];
-        captures = [self getCapturesOfMove:move
-                                withGroups:groupsByID
-                                    andIDs:stoneGroupIDs
-                                  captures:captures
-                             neighborStone:neighborStone
-                           neighborStoneID:neighborStoneID
-                            andAlterGroups:alter];
-    }
-    if (move / gridSize != gridSize - 1) {
-        int neighborStone = move + gridSize;
-        NSNumber *neighborStoneID =
-            [stoneGroupIDs objectForKey:[NSNumber numberWithInt:neighborStone]];
-        captures = [self getCapturesOfMove:move
-                                withGroups:groupsByID
-                                    andIDs:stoneGroupIDs
-                                  captures:captures
-                             neighborStone:neighborStone
-                           neighborStoneID:neighborStoneID
-                            andAlterGroups:alter];
-    }
-}
 - (void)setValue:(int)val forPosition:(int)pos {
     int i = pos / gridSize, j = pos % gridSize;
     abstractBoard[i][j] = val;
@@ -3783,239 +3718,7 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
     int i = pos / gridSize, j = pos % gridSize;
     return abstractBoard[i][j];
 }
-- (int)
-    getCapturesOfMove:(int)move
-           withGroups:
-               (NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *)
-                   groupsByID
-               andIDs:
-                   (NSMutableDictionary<NSNumber *, NSNumber *> *)stoneGroupIDs
-             captures:(int)captures
-        neighborStone:(int)neighborStone
-      neighborStoneID:(NSNumber *)neighborStoneID
-       andAlterGroups:(BOOL)alter {
-    int newCaptures = captures;
-    if (neighborStoneID) {
-        NSArray<NSNumber *> *neighborStoneGroup =
-            [groupsByID objectForKey:neighborStoneID];
-        if (![self groupHasLiberties:neighborStoneGroup]) {
-            if (alter) {
-                if (koMove < 0 && [neighborStoneGroup count] == 1 &&
-                    [self checkKo:move]) {
-                    koMove = neighborStone;
-                    //                    NSLog(@"komove check %d", koMove);
-                } else if (alter) {
-                    koMove = -1;
-                }
-            }
-            newCaptures += [neighborStoneGroup count];
-            [self captureGroup:neighborStoneID
-                    withGroups:groupsByID
-                        andIDs:stoneGroupIDs
-                andAlterGroups:alter];
-        }
-    }
-    return newCaptures;
-}
-- (BOOL)checkKo:(int)move {
-    int position = [self getBoardValue:move];
-
-    if (move % gridSize != 0) {
-        int neighborStone = move - 1;
-        int neighborPosition = [self getBoardValue:neighborStone];
-        if (position != 3 - neighborPosition) {
-            return NO;
-        }
-    }
-    if (move % gridSize != gridSize - 1) {
-        int neighborStone = move + 1;
-        int neighborPosition = [self getBoardValue:neighborStone];
-        if (position != 3 - neighborPosition) {
-            return NO;
-        }
-    }
-    if (move / gridSize != 0) {
-        int neighborStone = move - gridSize;
-        int neighborPosition = [self getBoardValue:neighborStone];
-        if (position != 3 - neighborPosition) {
-            return NO;
-        }
-    }
-    if (move / gridSize != gridSize - 1) {
-        int neighborStone = move + gridSize;
-        int neighborPosition = [self getBoardValue:neighborStone];
-        if (position != 3 - neighborPosition) {
-            return NO;
-        }
-    }
-    return YES;
-}
-- (void)captureGroup:(NSNumber *)groupID
-          withGroups:
-              (NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *)
-                  groupsByID
-              andIDs:
-                  (NSMutableDictionary<NSNumber *, NSNumber *> *)stoneGroupIDs
-      andAlterGroups:(BOOL)alter {
-    NSArray<NSNumber *> *group = [groupsByID objectForKey:groupID];
-    if ([group count] > 0) {
-        int color = [self getBoardValue:[group firstObject].intValue];
-        for (NSNumber *stone in group) {
-            [self setValue:0 forPosition:stone.intValue];
-            if (alter) {
-                [stoneGroupIDs removeObjectForKey:stone];
-            }
-        }
-        if (alter) {
-            [groupsByID removeObjectForKey:groupID];
-            if (color == 2) {
-                blackCaptures += [group count];
-            } else if (color == 1) {
-                whiteCaptures += [group count];
-            }
-        }
-    }
-}
-- (BOOL)groupHasLiberties:(NSArray<NSNumber *> *)group {
-    for (NSNumber *stone in group) {
-        if ([self stoneHasLiberties:stone.intValue]) {
-            return YES;
-        }
-    }
-    return NO;
-}
-
-- (BOOL)stoneHasLiberties:(int)stone {
-    if (stone % gridSize != 0) {
-        int neighborStone = stone - 1;
-        int neighborStonePos = [self getBoardValue:neighborStone];
-        if (neighborStonePos != 1 && neighborStonePos != 2) {
-            return YES;
-        }
-    }
-    if (stone % gridSize != gridSize - 1) {
-        int neighborStone = stone + 1;
-        int neighborStonePos = [self getBoardValue:neighborStone];
-        if (neighborStonePos != 1 && neighborStonePos != 2) {
-            return YES;
-        }
-    }
-    if (stone / gridSize != 0) {
-        int neighborStone = stone - gridSize;
-        int neighborStonePos = [self getBoardValue:neighborStone];
-        if (neighborStonePos != 1 && neighborStonePos != 2) {
-            return YES;
-        }
-    }
-    if (stone / gridSize != gridSize - 1) {
-        int neighborStone = stone + gridSize;
-        int neighborStonePos = [self getBoardValue:neighborStone];
-        if (neighborStonePos != 1 && neighborStonePos != 2) {
-            return YES;
-        }
-    }
-    return NO;
-}
-- (void)settleGroups:
-            (NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *)
-                groupsByID
-              andIDs:
-                  (NSMutableDictionary<NSNumber *, NSNumber *> *)stoneGroupIDs
-             forMove:(int)move {
-    NSMutableArray *newGroup = [[NSMutableArray alloc] init];
-    NSNumber *moveNumber = [NSNumber numberWithInt:move];
-    [newGroup addObject:moveNumber];
-    [stoneGroupIDs setObject:moveNumber forKey:moveNumber];
-    [groupsByID setObject:newGroup forKey:moveNumber];
-
-    if (move % gridSize != 0) {
-        int neighborStone = move - 1;
-        NSNumber *neighborStoneID =
-            [stoneGroupIDs objectForKey:[NSNumber numberWithInt:neighborStone]];
-        if (neighborStoneID) {
-            [self mergeGroup1:moveNumber
-                   withGroup2:neighborStoneID
-                   withGroups:groupsByID
-                       andIDs:stoneGroupIDs];
-        }
-    }
-    if (move % gridSize != gridSize - 1) {
-        int neighborStone = move + 1;
-        NSNumber *neighborStoneID =
-            [stoneGroupIDs objectForKey:[NSNumber numberWithInt:neighborStone]];
-        if (neighborStoneID) {
-            [self mergeGroup1:[stoneGroupIDs objectForKey:moveNumber]
-                   withGroup2:neighborStoneID
-                   withGroups:groupsByID
-                       andIDs:stoneGroupIDs];
-        }
-    }
-    if (move / gridSize != 0) {
-        int neighborStone = move - gridSize;
-        NSNumber *neighborStoneID =
-            [stoneGroupIDs objectForKey:[NSNumber numberWithInt:neighborStone]];
-        if (neighborStoneID) {
-            [self mergeGroup1:[stoneGroupIDs objectForKey:moveNumber]
-                   withGroup2:neighborStoneID
-                   withGroups:groupsByID
-                       andIDs:stoneGroupIDs];
-        }
-    }
-    if (move / gridSize != gridSize - 1) {
-        int neighborStone = move + gridSize;
-        NSNumber *neighborStoneID =
-            [stoneGroupIDs objectForKey:[NSNumber numberWithInt:neighborStone]];
-        if (neighborStoneID) {
-            [self mergeGroup1:[stoneGroupIDs objectForKey:moveNumber]
-                   withGroup2:neighborStoneID
-                   withGroups:groupsByID
-                       andIDs:stoneGroupIDs];
-        }
-    }
-}
-
-- (void)mergeGroup1:(NSNumber *)group1
-         withGroup2:(NSNumber *)group2
-         withGroups:
-             (NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *)
-                 groupsByID
-             andIDs:
-                 (NSMutableDictionary<NSNumber *, NSNumber *> *)stoneGroupIDs {
-    if (group1.intValue == group2.intValue) {
-        return;
-    }
-    NSMutableArray<NSNumber *> *oldGroup, *newGroup;
-    NSNumber *oldGroupID, *newGroupID;
-    if (group1.intValue < group2.intValue) {
-        oldGroup = [groupsByID objectForKey:group1];
-        newGroup = [groupsByID objectForKey:group2];
-        oldGroupID = group1;
-        newGroupID = group2;
-    } else {
-        newGroup = [groupsByID objectForKey:group1];
-        oldGroup = [groupsByID objectForKey:group2];
-        oldGroupID = group2;
-        newGroupID = group1;
-    }
-    [groupsByID removeObjectForKey:oldGroupID];
-    [newGroup addObjectsFromArray:oldGroup];
-    for (NSNumber *oldStone in oldGroup) {
-        [stoneGroupIDs setObject:newGroupID forKey:oldStone];
-    }
-}
-
 - (void)copyGoBoard {
-    int currentOpponent = 2 - [movesList count] % 2;
-    goStoneGroups = [[NSMutableDictionary alloc]
-        initWithDictionary:[goStoneGroupsByPlayerAndID
-                               objectForKey:[NSNumber
-                                                numberWithInt:currentOpponent]]
-                 copyItems:YES];
-    goStoneGroupIDs = [[NSMutableDictionary alloc]
-        initWithDictionary:[goStoneGroupIDsByPlayer
-                               objectForKey:[NSNumber
-                                                numberWithInt:currentOpponent]]
-                 copyItems:YES];
     for (int i = 0; i < gridSize; ++i) {
         for (int j = 0; j < gridSize; ++j) {
             abstractGoBoard[i][j] = abstractBoard[i][j];
@@ -4031,18 +3734,25 @@ NSMutableDictionary<NSNumber *, NSMutableArray<NSNumber *> *> *goStoneGroups;
     }
 }
 
-// NOTE (Go migration): replayGoGame: routes through the Swift GoGame engine, but this
-// interactive path still uses the ObjC Go helpers below (makeCapturesWithMove:/settleGroups:/etc.).
-// Fully migrating interactive Go to GoGame is a future follow-up.
+// Previews a tapped move: replays the game plus the move through the Swift
+// GoGame engine and applies the result over the pre-tap board, so captured
+// stones disappear while markers on empty points (the ko point) stay put.
 - (void)addGoMove:(int)move {
-    int currentPlayer = 1 + [movesList count] % 2;
-    int color = 3 - currentPlayer;
+    GoGame *goGame = [[GoGame alloc] initWithGridSize:gridSize];
+    NSMutableArray<NSNumber *> *moveInts = [NSMutableArray array];
+    for (int i = 0; i < [movesList count]; ++i) {
+        [moveInts addObject:@([self parseMove:[movesList objectAtIndex:i]])];
+    }
+    [moveInts addObject:@(move)];
+    [goGame replay:moveInts until:(int)[moveInts count]];
+
     [self copyGoBoardBack];
-    [self setValue:color forPosition:move];
-    [self makeCapturesWithMove:move
-                    withGroups:goStoneGroups
-                        andIDs:goStoneGroupIDs
-                andAlterGroups:NO];
+    for (int pos = 0; pos < gridSize * gridSize; ++pos) {
+        int stone = (int)[goGame stoneAt:pos];
+        if (stone != 0 || [self getBoardValue:pos] > 0) {
+            [self setValue:stone forPosition:pos];
+        }
+    }
     [board setNeedsDisplay];
 }
 

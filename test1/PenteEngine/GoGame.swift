@@ -173,10 +173,10 @@ import Foundation
                 captures = getCaptures(move: move, groupsByID: &groupsByID, stoneGroupIDs: &stoneGroupIDs, captures: captures, neighborStone: neighborStone, neighborStoneID: neighborStoneID)
             }
         }
-        // Dead accumulator: this running total is discarded. It is kept only for
-        // verbatim fidelity with the legacy Table.makeCaptures; the actual per-colour
-        // capture counting happens inside captureGroup (blackCaptures/whiteCaptures).
-        _ = captures
+        // Matches server GoState.makeCaptures: a ko only survives a single-stone capture.
+        if captures != 1 {
+            koMove = -1
+        }
     }
 
     private func getCaptures(move: Int, groupsByID: inout [Int: [Int]], stoneGroupIDs: inout [Int: Int], captures: Int, neighborStone: Int, neighborStoneID: Int) -> Int {
