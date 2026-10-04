@@ -278,6 +278,22 @@
                                   encoding:NSUTF8StringEncoding];
         //        NSLog(dashboardString);
 
+        // Any answer from the server settles the receipt. Clear the flag
+        // before the navigation controller check below: a background launch
+        // has none, and returning first would re-send on every launch.
+        ReceiptReplyKind kind = [ReceiptReply kindForReply:dashboardString];
+        if (kind != ReceiptReplyKindFailed) {
+            [[NSUserDefaults standardUserDefaults]
+                setBool:NO
+                 forKey:@"shouldSendReceipt"];
+        }
+        // Renewals, receipts already registered, and subscriptions linked to
+        // another account are recorded silently: only a new purchase is news.
+        if (kind == ReceiptReplyKindRenewal || kind == ReceiptReplyKindKnown ||
+            kind == ReceiptReplyKindShared) {
+            return;
+        }
+
         // Async completion: resolve the scene root when the block runs, not when
         // it was created — this method runs before the scene connects. The nil
         // guard is not optional: PenteBanner has no presenting view controller
@@ -289,10 +305,7 @@
             return;
         }
 
-        if ([dashboardString containsString:@"success"]) {
-            [[NSUserDefaults standardUserDefaults]
-                setBool:NO
-                 forKey:@"shouldSendReceipt"];
+        if (kind == ReceiptReplyKindNewPurchase) {
             [PenteBanner
                 showNotificationInViewController:nav
                                            title:NSLocalizedString(
@@ -314,10 +327,7 @@
                                       atPosition:
                                           PenteBannerPositionBottom
                             canBeDismissedByUser:YES];
-        } else if ([dashboardString containsString:@"invalid receipt"]) {
-            [[NSUserDefaults standardUserDefaults]
-                setBool:NO
-                 forKey:@"shouldSendReceipt"];
+        } else if (kind == ReceiptReplyKindInvalid) {
             [PenteBanner
                 showNotificationInViewController:nav
                                            title:NSLocalizedString(
