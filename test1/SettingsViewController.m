@@ -1278,7 +1278,44 @@ static NSString *PenteHexStringForColor(UIColor *color) {
                     }
                     [weakSelf.progressView stopAnimating];
                     [weakSelf.progressView removeFromSuperview];
-                    if ([dashboardString containsString:@"success"]) {
+                    if ([ReceiptReply kindForReply:dashboardString] ==
+                        ReceiptReplyKindShared) {
+                        // The server recorded this subscription for another
+                        // pente.org account (shared Apple ID): nothing to
+                        // restore here, and nothing to retry.
+                        [[NSUserDefaults standardUserDefaults]
+                            setBool:NO
+                             forKey:@"shouldSendReceipt"];
+                        [PenteBanner
+                            showNotificationInViewController:
+                                weakSelf.navigationController
+                                                       title:NSLocalizedString(
+                                                                 @"Purchase "
+                                                                 @"restore failed",
+                                                                 nil)
+                                                    subtitle:
+                                                        NSLocalizedString(
+                                                            @"This App Store "
+                                                            @"subscription is "
+                                                            @"already linked to "
+                                                            @"another pente.org "
+                                                            @"account",
+                                                            nil)
+                                                       image:nil
+                                                        type:
+                                                            PenteBannerTypeWarning
+                                                    duration:
+                                                        PenteBannerDurationAutomatic
+                                                    callback:^{
+                                                        [PenteBanner
+                                                            dismissActiveNotification];
+                                                    }
+                                                 buttonTitle:nil
+                                              buttonCallback:nil
+                                                  atPosition:
+                                                      PenteBannerPositionBottom
+                                        canBeDismissedByUser:YES];
+                    } else if ([dashboardString containsString:@"success"]) {
                         [[NSUserDefaults standardUserDefaults]
                             setBool:NO
                              forKey:@"shouldSendReceipt"];
