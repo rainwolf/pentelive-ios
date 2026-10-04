@@ -21,3 +21,4 @@ screenshots/
 # (breakpoints, xcschememanagement.plist) is left as-is deliberately; whether
 # to drop it is a separate decision.
 *.xcuserstate
+graphify-out/
