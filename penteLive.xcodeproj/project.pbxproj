@@ -246,6 +246,7 @@
 		A72E76357EBE1DC08D5E34E1 /* ArenaWireTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC635F2362D948DA030F4A63 /* ArenaWireTests.swift */; };
 		ACB8501DE77D92A9A2323746 /* PenteVariant.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1195B9EE689C773DA39F77AD /* PenteVariant.swift */; };
 		ADC22B02BC637F2C14B47487 /* dashboard_real_index.json in Resources */ = {isa = PBXBuildFile; fileRef = 46FF0A3E9AAF2484A5A01D4F /* dashboard_real_index.json */; };
+		AE4E208038FC49982C6BAEB8 /* ArenaJoinRequestListModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CED4F565311526EC237865E4 /* ArenaJoinRequestListModelTests.swift */; };
 		B6EE9848640054AF5B211D47 /* CPoint.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E0487D93E252253264372A56 /* CPoint.cpp */; };
 		BBA523D1BFE87E6E0839A7BE /* DashboardTransport.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7527ED20D5B800D46E10F91 /* DashboardTransport.swift */; };
 		C2334D35F088D16FD6B18BB7 /* ReceiptReply.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D3B319183B6CB725B68319A /* ReceiptReply.swift */; };
@@ -269,6 +270,7 @@
 		D5EEBF69DF3319F594473C96 /* PenteGameEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C04A941E308F1CBC0804C1A6 /* PenteGameEngineTests.swift */; };
 		D836BAEE88141DCF9CE02CBB /* GoGame.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF08F02CC6ACC370781E5AA6 /* GoGame.swift */; };
 		E342A599B3FEE4785318A1BB /* MessageAuthorLabelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01B8551DCE0463B588A47B12 /* MessageAuthorLabelTests.swift */; };
+		E3ACD5F02DC92B49FA4421DF /* ArenaJoinRequestListModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 812EFF4F61C4DBBDD94365D8 /* ArenaJoinRequestListModel.swift */; };
 		E4A0EFFD667C8D2A4F318269 /* DashboardEndpoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB0E96BC0C158A9179179CBD /* DashboardEndpoint.swift */; };
 		EA27C537CC33E627C9C290E0 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8F67AC8BE4C73FF7390EB742 /* Foundation.framework */; };
 		EA6ACE763757DD54B209555E /* MMAIShimTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 4D35AE418CE432E8FBEC6D33 /* MMAIShimTests.m */; };
@@ -556,6 +558,7 @@
 		7A1C0E5D2F3B4A6C8D9E0F41 /* PentePopover.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PentePopover.h; sourceTree = "<group>"; };
 		7A1C0E5D2F3B4A6C8D9E0F42 /* PentePopover.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PentePopover.m; sourceTree = "<group>"; };
 		7BEAC58A3C6C7DFFFD5DCCBD /* DashboardError.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DashboardError.swift; sourceTree = "<group>"; };
+		812EFF4F61C4DBBDD94365D8 /* ArenaJoinRequestListModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ArenaJoinRequestListModel.swift; sourceTree = "<group>"; };
 		819EC6C86FFC440551990A4A /* PenteBanner.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PenteBanner.h; sourceTree = "<group>"; };
 		8314997135E2AC0910B84356 /* PenteGame.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PenteGame.swift; sourceTree = "<group>"; };
 		86AC1A8A05D560A06454D468 /* PenteVariantTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PenteVariantTests.swift; sourceTree = "<group>"; };
@@ -582,6 +585,7 @@
 		C04A941E308F1CBC0804C1A6 /* PenteGameEngineTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PenteGameEngineTests.swift; sourceTree = "<group>"; };
 		C5740BC2A030E4520664D23D /* Ai.cpp */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.cpp.cpp; path = Ai.cpp; sourceTree = "<group>"; };
 		CA18254E693C7E19066ECB56 /* PenteAlert.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PenteAlert.m; sourceTree = "<group>"; };
+		CED4F565311526EC237865E4 /* ArenaJoinRequestListModelTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ArenaJoinRequestListModelTests.swift; sourceTree = "<group>"; };
 		D0D2331507464E3A0A3E4DEC /* RuleSet.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RuleSet.swift; sourceTree = "<group>"; };
 		D4A11111111111111111A002 /* RenjuOfferSymmetry.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RenjuOfferSymmetry.swift; sourceTree = "<group>"; };
 		D4A11111111111111111B004 /* RenjuOfferSymmetryTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RenjuOfferSymmetryTests.swift; sourceTree = "<group>"; };
@@ -803,6 +807,7 @@
 				AF10A8F54D038716BE63AFE2 /* mmai-core */,
 				3D3B319183B6CB725B68319A /* ReceiptReply.swift */,
 				0EE8889DAE0C593E75FD80A7 /* ArenaWire.swift */,
+				812EFF4F61C4DBBDD94365D8 /* ArenaJoinRequestListModel.swift */,
 			);
 			name = penteLive;
 			path = test1;
@@ -1053,6 +1058,7 @@
 				6A0C0FFE0000000000000002 /* GoInteractiveCaptureTests.m */,
 				8B30959A4C803169062B79BA /* ReceiptReplyTests.swift */,
 				DC635F2362D948DA030F4A63 /* ArenaWireTests.swift */,
+				CED4F565311526EC237865E4 /* ArenaJoinRequestListModelTests.swift */,
 			);
 			path = PenteEngineTests;
 			sourceTree = SOURCE_ROOT;
@@ -1424,6 +1430,7 @@
 				6A0C0FFE0000000000000001 /* GoInteractiveCaptureTests.m in Sources */,
 				CEEEA472CA4A173C5C58D0B3 /* ReceiptReplyTests.swift in Sources */,
 				A72E76357EBE1DC08D5E34E1 /* ArenaWireTests.swift in Sources */,
+				AE4E208038FC49982C6BAEB8 /* ArenaJoinRequestListModelTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1506,6 +1513,7 @@
 				B6EE9848640054AF5B211D47 /* CPoint.cpp in Sources */,
 				C2334D35F088D16FD6B18BB7 /* ReceiptReply.swift in Sources */,
 				06AEE8018C3F276FC4A94C18 /* ArenaWire.swift in Sources */,
+				E3ACD5F02DC92B49FA4421DF /* ArenaJoinRequestListModel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
