@@ -436,26 +436,13 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
 
         let requestVC = UIViewController()
         requestVC.preferredContentSize = CGSize(width: contentWidth, height: contentHeight)
-        // A plain view controller's view loads at screen size. Size it to the content first, or the
-        // autoresizing masks below would pass the whole shrink to the popover size on to the subviews
-        // (the list would end up with a negative height and the button above the top).
-        requestVC.view.frame = CGRect(x: 0, y: 0, width: contentWidth, height: contentHeight)
-
-        requestView.frame = CGRect(x: 0, y: 0, width: contentWidth, height: contentHeight - buttonHeight)
-        requestView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        requestVC.view.addSubview(requestView)
-        requestView.freezeOverlay.frame = requestView.frame
-        requestView.freezeOverlay.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        requestVC.view.addSubview(requestView.freezeOverlay)
-
         let exitButton = UIButton(type: .system)
         exitButton.setTitle(NSLocalizedString("Exit Table", comment: ""), for: .normal)
         exitButton.setTitleColor(.red, for: .normal)
         exitButton.titleLabel?.font = UIFont.boldSystemFont(ofSize: 22)
-        exitButton.frame = CGRect(x: 0, y: contentHeight - buttonHeight, width: contentWidth, height: buttonHeight)
-        exitButton.autoresizingMask = [.flexibleWidth, .flexibleTopMargin]
         exitButton.addTarget(self, action: #selector(exitTableFromArena), for: .touchUpInside)
-        requestVC.view.addSubview(exitButton)
+        ArenaJoinRequestList.layOutPopoverContent(list: requestView, overlay: requestView.freezeOverlay, footer: exitButton,
+                                                  footerHeight: buttonHeight, in: requestVC.view)
 
         requestVC.modalPresentationStyle = .popover
         requestVC.isModalInPresentation = true

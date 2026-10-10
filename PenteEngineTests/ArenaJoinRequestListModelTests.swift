@@ -323,3 +323,47 @@ final class ArenaJoinRequestListModelTests: XCTestCase {
         XCTAssertEqual(step(rows: true, up: false, other: true), .retryLater) // another sheet, or our dismissal animating
     }
 }
+
+/// The owner's popover content: the list, the freeze overlay over exactly the list, the Exit Table band below.
+final class ArenaPopoverLayoutTests: XCTestCase {
+    private func layOut(width: CGFloat = 320, height: CGFloat = 214) -> (container: UIView, list: UIView, overlay: UIView, footer: UIView) {
+        let container = UIView(frame: CGRect(x: 0, y: 0, width: width, height: height))
+        let list = UIView(), overlay = UIView(), footer = UIView()
+        ArenaJoinRequestList.layOutPopoverContent(list: list, overlay: overlay, footer: footer, footerHeight: 44, in: container)
+        container.layoutIfNeeded()
+        return (container, list, overlay, footer)
+    }
+
+    private func resize(_ container: UIView, width: CGFloat, height: CGFloat) {
+        container.frame = CGRect(x: 0, y: 0, width: width, height: height)
+        container.layoutIfNeeded()
+    }
+
+    func testOverlayCoversExactlyTheListAboveTheFooter() {
+        let v = layOut()
+        XCTAssertEqual(v.list.frame, CGRect(x: 0, y: 0, width: 320, height: 170))
+        XCTAssertEqual(v.overlay.frame, v.list.frame)
+        XCTAssertEqual(v.footer.frame, CGRect(x: 0, y: 170, width: 320, height: 44))
+        XCTAssertEqual(v.container.subviews, [v.list, v.overlay, v.footer]) // the footer stays above the overlay
+    }
+
+    func testLayoutFollowsAContainerResize() {
+        let v = layOut()
+        resize(v.container, width: 420, height: 300)
+        XCTAssertEqual(v.list.frame, CGRect(x: 0, y: 0, width: 420, height: 256))
+        XCTAssertEqual(v.overlay.frame, v.list.frame)
+        XCTAssertEqual(v.footer.frame, CGRect(x: 0, y: 256, width: 420, height: 44))
+    }
+
+    /// The popover's presentation passes the content view through a size shorter than the footer.
+    /// With autoresizing masks the list and overlay clamped at zero height there and then regrew to
+    /// the whole 214 pt, so the dim covered the Exit Table band (Task 6, Step 7 finding).
+    func testLayoutSurvivesTheContainerShrinkingBelowTheFooterAndRegrowing() {
+        let v = layOut()
+        resize(v.container, width: 0, height: 0)
+        resize(v.container, width: 320, height: 214)
+        XCTAssertEqual(v.list.frame, CGRect(x: 0, y: 0, width: 320, height: 170))
+        XCTAssertEqual(v.overlay.frame, v.list.frame)
+        XCTAssertEqual(v.footer.frame, CGRect(x: 0, y: 170, width: 320, height: 44))
+    }
+}

@@ -25,6 +25,33 @@ class ArenaJoinRequestList: UITableView, UITableViewDelegate, UITableViewDataSou
     var onModelChange: (() -> Void)?
     private let freezeSpinner = UIActivityIndicatorView(style: .large)
 
+    /// Lays out the popover content: `list` on top, `overlay` exactly over the list, and `footer`
+    /// (the Exit Table button) in a `footerHeight` band at the bottom of `container`.
+    /// Constraints, not autoresizing masks: with masks the list and overlay came out the full content
+    /// height once presented (the presentation can pass the content view through a size shorter than
+    /// the footer, where masked subviews clamp at zero height and then regrow), so the dim covered the
+    /// footer band too.
+    static func layOutPopoverContent(list: UIView, overlay: UIView, footer: UIView, footerHeight: CGFloat, in container: UIView) {
+        for subview in [list, overlay, footer] {
+            subview.translatesAutoresizingMaskIntoConstraints = false
+            container.addSubview(subview) // in this order: the footer stays above the overlay
+        }
+        NSLayoutConstraint.activate([
+            list.topAnchor.constraint(equalTo: container.topAnchor),
+            list.leadingAnchor.constraint(equalTo: container.leadingAnchor),
+            list.trailingAnchor.constraint(equalTo: container.trailingAnchor),
+            list.bottomAnchor.constraint(equalTo: footer.topAnchor),
+            footer.leadingAnchor.constraint(equalTo: container.leadingAnchor),
+            footer.trailingAnchor.constraint(equalTo: container.trailingAnchor),
+            footer.bottomAnchor.constraint(equalTo: container.bottomAnchor),
+            footer.heightAnchor.constraint(equalToConstant: footerHeight),
+            overlay.topAnchor.constraint(equalTo: list.topAnchor),
+            overlay.leadingAnchor.constraint(equalTo: list.leadingAnchor),
+            overlay.trailingAnchor.constraint(equalTo: list.trailingAnchor),
+            overlay.bottomAnchor.constraint(equalTo: list.bottomAnchor),
+        ])
+    }
+
     init(socket: PenteLiveSocket, me: String, tableAndPlayers: TablesAndPlayer, tableId: Int, gameId: Int, model: ArenaJoinRequestListModel = ArenaJoinRequestListModel()) {
         self.me = me
         self.socket = socket
