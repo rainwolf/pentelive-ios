@@ -22,16 +22,17 @@ UIKit code (`ArenaJoinRequestList`, `TableViewController`, `RoomViewController`)
 - Wire keys are lowercase and verbatim:
   - C→S: `dsgArenaRequestJoinTableEvent {table}`, `dsgArenaAcceptTableJoinEvent {table, playerToAccept}`, `dsgArenaRejectTableJoinEvent {table, playerToReject}`, `dsgArenaWithdrawJoinRequestEvent {table}`.
   - S→C: `dsgArenaJoinRequestsEvent {table, requests: [{player, seq}]}`, `dsgArenaMyRequestsEvent {tables: [int]}`, `dsgArenaRequestEndedEvent {table, player, owner, reason}`.
-- `reason` values verbatim: `DECLINED`, `TABLE_FULL`, `TABLE_CLOSED`, `DUPLICATE`, `BLOCKED`, `NOT_AVAILABLE`, `GUEST_RATED`, `NO_LONGER_AVAILABLE`.
+- `reason` values verbatim: `DECLINED`, `TABLE_FULL`, `TABLE_CLOSED`, `DUPLICATE`, `BLOCKED`, `NOT_AVAILABLE`, `GUEST_RATED`, `BOOTED`, `NO_LONGER_AVAILABLE`. `BOOTED` means the requester was booted from that table less than 5 minutes ago (R2).
 - No client sends the capital key `DSGArenaRejectTableJoinEvent` any more.
 - S→C `dsgArenaRequestJoinTableEvent` and `dsgArenaRejectTableJoinEvent` are no longer sent. iOS stops handling them.
 - Freeze is 400 ms (milliseconds). Minimum interactive window is 1000 ms. Only the newest held snapshot is applied.
 - No client expiry timers (C1). The only timers left are the freeze/window timers and a UI re-present retry.
-- Notice texts are verbatim from spec C4, with `<n>` the table number:
+- Notice texts are verbatim from spec C4, with `<n>` the table number and `<owner>` the event's own `owner` field (never the lobby's table model):
   - "<owner> declined your request"
   - "Table <n> is no longer available"
   - "Table <n> was closed"
-  - "You already requested table <n>"
+  - "You already sent a request to <owner>"
+  - "<owner> removed you from table <n>, try again in a few minutes"
   - "You can't request table <n> again until its next game"
   - "You can't join table <n> right now"
   - "Guests can't join rated tables"
@@ -90,7 +91,7 @@ UIKit code (`ArenaJoinRequestList`, `TableViewController`, `RoomViewController`)
 - Consumes: nothing.
 - Produces (used by Tasks 2-5):
   - `struct ArenaJoinRequest: Equatable { let player: String; let seq: Int }`
-  - `struct ArenaRequestEnded: Equatable { enum Reason: String, CaseIterable { case declined = "DECLINED", tableFull = "TABLE_FULL", tableClosed = "TABLE_CLOSED", duplicate = "DUPLICATE", blocked = "BLOCKED", notAvailable = "NOT_AVAILABLE", guestRated = "GUEST_RATED", noLongerAvailable = "NO_LONGER_AVAILABLE" }; let table: Int; let player: String; let owner: String; let reason: Reason; var noticeText: String }`
+  - `struct ArenaRequestEnded: Equatable { enum Reason: String, CaseIterable { case declined = "DECLINED", tableFull = "TABLE_FULL", tableClosed = "TABLE_CLOSED", duplicate = "DUPLICATE", blocked = "BLOCKED", notAvailable = "NOT_AVAILABLE", guestRated = "GUEST_RATED", booted = "BOOTED", noLongerAvailable = "NO_LONGER_AVAILABLE" }; let table: Int; let player: String; let owner: String; let reason: Reason; var noticeText: String }`
   - `enum ArenaInbound: Equatable { case joinRequests(table: Int, requests: [ArenaJoinRequest]); case myRequests(tables: [Int]); case requestEnded(ArenaRequestEnded); init?(event: [String: Any]) }`. The `requests` come back sorted by `seq` ascending, with one entry per player.
   - `enum ArenaOutbound { static func requestJoin(table: Int) -> [String: Any]; static func withdraw(table: Int) -> [String: Any]; static func accept(table: Int, player: String) -> [String: Any]; static func reject(table: Int, player: String) -> [String: Any] }`
   - `enum ArenaText { static func withdrawConfirm(table: Int) -> String }`
@@ -196,11 +197,21 @@ final class ArenaWireTests: XCTestCase {
         XCTAssertEqual(ended(.declined).noticeText, "alice declined your request")
         XCTAssertEqual(ended(.tableFull).noticeText, "Table 7 is no longer available")
         XCTAssertEqual(ended(.tableClosed).noticeText, "Table 7 was closed")
-        XCTAssertEqual(ended(.duplicate).noticeText, "You already requested table 7")
+        XCTAssertEqual(ended(.duplicate).noticeText, "You already sent a request to alice")
+        XCTAssertEqual(ended(.booted).noticeText, "alice removed you from table 7, try again in a few minutes")
         XCTAssertEqual(ended(.blocked).noticeText, "You can't request table 7 again until its next game")
         XCTAssertEqual(ended(.notAvailable).noticeText, "You can't join table 7 right now")
         XCTAssertEqual(ended(.guestRated).noticeText, "Guests can't join rated tables")
         XCTAssertEqual(ended(.noLongerAvailable).noticeText, "bob is no longer available")
+    }
+
+    func testOwnerNamedInNoticesComesFromTheEvent() {
+        let notice = { (reason: String) -> String? in
+            guard case let .requestEnded(ended)? = ArenaInbound(event: self.frame("{\"dsgArenaRequestEndedEvent\":{\"table\":7,\"player\":\"bob\",\"owner\":\"olga\",\"reason\":\"\(reason)\"}}")) else { return nil }
+            return ended.noticeText
+        }
+        XCTAssertEqual(notice("DUPLICATE"), "You already sent a request to olga")
+        XCTAssertEqual(notice("BOOTED"), "olga removed you from table 7, try again in a few minutes")
     }
 
     func testWithdrawConfirmText() {
@@ -273,6 +284,7 @@ struct ArenaRequestEnded: Equatable {
         case blocked = "BLOCKED"
         case notAvailable = "NOT_AVAILABLE"
         case guestRated = "GUEST_RATED"
+        case booted = "BOOTED"
         case noLongerAvailable = "NO_LONGER_AVAILABLE"
     }
 
@@ -291,7 +303,9 @@ struct ArenaRequestEnded: Equatable {
         case .tableClosed:
             return String(format: NSLocalizedString("Table %ld was closed", comment: "arena notice"), table)
         case .duplicate:
-            return String(format: NSLocalizedString("You already requested table %ld", comment: "arena notice"), table)
+            return String(format: NSLocalizedString("You already sent a request to %@", comment: "arena notice; %@ is the table owner"), owner)
+        case .booted:
+            return String(format: NSLocalizedString("%@ removed you from table %ld, try again in a few minutes", comment: "arena notice; %@ is the table owner"), owner, table)
         case .blocked:
             return String(format: NSLocalizedString("You can't request table %ld again until its next game", comment: "arena notice"), table)
         case .notAvailable:
@@ -379,7 +393,7 @@ cd /Users/waliedothman/mariposa/coding/pente.org-project/penteLive-iOS && ruby S
 cd /Users/waliedothman/mariposa/coding/pente.org-project/penteLive-iOS && swiftformat test1/ArenaWire.swift PenteEngineTests/ArenaWireTests.swift
 xcodebuild test -workspace /Users/waliedothman/mariposa/coding/pente.org-project/penteLive-iOS/penteLive.xcworkspace -scheme test1 -destination 'platform=iOS Simulator,name=iPhone 18 Pro' SWIFT_ENABLE_EXPLICIT_MODULES=NO -only-testing:PenteEngineTests/ArenaWireTests 2>&1 | grep -E 'error:|Executed|TEST (SUCCEEDED|FAILED)'
 ```
-Expected: `Executed 15 tests, with 0 failures` and `** TEST SUCCEEDED **`.
+Expected: `Executed 16 tests, with 0 failures` and `** TEST SUCCEEDED **`.
 
 - [ ] **Step 5: Commit**
 
@@ -1604,7 +1618,7 @@ Run:
 mkdir -p /private/tmp/claude-501/arena-ios
 xcodebuild test -workspace /Users/waliedothman/mariposa/coding/pente.org-project/penteLive-iOS/penteLive.xcworkspace -scheme test1 -destination 'platform=iOS Simulator,name=iPhone 18 Pro' SWIFT_ENABLE_EXPLICIT_MODULES=NO > /private/tmp/claude-501/arena-ios/full-test.log 2>&1; grep -E 'error:|Executed .* tests|TEST (SUCCEEDED|FAILED)' /private/tmp/claude-501/arena-ios/full-test.log | tail -3
 ```
-Expected: the last `Executed N tests, with 0 failures` (N includes the 37 new arena tests: 15 wire, 16 list model, 6 lobby model) and `** TEST SUCCEEDED **`. Record N and the success line as evidence.
+Expected: the last `Executed N tests, with 0 failures` (N includes the 38 new arena tests: 16 wire, 16 list model, 6 lobby model) and `** TEST SUCCEEDED **`. Record N and the success line as evidence.
 
 - [ ] **Step 2: Build for both form factors**
 
