@@ -228,8 +228,8 @@ import UIKit
             room.renjuSelect1TableEvent(event: content as! [String: Any])
         } else if let content = event?["dsgMoveTableErrorEvent"] {
             room.moveErrorTableEvent(event: content as! [String: Any])
-        } else if let content = event?["dsgArenaRequestJoinTableEvent"] {
-            room.arenaRequestJoinTableEvent(event: content as! [String: Any])
+        } else if let event = event, let arena = ArenaInbound(event: event) {
+            room.arenaEvent(arena)
         }
     }
 

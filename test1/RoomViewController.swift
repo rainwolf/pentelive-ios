@@ -56,6 +56,8 @@ class PlayerTableCell: UITableViewCell {
     var playerNamesArray: [String] = []
     var isArena: Bool = false
     var setupView: ArenaTableSetupView?
+    // Requester lobby state (spec C3). Main thread only.
+    var arenaMyRequests = ArenaMyRequestsModel()
     private var joinCountdownOverlay: UIView?
     private let joinCountdownDuration: CFTimeInterval = 6
 
@@ -420,8 +422,8 @@ class PlayerTableCell: UITableViewCell {
         }
         DispatchQueue.main.async {
             // In an arena room, don't play the new-player sound when other players
-            // join the main room. It plays instead when you receive a join request
-            // (arenaRequestJoinTableEvent) and when a player joins your table (joinTableEvent).
+            // join the main room. It plays instead when a request snapshot names a new
+            // requester (arenaEvent) and when a player joins your table (joinTableEvent).
             if self.playSounds && !self.isArena {
                 AudioServicesPlaySystemSound(self.newplayerSndID)
             }
@@ -516,15 +518,24 @@ class PlayerTableCell: UITableViewCell {
         }
     }
     
-    func arenaRequestJoinTableEvent(event: [String: Any]) {
-        let tableId = event["table"] as! Int
-        if self.tableViewController!.table.table == tableId {
-            DispatchQueue.main.async {
-                // Play the new-player sound when you receive a join request for your arena table.
-                if self.playSounds {
+    // Arena join-request events arrive on the socket queue; every model and UI touch hops to main.
+    func arenaEvent(_ inbound: ArenaInbound) {
+        DispatchQueue.main.async {
+            switch inbound {
+            case let .joinRequests(tableId, requests):
+                guard let tableViewController = self.tableViewController, tableViewController.table.table == tableId else { return }
+                // Play the new-player sound when a snapshot names a new requester.
+                if tableViewController.arenaJoinRequestsEvent(requests: requests), self.playSounds {
                     AudioServicesPlaySystemSound(self.newplayerSndID)
                 }
-                self.tableViewController?.arenaTableRequestJoinEvent(event: event)
+            case let .myRequests(tables):
+                self.arenaMyRequests.apply(tables: tables)
+                self.tableView.reloadData()
+            case let .requestEnded(ended):
+                // NO_LONGER_AVAILABLE goes to the owner, whose request popover sits over the strip
+                // below the navigation bar where a top banner slides in; show that one at the bottom.
+                let position: PenteBannerPosition = ended.reason == .noLongerAvailable ? .bottom : .top
+                PenteBanner.showNotification(in: self, title: ended.noticeText, subtitle: nil, image: nil, type: PenteBannerType.message, duration: TimeInterval(PenteBannerDuration.automatic.rawValue), callback: nil, buttonTitle: nil, buttonCallback: nil, at: position, canBeDismissedByUser: true)
             }
         }
     }

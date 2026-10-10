@@ -90,6 +90,16 @@ final class ArenaJoinRequestListModel {
         return true
     }
 
+    /// The popover is presenting. When presenting came after the opening freeze ended (it had to
+    /// be retried), freeze again so no row can be tapped the instant it appears (controller ruling:
+    /// present = freeze start). A freeze already running covers the appearance, so it is kept as is.
+    /// An in-flight action already locks the list, and only the server's answer may end it.
+    func freezeForPresenting() {
+        guard isVisible, !isFrozen, inFlightPlayer == nil else { return }
+        freeze(holding: held ?? rows)
+        onChange?()
+    }
+
     /// Clears everything and turns pending timers into no-ops (table left or filled).
     func reset() {
         timerToken += 1

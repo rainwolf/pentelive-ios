@@ -81,6 +81,9 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
         pentePlayer = pente_player
         self.me = me
         super.init(nibName: nil, bundle: nil)
+        arenaJoinRequestView?.onModelChange = { [weak self] in
+            self?.updateArenaJoinRequestPresentation()
+        }
         edgesForExtendedLayout = []
         textView.layer.borderWidth = 2.0
         textView.layer.cornerRadius = 2.0
@@ -387,52 +390,91 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
         textField.frame = frame
         let backBtn = UIBarButtonItem(title: NSLocalizedString("Exit", comment: ""), style: UIBarButtonItem.Style.plain, target: self, action: #selector(backToMainRoom))
         navigationItem.leftBarButtonItem = backBtn
-        if isArenaTable && table.players.count == 1 {
-            showArenaJoinRequest()
+        updateArenaJoinRequestPresentation()
+    }
+
+    private var arenaPresentRetryScheduled = false
+
+    /// Shows the request popover while the owner's list has rows and hides it when the
+    /// list is empty (spec C2). Safe to call any number of times.
+    func updateArenaJoinRequestPresentation() {
+        guard isArenaTable, let requestView = arenaJoinRequestView else { return }
+        // isViewLoaded first: a snapshot can arrive before the view loads, and view.window would load it.
+        let step = ArenaJoinRequestListModel.popoverStep(hasRows: requestView.model.isVisible,
+                                                         isPresented: arenaJoinRequestVC != nil,
+                                                         isOnScreen: isViewLoaded && view.window != nil,
+                                                         isAnotherPresentationUp: isViewLoaded && presentedViewController != nil)
+        switch step {
+        case .nothing:
+            return
+        case .dismiss:
+            arenaJoinRequestVC?.dismiss(animated: true)
+            arenaJoinRequestVC = nil
+        case .retryLater:
+            // Another sheet, or our own popover's dismissal, is still up: try again shortly.
+            guard !arenaPresentRetryScheduled else { return }
+            arenaPresentRetryScheduled = true
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+                self?.arenaPresentRetryScheduled = false
+                self?.updateArenaJoinRequestPresentation()
+            }
+        case .present:
+            presentArenaJoinRequest(requestView)
         }
     }
-    
-    func showArenaJoinRequest() {
-        if isArenaTable, let requestView = arenaJoinRequestView {
-            if arenaJoinRequestVC == nil {
-                let contentWidth = 4 * view.frame.width / 5
-                let contentHeight: CGFloat = 214
-                let buttonHeight: CGFloat = 44
 
-                let requestVC = UIViewController()
-                requestVC.preferredContentSize = CGSize(width: contentWidth, height: contentHeight)
+    /// Anchor at the board's top-right. Recomputed on rotation (popoverPresentationController(_:willRepositionPopoverTo:in:)).
+    func arenaJoinRequestSourceRect() -> CGRect {
+        return CGRect(x: view.bounds.size.width - 20, y: board.frame.origin.y, width: 0, height: 0)
+    }
 
-                requestView.frame = CGRect(x: 0, y: 0, width: contentWidth, height: contentHeight - buttonHeight)
-                requestVC.view.addSubview(requestView)
+    private func presentArenaJoinRequest(_ requestView: ArenaJoinRequestList) {
+        // Capped so the popover does not stretch across an iPad screen.
+        let contentWidth = min(4 * view.frame.width / 5, 420)
+        let contentHeight: CGFloat = 214
+        let buttonHeight: CGFloat = 44
 
-                let exitButton = UIButton(type: .system)
-                exitButton.setTitle(NSLocalizedString("Exit Table", comment: ""), for: .normal)
-                exitButton.setTitleColor(.red, for: .normal)
-                exitButton.titleLabel?.font = UIFont.boldSystemFont(ofSize: 22)
-                exitButton.frame = CGRect(x: 0, y: contentHeight - buttonHeight, width: contentWidth, height: buttonHeight)
-                exitButton.addTarget(self, action: #selector(exitTableFromArena), for: .touchUpInside)
-                requestVC.view.addSubview(exitButton)
+        let requestVC = UIViewController()
+        requestVC.preferredContentSize = CGSize(width: contentWidth, height: contentHeight)
+        // A plain view controller's view loads at screen size. Size it to the content first, or the
+        // autoresizing masks below would pass the whole shrink to the popover size on to the subviews
+        // (the list would end up with a negative height and the button above the top).
+        requestVC.view.frame = CGRect(x: 0, y: 0, width: contentWidth, height: contentHeight)
 
-                requestVC.modalPresentationStyle = .popover
-                requestVC.isModalInPresentation = true
-                if let popover = requestVC.popoverPresentationController {
-                    popover.delegate = self
-                    popover.sourceView = view
-                    popover.sourceRect = CGRect(x: view.bounds.size.width - 20, y: board.frame.origin.y, width: 0, height: 0)
-                    popover.permittedArrowDirections = .up
-                }
-                arenaJoinRequestVC = requestVC
-                present(arenaJoinRequestVC!, animated: true)
-            } else {
-                present(arenaJoinRequestVC!, animated: true)
-            }
+        requestView.frame = CGRect(x: 0, y: 0, width: contentWidth, height: contentHeight - buttonHeight)
+        requestView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        requestVC.view.addSubview(requestView)
+        requestView.freezeOverlay.frame = requestView.frame
+        requestView.freezeOverlay.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        requestVC.view.addSubview(requestView.freezeOverlay)
+
+        let exitButton = UIButton(type: .system)
+        exitButton.setTitle(NSLocalizedString("Exit Table", comment: ""), for: .normal)
+        exitButton.setTitleColor(.red, for: .normal)
+        exitButton.titleLabel?.font = UIFont.boldSystemFont(ofSize: 22)
+        exitButton.frame = CGRect(x: 0, y: contentHeight - buttonHeight, width: contentWidth, height: buttonHeight)
+        exitButton.autoresizingMask = [.flexibleWidth, .flexibleTopMargin]
+        exitButton.addTarget(self, action: #selector(exitTableFromArena), for: .touchUpInside)
+        requestVC.view.addSubview(exitButton)
+
+        requestVC.modalPresentationStyle = .popover
+        requestVC.isModalInPresentation = true
+        if let popover = requestVC.popoverPresentationController {
+            popover.delegate = self
+            popover.sourceView = view
+            popover.sourceRect = arenaJoinRequestSourceRect()
+            popover.permittedArrowDirections = .up
         }
+        arenaJoinRequestVC = requestVC
+        // Presenting can come after the opening freeze ended (retried or deferred to viewDidAppear):
+        // freeze again so no row is tappable the instant it appears (ruling: present = freeze start).
+        requestView.model.freezeForPresenting()
+        present(requestVC, animated: true)
     }
 
     func dismissArenaJoinRequest() {
-        arenaJoinRequestView?.reset()
-        arenaJoinRequestVC?.dismiss(animated: true)
-        arenaJoinRequestVC = nil
+        arenaJoinRequestView?.model.reset()
+        updateArenaJoinRequestPresentation()
     }
     
     override func viewDidDisappear(_: Bool) {
@@ -591,9 +633,10 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
         }
     }
     
-    func arenaTableRequestJoinEvent(event: [String: Any]) {
-        let playerName = event["player"] as! String
-        arenaJoinRequestView?.addPlayer(name: playerName)
+    /// Applies an owner snapshot (dsgArenaJoinRequestsEvent). Returns true when it names a new requester.
+    func arenaJoinRequestsEvent(requests: [ArenaJoinRequest]) -> Bool {
+        guard let requestView = arenaJoinRequestView else { return false }
+        return requestView.model.receive(requests)
     }
 
     func showBootDialog() {
@@ -1277,8 +1320,6 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
         addText(text: NSLocalizedString("\(playerName) has left the table", comment: ""))
         if playerName == me {
             _ = navigationController?.popViewController(animated: true)
-        } else if isArenaTable && table.players.count == 1 {
-            showArenaJoinRequest()
         }
     }
 
@@ -1394,5 +1435,12 @@ extension TableViewController: UIPopoverPresentationControllerDelegate {
 
     func popoverPresentationControllerShouldDismissPopover(_: UIPopoverPresentationController) -> Bool {
         return false
+    }
+
+    func popoverPresentationController(_ popoverPresentationController: UIPopoverPresentationController, willRepositionPopoverTo rect: UnsafeMutablePointer<CGRect>, in _: AutoreleasingUnsafeMutablePointer<UIView>) {
+        // The anchor is computed from the view's width, which changes on an iPad rotation.
+        if popoverPresentationController.presentedViewController === arenaJoinRequestVC {
+            rect.pointee = arenaJoinRequestSourceRect()
+        }
     }
 }

@@ -246,6 +246,63 @@ final class ArenaJoinRequestListModelTests: XCTestCase {
         XCTAssertEqual(calls, 6)
     }
 
+    // MARK: presenting freeze (controller ruling: present = freeze start)
+
+    func testPresentingAfterTheOpeningFreezeFreezesAgain() {
+        let (clock, model) = makeModel()
+        model.receive([req("alice", 1)])
+        clock.advance(ms: 400 + 300) // presenting was delayed past the opening freeze
+        XCTAssertTrue(model.isInteractive)
+        model.freezeForPresenting()
+        XCTAssertTrue(model.isFrozen)
+        XCTAssertFalse(model.beginAction(on: "alice"))
+        XCTAssertEqual(model.rows, [req("alice", 1)])
+        clock.advance(ms: 399)
+        XCTAssertTrue(model.isFrozen)
+        clock.advance(ms: 1)
+        XCTAssertFalse(model.isFrozen)
+        XCTAssertTrue(model.beginAction(on: "alice"))
+    }
+
+    func testPresentingFreezeAppliesTheSnapshotHeldByTheWindow() {
+        let (clock, model) = makeModel()
+        model.receive([req("alice", 1)])
+        clock.advance(ms: 400 + 300) // inside the window
+        model.receive([req("alice", 1), req("bob", 2)]) // held until the window ends
+        model.freezeForPresenting()
+        clock.advance(ms: 400)
+        XCTAssertFalse(model.isFrozen)
+        XCTAssertEqual(model.rows, [req("alice", 1), req("bob", 2)])
+    }
+
+    func testPresentingDuringTheOpeningFreezeDoesNotExtendIt() {
+        let (clock, model) = makeModel()
+        model.receive([req("alice", 1)])
+        clock.advance(ms: 200)
+        var calls = 0
+        model.onChange = { calls += 1 }
+        model.freezeForPresenting()
+        XCTAssertEqual(calls, 0)
+        clock.advance(ms: 200)
+        XCTAssertFalse(model.isFrozen)
+    }
+
+    func testPresentingKeepsAnInFlightActionUntilTheAnswer() {
+        let (clock, model) = makeVisibleIdleModel()
+        XCTAssertTrue(model.beginAction(on: "alice"))
+        model.freezeForPresenting()
+        clock.advance(ms: 400)
+        XCTAssertEqual(model.inFlightPlayer, "alice")
+        XCTAssertFalse(model.isInteractive)
+    }
+
+    func testPresentingAnEmptyListDoesNothing() {
+        let (_, model) = makeModel()
+        model.freezeForPresenting()
+        XCTAssertFalse(model.isFrozen)
+        XCTAssertFalse(model.isVisible)
+    }
+
     // MARK: popover step (Review Focus 3)
 
     private func step(rows: Bool, up: Bool, onScreen: Bool = true, other: Bool = false) -> ArenaPopoverStep {
