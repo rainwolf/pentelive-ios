@@ -58,8 +58,6 @@ class PlayerTableCell: UITableViewCell {
     var setupView: ArenaTableSetupView?
     // Requester lobby state (spec C3). Main thread only.
     var arenaMyRequests = ArenaMyRequestsModel()
-    private var joinCountdownOverlay: UIView?
-    private let joinCountdownDuration: CFTimeInterval = 6
 
     
     private let lockView = UIImageView(image: UIImage(named: "lock"))
@@ -264,7 +262,13 @@ class PlayerTableCell: UITableViewCell {
             cell.textLabel?.attributedText = table.makeAttributedString()
             cell.textLabel?.numberOfLines = 0
             cell.backgroundColor = table.gameColor()
-            if table.open {
+            if isArena && arenaMyRequests.isAwaiting(table.table) {
+                let spinner = UIActivityIndicatorView(style: .medium)
+                spinner.startAnimating()
+                cell.accessoryView = spinner
+            } else if isArena && arenaMyRequests.isRequested(table.table) {
+                cell.accessoryView = arenaRequestedMark()
+            } else if table.open {
                 cell.accessoryView = nil
                 cell.accessoryType = .disclosureIndicator
             } else {
@@ -277,67 +281,51 @@ class PlayerTableCell: UITableViewCell {
     }
     
     func tableView(_: UITableView, didSelectRowAt indexPath: IndexPath) {
-        if segmentControl.selectedSegmentIndex == 1 || isArena {
-            if isArena, joinCountdownOverlay != nil {
-                return
-            }
+        if isArena {
+            arenaTableTapped(tableId: displayedTableKeys[indexPath.row])
+        } else if segmentControl.selectedSegmentIndex == 1 {
             let table = playersAndTables.tables[displayedTableKeys[indexPath.row]]!
             if table.open {
-                let eventDictionary = isArena ? ["dsgArenaRequestJoinTableEvent": ["table": table.table, "time": 0]] : ["dsgJoinTableEvent": ["table": table.table, "time": 0]]
+                let eventDictionary = ["dsgJoinTableEvent": ["table": table.table, "time": 0]]
                 socket.sendEvent(eventDictionary: eventDictionary)
-                if isArena {
-                    showJoinCountdown()
-                }
             }
         }
     }
 
-    private func showJoinCountdown() {
-        guard joinCountdownOverlay == nil else { return }
-
-        let overlay = UIView(frame: view.bounds)
-        overlay.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        overlay.backgroundColor = UIColor.black.withAlphaComponent(0.3)
-
-        let radius: CGFloat = 40
-        let lineWidth: CGFloat = 6
-        let center = CGPoint(x: overlay.bounds.midX, y: overlay.bounds.midY)
-        let circlePath = UIBezierPath(arcCenter: center, radius: radius, startAngle: -.pi / 2, endAngle: .pi * 1.5, clockwise: true)
-
-        let track = CAShapeLayer()
-        track.path = circlePath.cgPath
-        track.strokeColor = UIColor.white.withAlphaComponent(0.3).cgColor
-        track.fillColor = UIColor.clear.cgColor
-        track.lineWidth = lineWidth
-        overlay.layer.addSublayer(track)
-
-        let progress = CAShapeLayer()
-        progress.path = circlePath.cgPath
-        progress.strokeColor = UIColor.systemGreen.cgColor
-        progress.fillColor = UIColor.clear.cgColor
-        progress.lineWidth = lineWidth
-        progress.lineCap = .round
-        progress.strokeEnd = 0
-        overlay.layer.addSublayer(progress)
-
-        let anim = CABasicAnimation(keyPath: "strokeEnd")
-        anim.fromValue = 1
-        anim.toValue = 0
-        anim.duration = joinCountdownDuration
-        anim.timingFunction = CAMediaTimingFunction(name: .linear)
-        progress.add(anim, forKey: "countdown")
-
-        view.addSubview(overlay)
-        joinCountdownOverlay = overlay
-
-        Timer.scheduledTimer(withTimeInterval: joinCountdownDuration, repeats: false) { [weak self] _ in
-            self?.hideJoinCountdown()
+    // Spec C3: an unmarked table sends one request (further taps wait for the server's
+    // dsgArenaMyRequestsEvent); a marked table asks before withdrawing.
+    private func arenaTableTapped(tableId: Int) {
+        guard let table = playersAndTables.tables[tableId], table.open else { return }
+        switch arenaMyRequests.tap(table: tableId) {
+        case .ignore:
+            return
+        case .request:
+            socket.sendEvent(eventDictionary: ArenaOutbound.requestJoin(table: tableId))
+            tableView.reloadData()
+        case .confirmWithdraw:
+            confirmArenaWithdraw(tableId: tableId)
         }
     }
 
-    private func hideJoinCountdown() {
-        joinCountdownOverlay?.removeFromSuperview()
-        joinCountdownOverlay = nil
+    private func confirmArenaWithdraw(tableId: Int) {
+        // .alert needs no popover anchor, so it presents the same on iPhone and iPad.
+        let alert = UIAlertController(title: nil, message: ArenaText.withdrawConfirm(table: tableId), preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel))
+        alert.addAction(UIAlertAction(title: NSLocalizedString("Withdraw", comment: "arena: withdraw a join request"), style: .destructive) { [weak self] _ in
+            guard let self = self, self.arenaMyRequests.beginWithdraw(table: tableId) else { return }
+            self.socket.sendEvent(eventDictionary: ArenaOutbound.withdraw(table: tableId))
+            self.tableView.reloadData()
+        })
+        present(alert, animated: true)
+    }
+
+    private func arenaRequestedMark() -> UILabel {
+        let mark = UILabel()
+        mark.text = NSLocalizedString("Requested", comment: "arena lobby: you have a pending join request at this table")
+        mark.font = UIFont.boldSystemFont(ofSize: 13)
+        mark.textColor = .black
+        mark.sizeToFit()
+        return mark
     }
     
     func tableView(_: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
