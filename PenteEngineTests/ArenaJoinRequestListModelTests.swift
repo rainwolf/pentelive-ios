@@ -33,21 +33,38 @@ final class ArenaJoinRequestListModelTests: XCTestCase {
         return (clock, ArenaJoinRequestListModel(schedule: clock.schedule))
     }
 
-    /// A model showing [alice] whose first window has ended (idle, visible) at t = 1000 ms.
+    /// A model showing [alice] whose first window has ended (idle, visible) at t = 1400 ms.
     private func makeVisibleIdleModel() -> (FakeArenaClock, ArenaJoinRequestListModel) {
         let (clock, model) = makeModel()
         model.receive([req("alice", 1)])
-        clock.advance(ms: 1000)
+        clock.advance(ms: 400 + 1000) // opens frozen for 400 ms, then the 1000 ms window
         return (clock, model)
     }
 
-    func testFirstSnapshotWhileHiddenAppliesImmediately() {
-        let (_, model) = makeModel()
+    func testFirstSnapshotWhileHiddenOpensFrozenThenInteractive() {
+        let (clock, model) = makeModel()
         XCTAssertFalse(model.isVisible)
         model.receive([req("alice", 1)])
-        XCTAssertEqual(model.rows, [req("alice", 1)])
+        XCTAssertEqual(model.rows, [req("alice", 1)]) // the popover can present at once
+        XCTAssertTrue(model.isFrozen) // but no row is tappable yet
+        XCTAssertFalse(model.isInteractive)
+        XCTAssertFalse(model.beginAction(on: "alice"))
+        clock.advance(ms: 399)
+        XCTAssertTrue(model.isFrozen)
+        clock.advance(ms: 1)
         XCTAssertFalse(model.isFrozen)
         XCTAssertTrue(model.isInteractive)
+        XCTAssertTrue(model.beginAction(on: "alice"))
+    }
+
+    func testSnapshotsDuringTheOpeningFreezeReplaceTheHeldOne() {
+        let (clock, model) = makeModel()
+        model.receive([req("alice", 1)])
+        clock.advance(ms: 200)
+        model.receive([req("alice", 1), req("bob", 2)])
+        clock.advance(ms: 200)
+        XCTAssertFalse(model.isFrozen)
+        XCTAssertEqual(model.rows, [req("alice", 1), req("bob", 2)])
     }
 
     func testSnapshotWhileVisibleFreezesFor400ms() {
@@ -96,19 +113,20 @@ final class ArenaJoinRequestListModelTests: XCTestCase {
 
     func testListThatJustAppearedStaysInteractiveForTheWindow() {
         let (clock, model) = makeModel()
-        model.receive([req("alice", 1)]) // shown at 0, window to 1000
+        model.receive([req("alice", 1)]) // opens frozen 0-400, window to 1400
         clock.advance(ms: 500)
         model.receive([req("alice", 1), req("bob", 2)])
         XCTAssertFalse(model.isFrozen)
         XCTAssertEqual(model.rows, [req("alice", 1)])
-        clock.advance(ms: 500)
+        clock.advance(ms: 900)
         XCTAssertTrue(model.isFrozen)
     }
 
     func testBurstOfSnapshotsCannotLockOwnerOut() {
         let (clock, model) = makeModel()
         model.receive([req("alice", 1)])
-        var transitions = [(atMs: 0, frozen: false)]
+        clock.advance(ms: 400) // opening freeze over, window running
+        var transitions = [(atMs: clock.nowMs, frozen: false)]
         model.onChange = { [unowned model] in
             if transitions.last?.frozen != model.isFrozen {
                 transitions.append((atMs: clock.nowMs, frozen: model.isFrozen))
@@ -138,14 +156,18 @@ final class ArenaJoinRequestListModelTests: XCTestCase {
         XCTAssertFalse(model.isVisible)
     }
 
-    func testHiddenListShowsTheNextSnapshotImmediatelyEvenInsideAWindow() {
+    func testHiddenListOpensFrozenEvenInsideAWindow() {
         let (clock, model) = makeVisibleIdleModel()
         model.receive([])
         clock.advance(ms: 400) // hidden, window running
         clock.advance(ms: 100)
         model.receive([req("carol", 3)])
-        XCTAssertFalse(model.isFrozen)
         XCTAssertEqual(model.rows, [req("carol", 3)])
+        XCTAssertTrue(model.isFrozen)
+        XCTAssertFalse(model.isInteractive)
+        clock.advance(ms: 400)
+        XCTAssertFalse(model.isFrozen)
+        XCTAssertTrue(model.isInteractive)
     }
 
     func testNewRequesterCue() {
@@ -176,7 +198,8 @@ final class ArenaJoinRequestListModelTests: XCTestCase {
 
     func testActionInsideTheWindowStaysLockedUntilTheHeldAnswerIsApplied() {
         let (clock, model) = makeModel()
-        model.receive([req("alice", 1), req("bob", 2)]) // shown at 0, window to 1000
+        model.receive([req("alice", 1), req("bob", 2)]) // opens frozen 0-400, window to 1400
+        clock.advance(ms: 400)
         XCTAssertTrue(model.beginAction(on: "bob"))
         clock.advance(ms: 300)
         model.receive([req("alice", 1)]) // held by the window
@@ -206,20 +229,21 @@ final class ArenaJoinRequestListModelTests: XCTestCase {
         XCTAssertFalse(model.isVisible)
         model.receive([req("carol", 3)])
         XCTAssertEqual(model.rows, [req("carol", 3)])
-        XCTAssertFalse(model.isFrozen)
+        XCTAssertTrue(model.isFrozen) // a fresh list opens frozen again
     }
 
     func testOnChangeReportsEveryVisibleChange() {
         let (clock, model) = makeModel()
         var calls = 0
         model.onChange = { calls += 1 }
-        model.receive([req("alice", 1)]) // applied
+        model.receive([req("alice", 1)]) // rows set, opens frozen
+        clock.advance(ms: 400) // freeze ends, applied
         clock.advance(ms: 1000) // window ends with nothing held: no change
         model.receive([req("bob", 2)]) // freeze starts
         clock.advance(ms: 400) // freeze ends
         XCTAssertTrue(model.beginAction(on: "bob"))
         model.reset()
-        XCTAssertEqual(calls, 5)
+        XCTAssertEqual(calls, 6)
     }
 
     // MARK: popover step (Review Focus 3)

@@ -68,13 +68,13 @@ final class ArenaJoinRequestListModel {
             if isVisible {
                 held = snapshot
             } else {
-                apply(snapshot) // nothing on screen to protect
+                open(with: snapshot)
             }
         case .idle:
             if isVisible {
                 freeze(holding: snapshot)
             } else {
-                apply(snapshot)
+                open(with: snapshot)
             }
         }
         onChange?()
@@ -99,6 +99,19 @@ final class ArenaJoinRequestListModel {
         lastReceivedPlayers = []
         phase = .idle
         onChange?()
+    }
+
+    /// A snapshot reaches a hidden list: its rows exist at once (the popover presents) but the
+    /// list opens frozen, so no row can be tapped the instant it appears (controller ruling:
+    /// present = freeze start). An empty snapshot just applies, there is nothing to show.
+    private func open(with snapshot: [ArenaJoinRequest]) {
+        guard !snapshot.isEmpty else {
+            apply(snapshot)
+            return
+        }
+        rows = snapshot
+        inFlightPlayer = nil
+        freeze(holding: snapshot)
     }
 
     private func freeze(holding snapshot: [ArenaJoinRequest]) {
