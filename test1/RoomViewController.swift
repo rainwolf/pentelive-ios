@@ -480,9 +480,9 @@ class PlayerTableCell: UITableViewCell {
         let text = event["text"] as! String
         // Server/system messages come from pseudo-senders (e.g. "game server") that aren't in
         // the players dict — treat an unknown sender as not-muted instead of force-unwrapping (crash).
-        let player = playersAndTables.players[playerName]
-        if !(player?.muted ?? false) {
-            DispatchQueue.main.async {
+        DispatchQueue.main.async {
+            let player = self.playersAndTables.players[playerName]
+            if !(player?.muted ?? false) {
                 self.addText(text: "\(playerName): \(text)")
             }
         }
@@ -626,13 +626,12 @@ class PlayerTableCell: UITableViewCell {
     func joinTableEvent(event: [String: Any]) {
         let tableId = event["table"] as! Int
         let playerName = event["player"] as! String
-        // The model mutation stays on the socket (background) queue so it remains serialized with
-        // the other handlers that read playersAndTables.tables on that queue (moveTableEvent /
-        // systemMessageTableEvent) — tables is a non-thread-safe Dictionary. Only the UIKit work
-        // (reloadData, TableViewController construction, push) is dispatched to the main thread.
-        self.playersAndTables.joinTable(tableId: tableId, player: playerName)
-        let table = self.playersAndTables.table(tableId: tableId)
+        // playersAndTables is owned by the main queue: joinMainRoomEvent adds the player there and
+        // the room's table view reads it there. Joining on the socket queue raced a pending
+        // room join and crashed on the missing player, so the join runs in event order on main.
         DispatchQueue.main.async {
+            self.playersAndTables.joinTable(tableId: tableId, player: playerName)
+            let table = self.playersAndTables.table(tableId: tableId)
             self.tableView.reloadData()
             if playerName == self.me {
                 self.tableViewController = TableViewController(table: table!, socket: self.socket, tablesAndPlayers: self.playersAndTables, pente_player: self.pentePlayer!, me: self.me, isArenaTable: self.isArena)
@@ -664,8 +663,8 @@ class PlayerTableCell: UITableViewCell {
     
     func changeTableEvent(event: [String: Any]) {
         let tableId = event["table"] as! Int
-        playersAndTables.changeTable(event: event)
         DispatchQueue.main.async {
+            self.playersAndTables.changeTable(event: event)
             self.tableView.reloadData()
             if tableId == self.tableViewController?.table.table {
                 self.tableViewController?.stateChanged()
@@ -968,13 +967,13 @@ class PlayerTableCell: UITableViewCell {
     
     func moveTableEvent(event: [String: Any]) {
         let tableId = event["table"] as! Int
-        if playersAndTables.table(tableId: tableId) == nil {
-            return
-        }
         //        let table = tables[tableId]!
         let move = event["move"] as! Int
         let moves = event["moves"] as! [Int]
         DispatchQueue.main.async {
+            if self.playersAndTables.table(tableId: tableId) == nil {
+                return
+            }
             if tableId == self.tableViewController?.table.table {
                 if move != 0 {
                     self.playTurnSound()
@@ -994,12 +993,12 @@ class PlayerTableCell: UITableViewCell {
     
     func systemMessageTableEvent(event: [String: Any]) {
         let tableId = event["table"] as! Int
-        if playersAndTables.table(tableId: tableId) == nil {
-            return
-        }
         //        let table = tables[tableId]!
         let message = event["message"] as! String
         DispatchQueue.main.async {
+            if self.playersAndTables.table(tableId: tableId) == nil {
+                return
+            }
             if tableId == self.tableViewController?.table.table {
                 self.tableViewController?.addText(text: "* \(message)")
             }
@@ -1021,9 +1020,9 @@ class PlayerTableCell: UITableViewCell {
         let table = event["table"] as! Int
         // Server/system messages come from pseudo-senders (e.g. "game server") that aren't in
         // the players dict — treat an unknown sender as not-muted instead of force-unwrapping (crash).
-        let player = playersAndTables.players[playerName]
-        if table == tableViewController?.table.table, !(player?.muted ?? false) {
-            DispatchQueue.main.async {
+        DispatchQueue.main.async {
+            let player = self.playersAndTables.players[playerName]
+            if table == self.tableViewController?.table.table, !(player?.muted ?? false) {
                 self.tableViewController?.addText(text: "\(playerName): \(text)")
             }
         }
