@@ -29,8 +29,6 @@
     // that method for why the payload itself is the key.
     NSDictionary *_lastHandledUserInfo;
     NSTimeInterval _lastHandledAt;
-    // Main-queue only; see -sendPendingReceipt.
-    BOOL _receiptPostInFlight;
 }
 @synthesize notification;
 @synthesize sndID, broadcastSndID;
@@ -155,232 +153,15 @@
     AudioServicesCreateSystemSoundID((__bridge CFURLRef)broadcastSndURL,
                                      &broadcastSndID);
 
-    [[SubscriptionStore shared]
-        loadProductWithCompletion:^(SubscriptionProduct *product,
-                                    NSError *error) {
-            if (product == nil) {
-                NSLog(@"Something went wrong, %@", error);
-                return;
-            }
-            // Async completion: resolve the scene root when the block runs, not
-            // when it was created. This method runs before the scene connects.
-            PenteNavigationViewController *nav =
-                [AppDelegate rootNavigationController];
-            [nav setSubscription:product];
-        }];
-    [[NSNotificationCenter defaultCenter]
-        addObserver:self
-           selector:@selector(receiptNeedsSendingNotification:)
-               name:SubscriptionStore.receiptNeedsSendingNotification
-             object:nil];
-    [[SubscriptionStore shared] start];
-
-    // Refresh at launch only to retry a purchase or restore whose refresh
-    // failed: the refresh can show an Apple ID sign-in prompt.
-    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-    if ([defaults boolForKey:@"shouldSendReceipt"] &&
-        [defaults boolForKey:@"shouldRefreshReceipt"]) {
-        [self refreshReceiptThenSend];
-    } else {
-        [self sendPendingReceipt];
+    // StoreService posts StoreKit 2 transactions to pente.org, only after
+    // login; listening starts now so nothing StoreKit delivers is missed
+    // (spec 5.1). Never in the unit-test host: StoreKit Testing transactions
+    // must not reach pente.org.
+    if (NSProcessInfo.processInfo.environment[@"XCTestConfigurationFilePath"] == nil) {
+        [[StoreService shared] start];
     }
 
     return YES;
-}
-
-// SubscriptionStore reported a transaction no purchase or restore caller
-// registers (Ask-to-Buy approval, renewal). A StoreKit 2 transaction does not
-// rewrite the receipt on disk, so an initial purchase refreshes it before
-// sending. A renewal is sent as before: once a refresh or a StoreKit 1
-// purchase has written the subscription into the receipt on disk,
-// verifyReceipt's latest_receipt_info reports its renewals.
-- (void)receiptNeedsSendingNotification:(NSNotification *)notification {
-    NSNumber *needsRefresh =
-        notification.userInfo[SubscriptionStore.needsReceiptRefreshKey];
-    if (![needsRefresh boolValue]) {
-        [self sendPendingReceipt];
-        return;
-    }
-    [[NSUserDefaults standardUserDefaults] setBool:YES
-                                            forKey:@"shouldRefreshReceipt"];
-    [self refreshReceiptThenSend];
-}
-
-// Refreshes the receipt, then sends it. SubscriptionStore clears
-// shouldRefreshReceipt when a refresh succeeds. While it is still set the
-// receipt on disk lacks the purchase, and the server would call it invalid and
-// clear shouldSendReceipt, so skip the POST and keep both flags for the next
-// launch.
-- (void)refreshReceiptThenSend {
-    [[SubscriptionStore shared] refreshReceiptWithCompletion:^(NSError *error) {
-        if (error != nil) {
-            NSLog(@"Receipt refresh failed: %@", error);
-        }
-        if ([[NSUserDefaults standardUserDefaults]
-                boolForKey:@"shouldRefreshReceipt"]) {
-            return;
-        }
-        [self sendPendingReceipt];
-    }];
-}
-
-// Uploads the App Store receipt to pente.org while shouldSendReceipt is set.
-// Runs at launch and whenever SubscriptionStore reports a transaction that no
-// purchase or restore caller registers (Ask-to-Buy approval, renewal). Always
-// on the main queue, so the in-flight flag keeps a second trigger from racing
-// the first POST on the flag.
-- (void)sendPendingReceipt {
-    if (_receiptPostInFlight) {
-        return;
-    }
-    if ([[NSUserDefaults standardUserDefaults]
-            boolForKey:@"shouldSendReceipt"]) {
-        NSURL *receiptURL = [[NSBundle mainBundle] appStoreReceiptURL];
-        NSData *receipt = [NSData dataWithContentsOfURL:receiptURL];
-        if (receipt == nil) {
-            // No receipt on disk yet (e.g. a development install). Keep the
-            // flag so a later launch sends it once one exists.
-            NSLog(@"No App Store receipt to send yet");
-            return;
-        }
-
-        NSString *url =
-            @"https://www.pente.org/gameServer/iOSReceiptValidation";
-        NSString *postString = [NSString
-            stringWithFormat:@"name=%@&receipt=%@",
-                             [[NSUserDefaults standardUserDefaults]
-                                 stringForKey:@"username"],
-                             [self URLEncodedString_ch:
-                                       [receipt
-                                           base64EncodedStringWithOptions:0]]];
-
-        NSData *postData = [postString dataUsingEncoding:NSASCIIStringEncoding
-                                    allowLossyConversion:YES];
-        NSString *postLength = [NSString
-            stringWithFormat:@"%lu", (unsigned long)[postData length]];
-
-        NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
-        [request setURL:[NSURL URLWithString:url]];
-        [request setHTTPMethod:@"POST"];
-        [request setValue:postLength forHTTPHeaderField:@"Content-Length"];
-        [request setValue:@"application/x-www-form-urlencoded"
-            forHTTPHeaderField:@"Content-Type"];
-        [request setHTTPBody:postData];
-        [request setTimeoutInterval:20.0];
-
-        //    [request setHTTPShouldUsePipelining: YES];
-
-        _receiptPostInFlight = YES;
-        [PenteHTTPClient sendRequest:request completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
-        _receiptPostInFlight = NO;
-        NSString *dashboardString =
-            [[NSString alloc] initWithData:responseData
-                                  encoding:NSUTF8StringEncoding];
-        //        NSLog(dashboardString);
-
-        // Any answer from the server settles the receipt. Clear the flag
-        // before the navigation controller check below: a background launch
-        // has none, and returning first would re-send on every launch.
-        ReceiptReplyKind kind = [ReceiptReply kindForReply:dashboardString];
-        if (kind != ReceiptReplyKindFailed) {
-            [[NSUserDefaults standardUserDefaults]
-                setBool:NO
-                 forKey:@"shouldSendReceipt"];
-        }
-        // Renewals, receipts already registered, and subscriptions linked to
-        // another account are recorded silently: only a new purchase is news.
-        if (kind == ReceiptReplyKindRenewal || kind == ReceiptReplyKindKnown ||
-            kind == ReceiptReplyKindShared) {
-            return;
-        }
-
-        // Async completion: resolve the scene root when the block runs, not when
-        // it was created — this method runs before the scene connects. The nil
-        // guard is not optional: PenteBanner has no presenting view controller
-        // to host in when handed nil, so an early return keeps the banner
-        // paths dormant until the navigation controller exists.
-        PenteNavigationViewController *nav =
-            [AppDelegate rootNavigationController];
-        if (!nav) {
-            return;
-        }
-
-        if (kind == ReceiptReplyKindNewPurchase) {
-            [PenteBanner
-                showNotificationInViewController:nav
-                                           title:NSLocalizedString(
-                                                     @"Purchase registration "
-                                                     @"successful",
-                                                     nil)
-                                        subtitle:nil
-                                           image:nil
-                                            type:
-                                                PenteBannerTypeSuccess
-                                        duration:
-                                            PenteBannerDurationAutomatic
-                                        callback:^{
-                                            [PenteBanner
-                                                dismissActiveNotification];
-                                        }
-                                     buttonTitle:nil
-                                  buttonCallback:nil
-                                      atPosition:
-                                          PenteBannerPositionBottom
-                            canBeDismissedByUser:YES];
-        } else if (kind == ReceiptReplyKindInvalid) {
-            [PenteBanner
-                showNotificationInViewController:nav
-                                           title:NSLocalizedString(
-                                                     @"Purchase restore failed",
-                                                     nil)
-                                        subtitle:
-                                            NSLocalizedString(
-                                                @"No valid purchase to restore",
-                                                nil)
-                                           image:nil
-                                            type:
-                                                PenteBannerTypeSuccess
-                                        duration:
-                                            PenteBannerDurationAutomatic
-                                        callback:^{
-                                            [PenteBanner
-                                                dismissActiveNotification];
-                                        }
-                                     buttonTitle:nil
-                                  buttonCallback:nil
-                                      atPosition:
-                                          PenteBannerPositionBottom
-                            canBeDismissedByUser:YES];
-        } else {
-            [PenteBanner
-                showNotificationInViewController:nav
-                                           title:NSLocalizedString(
-                                                     @"Purchase registration "
-                                                     @"failed",
-                                                     nil)
-                                        subtitle:
-                                            NSLocalizedString(
-                                                @"The app will retry purchase "
-                                                @"registration at pente.org "
-                                                @"every time the app starts",
-                                                nil)
-                                           image:nil
-                                            type:
-                                                PenteBannerTypeWarning
-                                        duration:
-                                            PenteBannerDurationAutomatic
-                                        callback:^{
-                                            [PenteBanner
-                                                dismissActiveNotification];
-                                        }
-                                     buttonTitle:nil
-                                  buttonCallback:nil
-                                      atPosition:
-                                          PenteBannerPositionBottom
-                            canBeDismissedByUser:YES];
-        }
-        }];
-    }
 }
 
 - (void)applicationWillTerminate:(UIApplication *)application {
@@ -782,31 +563,6 @@ static NSString *DSGAlertComponentOrNil(NSArray<NSString *> *components,
         self.notification = userInfo;
     }
     completionHandler();
-}
-
-#pragma mark - Helpers
-
-- (NSString *)URLEncodedString_ch:(NSString *)input {
-    NSMutableString *output = [NSMutableString string];
-    if (input == nil) {
-        return output;
-    }
-    const unsigned char *source = (const unsigned char *)[input UTF8String];
-    int sourceLen = (int)strlen((const char *)source);
-    for (int i = 0; i < sourceLen; ++i) {
-        const unsigned char thisChar = source[i];
-        if (thisChar == ' ') {
-            [output appendString:@"+"];
-        } else if (thisChar == '.' || thisChar == '-' || thisChar == '_' ||
-                   thisChar == '~' || (thisChar >= 'a' && thisChar <= 'z') ||
-                   (thisChar >= 'A' && thisChar <= 'Z') ||
-                   (thisChar >= '0' && thisChar <= '9')) {
-            [output appendFormat:@"%c", thisChar];
-        } else {
-            [output appendFormat:@"%%%02X", thisChar];
-        }
-    }
-    return output;
 }
 
 @end

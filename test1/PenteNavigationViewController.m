@@ -7,6 +7,7 @@
 //
 
 #import "PenteNavigationViewController.h"
+#import "penteLive-Swift.h"
 
 @interface PenteNavigationViewController ()
 
@@ -25,8 +26,6 @@
 @synthesize challengedUser;
 @synthesize receivedNotification;
 @synthesize player;
-@synthesize subscription;
-@synthesize showSubscribe;
 
 - (id)initWithNibName:(NSString *)nibNameOrNil
                bundle:(NSBundle *)nibBundleOrNil {
@@ -35,6 +34,26 @@
         // Custom initialization
     }
     return self;
+}
+
+- (BOOL)loggedIn {
+    return loggedIn;
+}
+
+// Every login (launch, Settings, account switch) and every logout goes
+// through here.
+- (void)setLoggedIn:(BOOL)value {
+    loggedIn = value;
+    self.loggedInUsername =
+        value ? [[[NSUserDefaults standardUserDefaults] stringForKey:@"username"]
+                    lowercaseString]
+              : nil;
+    // The Store forgets the previous account's info, and after login posts
+    // what StoreKit still holds, with the once-per-account migration sweep
+    // (spec 5.1, 5.4). Only a started service: never in the unit-test host.
+    if ([StoreService shared].isStarted) {
+        [[StoreService shared] sessionDidChangeWithLoggedIn:value];
+    }
 }
 
 //- (BOOL)shouldAutorotate {

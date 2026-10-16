@@ -7,6 +7,7 @@
 #import "AppDelegate.h"
 #import "GamesTableViewController.h"
 #import "PenteNavigationViewController.h"
+#import "penteLive-Swift.h"
 @import UserNotifications;
 
 @implementation SceneDelegate {
@@ -58,6 +59,19 @@
     NSLog(@"penteliveee: foreground");
     PenteNavigationViewController *nav =
         (PenteNavigationViewController *)self.window.rootViewController;
+    // The Store reloads its info itself on the way back (spec 5.2); popping
+    // would close it after a Manage subscription or sandbox sign-in detour.
+    // iPhone pushes it; iPad presents it as a form sheet in its own
+    // navigation controller.
+    if ([nav.topViewController isKindOfClass:[StoreViewController class]]) {
+        return;
+    }
+    UIViewController *presented = nav.presentedViewController;
+    if ([presented isKindOfClass:[UINavigationController class]] &&
+        [((UINavigationController *)presented).viewControllers.firstObject
+            isKindOfClass:[StoreViewController class]]) {
+        return;
+    }
     if ([nav.visibleViewController
             respondsToSelector:@selector(refreshDashboard)]) {
         [((GamesTableViewController *)nav.visibleViewController)
