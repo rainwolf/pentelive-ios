@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		01103DF96486375E8938A9E7 /* StoreInfoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8057D7F2D83F1A6F28F3DBB6 /* StoreInfoTests.swift */; };
 		06AEE8018C3F276FC4A94C18 /* ArenaWire.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0EE8889DAE0C593E75FD80A7 /* ArenaWire.swift */; };
 		06B4B494FB3A1DBAF1123B09 /* PenteGameCorpusTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A43C60A3066249BC1D49D05D /* PenteGameCorpusTests.swift */; };
 		0F517DEF255BDD9409111928 /* TableEngineRoutingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DAA75D2D52B843143873591 /* TableEngineRoutingTests.swift */; };
@@ -251,6 +252,7 @@
 		ADC22B02BC637F2C14B47487 /* dashboard_real_index.json in Resources */ = {isa = PBXBuildFile; fileRef = 46FF0A3E9AAF2484A5A01D4F /* dashboard_real_index.json */; };
 		AE4E208038FC49982C6BAEB8 /* ArenaJoinRequestListModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CED4F565311526EC237865E4 /* ArenaJoinRequestListModelTests.swift */; };
 		B33454C6DEE9A2B69643F10C /* ArenaMyRequestsModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB29EC885CE63665B0B3C374 /* ArenaMyRequestsModelTests.swift */; };
+		B659BCC34D88241FB2124999 /* StoreInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CD896F5287C139D124DF4D5 /* StoreInfo.swift */; };
 		B6EE9848640054AF5B211D47 /* CPoint.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E0487D93E252253264372A56 /* CPoint.cpp */; };
 		BBA523D1BFE87E6E0839A7BE /* DashboardTransport.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7527ED20D5B800D46E10F91 /* DashboardTransport.swift */; };
 		C2334D35F088D16FD6B18BB7 /* ReceiptReply.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D3B319183B6CB725B68319A /* ReceiptReply.swift */; };
@@ -295,6 +297,7 @@
 /* Begin PBXFileReference section */
 		01B8551DCE0463B588A47B12 /* MessageAuthorLabelTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MessageAuthorLabelTests.swift; sourceTree = "<group>"; };
 		0BB7D9EDC42A7C21CE614BEB /* BoardVariantMappingTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BoardVariantMappingTests.swift; sourceTree = "<group>"; };
+		0CD896F5287C139D124DF4D5 /* StoreInfo.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StoreInfo.swift; sourceTree = "<group>"; };
 		0DAA75D2D52B843143873591 /* TableEngineRoutingTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TableEngineRoutingTests.swift; sourceTree = "<group>"; };
 		0ECA09C532731E03061C1308 /* DashboardEndpointTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DashboardEndpointTests.swift; sourceTree = "<group>"; };
 		0EE8889DAE0C593E75FD80A7 /* ArenaWire.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ArenaWire.swift; sourceTree = "<group>"; };
@@ -565,6 +568,7 @@
 		7A1C0E5D2F3B4A6C8D9E0F42 /* PentePopover.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PentePopover.m; sourceTree = "<group>"; };
 		7BEAC58A3C6C7DFFFD5DCCBD /* DashboardError.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DashboardError.swift; sourceTree = "<group>"; };
 		7FB2E1A032CEE396D7987441 /* ArenaMyRequestsModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ArenaMyRequestsModel.swift; sourceTree = "<group>"; };
+		8057D7F2D83F1A6F28F3DBB6 /* StoreInfoTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StoreInfoTests.swift; sourceTree = "<group>"; };
 		812EFF4F61C4DBBDD94365D8 /* ArenaJoinRequestListModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ArenaJoinRequestListModel.swift; sourceTree = "<group>"; };
 		819EC6C86FFC440551990A4A /* PenteBanner.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PenteBanner.h; sourceTree = "<group>"; };
 		8314997135E2AC0910B84356 /* PenteGame.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PenteGame.swift; sourceTree = "<group>"; };
@@ -817,6 +821,7 @@
 				0EE8889DAE0C593E75FD80A7 /* ArenaWire.swift */,
 				812EFF4F61C4DBBDD94365D8 /* ArenaJoinRequestListModel.swift */,
 				7FB2E1A032CEE396D7987441 /* ArenaMyRequestsModel.swift */,
+				0CD896F5287C139D124DF4D5 /* StoreInfo.swift */,
 			);
 			name = penteLive;
 			path = test1;
@@ -1071,6 +1076,7 @@
 				CED4F565311526EC237865E4 /* ArenaJoinRequestListModelTests.swift */,
 				DB29EC885CE63665B0B3C374 /* ArenaMyRequestsModelTests.swift */,
 				0F255476AD428B119B8ED44D /* StoreReplyTests.swift */,
+				8057D7F2D83F1A6F28F3DBB6 /* StoreInfoTests.swift */,
 			);
 			path = PenteEngineTests;
 			sourceTree = SOURCE_ROOT;
@@ -1446,6 +1452,7 @@
 				AE4E208038FC49982C6BAEB8 /* ArenaJoinRequestListModelTests.swift in Sources */,
 				B33454C6DEE9A2B69643F10C /* ArenaMyRequestsModelTests.swift in Sources */,
 				35C8D8018B6AA0E7D09F0D97 /* StoreReplyTests.swift in Sources */,
+				01103DF96486375E8938A9E7 /* StoreInfoTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1530,6 +1537,7 @@
 				06AEE8018C3F276FC4A94C18 /* ArenaWire.swift in Sources */,
 				E3ACD5F02DC92B49FA4421DF /* ArenaJoinRequestListModel.swift in Sources */,
 				24F5B3C3A96EEDEA4D1078E8 /* ArenaMyRequestsModel.swift in Sources */,
+				B659BCC34D88241FB2124999 /* StoreInfo.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
