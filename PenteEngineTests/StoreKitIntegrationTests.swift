@@ -139,6 +139,11 @@ final class StoreKitIntegrationTests: XCTestCase {
         return "\(claims["productId"] ?? "?")@\(claims["purchaseDate"] ?? "?")"
     }
 
+    /// StoreKit's own id for the transaction: a renewal gets a new one.
+    private func transactionID(_ jws: String) throws -> String {
+        "\(try payload(jws)["transactionId"] ?? "?")"
+    }
+
     private func skTransaction(for productID: String) throws -> SKTestTransaction {
         try XCTUnwrap(session.allTransactions().last { $0.productIdentifier == productID })
     }
@@ -256,20 +261,30 @@ final class StoreKitIntegrationTests: XCTestCase {
     /// `Transaction.updates` (dry run, 2026-10-16: nothing within 8 s), but it
     /// is in `Transaction.unfinished` at once; the automatic resync on the
     /// return to the foreground posts it, as it would a renewal the app missed.
+    /// StoreKit drops a finished transaction from `Transaction.unfinished` a
+    /// moment late, so an early resync may post the purchase again (harmless:
+    /// the server is idempotent); the test waits for the renewal itself.
     func testRenewalIsPostedSilently() async throws {
         try await start()
         service.start()
         await service.buy(productID: StoreProducts.yearly, scene: nil)
+        XCTAssertEqual(server.posted.count, 1)
+        guard let bought = server.posted.first else { return }
+        let boughtID = try transactionID(bought)
 
         try session.forceRenewalOfSubscription(productIdentifier: StoreProducts.yearly)
 
-        for _ in 0..<20 where server.posted.count < 2 {
-            await service.performResync(explicit: false) // the foreground trigger
-            if server.posted.count < 2 { try await Task.sleep(nanoseconds: 1_000_000_000) }
+        func renewals() -> [String] {
+            server.posted.filter { (try? self.transactionID($0)) != boughtID }
         }
-        XCTAssertEqual(server.posted.count, 2)
-        guard server.posted.count == 2 else { return }
-        XCTAssertNotEqual(try transactionKey(server.posted[1]), try transactionKey(server.posted[0]))
+        for _ in 0..<20 where renewals().isEmpty {
+            await service.performResync(explicit: false) // the foreground trigger
+            if renewals().isEmpty { try await Task.sleep(nanoseconds: 1_000_000_000) }
+        }
+        let renewal = try XCTUnwrap(renewals().first, "the renewal is posted")
+        XCTAssertEqual(try payload(renewal)["productId"] as? String, StoreProducts.yearly)
+        XCTAssertEqual(try payload(renewal)["originalTransactionId"] as? String,
+                       try payload(bought)["originalTransactionId"] as? String)
         XCTAssertEqual(messages.shown, [.thankYou])
         let left = await storeKitUnfinishedKeys(becoming: [])
         XCTAssertEqual(left, [], "the renewal is finished after the server's answer")
