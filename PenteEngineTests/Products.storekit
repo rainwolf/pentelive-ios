@@ -1,0 +1,101 @@
+{
+  "identifier": "5C4E1F2A",
+  "nonRenewingSubscriptions": [],
+  "products": [
+    {
+      "displayPrice": "1.99",
+      "familyShareable": false,
+      "internalID": "6A1B0001",
+      "localizations": [
+        {
+          "description": "31 days of subscriber access",
+          "displayName": "1 month pass",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "month_pass",
+      "referenceName": "Month pass",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "0.99",
+      "familyShareable": false,
+      "internalID": "6A1B0010",
+      "localizations": [
+        {
+          "description": "10 extra vacation days",
+          "displayName": "10 vacation days",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "vacation_10",
+      "referenceName": "Vacation 10",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "1.99",
+      "familyShareable": false,
+      "internalID": "6A1B0030",
+      "localizations": [
+        {
+          "description": "30 extra vacation days",
+          "displayName": "30 vacation days",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "vacation_30",
+      "referenceName": "Vacation 30",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "2.99",
+      "familyShareable": false,
+      "internalID": "6A1B0060",
+      "localizations": [
+        {
+          "description": "60 extra vacation days",
+          "displayName": "60 vacation days",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "vacation_60",
+      "referenceName": "Vacation 60",
+      "type": "Consumable"
+    }
+  ],
+  "settings": {},
+  "subscriptionGroups": [
+    {
+      "id": "6A1B0100",
+      "localizations": [],
+      "name": "Pente Premium",
+      "subscriptions": [
+        {
+          "adHocOffers": [],
+          "codeOffers": [],
+          "displayPrice": "9.99",
+          "familyShareable": false,
+          "groupNumber": 1,
+          "internalID": "6A1B0101",
+          "introductoryOffer": null,
+          "localizations": [
+            {
+              "description": "No play limits, request undo, name colour and avatar, database access",
+              "displayName": "1 year subscription",
+              "locale": "en_US"
+            }
+          ],
+          "productID": "1YRNOADSORLIMITS",
+          "recurringSubscriptionPeriod": "P1Y",
+          "referenceName": "1 year subscription",
+          "subscriptionGroupID": "6A1B0100",
+          "type": "RecurringSubscription"
+        }
+      ]
+    }
+  ],
+  "version": {
+    "major": 3,
+    "minor": 0
+  }
+}

@@ -173,16 +173,20 @@
            selector:@selector(receiptNeedsSendingNotification:)
                name:SubscriptionStore.receiptNeedsSendingNotification
              object:nil];
-    [[SubscriptionStore shared] start];
+    // Never in the unit-test host: StoreKit Testing transactions must not be
+    // finished or sent as receipts by this old path (Task 9 removes it).
+    if (NSProcessInfo.processInfo.environment[@"XCTestConfigurationFilePath"] == nil) {
+        [[SubscriptionStore shared] start];
 
-    // Refresh at launch only to retry a purchase or restore whose refresh
-    // failed: the refresh can show an Apple ID sign-in prompt.
-    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-    if ([defaults boolForKey:@"shouldSendReceipt"] &&
-        [defaults boolForKey:@"shouldRefreshReceipt"]) {
-        [self refreshReceiptThenSend];
-    } else {
-        [self sendPendingReceipt];
+        // Refresh at launch only to retry a purchase or restore whose refresh
+        // failed: the refresh can show an Apple ID sign-in prompt.
+        NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+        if ([defaults boolForKey:@"shouldSendReceipt"] &&
+            [defaults boolForKey:@"shouldRefreshReceipt"]) {
+            [self refreshReceiptThenSend];
+        } else {
+            [self sendPendingReceipt];
+        }
     }
 
     return YES;
