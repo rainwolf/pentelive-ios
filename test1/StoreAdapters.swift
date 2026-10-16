@@ -191,13 +191,20 @@ final class StoreKitTransactionSource: TransactionSource {
 
     func startListening(_ onUpdate: @escaping @MainActor () -> Void) {
         guard updatesTask == nil else { return }
-        updatesTask = Task.detached(priority: .background) { [weak self] in
+        updatesTask = Task.detached { [weak self] in
             for await result in Transaction.updates {
                 guard let source = self else { return }
                 await source.record(result)
                 await onUpdate()
             }
         }
+    }
+
+    /// Ends the Transaction.updates listener (tests, so one test's listener
+    /// never acts on the next test's transactions).
+    func stopListening() {
+        updatesTask?.cancel()
+        updatesTask = nil
     }
 
     func showManageSubscriptions(in scene: UIWindowScene) async -> Bool {

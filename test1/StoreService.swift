@@ -87,13 +87,13 @@ import UIKit
 
     // MARK: - Launch and session
 
+    /// True once `start()` ran; never in unit-test host (AppDelegate).
+    @objc var isStarted: Bool { started }
+
     /// Called once at launch: starts the Transaction.updates listener (before
     /// login the updates stay unfinished and the post-login resync sends
     /// them), resyncs on every return to the foreground, and clears the old
     /// receipt-retry flags once.
-    /// True once `start()` ran; never in unit-test host (AppDelegate).
-    @objc var isStarted: Bool { started }
-
     @objc func start() {
         guard !started else { return }
         started = true
@@ -203,7 +203,11 @@ import UIKit
 
         switch await source.purchase(productID: productID, token: fresh.appAccountToken, scene: scene) {
         case .transaction(let transaction):
-            let reply = await send(transaction)
+            let reply = await send(transaction, user: user)
+            // Another account logged in meanwhile: the purchase stays
+            // unfinished, silently, for this account's next post-login
+            // resync. A plain logout still says the purchase is saved.
+            if let current = host.username, current != user { return }
             messages.show(reply.buyMessage)
             await handle([reply], for: [transaction], user: user)
         case .cancelled:
@@ -277,7 +281,7 @@ import UIKit
         var replies: [StoreReply] = []
         for transaction in transactions {
             guard host.username == user else { break }
-            replies.append(await send(transaction))
+            replies.append(await send(transaction, user: user))
         }
         // An outage must not cost an old subscriber the sweep: try again on
         // the next resync of this session.
@@ -290,16 +294,17 @@ import UIKit
 
     // MARK: - Serial POST queue
 
-    /// Posts one transaction through the serial queue. A transaction already
-    /// in flight is not posted again: the caller gets that POST's reply.
-    func send(_ transaction: StoreTransaction) async -> StoreReply {
+    /// Posts one transaction through the serial queue for `user`, the account
+    /// logged in when the caller started. A transaction already in flight is
+    /// not posted again: the caller gets that POST's reply.
+    func send(_ transaction: StoreTransaction, user: String) async -> StoreReply {
         if let running = inFlight[transaction.id] {
             return await running.value
         }
         let previous = queueTail
         let task = Task { @MainActor () -> StoreReply in
             _ = await previous?.value
-            return await self.post(transaction)
+            return await self.post(transaction, user: user)
         }
         inFlight[transaction.id] = task
         queueTail = Task { @MainActor in _ = await task.value }
@@ -310,10 +315,23 @@ import UIKit
         return reply
     }
 
-    private func post(_ transaction: StoreTransaction) async -> StoreReply {
-        // Session lost between the purchase sheet and the POST: leave it
-        // unfinished for the post-login resync.
-        guard host.username != nil else { return .sessionLost }
+    /// Returns once no POST is queued and no automatic resync runs (tests wait
+    /// on it before tearing StoreKit Testing down).
+    func idle() async {
+        await Task.yield()
+        while true {
+            let tail = queueTail
+            _ = await tail?.value
+            if !resyncRunning && queueTail == tail { return }
+            try? await Task.sleep(nanoseconds: 10_000_000)
+        }
+    }
+
+    private func post(_ transaction: StoreTransaction, user: String) async -> StoreReply {
+        // Session lost, or another account logged in, between the caller's
+        // start and this queued POST: leave it unfinished for the post-login
+        // resync of the account that started it.
+        guard host.username == user else { return .sessionLost }
         let reply = await server.post(signedTransaction: transaction.jws)
         if reply.finishesTransaction {
             await source.finish(transaction.id)
@@ -339,6 +357,9 @@ import UIKit
     }
 
     private func handle(_ replies: [StoreReply], for transactions: [StoreTransaction], user: String) async {
+        // Replies for an account that is no longer logged in neither mark its
+        // sweep done nor touch the current account's retry or dashboard.
+        guard host.username == user else { return }
         let succeeded = replies.contains { $0.isSuccess }
         let revoked = zip(transactions, replies).contains { pair in
             pair.0.isRevoked && pair.1.finishesTransaction

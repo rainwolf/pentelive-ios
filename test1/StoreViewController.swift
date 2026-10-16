@@ -194,9 +194,9 @@ final class StoreCardView: UIView {
 
         if let vacation = model.vacation {
             vacationCard.isHidden = false
-            vacationDaysLeft.text = String(format: NSLocalizedString("You have %d vacation days left", comment: ""),
+            vacationDaysLeft.text = String(format: NSLocalizedString("You have %ld vacation days left", comment: ""),
                                            vacation.daysLeft)
-            vacationNote.text = String(format: NSLocalizedString("These vacation days do not roll over to %d.",
+            vacationNote.text = String(format: NSLocalizedString("These vacation days do not roll over to %ld.",
                                                                  comment: ""), vacation.nextYear)
             // Rebuilt only when the packs changed: change notifications come
             // in bursts right after the Store opens, and a rebuild mid-tap
@@ -206,7 +206,7 @@ final class StoreCardView: UIView {
                 vacationButtons.arrangedSubviews.forEach { $0.removeFromSuperview() }
                 for option in vacation.options {
                     let button = Self.makeButton(filled: true, "store.vacation.\(option.productID)")
-                    button.configuration?.title = String(format: NSLocalizedString("Extra vacation days (%d): %@",
+                    button.configuration?.title = String(format: NSLocalizedString("Extra vacation days (%ld): %@",
                                                                                    comment: ""),
                                                          option.days, option.price)
                     button.addTarget(self, action: #selector(vacationTapped(_:)), for: .touchUpInside)

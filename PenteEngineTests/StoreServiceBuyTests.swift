@@ -222,6 +222,49 @@ final class StoreServiceBuyTests: XCTestCase {
         XCTAssertEqual(h.messages.shown, [.thankYou])
     }
 
+    /// A's buy waits behind A's sweep POST; A logs out and B logs in before
+    /// it runs. Nothing is posted under B's session, A's purchase stays
+    /// unfinished and silent, A's sweep is not marked done; A's next login
+    /// posts it.
+    func testAQueuedPostIsNotSentUnderTheNextAccount() async {
+        let h = StoreHarness()
+        let migrated = { h.defaults.stringArray(forKey: StoreService.migratedAccountsKey) ?? [] }
+        h.source.unfinishedTransactions = [StoreFixtures.transaction(1)]
+        h.server.holdPosts = true
+        h.service.sessionDidChange(loggedIn: true) // A's post-login resync with the sweep
+        await waitFor { h.server.heldCount == 1 }
+        h.source.purchaseOutcome = .transaction(StoreFixtures.transaction(2, product: "vacation_10"))
+        let buy = Task { await h.service.buy(productID: "vacation_10", scene: nil) }
+        await waitFor { h.source.purchasedProducts.count == 1 }
+        try? await Task.sleep(nanoseconds: 50_000_000)
+
+        h.host.username = nil
+        h.service.sessionDidChange(loggedIn: false)
+        h.host.username = "graviton"
+        h.server.releasePosts()
+        await buy.value
+        await h.service.idle()
+
+        XCTAssertEqual(h.server.posted, ["jws-1"], "nothing posted under B's session")
+        XCTAssertEqual(h.source.finished, [1])
+        XCTAssertEqual(h.source.unfinishedTransactions.map(\.id), [2], "A's purchase stays unfinished")
+        XCTAssertEqual(h.messages.shown, [])
+        XCTAssertFalse(migrated().contains("iostest"), "A's sweep is not marked done")
+        XCTAssertEqual(h.host.entitlementChanges, 0)
+        XCTAssertEqual(h.host.sessionLostCount, 0)
+
+        h.host.username = nil
+        h.service.sessionDidChange(loggedIn: false)
+        h.host.username = "iostest"
+        h.service.sessionDidChange(loggedIn: true)
+        await waitFor { h.server.posted.count == 2 }
+        await h.service.idle()
+        XCTAssertEqual(h.server.posted, ["jws-1", "jws-2"])
+        XCTAssertEqual(h.source.finished, [1, 2])
+        XCTAssertTrue(migrated().contains("iostest"))
+        XCTAssertEqual(h.messages.shown, [], "the post-login resync is silent")
+    }
+
     func testManageSubscriptionsUsesStoreKitThenTheURL() async throws {
         let h = StoreHarness()
         var opened: [URL] = []

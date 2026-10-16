@@ -19,10 +19,21 @@ final class StoreKitIntegrationTests: XCTestCase {
     private var source: StoreKitTransactionSource!
     private var service: StoreService!
 
-    /// XCTest keeps every test case instance alive for the whole run: drop the
-    /// service and its adapter, whose `Transaction.updates` listener would
-    /// otherwise act on the next tests' transactions.
+    /// A stuck purchase fails the test instead of hanging the run (enforced
+    /// with `-test-timeouts-enabled YES`).
+    override func setUp() async throws {
+        try await super.setUp()
+        executionTimeAllowance = 60
+    }
+
+    /// XCTest keeps every test case instance alive for the whole run: let the
+    /// service's POSTs and resyncs end, stop the adapter's `Transaction.updates`
+    /// listener, which would otherwise act on the next tests' transactions,
+    /// and leave StoreKit Testing empty.
     override func tearDown() async throws {
+        await service?.idle()
+        source?.stopListening()
+        session?.clearTransactions()
         service = nil
         source = nil
         server = nil
@@ -32,13 +43,40 @@ final class StoreKitIntegrationTests: XCTestCase {
         try await super.tearDown()
     }
 
-    /// The ids StoreKit itself still holds unfinished (not the adapter's copy).
-    private func storeKitUnfinishedIDs() async -> [UInt64] {
-        var ids: [UInt64] = []
+    /// What StoreKit itself still holds unfinished (not the adapter's copy),
+    /// as `transactionKey`s.
+    private func storeKitUnfinishedKeys() async -> [String] {
+        var keys: [String] = []
         for await result in Transaction.unfinished {
-            ids.append(result.unsafePayloadValue.id)
+            keys.append((try? transactionKey(result.jwsRepresentation)) ?? "?")
         }
-        return ids
+        return keys
+    }
+
+    /// StoreKit updates its unfinished list a moment after a finish():
+    /// polls until it equals `expected`, then returns the last read.
+    private func storeKitUnfinishedKeys(becoming expected: [String],
+                                        within timeout: TimeInterval = 10) async -> [String] {
+        let deadline = Date().addingTimeInterval(timeout)
+        var keys = await storeKitUnfinishedKeys()
+        while keys != expected, Date() < deadline {
+            try? await Task.sleep(nanoseconds: 100_000_000)
+            keys = await storeKitUnfinishedKeys()
+        }
+        return keys
+    }
+
+    /// The adapter's unfinished list (StoreKit's plus updates it recorded),
+    /// polled until it equals `expected`, as `transactionKey`s.
+    private func adapterUnfinishedKeys(becoming expected: [String],
+                                       within timeout: TimeInterval = 10) async -> [String] {
+        let deadline = Date().addingTimeInterval(timeout)
+        var keys = await source.unfinished().map { (try? transactionKey($0.jws)) ?? "?" }
+        while keys != expected, Date() < deadline {
+            try? await Task.sleep(nanoseconds: 100_000_000)
+            keys = await source.unfinished().map { (try? transactionKey($0.jws)) ?? "?" }
+        }
+        return keys
     }
 
     /// A fresh StoreKit Testing session and a StoreService over the real adapter.
@@ -47,8 +85,21 @@ final class StoreKitIntegrationTests: XCTestCase {
         session.resetToDefaultState()
         session.disableDialogs = true
         session.clearTransactions()
-        for await result in Transaction.unfinished {
-            await result.unsafePayloadValue.finish()
+        // clearTransactions() does not empty Transaction.unfinished at once:
+        // finish what is left and re-read until a read comes back empty.
+        let deadline = Date().addingTimeInterval(10)
+        while true {
+            var left = 0
+            for await result in Transaction.unfinished {
+                left += 1
+                await result.unsafePayloadValue.finish()
+            }
+            if left == 0 { break }
+            guard Date() < deadline else {
+                XCTFail("StoreKit Testing did not clear")
+                break
+            }
+            try await Task.sleep(nanoseconds: 200_000_000)
         }
         server = FakeStoreServer()
         messages = FakeStoreMessages()
@@ -80,10 +131,12 @@ final class StoreKitIntegrationTests: XCTestCase {
         return claims
     }
 
-    private func transactionID(_ jws: String) throws -> String {
+    /// Identifies a transaction across JWS copies: StoreKit Testing on the
+    /// simulator often gives every transaction id 0, so the product and the
+    /// purchase date (ms) stand in for it.
+    private func transactionKey(_ jws: String) throws -> String {
         let claims = try payload(jws)
-        if let id = claims["transactionId"] as? String { return id }
-        return "\(claims["transactionId"] ?? "")"
+        return "\(claims["productId"] ?? "?")@\(claims["purchaseDate"] ?? "?")"
     }
 
     private func skTransaction(for productID: String) throws -> SKTestTransaction {
@@ -111,8 +164,8 @@ final class StoreKitIntegrationTests: XCTestCase {
                        StoreFixtures.tokenA.uuidString.lowercased())
         XCTAssertEqual(claims["productId"] as? String, StoreProducts.yearly)
         XCTAssertEqual(messages.shown, [.thankYou])
-        let left = await source.unfinished()
-        XCTAssertTrue(left.isEmpty, "finished after the server answered")
+        let left = await storeKitUnfinishedKeys(becoming: [])
+        XCTAssertEqual(left, [], "finished after the server answered")
     }
 
     func testRetryLaterKeepsTheTransactionUntilAResyncIsAnswered() async throws {
@@ -122,17 +175,22 @@ final class StoreKitIntegrationTests: XCTestCase {
 
         await service.buy(productID: StoreProducts.monthPass, scene: nil)
         XCTAssertEqual(messages.shown, [.saved])
-        let kept = await source.unfinished()
-        XCTAssertEqual(kept.map(\.productID), [StoreProducts.monthPass])
-        let heldByStoreKit = await storeKitUnfinishedIDs()
-        XCTAssertEqual(heldByStoreKit, kept.map(\.id), "StoreKit itself still holds it unfinished")
+        XCTAssertEqual(server.posted.count, 1)
+        guard server.posted.count == 1 else { return }
+        let bought = try transactionKey(server.posted[0])
+        XCTAssertTrue(bought.hasPrefix(StoreProducts.monthPass + "@"))
+        let kept = await adapterUnfinishedKeys(becoming: [bought])
+        XCTAssertEqual(kept, [bought])
+        let heldByStoreKit = await storeKitUnfinishedKeys(becoming: [bought])
+        XCTAssertEqual(heldByStoreKit, [bought], "StoreKit itself still holds it unfinished")
 
         await service.performResync(explicit: false)
         XCTAssertEqual(server.posted.count, 2)
-        XCTAssertEqual(try transactionID(server.posted[0]), try transactionID(server.posted[1]))
-        let left = await source.unfinished()
-        XCTAssertTrue(left.isEmpty)
-        let leftInStoreKit = await storeKitUnfinishedIDs()
+        guard server.posted.count == 2 else { return }
+        XCTAssertEqual(try transactionKey(server.posted[1]), bought, "the same transaction is posted again")
+        let left = await adapterUnfinishedKeys(becoming: [])
+        XCTAssertEqual(left, [])
+        let leftInStoreKit = await storeKitUnfinishedKeys(becoming: [])
         XCTAssertEqual(leftInStoreKit, [], "finished in StoreKit after the resync was answered")
         XCTAssertEqual(messages.shown, [.saved], "the automatic resync is silent")
     }
@@ -189,8 +247,8 @@ final class StoreKitIntegrationTests: XCTestCase {
         guard server.posted.count == 2 else { return }
         XCTAssertNotNil(try payload(server.posted[1])["revocationDate"], "the revoked transaction is posted")
         await waitFor(20) { self.host.entitlementChanges > changesAfterBuy }
-        let left = await source.unfinished()
-        XCTAssertTrue(left.isEmpty, "finished after the server's answer")
+        let left = await adapterUnfinishedKeys(becoming: [])
+        XCTAssertEqual(left, [], "finished after the server's answer")
         XCTAssertEqual(messages.shown, [.thankYou])
     }
 
@@ -211,9 +269,9 @@ final class StoreKitIntegrationTests: XCTestCase {
         }
         XCTAssertEqual(server.posted.count, 2)
         guard server.posted.count == 2 else { return }
-        XCTAssertNotEqual(try transactionID(server.posted[1]), try transactionID(server.posted[0]))
+        XCTAssertNotEqual(try transactionKey(server.posted[1]), try transactionKey(server.posted[0]))
         XCTAssertEqual(messages.shown, [.thankYou])
-        let left = await storeKitUnfinishedIDs()
+        let left = await storeKitUnfinishedKeys(becoming: [])
         XCTAssertEqual(left, [], "the renewal is finished after the server's answer")
     }
 
@@ -248,10 +306,10 @@ final class StoreKitIntegrationTests: XCTestCase {
 
         XCTAssertEqual(server.posted.count, 2)
         guard server.posted.count == 2 else { return }
-        XCTAssertEqual(try transactionID(server.posted[1]), try transactionID(server.posted[0]),
+        XCTAssertEqual(try transactionKey(server.posted[1]), try transactionKey(server.posted[0]),
                        "only the expired transaction itself is posted again")
         XCTAssertEqual(messages.shown, [.thankYou, .noPurchasesToRestore])
-        let left = await storeKitUnfinishedIDs()
+        let left = await storeKitUnfinishedKeys(becoming: [])
         XCTAssertEqual(left, [], "finished after the inactive reply")
     }
 
