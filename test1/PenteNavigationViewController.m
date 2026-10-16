@@ -26,7 +26,6 @@
 @synthesize receivedNotification;
 @synthesize player;
 @synthesize subscription;
-@synthesize showSubscribe;
 
 - (id)initWithNibName:(NSString *)nibNameOrNil
                bundle:(NSBundle *)nibBundleOrNil {

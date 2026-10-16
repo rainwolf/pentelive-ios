@@ -507,11 +507,7 @@ CGFloat bottomOffst = 0;
             actionWithTitle:NSLocalizedString(@"subscription info", nil)
                       style:UIAlertActionStyleDefault
                     handler:^(UIAlertAction *action) {
-                        ((PenteNavigationViewController *)
-                             self.navigationController)
-                            .showSubscribe = YES;
-                        [self.navigationController
-                            popToRootViewControllerAnimated:YES];
+                        [StoreViewController presentFrom:self];
                     }];
         [alertDialog addAction:cancelAction];
         [alertDialog addAction:subscribeAction];

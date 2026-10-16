@@ -3068,11 +3068,7 @@ BOOL goMarkStones = NO, goEvaluateDeadStones = NO, go = NO, isGoGame = NO;
             actionWithTitle:NSLocalizedString(@"subscription info", nil)
                       style:UIAlertActionStyleDefault
                     handler:^(UIAlertAction *action) {
-                        ((PenteNavigationViewController *)
-                             self.navigationController)
-                            .showSubscribe = YES;
-                        [self.navigationController
-                            popToRootViewControllerAnimated:YES];
+                        [StoreViewController presentFrom:self];
                     }];
         [subscribersOnlyController addAction:cancelAction];
         [subscribersOnlyController addAction:subscribeAction];

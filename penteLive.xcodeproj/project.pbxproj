@@ -257,6 +257,7 @@
 		93913F0D555FA9FB23C9B8BD /* DashboardRealPayloadTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 209222A884B0D807DC3B8F72 /* DashboardRealPayloadTests.swift */; };
 		9720E4BE68CE71797F9CC1BD /* MessageAuthorLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D812D9E08169B4990E2D9FF4 /* MessageAuthorLabel.swift */; };
 		990D041477F085330D7E2175 /* DashboardServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56695C43B8B3FC600459EC2F /* DashboardServiceTests.swift */; };
+		9F850A349A46CB192B8FCFAE /* StoreEntryPointsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7CA59B7AF7DEC7A0BC5268E /* StoreEntryPointsTests.swift */; };
 		A15CB2F09376664566B7C4D7 /* DashboardDecodingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A838F18BBA250038D3596952 /* DashboardDecodingTests.swift */; };
 		A382731D82157006F34514E4 /* MoveResultTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5F0539DA310A85158CDB99B /* MoveResultTests.swift */; };
 		A72E76357EBE1DC08D5E34E1 /* ArenaWireTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC635F2362D948DA030F4A63 /* ArenaWireTests.swift */; };
@@ -648,6 +649,7 @@
 		EF8E8FC20ADB028761CFE2A8 /* StoreFakes.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StoreFakes.swift; sourceTree = "<group>"; };
 		F012F4E7BBA0F5D6EF3902A8 /* StoreTypes.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StoreTypes.swift; sourceTree = "<group>"; };
 		F0FC944C7EBF9EE152F01111 /* DashboardResultTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DashboardResultTests.swift; sourceTree = "<group>"; };
+		F7CA59B7AF7DEC7A0BC5268E /* StoreEntryPointsTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StoreEntryPointsTests.swift; sourceTree = "<group>"; };
 		FB0E96BC0C158A9179179CBD /* DashboardEndpoint.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DashboardEndpoint.swift; sourceTree = "<group>"; };
 		FEAB9DAD17D481D8D59FE453 /* Pods_penteLive.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_penteLive.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -1123,6 +1125,7 @@
 				9958ABCE685CCCB2B61E5686 /* StoreKitIntegrationTests.swift */,
 				D8C659756B4CDB24A820A4F4 /* Products.storekit */,
 				E8B3FB83B0F64A0F4F64541E /* StoreViewControllerTests.swift */,
+				F7CA59B7AF7DEC7A0BC5268E /* StoreEntryPointsTests.swift */,
 			);
 			path = PenteEngineTests;
 			sourceTree = SOURCE_ROOT;
@@ -1508,6 +1511,7 @@
 				F64C17DEC67643AEBAE1EAA1 /* StoreAdaptersTests.swift in Sources */,
 				F72B5133FA0A653E9E693B92 /* StoreKitIntegrationTests.swift in Sources */,
 				4B11137F8EB9E713E604C1F0 /* StoreViewControllerTests.swift in Sources */,
+				9F850A349A46CB192B8FCFAE /* StoreEntryPointsTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

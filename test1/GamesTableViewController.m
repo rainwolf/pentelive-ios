@@ -201,8 +201,6 @@ CGFloat bottomOffset = 0;
     if (!navController.loggedIn) {
         self.tableView.layer.borderWidth = 1.5;
         [self login];
-    } else if (navController.showSubscribe) {
-        [self performSegueWithIdentifier:@"settingsTap" sender:self];
     }
 
     //    bannerView = navController.bannerView;
@@ -2685,8 +2683,7 @@ array, and add a new row to the table view
                 if (buttonIndex == 1) {
                     [self performSegueWithIdentifier:@"addInvitationsTap" sender:self];
                 } else if (buttonIndex == 2) {
-                    ((PenteNavigationViewController *)self.navigationController).showSubscribe = YES;
-                    [self performSegueWithIdentifier:@"settingsTap" sender:self];
+                    [StoreViewController presentFrom:self];
                 }
             }];
             return;
@@ -4289,11 +4286,7 @@ array, and add a new row to the table view
             actionWithTitle:NSLocalizedString(@"subscription info", nil)
                       style:UIAlertActionStyleDefault
                     handler:^(UIAlertAction *action) {
-                        ((PenteNavigationViewController *)
-                             self.navigationController)
-                            .showSubscribe = YES;
-                        [self performSegueWithIdentifier:@"settingsTap"
-                                                  sender:self];
+                        [StoreViewController presentFrom:self];
                     }];
         [subscribersOnlyController addAction:cancelAction];
         [subscribersOnlyController addAction:subscribeAction];

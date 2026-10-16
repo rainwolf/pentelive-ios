@@ -88,9 +88,9 @@
 			<key>IASKTextAlignment</key>
 			<string>IASKUITextAlignmentCenter</string>
 			<key>Title</key>
-			<string>Restore Purchase</string>
+			<string>Subscribe!</string>
 			<key>Key</key>
-			<string>RestorePurchaseButton</string>
+			<string>SubscribeButton</string>
 		</dict>
 		<dict>
 			<key>Type</key>
@@ -100,23 +100,9 @@
 			<key>IASKTextAlignment</key>
 			<string>IASKUITextAlignmentCenter</string>
 			<key>Title</key>
-			<string>Subscribe!</string>
+			<string>Store</string>
 			<key>Key</key>
-			<string>SubscribeButton</string>
-		</dict>
-		<dict>
-			<key>Key</key>
-			<string>manageSubscriptions</string>
-			<key>DefaultValue</key>
-			<string>pente.org</string>
-			<key>File</key>
-			<string>https://buy.itunes.apple.com/WebObjects/MZFinance.woa/wa/manageSubscriptions</string>
-			<key>Title</key>
-			<string>Manage subscription</string>
-			<key>Type</key>
-			<string>IASKOpenURLSpecifier</string>
-			<key>IASKTextAlignment</key>
-			<string>IASKUITextAlignmentCenter</string>
+			<string>StoreButton</string>
 		</dict>
 		<dict>
 			<key>File</key>

@@ -179,8 +179,7 @@ let development = developmentEnabled()
             }
             alertController.addAction(cancelAction)
             let subscribeAction = UIAlertAction(title: NSLocalizedString("subscription info", comment: ""), style: .default) { _ in
-                (self.navigationController as! PenteNavigationViewController).showSubscribe = true
-                let _ = self.navigationController?.popToRootViewController(animated: true)
+                StoreViewController.present(from: self)
             }
             alertController.addAction(subscribeAction)
             present(alertController, animated: true)
