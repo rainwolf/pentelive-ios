@@ -122,6 +122,16 @@ CGFloat bottomOffset = 0;
     };
     [super viewDidLoad];
     [self setTitle:NSLocalizedString(@"home", nil)];
+    [[NSNotificationCenter defaultCenter]
+        addObserver:self
+           selector:@selector(storeEntitlementsChanged:)
+               name:StoreService.entitlementsChangedNotification
+             object:nil];
+    [[NSNotificationCenter defaultCenter]
+        addObserver:self
+           selector:@selector(storeSessionLost:)
+               name:StoreService.sessionLostNotification
+             object:nil];
 
     selectedInvitationCell = nil;
     selectedPublicInvitationCell = nil;
@@ -3302,6 +3312,20 @@ array, and add a new row to the table view
     }
 }
 
+// A purchase, renewal or revocation was registered at pente.org: reload the
+// dashboard so PentePlayer.subscriber follows (spec 5.1).
+- (void)storeEntitlementsChanged:(NSNotification *)notification {
+    if (((PenteNavigationViewController *)self.navigationController).loggedIn) {
+        [self refreshDashboard];
+    }
+}
+
+// pente.org answered HTTP 401 to a Store request: log in again as at launch;
+// the post-login resync then sends what is still unfinished (spec 5.3).
+- (void)storeSessionLost:(NSNotification *)notification {
+    [self login];
+}
+
 - (void)refreshDashboard {
     [self performSelector:@selector(scrollViewDidScroll:)
                withObject:self.tableView
@@ -3368,9 +3392,6 @@ array, and add a new row to the table view
     [self.player setEmailMe:flags.emailMe];
     [defaults setBool:self.player.emailMe forKey:@"emailMe"];
     [defaults setBool:self.player.personalizeAds forKey:PERSONALIZEADSKEY];
-    if ([self.player subscriber]) {
-        [defaults setBool:NO forKey:@"shouldSendReceipt"];
-    }
 
     livePlayers = flags.livePlayers;
     onlineFollowing = flags.onlineFollowing;

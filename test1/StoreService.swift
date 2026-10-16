@@ -91,6 +91,9 @@ import UIKit
     /// login the updates stay unfinished and the post-login resync sends
     /// them), resyncs on every return to the foreground, and clears the old
     /// receipt-retry flags once.
+    /// True once `start()` ran; never in unit-test host (AppDelegate).
+    @objc var isStarted: Bool { started }
+
     @objc func start() {
         guard !started else { return }
         started = true
