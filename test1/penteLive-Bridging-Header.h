@@ -5,6 +5,7 @@
 
 #import "PenteNavigationViewController.h"
 #import "PenteBanner.h"
+#import "PenteAlert.h"
 #import "PentePopover.h"
 //@import SVWebViewController;
 #import "BoardViewController.h"

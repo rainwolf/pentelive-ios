@@ -34,6 +34,9 @@
 @property(nonatomic, retain) NSDictionary *receivedNotification;
 @property(nonatomic, retain) PentePlayer *player;
 @property(nonatomic, retain) SubscriptionProduct *subscription;
+// The lowercased username of the current login, taken by setLoggedIn:YES;
+// nil while logged out. The Store uses it, not the live "username" default.
+@property(nonatomic, copy) NSString *loggedInUsername;
 
 //- (void)adViewWillLeaveApplication:(GADBannerView *)bannerViewl;
 

@@ -37,6 +37,20 @@
     return self;
 }
 
+- (BOOL)loggedIn {
+    return loggedIn;
+}
+
+// Every login (launch, Settings, account switch) and every logout goes
+// through here.
+- (void)setLoggedIn:(BOOL)value {
+    loggedIn = value;
+    self.loggedInUsername =
+        value ? [[[NSUserDefaults standardUserDefaults] stringForKey:@"username"]
+                    lowercaseString]
+              : nil;
+}
+
 //- (BOOL)shouldAutorotate {
 //    return [self.visibleViewController shouldAutorotate];
 //}
