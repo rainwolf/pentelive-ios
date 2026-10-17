@@ -18,7 +18,13 @@
 #define usernameKey @"username"
 #define passwordKey @"password"
 
-@interface MessagesViewController ()
+@interface MessagesViewController () <UIGestureRecognizerDelegate> {
+    UILabel *replyPlaceholder;
+    UIView *loadErrorView;
+    NSLayoutConstraint *replyHeightConstraint;
+    NSArray<NSLayoutConstraint *> *threadModeConstraints;
+    NSArray<NSLayoutConstraint *> *newMessageModeConstraints;
+}
 
 @end
 
@@ -61,225 +67,75 @@ InvitationsViewController *invitationVC;
 - (void)viewWillAppear:(BOOL)animated {
     [[NSNotificationCenter defaultCenter]
         addObserver:self
-           selector:@selector(keyboardWillShow:)
-               name:UIKeyboardWillShowNotification
-             object:nil];
-    [[NSNotificationCenter defaultCenter]
-        addObserver:self
-           selector:@selector(keyboardWillHide)
-               name:UIKeyboardWillHideNotification
+           selector:@selector(keyboardWillChangeFrame:)
+               name:UIKeyboardWillChangeFrameNotification
              object:nil];
 
     [super viewWillAppear:animated];
+    if (sendButton.hidden && ![replyMessageView isFirstResponder] &&
+        ![subjectField isFirstResponder] && ![toField isFirstResponder]) {
+        sendButton.hidden = NO;
+    }
+    [self applyLayoutMode];
+}
+
+- (void)setReplySubject {
+    if ([subject length] > 3) {
+        [subjectField
+            setText:([[subject substringWithRange:NSMakeRange(0, 4)]
+                        isEqualToString:@"Re: "])
+                        ? subject
+                        : [@"Re: " stringByAppendingString:subject]];
+    } else {
+        [subjectField setText:[@"Re: " stringByAppendingString:subject]];
+    }
 }
 
 - (void)viewDidAppear:(BOOL)animated {
-    CGFloat bottomOffset = 0;
-
-    if ([[UIDevice currentDevice] userInterfaceIdiom] ==
-        UIUserInterfaceIdiomPhone) {
-        if ((int)[[UIScreen mainScreen] nativeBounds].size.height == 2436) {
-            bottomOffset = 34;
-        }
-    }
+    [super viewDidAppear:animated];
 
     PenteNavigationViewController *navController =
         (PenteNavigationViewController *)self.navigationController;
     if (navController.challengeCancelled) {
         [self setMessageID:navController.unchallengedMessageID];
         [self setTitle:author];
-        if ([subject length] > 3) {
-            [subjectField
-                setText:([[subject substringWithRange:NSMakeRange(0, 4)]
-                            isEqualToString:@"Re: "])
-                            ? subject
-                            : [@"Re: " stringByAppendingString:subject]];
-        } else {
-            [subjectField setText:[@"Re: " stringByAppendingString:subject]];
-        }
+        [self setReplySubject];
+        [self applyLayoutMode];
         return;
     }
+    [self applyLayoutMode];
 
     [UIView
         animateWithDuration:0.3f
                  animations:^{
-                     if (messageID) {
-                         [self.navigationItem
-                             setRightBarButtonItems:
-                                 [NSArray
-                                     arrayWithObjects:
-                                         [[UIBarButtonItem alloc]
-                                             initWithBarButtonSystemItem:
-                                                 UIBarButtonSystemItemTrash
-                                                                  target:self
-                                                                  action:
-                                                                      @selector
-                                                                  (deleteMessageTap
-                                                                      )],
-                                         [[UIBarButtonItem alloc]
-                                             initWithBarButtonSystemItem:
-                                                 UIBarButtonSystemItemPlay
-                                                                  target:self
-                                                                  action:
-                                                                      @selector
-                                                                  (challengeTap
-                                                                      )],
-                                         nil]];
+                     if (self->messageID) {
+                         [self.navigationItem setRightBarButtonItems:@[
+                             [[UIBarButtonItem alloc]
+                                 initWithBarButtonSystemItem:
+                                     UIBarButtonSystemItemTrash
+                                                      target:self
+                                                      action:@selector
+                                                      (deleteMessageTap)],
+                             [[UIBarButtonItem alloc]
+                                 initWithBarButtonSystemItem:
+                                     UIBarButtonSystemItemPlay
+                                                      target:self
+                                                      action:@selector
+                                                      (challengeTap)]
+                         ]];
                      } else {
                          [self.navigationItem setRightBarButtonItem:nil];
                          [self.navigationItem setRightBarButtonItems:nil];
                      }
                  }];
 
-    [sendButton
-        setFrame:CGRectMake(4, self.view.bounds.size.height - 47 - bottomOffset,
-                            self.view.bounds.size.width - 8, 44)];
-
-    [spinner setHidden:YES];
-    [sendButton addSubview:spinner];
-    [spinner setHidesWhenStopped:YES];
-
-    float halfScreenSize =
-        (self.view.frame.size.height - subjectField.frame.size.height -
-         subjectField.frame.origin.y - sendButton.frame.size.height - 9 -
-         bottomOffset) /
-        2;
     if (messageID) {
         [self setTitle:author];
-
-        if ([subject length] > 3) {
-            [subjectField
-                setText:([[subject substringWithRange:NSMakeRange(0, 4)]
-                            isEqualToString:@"Re: "])
-                            ? subject
-                            : [@"Re: " stringByAppendingString:subject]];
-        } else {
-            [subjectField setText:[@"Re: " stringByAppendingString:subject]];
-        }
-        //        [self.view addSubview:subjectField];
-
-        NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
-        NSString *url;
-
-        // load the message
-        url = [NSString stringWithFormat:@"https://www.pente.org/gameServer/"
-                                         @"mymessages?command=view&mid=%@",
-                                         messageID];
-        if (development) {
-            url = [NSString stringWithFormat:@"https://localhost/gameServer/"
-                                             @"mymessages?command=view&mid=%@",
-                                             messageID];
-        }
-        [request setURL:[NSURL URLWithString:url]];
-        [request setHTTPMethod:@"GET"];
-        [request setTimeoutInterval:7.0];
-        __weak typeof(self) weakSelf = self;
-        [PenteHTTPClient sendRequest:request completion:^(NSData *responseData, NSURLResponse *response, NSError *error) {
-            __strong typeof(weakSelf) strongSelf = weakSelf;
-            if (!strongSelf) return;
-            NSString *dashboardString =
-                [[NSString alloc] initWithData:responseData
-                                      encoding:NSUTF8StringEncoding];
-
-            NSRange tmpRange =
-                [dashboardString rangeOfString:@"        <br>\r\n          "];
-            int myTurnStart = (int)tmpRange.location + (int)tmpRange.length;
-            NSRange msgRange =
-                [dashboardString rangeOfString:@"          <br><br>"];
-            msgRange =
-                NSMakeRange(myTurnStart, msgRange.location - myTurnStart - 2);
-
-            NSString *tmpText = [[dashboardString substringWithRange:msgRange]
-                stringByReplacingOccurrencesOfString:@"<br>"
-                                          withString:@"\n"];
-
-            NSString *receivedText =
-                [strongSelf stripURL:[strongSelf replaceWithSmileys:tmpText]];
-
-            NSDictionary *fontAttributes =
-                [NSDictionary dictionaryWithObject:[strongSelf->receivedMessageView font]
-                                            forKey:NSFontAttributeName];
-            //        [self.view addSubview:receivedMessageView];
-            CGRect textFrame = [receivedText
-                boundingRectWithSize:CGSizeMake(
-                                         strongSelf->receivedMessageView.contentSize.width +
-                                             strongSelf->receivedMessageView.contentOffset.x -
-                                             strongSelf->receivedMessageView.contentInset.left -
-                                             strongSelf->receivedMessageView.contentInset.right,
-                                         halfScreenSize)
-                             options:NSStringDrawingUsesLineFragmentOrigin
-                          attributes:fontAttributes
-                             context:nil];
-            [strongSelf->receivedMessageView setText:receivedText];
-            CGFloat fontLineHeight = [[strongSelf->receivedMessageView font] lineHeight];
-
-            [strongSelf->toField removeFromSuperview];
-
-            [UIView
-                animateWithDuration:0.3f
-                         animations:^{
-                             CGRect frame = strongSelf->subjectField.frame;
-                             frame = strongSelf->subjectField.frame;
-                             frame.origin.y = 2;
-                             [strongSelf->subjectField setFrame:frame];
-                             frame = strongSelf->receivedMessageView.frame;
-                             if ((textFrame.size.height -
-                                  strongSelf->receivedMessageView.contentInset.top -
-                                  strongSelf->receivedMessageView.contentInset.bottom +
-                                  strongSelf->receivedMessageView.contentOffset.y +
-                                  fontLineHeight) < halfScreenSize) {
-                                 frame.size.height =
-                                     textFrame.size.height -
-                                     strongSelf->receivedMessageView.contentInset.top -
-                                     strongSelf->receivedMessageView.contentInset.bottom +
-                                     strongSelf->receivedMessageView.contentOffset.y +
-                                     fontLineHeight;
-                             } else {
-                                 frame.size.height = halfScreenSize;
-                             }
-                             frame.origin.y = strongSelf->subjectField.frame.origin.y +
-                                              strongSelf->subjectField.frame.size.height;
-                             [strongSelf->receivedMessageView setFrame:frame];
-                             //            [sendButton setFrame:CGRectMake(2,
-                             //            bannerView.frame.origin.y - 42,
-                             //            self.view.bounds.size.width - 4, 40)];
-                             [strongSelf->replyMessageView
-                                 setFrame:
-                                     CGRectMake(
-                                         3,
-                                         strongSelf->receivedMessageView.frame.origin.y +
-                                             strongSelf->receivedMessageView.frame.size.height +
-                                             3,
-                                         strongSelf.view.bounds.size.width - 6,
-                                         strongSelf->sendButton.frame.origin.y -
-                                             strongSelf->receivedMessageView.frame.origin.y -
-                                             strongSelf->receivedMessageView.frame.size.height -
-                                             6)];
-                         }];
-        }];
+        [self setReplySubject];
+        [self loadThread];
     } else {
         [self setTitle:@"new message"];
-        [receivedMessageView removeFromSuperview];
-
-        [toField
-            setFrame:CGRectMake(3, 3, self.view.bounds.size.width - 6, 30)];
         self.toField.textColor = [UIColor blueColor];
-
-        [subjectField setFrame:CGRectMake(3,
-                                          toField.frame.origin.y +
-                                              toField.frame.size.height + 3,
-                                          self.view.bounds.size.width - 6, 30)];
-
-        [replyMessageView
-            setFrame:CGRectMake(3,
-                                subjectField.frame.origin.y +
-                                    subjectField.frame.size.height + 3,
-                                self.view.bounds.size.width - 6, 44)];
-        CGRect frame = replyMessageView.frame;
-        frame.size.height = sendButton.frame.origin.y -
-                            subjectField.frame.origin.y -
-                            subjectField.frame.size.height - 6;
-        [replyMessageView setFrame:frame];
 
         if ([navController needHelp]) {
             [navController setNeedHelp:NO];
@@ -291,21 +147,84 @@ InvitationsViewController *invitationVC;
                                                  standardUserDefaults]
                                                  objectForKey:@"username"]]];
         }
-
-        //        [replyMessageView setFrame:CGRectMake(5, 5,
-        //        self.view.bounds.size.width - 10, 44)];
     }
+}
+
+// Reply mode (messageID set): subject, thread, reply input, send.
+// New message mode: to, subject, reply input (fills the area), send.
+- (void)applyLayoutMode {
+    if (!threadModeConstraints) {
+        return;
+    }
+    BOOL replying = (messageID != nil);
+    if (toField.hidden != replying) {
+        toField.hidden = replying;
+    }
+    receivedMessageView.hidden = !replying;
+    if (!replying) {
+        loadErrorView.hidden = YES;
+    }
+    replyPlaceholder.text =
+        replying ? NSLocalizedString(@"Enter reply…", nil) : nil;
+    if (replying) {
+        [NSLayoutConstraint deactivateConstraints:newMessageModeConstraints];
+        [NSLayoutConstraint activateConstraints:threadModeConstraints];
+    } else {
+        [NSLayoutConstraint deactivateConstraints:threadModeConstraints];
+        [NSLayoutConstraint activateConstraints:newMessageModeConstraints];
+    }
+    [self updateReplyInput];
+}
+
+- (void)loadThread {
+    loadErrorView.hidden = YES;
+
+    NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
+    NSString *url = [NSString
+        stringWithFormat:@"https://www.pente.org/gameServer/messageJson?mid=%@",
+                         messageID];
+    if (development) {
+        url = [NSString
+            stringWithFormat:@"https://localhost/gameServer/messageJson?mid=%@",
+                             messageID];
+    }
+    [request setURL:[NSURL URLWithString:url]];
+    [request setHTTPMethod:@"GET"];
+    [request setTimeoutInterval:7.0];
+    __weak typeof(self) weakSelf = self;
+    [PenteHTTPClient
+        sendRequest:request
+         completion:^(NSData *responseData, NSURLResponse *response,
+                      NSError *error) {
+           __strong typeof(weakSelf) strongSelf = weakSelf;
+           if (!strongSelf)
+               return;
+           NSInteger status =
+               [response isKindOfClass:[NSHTTPURLResponse class]]
+                   ? ((NSHTTPURLResponse *)response).statusCode
+                   : 0;
+           // An expired session answers with the HTML login page (200);
+           // parse returns nil for that too.
+           MessageThread *thread =
+               (error || status != 200) ? nil
+                                        : [MessageThread parse:responseData];
+           if (!thread) {
+               strongSelf->loadErrorView.hidden = NO;
+               return;
+           }
+           strongSelf->loadErrorView.hidden = YES;
+           [(MessageThreadView *)strongSelf->receivedMessageView show:thread];
+           [strongSelf->receivedMessageView setContentOffset:CGPointZero
+                                                    animated:NO];
+         }];
+}
+
+- (void)retryLoadTap {
+    [self loadThread];
 }
 
 - (void)viewDidDisappear:(BOOL)animated {
     [[NSNotificationCenter defaultCenter] removeObserver:self];
-    //    [receivedMessageView removeFromSuperview];
-    //    [replyMessageView removeFromSuperview];
-    //    [subjectField removeFromSuperview];
-    //    [sendButton removeFromSuperview];
-    //    [toField removeFromSuperview];
-    //    messageID = nil;
-    //    [bannerView removeFromSuperview];
     [super viewDidDisappear:animated];
 }
 
@@ -316,9 +235,7 @@ InvitationsViewController *invitationVC;
     self.view.backgroundColor = [UIColor
         colorWithPatternImage:[UIImage imageNamed:@"preferencesBG.png"]];
 
-    toField = [[HTAutocompleteTextField alloc]
-        initWithFrame:CGRectMake(2, -32, self.view.frame.size.width - 4, 30)];
-    //    [toField setBackgroundColor:[UIColor whiteColor]];
+    toField = [[HTAutocompleteTextField alloc] initWithFrame:CGRectZero];
     [toField setFont:[UIFont systemFontOfSize:15]];
     [toField setTextAlignment:NSTextAlignmentLeft];
     [toField
@@ -345,10 +262,7 @@ InvitationsViewController *invitationVC;
     self.toHistory = [defaults objectForKey:@"invitedHistory"];
     [self.toField setAutocompleteDataSource:self];
 
-    subjectField = [[UITextField alloc]
-        initWithFrame:CGRectMake(2, toField.frame.origin.y - 32,
-                                 self.view.frame.size.width - 4, 30)];
-    //    [subjectField setBackgroundColor:[UIColor whiteColor]];
+    subjectField = [[UITextField alloc] initWithFrame:CGRectZero];
     [subjectField setFont:[UIFont systemFontOfSize:15]];
     [subjectField
         setContentVerticalAlignment:UIControlContentVerticalAlignmentCenter];
@@ -361,55 +275,60 @@ InvitationsViewController *invitationVC;
     [self.subjectField addSubview:tmpLabel];
     self.subjectField.leftView = paddingView;
     self.subjectField.leftViewMode = UITextFieldViewModeAlways;
-    //    [subjectField
-    //    setAutocapitalizationType:UITextAutocapitalizationTypeNone];
-    //    [subjectField setAutocorrectionType:UITextAutocorrectionTypeNo];
     [subjectField setReturnKeyType:UIReturnKeyDone];
     [subjectField setDelegate:self];
 
-    receivedMessageView = [[UITextView alloc]
-        initWithFrame:CGRectMake(2, subjectField.frame.origin.y - 46,
-                                 self.view.bounds.size.width - 4, 44)];
-    [receivedMessageView setFont:[UIFont fontWithName:@"HelveticaNeue-Bold"
-                                                 size:15.f]];
-    //    NSLog(@"kitty history %@", messagesHistory);
-    [receivedMessageView setEditable:NO];
+    receivedMessageView =
+        [[MessageThreadView alloc] initWithFrame:CGRectZero textContainer:nil];
+    receivedMessageView.backgroundColor = [UIColor systemBackgroundColor];
     [receivedMessageView setAlpha:0.90];
-    //    [receivedMessageView setBackgroundColor:[UIColor colorWithRed:0.98f
-    //    green:0.98f blue:0.98f alpha:0.95]];
     receivedMessageView.clipsToBounds = YES;
     receivedMessageView.layer.cornerRadius = 1.0f;
     receivedMessageView.layer.borderWidth = 1.0f;
     receivedMessageView.layer.borderColor = [[UIColor grayColor] CGColor];
-    //    receivedMessageView.contentInset = UIEdgeInsetsMake(7.0,7.0,0,0.0);
-    [receivedMessageView setDataDetectorTypes:UIDataDetectorTypeLink];
-    [receivedMessageView setUserInteractionEnabled:YES];
-    receivedMessageView.contentInset = UIEdgeInsetsMake(-5.0, 0.0, 0, 0.0);
+    receivedMessageView.keyboardDismissMode =
+        UIScrollViewKeyboardDismissModeInteractive;
+    receivedMessageView.alwaysBounceVertical = YES;
     [receivedMessageView setDelegate:self];
 
-    replyMessageView = [[UITextView alloc]
-        initWithFrame:CGRectMake(5, receivedMessageView.frame.origin.y - 49,
-                                 self.view.bounds.size.width - 10, 44)];
-    [replyMessageView setFont:[UIFont systemFontOfSize:15]];
-    CGRect frame = replyMessageView.frame;
+    replyMessageView = [[UITextView alloc] initWithFrame:CGRectZero];
+    [replyMessageView setFont:[[UIFontMetrics metricsForTextStyle:UIFontTextStyleBody] scaledFontForFont:[UIFont systemFontOfSize:18]]];
+    replyMessageView.adjustsFontForContentSizeCategory = YES;
     [replyMessageView setAlpha:0.90];
     [replyMessageView setEditable:YES];
     replyMessageView.clipsToBounds = YES;
     replyMessageView.layer.cornerRadius = 4.0f;
-    //    replyMessageView.contentInset = UIEdgeInsetsMake(-5.0,5.0,5,5.0);
-    [replyMessageView setTextContainerInset:UIEdgeInsetsMake(5, 5, 5, 5)];
-    [replyMessageView setFrame:frame];
+    [replyMessageView setTextContainerInset:UIEdgeInsetsMake(11, 5, 11, 5)];
     [replyMessageView
         setAutocapitalizationType:UITextAutocapitalizationTypeSentences];
-    //    [replyMessageView setAutocorrectionType:UITextAutocorrectionTypeNo];
     [replyMessageView setReturnKeyType:UIReturnKeyDone];
     [replyMessageView setDelegate:self];
     replyMessageView.layer.borderWidth = 1.5f;
     replyMessageView.layer.borderColor = [[UIColor grayColor] CGColor];
 
-    //    sendButton = [[UIButton alloc] initWithFrame:CGRectMake(10,
-    //    self.view.bounds.size.height - 44, self.view.bounds.size.width - 20,
-    //    40)];
+    replyPlaceholder = [[UILabel alloc] init];
+    replyPlaceholder.translatesAutoresizingMaskIntoConstraints = NO;
+    replyPlaceholder.font = replyMessageView.font;
+    replyPlaceholder.adjustsFontForContentSizeCategory = YES;
+    replyPlaceholder.textColor = [UIColor placeholderTextColor];
+    replyPlaceholder.userInteractionEnabled = NO;
+    [replyMessageView addSubview:replyPlaceholder];
+    CGFloat placeholderInset = replyMessageView.textContainerInset.left +
+                               replyMessageView.textContainer.lineFragmentPadding;
+    [NSLayoutConstraint activateConstraints:@[
+        [replyPlaceholder.leadingAnchor
+            constraintEqualToAnchor:replyMessageView.frameLayoutGuide
+                                        .leadingAnchor
+                           constant:placeholderInset],
+        [replyPlaceholder.trailingAnchor
+            constraintLessThanOrEqualToAnchor:replyMessageView.frameLayoutGuide
+                                                  .trailingAnchor
+                                     constant:-placeholderInset],
+        [replyPlaceholder.topAnchor
+            constraintEqualToAnchor:replyMessageView.frameLayoutGuide.topAnchor
+                           constant:replyMessageView.textContainerInset.top],
+    ]];
+
     sendButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
     sendButton.backgroundColor = [UIColor whiteColor];
     sendButton.titleLabel.font = [UIFont fontWithName:@"HelveticaNeue-Bold"
@@ -421,8 +340,6 @@ InvitationsViewController *invitationVC;
          forControlEvents:UIControlEventTouchUpInside];
     [sendButton setTitle:NSLocalizedString(@"send", nil)
                 forState:UIControlStateNormal];
-    [sendButton setFrame:CGRectMake(2, replyMessageView.frame.origin.y - 40,
-                                    self.view.bounds.size.width, 40)];
     sendButton.layer.borderWidth = 1.5f;
     sendButton.layer.borderColor = [[UIColor blueColor] CGColor];
     sendButton.layer.cornerRadius = 4.0f;
@@ -430,12 +347,167 @@ InvitationsViewController *invitationVC;
     spinner = [[UIActivityIndicatorView alloc]
         initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleMedium];
     spinner.color = [UIColor blueColor];
+    spinner.translatesAutoresizingMaskIntoConstraints = NO;
+    [spinner setHidesWhenStopped:YES];
+    [spinner setHidden:YES];
+    [sendButton addSubview:spinner];
+    [NSLayoutConstraint activateConstraints:@[
+        [spinner.centerYAnchor constraintEqualToAnchor:sendButton.centerYAnchor],
+        [NSLayoutConstraint constraintWithItem:spinner
+                                     attribute:NSLayoutAttributeCenterX
+                                     relatedBy:NSLayoutRelationEqual
+                                        toItem:sendButton
+                                     attribute:NSLayoutAttributeCenterX
+                                    multiplier:0.5
+                                      constant:0],
+    ]];
 
-    [self.view addSubview:toField];
-    [self.view addSubview:subjectField];
-    [self.view addSubview:receivedMessageView];
-    [self.view addSubview:replyMessageView];
-    [self.view addSubview:sendButton];
+    // Inline load-failure message with Retry, over the thread area.
+    UILabel *errorLabel = [[UILabel alloc] init];
+    errorLabel.text = NSLocalizedString(@"Could not load the message.", nil);
+    errorLabel.font = [UIFont preferredFontForTextStyle:UIFontTextStyleBody];
+    errorLabel.adjustsFontForContentSizeCategory = YES;
+    errorLabel.textColor = [UIColor secondaryLabelColor];
+    errorLabel.textAlignment = NSTextAlignmentCenter;
+    errorLabel.numberOfLines = 0;
+    UIButton *retryButton = [UIButton buttonWithType:UIButtonTypeSystem];
+    [retryButton setTitle:NSLocalizedString(@"Retry", nil)
+                 forState:UIControlStateNormal];
+    retryButton.titleLabel.font =
+        [UIFont preferredFontForTextStyle:UIFontTextStyleHeadline];
+    [retryButton addTarget:self
+                    action:@selector(retryLoadTap)
+          forControlEvents:UIControlEventTouchUpInside];
+    UIStackView *errorStack =
+        [[UIStackView alloc] initWithArrangedSubviews:@[ errorLabel, retryButton ]];
+    errorStack.axis = UILayoutConstraintAxisVertical;
+    errorStack.alignment = UIStackViewAlignmentCenter;
+    errorStack.spacing = 8;
+    errorStack.translatesAutoresizingMaskIntoConstraints = NO;
+    errorStack.hidden = YES;
+    loadErrorView = errorStack;
+
+    // Thread + reply share this area; the reply grows up to half of it.
+    UIView *messageArea = [[UIView alloc] init];
+    for (UIView *v in @[ receivedMessageView, replyMessageView, errorStack ]) {
+        v.translatesAutoresizingMaskIntoConstraints = NO;
+        [messageArea addSubview:v];
+    }
+
+    UIStackView *stack = [[UIStackView alloc]
+        initWithArrangedSubviews:@[ toField, subjectField, messageArea, sendButton ]];
+    stack.axis = UILayoutConstraintAxisVertical;
+    stack.spacing = 3;
+    stack.translatesAutoresizingMaskIntoConstraints = NO;
+    [self.view addSubview:stack];
+
+    UILayoutGuide *safe = self.view.safeAreaLayoutGuide;
+    replyHeightConstraint =
+        [replyMessageView.heightAnchor constraintEqualToConstant:44];
+    replyHeightConstraint.priority = UILayoutPriorityRequired - 1;
+    [NSLayoutConstraint activateConstraints:@[
+        [stack.topAnchor constraintEqualToAnchor:safe.topAnchor constant:3],
+        [stack.leadingAnchor constraintEqualToAnchor:safe.leadingAnchor
+                                            constant:3],
+        [stack.trailingAnchor constraintEqualToAnchor:safe.trailingAnchor
+                                             constant:-3],
+        [stack.bottomAnchor
+            constraintEqualToAnchor:self.view.keyboardLayoutGuide.topAnchor
+                           constant:-3],
+        [toField.heightAnchor constraintEqualToConstant:30],
+        [subjectField.heightAnchor constraintEqualToConstant:30],
+        [sendButton.heightAnchor constraintEqualToConstant:44],
+        [replyMessageView.leadingAnchor
+            constraintEqualToAnchor:messageArea.leadingAnchor],
+        [replyMessageView.trailingAnchor
+            constraintEqualToAnchor:messageArea.trailingAnchor],
+        [replyMessageView.bottomAnchor
+            constraintEqualToAnchor:messageArea.bottomAnchor],
+        replyHeightConstraint,
+        [errorStack.centerXAnchor
+            constraintEqualToAnchor:receivedMessageView.centerXAnchor],
+        [errorStack.centerYAnchor
+            constraintEqualToAnchor:receivedMessageView.centerYAnchor],
+        [errorStack.leadingAnchor
+            constraintGreaterThanOrEqualToAnchor:receivedMessageView
+                                                     .leadingAnchor
+                                        constant:16],
+    ]];
+    threadModeConstraints = @[
+        [receivedMessageView.topAnchor
+            constraintEqualToAnchor:messageArea.topAnchor],
+        [receivedMessageView.leadingAnchor
+            constraintEqualToAnchor:messageArea.leadingAnchor],
+        [receivedMessageView.trailingAnchor
+            constraintEqualToAnchor:messageArea.trailingAnchor],
+        [receivedMessageView.bottomAnchor
+            constraintEqualToAnchor:replyMessageView.topAnchor
+                           constant:-3],
+        [replyMessageView.heightAnchor
+            constraintLessThanOrEqualToAnchor:messageArea.heightAnchor
+                                   multiplier:0.5],
+    ];
+    newMessageModeConstraints = @[
+        [replyMessageView.topAnchor
+            constraintEqualToAnchor:messageArea.topAnchor],
+    ];
+
+    // Tap outside the inputs dismisses the keyboard (links still work).
+    UITapGestureRecognizer *dismissTap = [[UITapGestureRecognizer alloc]
+        initWithTarget:self
+                action:@selector(dismissKeyboardTap)];
+    dismissTap.cancelsTouchesInView = NO;
+    dismissTap.delegate = self;
+    [self.view addGestureRecognizer:dismissTap];
+
+    [self applyLayoutMode];
+}
+
+- (void)dismissKeyboardTap {
+    [self.view endEditing:YES];
+}
+
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer
+       shouldReceiveTouch:(UITouch *)touch {
+    for (UIView *input in @[ replyMessageView, subjectField, toField ]) {
+        if ([touch.view isDescendantOfView:input]) {
+            return NO;
+        }
+    }
+    return YES;
+}
+
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer
+    shouldRecognizeSimultaneouslyWithGestureRecognizer:
+        (UIGestureRecognizer *)otherGestureRecognizer {
+    return YES;
+}
+
+- (void)viewDidLayoutSubviews {
+    [super viewDidLayoutSubviews];
+    [self updateReplyInput];
+}
+
+// Reply input: 1 line when empty, grows with its content; the <= half
+// constraint caps it (reply mode), after which it scrolls internally.
+- (void)updateReplyInput {
+    replyPlaceholder.hidden = (replyMessageView.text.length > 0);
+    CGFloat width = replyMessageView.bounds.size.width;
+    if (width <= 0) {
+        return;
+    }
+    CGFloat height =
+        MAX(44, ceil([replyMessageView sizeThatFits:CGSizeMake(width, CGFLOAT_MAX)]
+                         .height));
+    if (fabs(replyHeightConstraint.constant - height) > 0.5) {
+        replyHeightConstraint.constant = height;
+    }
+}
+
+- (void)textViewDidChange:(UITextView *)textView {
+    if (textView == replyMessageView) {
+        [self updateReplyInput];
+    }
 }
 
 - (void)sendButtonTap:(UIButton *)sender {
@@ -459,8 +531,6 @@ InvitationsViewController *invitationVC;
         return;
     }
 
-    spinner.center = CGPointMake(sendButton.frame.size.width / 4,
-                                 sendButton.frame.size.height / 2);
     [spinner setHidden:NO];
     [spinner startAnimating];
     [NSThread detachNewThreadSelector:@selector(sendMessage:)
@@ -477,6 +547,9 @@ InvitationsViewController *invitationVC;
         stringWithFormat:@"command=create&to=%@&subject=%@&body=%@&mobile=",
                          author, [self URLEncodedString_ch:subject],
                          [self URLEncodedString_ch:replyMessage]];
+    if (messageID) {
+        post = [post stringByAppendingFormat:@"&replyTo=%@", messageID];
+    }
     //    NSLog(@"kitty %@", post);
     NSData *postData = [post dataUsingEncoding:NSASCIIStringEncoding
                           allowLossyConversion:YES];
@@ -563,8 +636,6 @@ InvitationsViewController *invitationVC;
     PenteNavigationViewController *navControllor =
         (PenteNavigationViewController *)self.navigationController;
     [navControllor setMessageDeleted:YES];
-    spinner.center = CGPointMake(sendButton.frame.size.width / 4,
-                                 sendButton.frame.size.height / 2);
     [spinner setHidden:NO];
     [spinner startAnimating];
     [NSThread detachNewThreadSelector:@selector(deleteMessage)
@@ -625,8 +696,6 @@ InvitationsViewController *invitationVC;
     PenteNavigationViewController *navControllor =
         (PenteNavigationViewController *)self.navigationController;
     [navControllor setDidMove:YES];
-    spinner.center = CGPointMake(sendButton.frame.size.width / 4,
-                                 sendButton.frame.size.height / 2);
     [spinner setHidden:NO];
     [spinner startAnimating];
     [NSThread detachNewThreadSelector:@selector(challenge)
@@ -761,6 +830,9 @@ InvitationsViewController *invitationVC;
         if (replaceCount > 0) {
             // update the textView's text
             textView.text = updatedText;
+            if (textView == replyMessageView) {
+                [self updateReplyInput];
+            }
 
             // leave cursor at end of inserted text
             endRange.location +=
@@ -791,289 +863,50 @@ InvitationsViewController *invitationVC;
     }
 }
 
-- (void)keyboardWillShow:(NSNotification *)notification {
-    NSDictionary *keyboardInfo = [notification userInfo];
-    NSValue *keyboardFrameBegin =
-        [keyboardInfo valueForKey:UIKeyboardFrameEndUserInfoKey];
-    CGRect keyboardFrameBeginRect = [keyboardFrameBegin CGRectValue];
-    [UIView
-        animateWithDuration:0.3f
-                 animations:^{
-                     if (messageID) {
-                         float halfScreenSize =
-                             (self.view.frame.size.height -
-                              keyboardFrameBeginRect.size.height -
-                              subjectField.frame.size.height -
-                              subjectField.frame.origin.y - 3) /
-                             2;
-                         NSDictionary *fontAttributes = [NSDictionary
-                             dictionaryWithObject:[receivedMessageView font]
-                                           forKey:NSFontAttributeName];
-                         CGRect textFrame = [receivedMessageView.text
-                             boundingRectWithSize:CGSizeMake(
-                                                      receivedMessageView
-                                                          .contentSize.width,
-                                                      halfScreenSize)
-                                          options:
-                                              NSStringDrawingUsesLineFragmentOrigin
-                                       attributes:fontAttributes
-                                          context:nil];
-
-                         CGFloat fontLineHeight =
-                             [[receivedMessageView font] lineHeight];
-                         CGRect frame = receivedMessageView.frame;
-                         if ((textFrame.size.height -
-                              receivedMessageView.contentInset.top -
-                              receivedMessageView.contentInset.bottom +
-                              receivedMessageView.contentOffset.y +
-                              fontLineHeight) < halfScreenSize) {
-                             frame.size.height =
-                                 (textFrame.size.height -
-                                  receivedMessageView.contentInset.top -
-                                  receivedMessageView.contentInset.bottom +
-                                  receivedMessageView.contentOffset.y +
-                                  fontLineHeight);
-                         } else {
-                             frame.size.height = halfScreenSize;
-                         }
-                         frame.origin.y = subjectField.frame.origin.y +
-                                          subjectField.frame.size.height;
-                         [receivedMessageView setFrame:frame];
-
-                         frame = CGRectMake(
-                             3,
-                             receivedMessageView.frame.origin.y +
-                                 receivedMessageView.frame.size.height + 3,
-                             self.view.bounds.size.width - 6, 44);
-                         frame.size.height =
-                             2 * halfScreenSize -
-                             receivedMessageView.frame.size.height - 6;
-                         frame.origin.y = receivedMessageView.frame.origin.y +
-                                          3 +
-                                          receivedMessageView.frame.size.height;
-                         [replyMessageView setFrame:frame];
-                     } else {
-                         float screenSize =
-                             (self.view.frame.size.height -
-                              keyboardFrameBeginRect.size.height -
-                              subjectField.frame.origin.y -
-                              subjectField.frame.size.height - 6);
-                         CGRect frame = CGRectMake(
-                             3,
-                             subjectField.frame.origin.y +
-                                 subjectField.frame.size.height + 3,
-                             self.view.bounds.size.width - 6, screenSize);
-                         [replyMessageView setFrame:frame];
+// Hide the send button while a software keyboard covers the bottom of the
+// screen so the thread/reply area gets the space; show it again once the
+// keyboard is gone. A hardware keyboard (only the small shortcut bar shows)
+// or a floating/undocked keyboard leaves the button visible.
+- (void)keyboardWillChangeFrame:(NSNotification *)notification {
+    NSDictionary *info = [notification userInfo];
+    CGRect endFrame =
+        [[info objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue];
+    // The end frame is in screen coordinates; on iPad (Stage Manager, Split
+    // View, Slide Over) the window is not the screen, so convert from it.
+    UIScreen *screen = self.view.window.screen;
+    if (!screen) {
+        return;
+    }
+    CGRect local = [self.view convertRect:endFrame
+                       fromCoordinateSpace:screen.coordinateSpace];
+    CGRect bounds = self.view.bounds;
+    BOOL softwareKeyboardShown = NO;
+    if (!CGRectIsEmpty(local) && CGRectIntersectsRect(bounds, local) &&
+        CGRectGetMaxY(local) >= CGRectGetMaxY(bounds) - 1) {
+        CGFloat overlap = CGRectGetMaxY(bounds) -
+                          self.view.safeAreaInsets.bottom - CGRectGetMinY(local);
+        softwareKeyboardShown = (overlap > 100);
+    }
+    if (sendButton.hidden == softwareKeyboardShown) {
+        return;
+    }
+    double duration =
+        [[info objectForKey:UIKeyboardAnimationDurationUserInfoKey] doubleValue];
+    UIViewAnimationCurve curve =
+        [[info objectForKey:UIKeyboardAnimationCurveUserInfoKey] integerValue];
+    [UIView animateWithDuration:duration
+                          delay:0
+                        options:(UIViewAnimationOptions)curve << 16
+                     animations:^{
+                       self->sendButton.hidden = softwareKeyboardShown;
+                       [self.view layoutIfNeeded];
                      }
-                 }];
-}
-
-- (void)keyboardWillHide {
-    // Animate the current view back to its original position
-    float halfScreenSize =
-        (self.view.frame.size.height - subjectField.frame.size.height -
-         subjectField.frame.origin.y - sendButton.frame.size.height - 9) /
-        2;
-    [UIView
-        animateWithDuration:0.3f
-                 animations:^{
-                     if (messageID) {
-                         NSDictionary *fontAttributes = [NSDictionary
-                             dictionaryWithObject:[receivedMessageView font]
-                                           forKey:NSFontAttributeName];
-                         CGRect textFrame = [receivedMessageView.text
-                             boundingRectWithSize:CGSizeMake(
-                                                      receivedMessageView
-                                                          .contentSize.width,
-                                                      halfScreenSize)
-                                          options:
-                                              NSStringDrawingUsesLineFragmentOrigin
-                                       attributes:fontAttributes
-                                          context:nil];
-
-                         CGFloat fontLineHeight =
-                             [[receivedMessageView font] lineHeight];
-                         CGRect frame = receivedMessageView.frame;
-                         if ((textFrame.size.height -
-                              receivedMessageView.contentInset.top -
-                              receivedMessageView.contentInset.bottom +
-                              receivedMessageView.contentOffset.y +
-                              fontLineHeight) < halfScreenSize) {
-                             frame.size.height =
-                                 (textFrame.size.height -
-                                  receivedMessageView.contentInset.top -
-                                  receivedMessageView.contentInset.bottom +
-                                  receivedMessageView.contentOffset.y +
-                                  fontLineHeight);
-                         } else {
-                             frame.size.height = halfScreenSize;
-                         }
-                         frame.origin.y = subjectField.frame.origin.y +
-                                          subjectField.frame.size.height;
-                         [receivedMessageView setFrame:frame];
-
-                         [replyMessageView
-                             setFrame:CGRectMake(
-                                          3,
-                                          receivedMessageView.frame.origin.y +
-                                              receivedMessageView.frame.size
-                                                  .height +
-                                              3,
-                                          self.view.bounds.size.width - 6, 44)];
-                         frame = replyMessageView.frame;
-                         frame.size.height =
-                             sendButton.frame.origin.y -
-                             receivedMessageView.frame.origin.y -
-                             receivedMessageView.frame.size.height - 6;
-                         frame.origin.y = receivedMessageView.frame.origin.y +
-                                          3 +
-                                          receivedMessageView.frame.size.height;
-                         [replyMessageView setFrame:frame];
-                     } else {
-                         [replyMessageView
-                             setFrame:CGRectMake(
-                                          3,
-                                          subjectField.frame.origin.y +
-                                              subjectField.frame.size.height +
-                                              3,
-                                          self.view.bounds.size.width - 6,
-                                          sendButton.frame.origin.y -
-                                              subjectField.frame.origin.y -
-                                              subjectField.frame.size.height -
-                                              6)];
-                     }
-                 }];
+                     completion:nil];
 }
 
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
-}
-
-- (NSString *)replaceWithSmileys:(NSString *)inStr {
-    NSString *tmpStrComma = [inStr stringByReplacingOccurrencesOfString:@"\\1"
-                                                             withString:@","];
-    NSString *tmpStrSmiley =
-        [tmpStrComma stringByReplacingOccurrencesOfString:
-                         @"<img border=\"0\" "
-                         @"src=\"http://[host]/gameServer/forums/images/"
-                         @"emoticons/happy.gif\" alt=\"\">"
-                                               withString:@":)"];
-    NSString *tmpStrWink =
-        [tmpStrSmiley stringByReplacingOccurrencesOfString:
-                          @"<img border=\"0\" "
-                          @"src=\"http://[host]/gameServer/forums/images/"
-                          @"emoticons/wink.gif\" alt=\"\">"
-                                                withString:@";)"];
-    NSString *tmpStrTongue = [tmpStrWink
-        stringByReplacingOccurrencesOfString:
-            @"<img border=\"0\" "
-            @"src=\"http://[host]/gameServer/forums/images/emoticons/"
-            @"silly.gif\" alt=\"\">"
-                                  withString:@":p"];
-    NSString *tmpStrGrin =
-        [tmpStrTongue stringByReplacingOccurrencesOfString:
-                          @"<img border=\"0\" "
-                          @"src=\"http://[host]/gameServer/forums/images/"
-                          @"emoticons/grin.gif\" alt=\"\">"
-                                                withString:@":D"];
-    NSString *tmpStrSad = [tmpStrGrin
-        stringByReplacingOccurrencesOfString:
-            @"<img border=\"0\" "
-            @"src=\"http://[host]/gameServer/forums/images/emoticons/"
-            @"sad.gif\" alt=\"\">"
-                                  withString:@":("];
-    NSString *tmpStrLove = [tmpStrSad
-        stringByReplacingOccurrencesOfString:
-            @"<img border=\"0\" "
-            @"src=\"http://[host]/gameServer/forums/images/emoticons/"
-            @"love.gif\" alt=\"\">"
-                                  withString:@"<3"];
-    NSString *tmpStrMischief = [tmpStrLove
-        stringByReplacingOccurrencesOfString:
-            @"<img border=\"0\" "
-            @"src=\"http://[host]/gameServer/forums/images/emoticons/"
-            @"mischief.gif\" alt=\"\">"
-                                  withString:@";\\"];
-    NSString *tmpStrCool =
-        [tmpStrMischief stringByReplacingOccurrencesOfString:
-                            @"<img border=\"0\" "
-                            @"src=\"http://[host]/gameServer/forums/images/"
-                            @"emoticons/cool.gif\" alt=\"\">"
-                                                  withString:@"B)"];
-    NSString *tmpStrDevil = [tmpStrCool
-        stringByReplacingOccurrencesOfString:
-            @"<img border=\"0\" "
-            @"src=\"http://[host]/gameServer/forums/images/emoticons/"
-            @"devil.gif\" alt=\"\">"
-                                  withString:@">:)"];
-    NSString *tmpStrAngry =
-        [tmpStrDevil stringByReplacingOccurrencesOfString:
-                         @"<img border=\"0\" "
-                         @"src=\"http://[host]/gameServer/forums/images/"
-                         @"emoticons/angry.gif\" alt=\"\">"
-                                               withString:@"X("];
-    NSString *tmpStrLaugh =
-        [tmpStrAngry stringByReplacingOccurrencesOfString:
-                         @"<img border=\"0\" "
-                         @"src=\"http://[host]/gameServer/forums/images/"
-                         @"emoticons/laugh.gif\" alt=\"\">"
-                                               withString:@":^O"];
-    NSString *tmpStrBlush =
-        [tmpStrLaugh stringByReplacingOccurrencesOfString:
-                         @"<img border=\"0\" "
-                         @"src=\"http://[host]/gameServer/forums/images/"
-                         @"emoticons/blush.gif\" alt=\"\">"
-                                               withString:@":8)"];
-    NSString *tmpStrCry =
-        [tmpStrBlush stringByReplacingOccurrencesOfString:
-                         @"<img border=\"0\" "
-                         @"src=\"http://[host]/gameServer/forums/images/"
-                         @"emoticons/cry.gif\" alt=\"\">"
-                                               withString:@":'("];
-    NSString *tmpStrConfused = [tmpStrCry
-        stringByReplacingOccurrencesOfString:
-            @"<img border=\"0\" "
-            @"src=\"http://[host]/gameServer/forums/images/emoticons/"
-            @"confused.gif\" alt=\"\">"
-                                  withString:@"?:|"];
-    NSString *tmpStrShocked =
-        [tmpStrConfused stringByReplacingOccurrencesOfString:
-                            @"<img border=\"0\" "
-                            @"src=\"http://[host]/gameServer/forums/images/"
-                            @"emoticons/shocked.gif\" alt=\"\">"
-                                                  withString:@":O"];
-    return [tmpStrShocked stringByReplacingOccurrencesOfString:
-                              @"<img border=\"0\" "
-                              @"src=\"http://[host]/gameServer/forums/images/"
-                              @"emoticons/plain.gif\" alt=\"\">"
-                                                    withString:@":|"];
-}
-
-- (NSString *)stripURL:(NSString *)inStr {
-    NSString *tmpStr = [inStr stringByReplacingOccurrencesOfString:@"</a>"
-                                                        withString:@""],
-             *tmpTmpStr;
-    NSRange urlRange = [tmpStr rangeOfString:@"<a href=\""], tmpRange;
-    unsigned long len = [tmpStr length];
-
-    while (urlRange.location != NSNotFound) {
-        tmpRange = [tmpStr rangeOfString:@"\">"
-                                 options:0
-                                   range:NSMakeRange(urlRange.location,
-                                                     len - urlRange.location)];
-        tmpTmpStr = [tmpStr
-            stringByReplacingCharactersInRange:NSMakeRange(
-                                                   urlRange.location,
-                                                   2 + tmpRange.location -
-                                                       urlRange.location)
-                                    withString:@""];
-        tmpStr = tmpTmpStr;
-        len = [tmpStr length];
-        urlRange = [tmpStr rangeOfString:@"<a href=\""];
-    }
-
-    return tmpStr;
 }
 
 - (NSString *)URLEncodedString_ch:(NSString *)input {
