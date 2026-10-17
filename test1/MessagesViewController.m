@@ -798,26 +798,39 @@ InvitationsViewController *invitationVC;
         return NO;
     }
 
+    // leave a range UIKit would reject for UIKit to deal with
+    if (NSMaxRange(range) > textView.text.length) {
+        return YES;
+    }
+
+    // never rewrite while composing (IME marked text) or on a deletion
+    if (textView.markedTextRange != nil || text.length == 0) {
+        return YES;
+    }
+
     // create final version of textView after the current text has been inserted
     NSMutableString *updatedText =
         [[NSMutableString alloc] initWithString:textView.text];
-    [updatedText insertString:text atIndex:range.location];
+    [updatedText replaceCharactersInRange:range withString:text];
     if ([updatedText length] < 3) {
         //        textView.text = updatedText;
         return YES;
     }
 
-    NSRange replaceRange = range, endRange = range;
+    NSRange endRange = range;
+    // look back two characters (length of "   " minus one), clamped to the text
+    NSUInteger searchStart = range.location >= 2 ? range.location - 2 : 0;
+    NSUInteger searchEnd;
 
     if (text.length > 2) {
-        // handle paste
-        replaceRange.length = text.length;
+        // handle paste: the inserted text plus two characters before it
+        searchEnd = MIN(updatedText.length, range.location + text.length);
     } else {
         // handle normal typing
-        replaceRange.length = 3; // length of "hi" is two characters
-        replaceRange.location -=
-            2; // look back one characters (length of "hi" minus one)
+        searchEnd =
+            MIN(updatedText.length, range.location + MAX(text.length, 1));
     }
+    NSRange replaceRange = NSMakeRange(searchStart, searchEnd - searchStart);
 
     @try {
         NSUInteger replaceCount =
@@ -825,7 +838,7 @@ InvitationsViewController *invitationVC;
                                          withString:@"\n"
                                             options:NSCaseInsensitiveSearch
                                               range:replaceRange];
-        // replace "hi" with "hello" for the inserted range
+        // replace "   " with "\n" for the inserted range
 
         if (replaceCount > 0) {
             // update the textView's text
@@ -835,10 +848,11 @@ InvitationsViewController *invitationVC;
             }
 
             // leave cursor at end of inserted text
-            endRange.location +=
-                text.length +
-                replaceCount *
-                    3; // length diff of "hello" and "hi" is 3 characters
+            // each "   " -> "\n" is 2 characters shorter
+            endRange.length = 0;
+            endRange.location = MIN(updatedText.length,
+                                    range.location + text.length -
+                                        replaceCount * 2);
             textView.selectedRange = endRange;
 
             // let the textView know that it should ingore the inserted text
