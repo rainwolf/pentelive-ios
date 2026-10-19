@@ -5,6 +5,7 @@ import UIKit
 @objc final class BlockedPlayersViewController: UITableViewController {
     private var entries: [IgnoreEntry] = []
     private var filter: BlockFilter = .both
+    private var loaded = false
     private let filterButton = UIButton(type: .system)
     private let emptyLabel = UILabel()
     private let cellID = "BlockedPlayerCell"
@@ -77,7 +78,7 @@ import UIKit
     }
 
     private func updateEmptyState() {
-        tableView.backgroundView?.isHidden = !visible.isEmpty
+        tableView.backgroundView?.isHidden = !(loaded && visible.isEmpty)
     }
 
     private func reload() {
@@ -85,6 +86,7 @@ import UIKit
             guard let self = self else { return }
             if let entries = entries {
                 self.entries = entries
+                self.loaded = true
                 self.tableView.reloadData()
                 self.updateEmptyState()
             } else {
@@ -150,6 +152,7 @@ import UIKit
             guard let self = self else { return }
             if let list = list {
                 self.entries = list
+                self.loaded = true
                 self.tableView.reloadData()
                 self.updateEmptyState()
             } else {
