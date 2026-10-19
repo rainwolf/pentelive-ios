@@ -113,6 +113,7 @@ BOOL developmentEnabled(void);
     *activeGames, *nonActiveGames, *publicInvitations, *messages, *ratingStats,
     *tournaments, *hills;
 @property(atomic, assign) BOOL dbAccess, emailMe, personalizeAds;
+@property(atomic, assign) BOOL isKid;
 @property(atomic, assign, getter=subscriber, setter=setSubscriber:)
     BOOL subscriber;
 @property(atomic, assign, getter=showAds, setter=setShowAds:) BOOL showAds;

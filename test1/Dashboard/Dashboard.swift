@@ -11,10 +11,12 @@ import Foundation
     @objc let tbRatings: Int
     @objc let livePlayers: String
     @objc let onlineFollowing: String
+    @objc let isKid: Bool
 
     @objc init(myColorRGB: Int, playerName: String, showAds: Bool, subscriber: Bool,
                dbAccess: Bool, emailMe: Bool, tbHills: Int, tbRatings: Int,
-               livePlayers: String, onlineFollowing: String) {
+               livePlayers: String, onlineFollowing: String,
+                     isKid: Bool = false) {
         self.myColorRGB = myColorRGB
         self.playerName = playerName
         self.showAds = showAds
@@ -25,6 +27,7 @@ import Foundation
         self.tbRatings = tbRatings
         self.livePlayers = livePlayers
         self.onlineFollowing = onlineFollowing
+        self.isKid = isKid
     }
 }
 

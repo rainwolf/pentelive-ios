@@ -26,6 +26,7 @@ struct WirePlayer: Decodable {
     let emailMe: Bool?
     let livePlayers: FlexibleString?
     let onlineFollowing: FlexibleString?
+    let parentPid: FlexibleString?
 }
 
 struct WireHill: Decodable {

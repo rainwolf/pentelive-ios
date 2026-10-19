@@ -3467,6 +3467,7 @@ array, and add a new row to the table view
     [self.player setSubscriber:flags.subscriber];
     [self.player setDbAccess:flags.dbAccess];
     [self.player setEmailMe:flags.emailMe];
+    [self.player setIsKid:flags.isKid];
     [defaults setBool:self.player.emailMe forKey:@"emailMe"];
     [defaults setBool:self.player.personalizeAds forKey:PERSONALIZEADSKEY];
 
