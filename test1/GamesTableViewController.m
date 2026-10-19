@@ -2609,7 +2609,16 @@ array, and add a new row to the table view
                      action:@selector(rejectInvitation:)
            forControlEvents:UIControlEventTouchUpInside];
 
-    CGFloat screenWidth = UIScreen.mainScreen.bounds.size.width, spacing;
+    // Use the cell's own width (iPad landscape / split view), not the screen's.
+    // The selected cell is already laid out in the table; fall back to the
+    // table width if it has not been sized yet.
+    CGFloat cellWidth = cell.contentView.bounds.size.width;
+    if (cellWidth <= 0) {
+        cellWidth = cell.bounds.size.width;
+    }
+    if (cellWidth <= 0) {
+        cellWidth = self.tableView.bounds.size.width;
+    }
 
     NSDictionary *fontAttributes =
         [NSDictionary dictionaryWithObject:[acceptButton.titleLabel font]
@@ -2621,22 +2630,36 @@ array, and add a new row to the table view
            rejectFontSize =
                [rejectButton.titleLabel.text sizeWithAttributes:fontAttributes];
 
-    spacing = (screenWidth - cancelFontSize.width - acceptFontSize.width -
-               rejectFontSize.width - 45) /
-              4;
+    CGFloat buttonHeight = rejectFontSize.height + 10;
+    CGFloat cancelWidth = cancelFontSize.width + 15.0,
+            acceptWidth = acceptFontSize.width + 15.0,
+            rejectWidth = rejectFontSize.width + 15.0;
 
-    CGRect buttonFrame = CGRectMake(spacing, 45, cancelFontSize.width + 15.0,
-                                    cancelFontSize.height + 10);
-    [cancelButton setFrame:buttonFrame];
-    buttonFrame =
-        CGRectMake(2 * spacing + cancelButton.frame.size.width, 45,
-                   acceptFontSize.width + 15.0, acceptFontSize.height + 10);
-    [acceptButton setFrame:buttonFrame];
-    buttonFrame =
-        CGRectMake(3 * spacing + cancelButton.frame.size.width +
-                       acceptButton.frame.size.width,
-                   45, rejectFontSize.width + 15.0, rejectFontSize.height + 10);
-    [rejectButton setFrame:buttonFrame];
+    blockButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    [blockButton setImage:[BlockedPlayersService blockIcon]
+                 forState:UIControlStateNormal];
+    blockButton.accessibilityLabel = NSLocalizedString(@"Block player", nil);
+    blockButton.accessibilityIdentifier = @"blockInvitationButton";
+    [blockButton addTarget:self
+                    action:@selector(blockInvitation:)
+          forControlEvents:UIControlEventTouchUpInside];
+
+    // Four buttons, five equal gaps (left margin, between, right margin).
+    CGFloat spacing = (cellWidth - cancelWidth - acceptWidth - rejectWidth -
+                       buttonHeight) /
+                      5;
+    if (spacing < 2) {
+        spacing = 2;
+    }
+
+    CGFloat x = spacing;
+    [cancelButton setFrame:CGRectMake(x, 45, cancelWidth, buttonHeight)];
+    x += cancelWidth + spacing;
+    [acceptButton setFrame:CGRectMake(x, 45, acceptWidth, buttonHeight)];
+    x += acceptWidth + spacing;
+    [rejectButton setFrame:CGRectMake(x, 45, rejectWidth, buttonHeight)];
+    x += rejectWidth + spacing;
+    [blockButton setFrame:CGRectMake(x, 45, buttonHeight, buttonHeight)];
 
     [cell performSelector:@selector(addSubview:)
                withObject:acceptButton
@@ -2647,9 +2670,60 @@ array, and add a new row to the table view
     [cell performSelector:@selector(addSubview:)
                withObject:rejectButton
                afterDelay:0.3];
+    [cell performSelector:@selector(addSubview:)
+               withObject:blockButton
+               afterDelay:0.35];
+}
+
+- (void)blockInvitation:(UIButton *)sender {
+    NSIndexPath *path = selectedInvitationIndexPath;
+    if (!path || path.row >= (NSInteger)self.player.invitations.count) {
+        return;
+    }
+    NSString *opponent =
+        [[self.player.invitations objectAtIndex:path.row] opponentName];
+    __weak typeof(self) weakSelf = self;
+    [BlockedPlayersService
+        confirmBlockWithName:opponent
+               forInvitation:YES
+                   onConfirm:^{
+                     [BlockedPlayersService
+                         blockWithName:opponent
+                                invite:YES
+                                  chat:NO
+                            completion:^(BOOL success, NSString *message) {
+                              __strong typeof(weakSelf) strongSelf = weakSelf;
+                              if (!success) {
+                                  [BlockedPlayersService
+                                      showErrorWithBlocking:YES
+                                                       name:opponent
+                                                    message:message];
+                                  return;
+                              }
+                              // rejectInvitation: reads the selected row, so
+                              // only decline if it is still the same one.
+                              NSIndexPath *current =
+                                  strongSelf.selectedInvitationIndexPath;
+                              if (!current ||
+                                  ![current isEqual:path] ||
+                                  current.row >= (NSInteger)strongSelf.player
+                                                     .invitations.count ||
+                                  ![[[strongSelf.player.invitations
+                                      objectAtIndex:current.row] opponentName]
+                                      isEqualToString:opponent]) {
+                                  return;
+                              }
+                              [strongSelf rejectInvitation:nil];
+                            }];
+                   }];
 }
 
 - (void)removeButtonsFromCell {
+    // A quick deselect must not let the delayed addSubview: put the block
+    // button back on a row that is no longer selected.
+    [NSObject cancelPreviousPerformRequestsWithTarget:selectedInvitationCell
+                                             selector:@selector(addSubview:)
+                                               object:blockButton];
     [rejectButton performSelector:@selector(removeFromSuperview)
                        withObject:nil
                        afterDelay:0.05];
@@ -2659,6 +2733,9 @@ array, and add a new row to the table view
     [cancelButton performSelector:@selector(removeFromSuperview)
                        withObject:nil
                        afterDelay:0.15];
+    [blockButton performSelector:@selector(removeFromSuperview)
+                      withObject:nil
+                      afterDelay:0.2];
 }
 
 - (void)acceptPublicInvitation:(UIButton *)sender {
