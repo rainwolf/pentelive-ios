@@ -122,13 +122,27 @@ static UIWindow *PenteAlertAppWindow(void) {
       otherButtonTitles:(NSArray<NSString *> *)otherButtonTitles
  destructiveButtonIndex:(NSInteger)destructiveButtonIndex
                 handler:(PenteAlertHandler)handler {
+    [self showWithTitle:title
+                  message:message
+        cancelButtonTitle:cancelButtonTitle
+        otherButtonTitles:otherButtonTitles
+    destructiveButtonIndexes:(destructiveButtonIndex > 0 ? @[ @(destructiveButtonIndex) ] : nil)
+                  handler:handler];
+}
+
++ (void)showWithTitle:(NSString *)title
+                message:(NSString *)message
+      cancelButtonTitle:(NSString *)cancelButtonTitle
+      otherButtonTitles:(NSArray<NSString *> *)otherButtonTitles
+ destructiveButtonIndexes:(NSArray<NSNumber *> *)destructiveButtonIndexes
+                handler:(PenteAlertHandler)handler {
     if (![NSThread isMainThread]) { // UIKit objects may only be built on main
         dispatch_async(dispatch_get_main_queue(), ^{
             [self showWithTitle:title
                           message:message
                 cancelButtonTitle:cancelButtonTitle
                 otherButtonTitles:otherButtonTitles
-            destructiveButtonIndex:destructiveButtonIndex
+            destructiveButtonIndexes:destructiveButtonIndexes
                           handler:handler];
         });
         return;
@@ -147,7 +161,7 @@ static UIWindow *PenteAlertAppWindow(void) {
                                             }]];
     [otherButtonTitles enumerateObjectsUsingBlock:^(NSString *t, NSUInteger i, BOOL *stop) {
         [alert addAction:[UIAlertAction actionWithTitle:t
-                                                  style:((NSInteger)i + 1 == destructiveButtonIndex
+                                                  style:([destructiveButtonIndexes containsObject:@((NSInteger)i + 1)]
                                                              ? UIAlertActionStyleDestructive
                                                              : UIAlertActionStyleDefault)
                                                 handler:^(UIAlertAction *a) {

@@ -2686,11 +2686,11 @@ array, and add a new row to the table view
     [BlockedPlayersService
         confirmBlockWithName:opponent
                forInvitation:YES
-                   onConfirm:^{
+                   onConfirm:^(BOOL blockBoth) {
                      [BlockedPlayersService
                          blockWithName:opponent
                                 invite:YES
-                                  chat:NO
+                                  chat:blockBoth
                             completion:^(BOOL success, NSString *message) {
                               __strong typeof(weakSelf) strongSelf = weakSelf;
                               if (!success) {

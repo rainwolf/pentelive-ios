@@ -90,7 +90,16 @@ import UIKit
             .withRenderingMode(.alwaysOriginal)
     }
 
-    @objc static func confirmBlock(name: String, forInvitation: Bool, onConfirm: @escaping () -> Void) {
+    /// Titles of the two block buttons, in dialog order (after Cancel).
+    static func blockButtonTitles(forInvitation: Bool) -> [String] {
+        [forInvitation
+            ? NSLocalizedString("Block invitations", comment: "Block dialog button")
+            : NSLocalizedString("Block messages", comment: "Block dialog button"),
+         NSLocalizedString("Block messages and invitations", comment: "Block dialog button")]
+    }
+
+    /// `onConfirm(true)` when the player chose to block both messages and invitations.
+    @objc static func confirmBlock(name: String, forInvitation: Bool, onConfirm: @escaping (_ blockBoth: Bool) -> Void) {
         let title = String(format: NSLocalizedString("Block %@?", comment: "Block dialog title"), name)
         let message = forInvitation
             ? String(format: NSLocalizedString(
@@ -101,9 +110,9 @@ import UIKit
                 comment: "Block message dialog message"), name)
         PenteAlert.show(withTitle: title, message: message,
                         cancelButtonTitle: NSLocalizedString("Cancel", comment: ""),
-                        otherButtonTitles: [NSLocalizedString("Block", comment: "Block dialog button")],
-                        destructiveButtonIndex: 1) { index in
-            if index == 1 { onConfirm() }
+                        otherButtonTitles: blockButtonTitles(forInvitation: forInvitation),
+                        destructiveButtonIndexes: [1, 2]) { index in
+            if index == 1 || index == 2 { onConfirm(index == 2) }
         }
     }
 

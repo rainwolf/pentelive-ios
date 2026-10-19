@@ -31,6 +31,15 @@ typedef void (^PenteAlertHandler)(NSInteger buttonIndex);
  destructiveButtonIndex:(NSInteger)destructiveButtonIndex
                 handler:(nullable PenteAlertHandler)handler;
 
+/// As above, but every other button whose 1-based index (as passed to the handler)
+/// is in destructiveButtonIndexes (NSNumber) gets UIAlertActionStyleDestructive.
++ (void)showWithTitle:(nullable NSString *)title
+                  message:(nullable NSString *)message
+        cancelButtonTitle:(NSString *)cancelButtonTitle
+        otherButtonTitles:(nullable NSArray<NSString *> *)otherButtonTitles
+ destructiveButtonIndexes:(nullable NSArray<NSNumber *> *)destructiveButtonIndexes
+                  handler:(nullable PenteAlertHandler)handler;
+
 - (instancetype)init NS_UNAVAILABLE;
 
 @end

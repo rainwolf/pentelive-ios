@@ -56,4 +56,11 @@ final class BlockedPlayersTests: XCTestCase {
     func testFormEncodeSpecialChars() {
         XCTAssertEqual(BlockedPlayers.formEncode([("ignoreName", "a b+c&d")]), "ignoreName=a%20b%2Bc%26d")
     }
+
+    func testBlockButtonTitles() {
+        XCTAssertEqual(BlockedPlayersService.blockButtonTitles(forInvitation: false),
+                       ["Block messages", "Block messages and invitations"])
+        XCTAssertEqual(BlockedPlayersService.blockButtonTitles(forInvitation: true),
+                       ["Block invitations", "Block messages and invitations"])
+    }
 }

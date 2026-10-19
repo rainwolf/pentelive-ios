@@ -191,10 +191,10 @@ InvitationsViewController *invitationVC;
     [BlockedPlayersService
         confirmBlockWithName:sender
               forInvitation:NO
-                  onConfirm:^{
+                  onConfirm:^(BOOL blockBoth) {
                     [BlockedPlayersService
                         blockWithName:sender
-                               invite:NO
+                               invite:blockBoth
                                  chat:YES
                            completion:^(BOOL success, NSString *message) {
                              __strong typeof(weakSelf) strongSelf = weakSelf;
