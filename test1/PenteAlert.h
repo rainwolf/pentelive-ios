@@ -22,6 +22,15 @@ typedef void (^PenteAlertHandler)(NSInteger buttonIndex);
     otherButtonTitles:(nullable NSArray<NSString *> *)otherButtonTitles
               handler:(nullable PenteAlertHandler)handler;
 
+/// As above, and the other button at (1-based, as passed to the handler) destructiveButtonIndex
+/// gets UIAlertActionStyleDestructive. 0 means none.
++ (void)showWithTitle:(nullable NSString *)title
+                message:(nullable NSString *)message
+      cancelButtonTitle:(NSString *)cancelButtonTitle
+      otherButtonTitles:(nullable NSArray<NSString *> *)otherButtonTitles
+ destructiveButtonIndex:(NSInteger)destructiveButtonIndex
+                handler:(nullable PenteAlertHandler)handler;
+
 - (instancetype)init NS_UNAVAILABLE;
 
 @end

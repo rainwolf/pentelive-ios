@@ -108,12 +108,27 @@ static UIWindow *PenteAlertAppWindow(void) {
     cancelButtonTitle:(NSString *)cancelButtonTitle
     otherButtonTitles:(NSArray<NSString *> *)otherButtonTitles
               handler:(PenteAlertHandler)handler {
+    [self showWithTitle:title
+                  message:message
+        cancelButtonTitle:cancelButtonTitle
+        otherButtonTitles:otherButtonTitles
+    destructiveButtonIndex:0
+                  handler:handler];
+}
+
++ (void)showWithTitle:(NSString *)title
+                message:(NSString *)message
+      cancelButtonTitle:(NSString *)cancelButtonTitle
+      otherButtonTitles:(NSArray<NSString *> *)otherButtonTitles
+ destructiveButtonIndex:(NSInteger)destructiveButtonIndex
+                handler:(PenteAlertHandler)handler {
     if (![NSThread isMainThread]) { // UIKit objects may only be built on main
         dispatch_async(dispatch_get_main_queue(), ^{
             [self showWithTitle:title
                           message:message
                 cancelButtonTitle:cancelButtonTitle
                 otherButtonTitles:otherButtonTitles
+            destructiveButtonIndex:destructiveButtonIndex
                           handler:handler];
         });
         return;
@@ -132,7 +147,9 @@ static UIWindow *PenteAlertAppWindow(void) {
                                             }]];
     [otherButtonTitles enumerateObjectsUsingBlock:^(NSString *t, NSUInteger i, BOOL *stop) {
         [alert addAction:[UIAlertAction actionWithTitle:t
-                                                  style:UIAlertActionStyleDefault
+                                                  style:((NSInteger)i + 1 == destructiveButtonIndex
+                                                             ? UIAlertActionStyleDestructive
+                                                             : UIAlertActionStyleDefault)
                                                 handler:^(UIAlertAction *a) {
                                                     [PenteAlert finishWithHandler:h
                                                                             index:(NSInteger)i + 1];

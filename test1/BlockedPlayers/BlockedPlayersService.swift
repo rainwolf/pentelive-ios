@@ -101,7 +101,8 @@ import UIKit
                 comment: "Block message dialog message"), name)
         PenteAlert.show(withTitle: title, message: message,
                         cancelButtonTitle: NSLocalizedString("Cancel", comment: ""),
-                        otherButtonTitles: [NSLocalizedString("Block", comment: "Block dialog button")]) { index in
+                        otherButtonTitles: [NSLocalizedString("Block", comment: "Block dialog button")],
+                        destructiveButtonIndex: 1) { index in
             if index == 1 { onConfirm() }
         }
     }
