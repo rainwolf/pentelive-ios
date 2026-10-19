@@ -35,7 +35,7 @@
     NSString *username, *password;
     NSIndexPath *selectedInvitationIndexPath,
         *selectedPublicInvitationIndexPath;
-    UIButton *acceptButton, *cancelButton, *rejectButton;
+    UIButton *acceptButton, *cancelButton, *rejectButton, *blockButton;
     BOOL messagesCollapsed, invitationsReceivedCollapsed, activeGamesCollapsed,
         publicInvitationsCollapsed, sentInvitationsCollapsed,
         nonActiveGamesCollapsed, tournamentsCollapsed, kothCollapsed;

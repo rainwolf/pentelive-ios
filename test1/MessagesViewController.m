@@ -26,6 +26,8 @@
     NSArray<NSLayoutConstraint *> *newMessageModeConstraints;
 }
 
+@property(nonatomic) BOOL senderBlocked;
+
 @end
 
 @implementation MessagesViewController
@@ -72,7 +74,8 @@ InvitationsViewController *invitationVC;
              object:nil];
 
     [super viewWillAppear:animated];
-    if (sendButton.hidden && ![replyMessageView isFirstResponder] &&
+    if (sendButton.hidden && !self.senderBlocked &&
+        ![replyMessageView isFirstResponder] &&
         ![subjectField isFirstResponder] && ![toField isFirstResponder]) {
         sendButton.hidden = NO;
     }
@@ -105,34 +108,16 @@ InvitationsViewController *invitationVC;
     }
     [self applyLayoutMode];
 
-    [UIView
-        animateWithDuration:0.3f
-                 animations:^{
-                     if (self->messageID) {
-                         [self.navigationItem setRightBarButtonItems:@[
-                             [[UIBarButtonItem alloc]
-                                 initWithBarButtonSystemItem:
-                                     UIBarButtonSystemItemTrash
-                                                      target:self
-                                                      action:@selector
-                                                      (deleteMessageTap)],
-                             [[UIBarButtonItem alloc]
-                                 initWithBarButtonSystemItem:
-                                     UIBarButtonSystemItemPlay
-                                                      target:self
-                                                      action:@selector
-                                                      (challengeTap)]
-                         ]];
-                     } else {
-                         [self.navigationItem setRightBarButtonItem:nil];
-                         [self.navigationItem setRightBarButtonItems:nil];
-                     }
-                 }];
+    [UIView animateWithDuration:0.3f
+                     animations:^{
+                       [self updateNavigationItems];
+                     }];
 
     if (messageID) {
         [self setTitle:author];
         [self setReplySubject];
         [self loadThread];
+        [self checkSenderBlocked];
     } else {
         [self setTitle:@"new message"];
         self.toField.textColor = [UIColor blueColor];
@@ -148,6 +133,87 @@ InvitationsViewController *invitationVC;
                                                  objectForKey:@"username"]]];
         }
     }
+}
+
+- (void)updateNavigationItems {
+    if (messageID) {
+        NSMutableArray<UIBarButtonItem *> *items = [NSMutableArray arrayWithObjects:
+            [[UIBarButtonItem alloc]
+                initWithBarButtonSystemItem:UIBarButtonSystemItemTrash
+                                     target:self
+                                     action:@selector(deleteMessageTap)],
+            [[UIBarButtonItem alloc]
+                initWithBarButtonSystemItem:UIBarButtonSystemItemPlay
+                                     target:self
+                                     action:@selector(challengeTap)],
+            nil];
+        if (!self.senderBlocked) {
+            UIBarButtonItem *blockItem = [[UIBarButtonItem alloc]
+                initWithImage:[BlockedPlayersService blockIcon]
+                        style:UIBarButtonItemStylePlain
+                       target:self
+                       action:@selector(blockTap)];
+            blockItem.accessibilityLabel =
+                NSLocalizedString(@"Block player", nil);
+            blockItem.accessibilityIdentifier = @"blockPlayerButton";
+            [items addObject:blockItem];
+        }
+        [self.navigationItem setRightBarButtonItems:items];
+    } else {
+        [self.navigationItem setRightBarButtonItem:nil];
+        [self.navigationItem setRightBarButtonItems:nil];
+    }
+}
+
+- (void)checkSenderBlocked {
+    NSString *sender = author;
+    if (!sender.length || self.senderBlocked) {
+        return;
+    }
+    __weak typeof(self) weakSelf = self;
+    [BlockedPlayersService
+        isChatBlockedWithName:sender
+                   completion:^(BOOL blocked) {
+                     __strong typeof(weakSelf) strongSelf = weakSelf;
+                     if (!strongSelf || !blocked ||
+                         ![strongSelf->author isEqualToString:sender]) {
+                         return;
+                     }
+                     [strongSelf setSenderBlocked:YES];
+                     [strongSelf applyLayoutMode];
+                     [strongSelf updateNavigationItems];
+                   }];
+}
+
+- (void)blockTap {
+    NSString *sender = author;
+    __weak typeof(self) weakSelf = self;
+    [BlockedPlayersService
+        confirmBlockWithName:sender
+              forInvitation:NO
+                  onConfirm:^(BOOL blockBoth) {
+                    [BlockedPlayersService
+                        blockWithName:sender
+                               invite:blockBoth
+                                 chat:YES
+                           completion:^(BOOL success, NSString *message) {
+                             __strong typeof(weakSelf) strongSelf = weakSelf;
+                             if (success) {
+                                 if (!strongSelf) {
+                                     return;
+                                 }
+                                 [strongSelf setSenderBlocked:YES];
+                                 [strongSelf.replyMessageView resignFirstResponder];
+                                 [strongSelf applyLayoutMode];
+                                 [strongSelf updateNavigationItems];
+                             } else {
+                                 [BlockedPlayersService
+                                     showErrorWithBlocking:YES
+                                                      name:sender
+                                                   message:message];
+                             }
+                           }];
+                  }];
 }
 
 // Reply mode (messageID set): subject, thread, reply input, send.
@@ -173,6 +239,9 @@ InvitationsViewController *invitationVC;
         [NSLayoutConstraint deactivateConstraints:threadModeConstraints];
         [NSLayoutConstraint activateConstraints:newMessageModeConstraints];
     }
+    BOOL hideReply = replying && self.senderBlocked;
+    replyMessageView.hidden = hideReply;
+    sendButton.hidden = hideReply ? YES : sendButton.hidden;
     [self updateReplyInput];
 }
 
@@ -491,7 +560,12 @@ InvitationsViewController *invitationVC;
 // Reply input: 1 line when empty, grows with its content; the <= half
 // constraint caps it (reply mode), after which it scrolls internally.
 - (void)updateReplyInput {
-    replyPlaceholder.hidden = (replyMessageView.text.length > 0);
+    replyPlaceholder.hidden =
+        (replyMessageView.text.length > 0) || self.senderBlocked;
+    if (self.senderBlocked && messageID) {
+        replyHeightConstraint.constant = 0;
+        return;
+    }
     CGFloat width = replyMessageView.bounds.size.width;
     if (width <= 0) {
         return;
@@ -901,7 +975,7 @@ InvitationsViewController *invitationVC;
                           self.view.safeAreaInsets.bottom - CGRectGetMinY(local);
         softwareKeyboardShown = (overlap > 100);
     }
-    if (sendButton.hidden == softwareKeyboardShown) {
+    if (self.senderBlocked || sendButton.hidden == softwareKeyboardShown) {
         return;
     }
     double duration =
