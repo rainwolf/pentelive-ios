@@ -40,6 +40,7 @@
 		49EB299ADFD07A0177F01792 /* PenteBanner.m in Sources */ = {isa = PBXBuildFile; fileRef = AA6E9C65F1C971669AADF4B8 /* PenteBanner.m */; };
 		4B107A0AC64E386CA34E53FA /* GoGameTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5FF3D6A4D1F70E68CC42981 /* GoGameTests.swift */; };
 		4B11137F8EB9E713E604C1F0 /* StoreViewControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8B3FB83B0F64A0F4F64541E /* StoreViewControllerTests.swift */; };
+		56A47E5790F26B1185D1288E /* KidAccountsScreenTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B13EAFBB305B195C1E1A0127 /* KidAccountsScreenTests.swift */; };
 		5AB18D031C159DDA0DE59551 /* StoreTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = F012F4E7BBA0F5D6EF3902A8 /* StoreTypes.swift */; };
 		5B6CDFB315BE503E8B691AC2 /* HarnessSmokeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74EB9EDFFC23705419419557 /* HarnessSmokeTests.swift */; };
 		5E7A1C0F2B9D4E6A8C3F1B20 /* RoomEventOrderingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E7A1C0F2B9D4E6A8C3F1B21 /* RoomEventOrderingTests.swift */; };
@@ -280,11 +281,13 @@
 		B659BCC34D88241FB2124999 /* StoreInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CD896F5287C139D124DF4D5 /* StoreInfo.swift */; };
 		B6EE9848640054AF5B211D47 /* CPoint.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E0487D93E252253264372A56 /* CPoint.cpp */; };
 		BBA523D1BFE87E6E0839A7BE /* DashboardTransport.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7527ED20D5B800D46E10F91 /* DashboardTransport.swift */; };
+		BCBF98A97B5DCE41E148A93D /* KidAccountsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B85148550AC145C5A4472E98 /* KidAccountsService.swift */; };
 		C2334D35F088D16FD6B18BB7 /* ReceiptReply.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D3B319183B6CB725B68319A /* ReceiptReply.swift */; };
 		C39BBF8A4B9D391D75E63514 /* MoveResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9AA0E8424F26F770E4D9CD /* MoveResult.swift */; };
 		CACA6F1D6073D24501A45B3E /* dashboard_sample.json in Resources */ = {isa = PBXBuildFile; fileRef = 1719B0CC190A38E646A3A9D8 /* dashboard_sample.json */; };
 		CC02EAFCD39E557347A3C2FD /* StoreService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 739D6DA0ACE5AEC5DB36CE4F /* StoreService.swift */; };
 		CEF7661E709823AE2A325338 /* PenteGame.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8314997135E2AC0910B84356 /* PenteGame.swift */; };
+		CFD7320E3345B16FB1133152 /* KidAccountsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCE67D7173E8CFCF3C56944F /* KidAccountsViewController.swift */; };
 		D31C13F16F5DA54AFE50F435 /* RuleSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0D2331507464E3A0A3E4DEC /* RuleSet.swift */; };
 		D4A11111111111111111A001 /* RenjuOfferSymmetry.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4A11111111111111111A002 /* RenjuOfferSymmetry.swift */; };
 		D4A11111111111111111B003 /* RenjuOfferSymmetryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4A11111111111111111B004 /* RenjuOfferSymmetryTests.swift */; };
@@ -636,8 +639,10 @@
 		B10C4ED00000000000000012 /* BlockedPlayersService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockedPlayers/BlockedPlayersService.swift; sourceTree = "<group>"; };
 		B10C4ED00000000000000013 /* BlockedPlayersTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockedPlayersTests.swift; sourceTree = "<group>"; };
 		B10C4ED00000000000000014 /* BlockedPlayersViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockedPlayers/BlockedPlayersViewController.swift; sourceTree = "<group>"; };
+		B13EAFBB305B195C1E1A0127 /* KidAccountsScreenTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KidAccountsScreenTests.swift; sourceTree = "<group>"; };
 		B5FF3D6A4D1F70E68CC42981 /* GoGameTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GoGameTests.swift; sourceTree = "<group>"; };
 		B683847BFE676212E9B43972 /* KidModeTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KidModeTests.swift; sourceTree = "<group>"; };
+		B85148550AC145C5A4472E98 /* KidAccountsService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KidAccountsService.swift; sourceTree = "<group>"; };
 		BB3C419E7F4171209CFAE4B4 /* PenteBadge.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PenteBadge.h; sourceTree = "<group>"; };
 		BDB76AE2B389F2859CE0C808 /* ScanTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ScanTests.swift; sourceTree = "<group>"; };
 		BDD12E388BBDA4D20382C826 /* KidAccountsTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KidAccountsTests.swift; sourceTree = "<group>"; };
@@ -677,6 +682,7 @@
 		F11B55E9EFB59E2DF3518E4B /* StoreScreenshotTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StoreScreenshotTests.swift; sourceTree = "<group>"; };
 		F7CA59B7AF7DEC7A0BC5268E /* StoreEntryPointsTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StoreEntryPointsTests.swift; sourceTree = "<group>"; };
 		FB0E96BC0C158A9179179CBD /* DashboardEndpoint.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DashboardEndpoint.swift; sourceTree = "<group>"; };
+		FCE67D7173E8CFCF3C56944F /* KidAccountsViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KidAccountsViewController.swift; sourceTree = "<group>"; };
 		FEAB9DAD17D481D8D59FE453 /* Pods_penteLive.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_penteLive.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -893,6 +899,8 @@
 				44E014A1F49AF27985876A8C /* StoreViewController.swift */,
 				E36732198C6FD461BF86E5D2 /* KidAccounts.swift */,
 				248A985A4E77B24C449CE493 /* KidMode.swift */,
+				B85148550AC145C5A4472E98 /* KidAccountsService.swift */,
+				FCE67D7173E8CFCF3C56944F /* KidAccountsViewController.swift */,
 			);
 			name = penteLive;
 			path = test1;
@@ -1165,6 +1173,7 @@
 				F11B55E9EFB59E2DF3518E4B /* StoreScreenshotTests.swift */,
 				BDD12E388BBDA4D20382C826 /* KidAccountsTests.swift */,
 				B683847BFE676212E9B43972 /* KidModeTests.swift */,
+				B13EAFBB305B195C1E1A0127 /* KidAccountsScreenTests.swift */,
 			);
 			path = PenteEngineTests;
 			sourceTree = SOURCE_ROOT;
@@ -1558,6 +1567,7 @@
 				8C3BAF99F80B9158925BCCF5 /* StoreScreenshotTests.swift in Sources */,
 				E85BF75E017CD9218EF3A44B /* KidAccountsTests.swift in Sources */,
 				46142D4BD1120FE3CAC0C0D6 /* KidModeTests.swift in Sources */,
+				56A47E5790F26B1185D1288E /* KidAccountsScreenTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1654,6 +1664,8 @@
 				7BB8B7B4FAA8A10594D9A4F0 /* StoreViewController.swift in Sources */,
 				D931AC63085CF366177863AC /* KidAccounts.swift in Sources */,
 				88A50FE84F56B4E70121AFB2 /* KidMode.swift in Sources */,
+				BCBF98A97B5DCE41E148A93D /* KidAccountsService.swift in Sources */,
+				CFD7320E3345B16FB1133152 /* KidAccountsViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
