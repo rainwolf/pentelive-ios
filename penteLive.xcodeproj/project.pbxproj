@@ -34,6 +34,7 @@
 		375FAB3016732E190832BEB7 /* StoreServiceRestoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6649647DFD534004F91B8F22 /* StoreServiceRestoreTests.swift */; };
 		4117A5C99CA99A275BFEB2CC /* ScanTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDB76AE2B389F2859CE0C808 /* ScanTests.swift */; };
 		41EC6A7DF85ADB818D28BC81 /* Dashboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 410191D1BEE5CCDBB1EAFD9C /* Dashboard.swift */; };
+		46142D4BD1120FE3CAC0C0D6 /* KidModeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B683847BFE676212E9B43972 /* KidModeTests.swift */; };
 		469CB1CF2F996F79F0382EA6 /* StoreKitTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 09F5047DA9643A56940CC815 /* StoreKitTest.framework */; };
 		4844F81E8598D2F9ED04CF80 /* PenteBadge.m in Sources */ = {isa = PBXBuildFile; fileRef = A9AB4C36CF0CF7C3D38F97D8 /* PenteBadge.m */; };
 		49EB299ADFD07A0177F01792 /* PenteBanner.m in Sources */ = {isa = PBXBuildFile; fileRef = AA6E9C65F1C971669AADF4B8 /* PenteBanner.m */; };
@@ -252,6 +253,7 @@
 		7A1C0E5D2F3B4A6C8D9E0F43 /* PentePopover.m in Sources */ = {isa = PBXBuildFile; fileRef = 7A1C0E5D2F3B4A6C8D9E0F42 /* PentePopover.m */; };
 		7BB8B7B4FAA8A10594D9A4F0 /* StoreViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44E014A1F49AF27985876A8C /* StoreViewController.swift */; };
 		854DB91E5547FFA1AAC18610 /* StoreWiringTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44E7D16AB0E5519271369985 /* StoreWiringTests.swift */; };
+		88A50FE84F56B4E70121AFB2 /* KidMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 248A985A4E77B24C449CE493 /* KidMode.swift */; };
 		8C3BAF99F80B9158925BCCF5 /* StoreScreenshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11B55E9EFB59E2DF3518E4B /* StoreScreenshotTests.swift */; };
 		8DC0EDBB4B2C756A9413992C /* DashboardWire.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1368306455C932D8D8B7E65 /* DashboardWire.swift */; };
 		91604807B916A7E73460E323 /* DashboardError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BEAC58A3C6C7DFFFD5DCCBD /* DashboardError.swift */; };
@@ -336,6 +338,7 @@
 		209222A884B0D807DC3B8F72 /* DashboardRealPayloadTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DashboardRealPayloadTests.swift; sourceTree = "<group>"; };
 		21FF8A7123884B6A4B087C56 /* Ai.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = Ai.h; sourceTree = "<group>"; };
 		23B6987E5A29895D65B9D900 /* DashboardMappingTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DashboardMappingTests.swift; sourceTree = "<group>"; };
+		248A985A4E77B24C449CE493 /* KidMode.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KidMode.swift; sourceTree = "<group>"; };
 		31CE4CF890E4A150BEFCC1C9 /* StoreAdaptersTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StoreAdaptersTests.swift; sourceTree = "<group>"; };
 		34B3A2BBFEF8A532619254D1 /* Pods-penteLive.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-penteLive.debug.xcconfig"; path = "Pods/Target Support Files/Pods-penteLive/Pods-penteLive.debug.xcconfig"; sourceTree = "<group>"; };
 		351CBE2A7B2AAF91BC6615EE /* StoreScreenModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StoreScreenModel.swift; sourceTree = "<group>"; };
@@ -634,6 +637,7 @@
 		B10C4ED00000000000000013 /* BlockedPlayersTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockedPlayersTests.swift; sourceTree = "<group>"; };
 		B10C4ED00000000000000014 /* BlockedPlayersViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockedPlayers/BlockedPlayersViewController.swift; sourceTree = "<group>"; };
 		B5FF3D6A4D1F70E68CC42981 /* GoGameTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GoGameTests.swift; sourceTree = "<group>"; };
+		B683847BFE676212E9B43972 /* KidModeTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KidModeTests.swift; sourceTree = "<group>"; };
 		BB3C419E7F4171209CFAE4B4 /* PenteBadge.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PenteBadge.h; sourceTree = "<group>"; };
 		BDB76AE2B389F2859CE0C808 /* ScanTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ScanTests.swift; sourceTree = "<group>"; };
 		BDD12E388BBDA4D20382C826 /* KidAccountsTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KidAccountsTests.swift; sourceTree = "<group>"; };
@@ -888,6 +892,7 @@
 				B10C4ED00000000000000014 /* BlockedPlayersViewController.swift */,
 				44E014A1F49AF27985876A8C /* StoreViewController.swift */,
 				E36732198C6FD461BF86E5D2 /* KidAccounts.swift */,
+				248A985A4E77B24C449CE493 /* KidMode.swift */,
 			);
 			name = penteLive;
 			path = test1;
@@ -1159,6 +1164,7 @@
 				44E7D16AB0E5519271369985 /* StoreWiringTests.swift */,
 				F11B55E9EFB59E2DF3518E4B /* StoreScreenshotTests.swift */,
 				BDD12E388BBDA4D20382C826 /* KidAccountsTests.swift */,
+				B683847BFE676212E9B43972 /* KidModeTests.swift */,
 			);
 			path = PenteEngineTests;
 			sourceTree = SOURCE_ROOT;
@@ -1551,6 +1557,7 @@
 				854DB91E5547FFA1AAC18610 /* StoreWiringTests.swift in Sources */,
 				8C3BAF99F80B9158925BCCF5 /* StoreScreenshotTests.swift in Sources */,
 				E85BF75E017CD9218EF3A44B /* KidAccountsTests.swift in Sources */,
+				46142D4BD1120FE3CAC0C0D6 /* KidModeTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1646,6 +1653,7 @@
 				B10C4ED00000000000000004 /* BlockedPlayersViewController.swift in Sources */,
 				7BB8B7B4FAA8A10594D9A4F0 /* StoreViewController.swift in Sources */,
 				D931AC63085CF366177863AC /* KidAccounts.swift in Sources */,
+				88A50FE84F56B4E70121AFB2 /* KidMode.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
