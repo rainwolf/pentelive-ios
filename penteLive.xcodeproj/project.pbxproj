@@ -29,6 +29,8 @@
 		23D406DC7B60ACE1F3879C92 /* BoardVariantMapping.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50436E8B3C992E62FFFC15D7 /* BoardVariantMapping.swift */; };
 		24F5B3C3A96EEDEA4D1078E8 /* ArenaMyRequestsModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FB2E1A032CEE396D7987441 /* ArenaMyRequestsModel.swift */; };
 		317101D2F2CE93FC478F38D5 /* StoreAdapters.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF6E9CF83C944F2B4E0C5C8E /* StoreAdapters.swift */; };
+		B10C4ED00000000000000001 /* BlockedPlayers.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10C4ED00000000000000011 /* BlockedPlayers.swift */; };
+		B10C4ED00000000000000002 /* BlockedPlayersService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10C4ED00000000000000012 /* BlockedPlayersService.swift */; };
 		32A66A1A6CD3DA16C0CEFF89 /* PenteVariantTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86AC1A8A05D560A06454D468 /* PenteVariantTests.swift */; };
 		35C8D8018B6AA0E7D09F0D97 /* StoreReplyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F255476AD428B119B8ED44D /* StoreReplyTests.swift */; };
 		375FAB3016732E190832BEB7 /* StoreServiceRestoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6649647DFD534004F91B8F22 /* StoreServiceRestoreTests.swift */; };
@@ -300,6 +302,7 @@
 		EA27C537CC33E627C9C290E0 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8F67AC8BE4C73FF7390EB742 /* Foundation.framework */; };
 		EA6ACE763757DD54B209555E /* MMAIShimTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 4D35AE418CE432E8FBEC6D33 /* MMAIShimTests.m */; };
 		F64C17DEC67643AEBAE1EAA1 /* StoreAdaptersTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31CE4CF890E4A150BEFCC1C9 /* StoreAdaptersTests.swift */; };
+		B10C4ED00000000000000003 /* BlockedPlayersTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10C4ED00000000000000013 /* BlockedPlayersTests.swift */; };
 		F72B5133FA0A653E9E693B92 /* StoreKitIntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9958ABCE685CCCB2B61E5686 /* StoreKitIntegrationTests.swift */; };
 		FA5D13026A2FA2E0A2A27F38 /* PenteAlert.m in Sources */ = {isa = PBXBuildFile; fileRef = CA18254E693C7E19066ECB56 /* PenteAlert.m */; };
 		FC94E43192D837205DC1411F /* BoardVariantMappingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BB7D9EDC42A7C21CE614BEB /* BoardVariantMappingTests.swift */; };
@@ -655,6 +658,9 @@
 		E5F0539DA310A85158CDB99B /* MoveResultTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MoveResultTests.swift; sourceTree = "<group>"; };
 		E8B3FB83B0F64A0F4F64541E /* StoreViewControllerTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StoreViewControllerTests.swift; sourceTree = "<group>"; };
 		EF6E9CF83C944F2B4E0C5C8E /* StoreAdapters.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StoreAdapters.swift; sourceTree = "<group>"; };
+		B10C4ED00000000000000011 /* BlockedPlayers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockedPlayers/BlockedPlayers.swift; sourceTree = "<group>"; };
+		B10C4ED00000000000000012 /* BlockedPlayersService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockedPlayers/BlockedPlayersService.swift; sourceTree = "<group>"; };
+		B10C4ED00000000000000013 /* BlockedPlayersTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockedPlayersTests.swift; sourceTree = "<group>"; };
 		EF8E8FC20ADB028761CFE2A8 /* StoreFakes.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StoreFakes.swift; sourceTree = "<group>"; };
 		F012F4E7BBA0F5D6EF3902A8 /* StoreTypes.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StoreTypes.swift; sourceTree = "<group>"; };
 		F0FC944C7EBF9EE152F01111 /* DashboardResultTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DashboardResultTests.swift; sourceTree = "<group>"; };
@@ -871,6 +877,8 @@
 				351CBE2A7B2AAF91BC6615EE /* StoreScreenModel.swift */,
 				739D6DA0ACE5AEC5DB36CE4F /* StoreService.swift */,
 				EF6E9CF83C944F2B4E0C5C8E /* StoreAdapters.swift */,
+				B10C4ED00000000000000011 /* BlockedPlayers.swift */,
+				B10C4ED00000000000000012 /* BlockedPlayersService.swift */,
 				44E014A1F49AF27985876A8C /* StoreViewController.swift */,
 			);
 			name = penteLive;
@@ -1135,6 +1143,7 @@
 				3CE71B4A2818C0A22473B3EA /* StoreServiceResyncTests.swift */,
 				6649647DFD534004F91B8F22 /* StoreServiceRestoreTests.swift */,
 				31CE4CF890E4A150BEFCC1C9 /* StoreAdaptersTests.swift */,
+				B10C4ED00000000000000013 /* BlockedPlayersTests.swift */,
 				9958ABCE685CCCB2B61E5686 /* StoreKitIntegrationTests.swift */,
 				D8C659756B4CDB24A820A4F4 /* Products.storekit */,
 				E8B3FB83B0F64A0F4F64541E /* StoreViewControllerTests.swift */,
@@ -1526,6 +1535,7 @@
 				64B1EDFF8AEFE8E4D040F183 /* StoreServiceResyncTests.swift in Sources */,
 				375FAB3016732E190832BEB7 /* StoreServiceRestoreTests.swift in Sources */,
 				F64C17DEC67643AEBAE1EAA1 /* StoreAdaptersTests.swift in Sources */,
+				B10C4ED00000000000000003 /* BlockedPlayersTests.swift in Sources */,
 				F72B5133FA0A653E9E693B92 /* StoreKitIntegrationTests.swift in Sources */,
 				4B11137F8EB9E713E604C1F0 /* StoreViewControllerTests.swift in Sources */,
 				9F850A349A46CB192B8FCFAE /* StoreEntryPointsTests.swift in Sources */,
@@ -1621,6 +1631,8 @@
 				1EEDE873B1B3CB703A9F2B4C /* StoreScreenModel.swift in Sources */,
 				CC02EAFCD39E557347A3C2FD /* StoreService.swift in Sources */,
 				317101D2F2CE93FC478F38D5 /* StoreAdapters.swift in Sources */,
+				B10C4ED00000000000000001 /* BlockedPlayers.swift in Sources */,
+				B10C4ED00000000000000002 /* BlockedPlayersService.swift in Sources */,
 				7BB8B7B4FAA8A10594D9A4F0 /* StoreViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
