@@ -37,6 +37,9 @@ let development = developmentEnabled()
 
         navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(named: "broadcast"), style: .plain, target: self, action: #selector(broadcast))
         pentePlayer = (navigationController as! PenteNavigationViewController).player
+        if pentePlayer?.isKid == true {
+            navigationItem.rightBarButtonItem = nil
+        }
 
         loadServers()
 
@@ -190,7 +193,9 @@ let development = developmentEnabled()
 //        print("https://www.pente.org/gameServer/broadcast?sendTo=\(to)&game=\(game.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed)!)")
         do {
             let htmlString = try String(contentsOf: URL(string: "https://www.pente.org/gameServer/broadcast?sendTo=\(to)&game=\(game.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed)!)&mobile=")!, encoding: String.Encoding.utf8)
-            if htmlString.contains("Broadcasting to followers or friends is only available to subscribers") {
+            if KidMode.isBroadcastRefused(htmlString) {
+                showErrorAlert(alertMessage: KidMode.broadcastRefusedText)
+            } else if htmlString.contains("Broadcasting to followers or friends is only available to subscribers") {
                 showErrorAlert(alertMessage: NSLocalizedString("Broadcasting to followers or friends is only available to subscribers", comment: ""))
             } else if htmlString.contains("database error, try again later") {
                 showErrorAlert(alertMessage: NSLocalizedString("Database error, please try again later.", comment: ""))

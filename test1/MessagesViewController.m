@@ -122,6 +122,19 @@ InvitationsViewController *invitationVC;
         [self setTitle:@"new message"];
         self.toField.textColor = [UIColor blueColor];
 
+        if (navController.player.isKid) {
+            self.toField.placeholder = KidMode.composerHint;
+            // Clear synchronously: viewDidLoad filled this from invitedHistory,
+            // which can hold non-approved names, and the fetch below is async.
+            self.toHistory = [NSMutableArray array];
+            __weak typeof(self) weakSelf = self;
+            [KidAccountsService allowedRecipientsWithCompletion:^(NSArray<NSString *> *names) {
+                __strong typeof(weakSelf) strongSelf = weakSelf;
+                if (!strongSelf) return;
+                strongSelf.toHistory = [names mutableCopy];
+            }];
+        }
+
         if ([navController needHelp]) {
             [navController setNeedHelp:NO];
             [toField setText:@"rainwolf"];
@@ -663,6 +676,10 @@ InvitationsViewController *invitationVC;
                                                     NSLocalizedString(
                                                         @"Reason: %@", nil),
                                                     error.localizedDescription]
+                    cancelButtonTitle:@"OK"];
+        } else if ([KidMode messageSendError:dashboardString]) {
+            [PenteAlert showWithTitle:NSLocalizedString(@"Message not sent", nil)
+                              message:[KidMode messageSendError:dashboardString]
                     cancelButtonTitle:@"OK"];
         } else if ([dashboardString
                        rangeOfString:[NSString stringWithFormat:
