@@ -562,6 +562,10 @@ InvitationsViewController *invitationVC;
 - (void)updateReplyInput {
     replyPlaceholder.hidden =
         (replyMessageView.text.length > 0) || self.senderBlocked;
+    if (self.senderBlocked && messageID) {
+        replyHeightConstraint.constant = 0;
+        return;
+    }
     CGFloat width = replyMessageView.bounds.size.width;
     if (width <= 0) {
         return;
