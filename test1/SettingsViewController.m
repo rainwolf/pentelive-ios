@@ -230,7 +230,8 @@ static NSString *PenteHexStringForColor(UIColor *color) {
         }
     } else {
         self.hiddenKeys =
-            [NSSet setWithObjects:@"SubscribeButton", @"StoreButton", nil];
+            [NSSet setWithObjects:@"SubscribeButton", @"StoreButton",
+                                  @"blockedPlayersButton", nil];
     }
     [self setShowCreditsFooter:YES];
     [self setTitle:@"Settings"];
@@ -266,6 +267,12 @@ static NSString *PenteHexStringForColor(UIColor *color) {
 
 - (void)settingsViewController:(IASKAppSettingsViewController *)sender
       buttonTappedForSpecifier:(IASKSpecifier *)specifier {
+    if ([specifier.key isEqualToString:@"blockedPlayersButton"]) {
+        [self.navigationController
+            pushViewController:[[BlockedPlayersViewController alloc] init]
+                      animated:YES];
+        return;
+    }
     if ([specifier.key isEqualToString:@"LoginButton"]) {
         NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
         username = [defaults objectForKey:usernameKey];

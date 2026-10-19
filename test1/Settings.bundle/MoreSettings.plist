@@ -137,6 +137,20 @@
 			<string>PSGroupSpecifier</string>
 		</dict>
 		<dict>
+			<key>Key</key>
+			<string>blockedPlayersButton</string>
+			<key>Title</key>
+			<string>Blocked players</string>
+			<key>IASKTextAlignment</key>
+			<string>IASKUITextAlignmentCenter</string>
+			<key>Type</key>
+			<string>IASKButtonSpecifier</string>
+		</dict>
+		<dict>
+			<key>Type</key>
+			<string>PSGroupSpecifier</string>
+		</dict>
+		<dict>
 			<key>Type</key>
 			<string>PSGroupSpecifier</string>
 		</dict>

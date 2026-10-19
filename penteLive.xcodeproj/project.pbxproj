@@ -31,6 +31,7 @@
 		317101D2F2CE93FC478F38D5 /* StoreAdapters.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF6E9CF83C944F2B4E0C5C8E /* StoreAdapters.swift */; };
 		B10C4ED00000000000000001 /* BlockedPlayers.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10C4ED00000000000000011 /* BlockedPlayers.swift */; };
 		B10C4ED00000000000000002 /* BlockedPlayersService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10C4ED00000000000000012 /* BlockedPlayersService.swift */; };
+		B10C4ED00000000000000004 /* BlockedPlayersViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10C4ED00000000000000014 /* BlockedPlayersViewController.swift */; };
 		32A66A1A6CD3DA16C0CEFF89 /* PenteVariantTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86AC1A8A05D560A06454D468 /* PenteVariantTests.swift */; };
 		35C8D8018B6AA0E7D09F0D97 /* StoreReplyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F255476AD428B119B8ED44D /* StoreReplyTests.swift */; };
 		375FAB3016732E190832BEB7 /* StoreServiceRestoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6649647DFD534004F91B8F22 /* StoreServiceRestoreTests.swift */; };
@@ -660,6 +661,7 @@
 		EF6E9CF83C944F2B4E0C5C8E /* StoreAdapters.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StoreAdapters.swift; sourceTree = "<group>"; };
 		B10C4ED00000000000000011 /* BlockedPlayers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockedPlayers/BlockedPlayers.swift; sourceTree = "<group>"; };
 		B10C4ED00000000000000012 /* BlockedPlayersService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockedPlayers/BlockedPlayersService.swift; sourceTree = "<group>"; };
+		B10C4ED00000000000000014 /* BlockedPlayersViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockedPlayers/BlockedPlayersViewController.swift; sourceTree = "<group>"; };
 		B10C4ED00000000000000013 /* BlockedPlayersTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockedPlayersTests.swift; sourceTree = "<group>"; };
 		EF8E8FC20ADB028761CFE2A8 /* StoreFakes.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StoreFakes.swift; sourceTree = "<group>"; };
 		F012F4E7BBA0F5D6EF3902A8 /* StoreTypes.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StoreTypes.swift; sourceTree = "<group>"; };
@@ -879,6 +881,7 @@
 				EF6E9CF83C944F2B4E0C5C8E /* StoreAdapters.swift */,
 				B10C4ED00000000000000011 /* BlockedPlayers.swift */,
 				B10C4ED00000000000000012 /* BlockedPlayersService.swift */,
+				B10C4ED00000000000000014 /* BlockedPlayersViewController.swift */,
 				44E014A1F49AF27985876A8C /* StoreViewController.swift */,
 			);
 			name = penteLive;
@@ -1633,6 +1636,7 @@
 				317101D2F2CE93FC478F38D5 /* StoreAdapters.swift in Sources */,
 				B10C4ED00000000000000001 /* BlockedPlayers.swift in Sources */,
 				B10C4ED00000000000000002 /* BlockedPlayersService.swift in Sources */,
+				B10C4ED00000000000000004 /* BlockedPlayersViewController.swift in Sources */,
 				7BB8B7B4FAA8A10594D9A4F0 /* StoreViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
