@@ -184,6 +184,6 @@ import UIKit
 
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        // Task 5: push KidDetailViewController(kid:list:)
+        navigationController?.pushViewController(KidDetailViewController(kid: rows[indexPath.row], list: self), animated: true)
     }
 }

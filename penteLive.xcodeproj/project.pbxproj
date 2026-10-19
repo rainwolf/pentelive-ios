@@ -246,6 +246,7 @@
 		63FEFD78169320AB0070E9AA /* PickerInputTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 63FEFD77169320AA0070E9AA /* PickerInputTableViewCell.m */; };
 		64B1EDFF8AEFE8E4D040F183 /* StoreServiceResyncTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3CE71B4A2818C0A22473B3EA /* StoreServiceResyncTests.swift */; };
 		6A0C0FFE0000000000000001 /* GoInteractiveCaptureTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 6A0C0FFE0000000000000002 /* GoInteractiveCaptureTests.m */; };
+		6BE53D9F886AD52A09C87C32 /* KidDetailViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A7172DD5CF7CDE930E2D7F6 /* KidDetailViewController.swift */; };
 		6C6D61B6CD9776820618837B /* CorpusSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = A639685AFB848EDF3272E550 /* CorpusSupport.swift */; };
 		6DF419D1BFAAECFD9C12D887 /* RuleSetTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ECBCB2C27E5249A019555B9 /* RuleSetTests.swift */; };
 		704D00F9E428E7746E4942F1 /* CorpusHelperTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8715B8F87E8325A61F04D700 /* CorpusHelperTests.swift */; };
@@ -356,6 +357,7 @@
 		4D35AE418CE432E8FBEC6D33 /* MMAIShimTests.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = MMAIShimTests.m; sourceTree = "<group>"; };
 		50436E8B3C992E62FFFC15D7 /* BoardVariantMapping.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BoardVariantMapping.swift; sourceTree = "<group>"; };
 		56695C43B8B3FC600459EC2F /* DashboardServiceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DashboardServiceTests.swift; sourceTree = "<group>"; };
+		5A7172DD5CF7CDE930E2D7F6 /* KidDetailViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KidDetailViewController.swift; sourceTree = "<group>"; };
 		5E7A1C0F2B9D4E6A8C3F1B21 /* RoomEventOrderingTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RoomEventOrderingTests.swift; sourceTree = "<group>"; };
 		63052FB71D047F9000F78B30 /* unlock.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = unlock.png; sourceTree = "<group>"; };
 		63052FB81D047F9000F78B30 /* unlock@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "unlock@2x.png"; sourceTree = "<group>"; };
@@ -901,6 +903,7 @@
 				248A985A4E77B24C449CE493 /* KidMode.swift */,
 				B85148550AC145C5A4472E98 /* KidAccountsService.swift */,
 				FCE67D7173E8CFCF3C56944F /* KidAccountsViewController.swift */,
+				5A7172DD5CF7CDE930E2D7F6 /* KidDetailViewController.swift */,
 			);
 			name = penteLive;
 			path = test1;
@@ -1666,6 +1669,7 @@
 				88A50FE84F56B4E70121AFB2 /* KidMode.swift in Sources */,
 				BCBF98A97B5DCE41E148A93D /* KidAccountsService.swift in Sources */,
 				CFD7320E3345B16FB1133152 /* KidAccountsViewController.swift in Sources */,
+				6BE53D9F886AD52A09C87C32 /* KidDetailViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

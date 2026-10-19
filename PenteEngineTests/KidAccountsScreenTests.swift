@@ -92,3 +92,94 @@ final class KidAccountsScreenTests: XCTestCase {
         XCTAssertEqual(vc.emptyText, "No kid accounts yet")
     }
 }
+
+final class KidDetailScreenTests: XCTestCase {
+    private let kidAccount = KidAccount(kidPid: 7, name: "tim", copyMessages: true, copyLiveChat: false,
+                                        whitelist: [KidPlayer(pid: 1, name: "ann"), KidPlayer(pid: 2, name: "bob")])
+
+    private func state(kids: [KidAccount]) -> KidAccountsState {
+        KidAccountsState(isKid: false, emailVerified: true, parentName: nil,
+                         whitelist: [], kids: kids, message: nil)
+    }
+
+    private func detail(_ reply: @escaping (KidAction) -> (KidAccountsState?, String?),
+                        actions: ActionLog = ActionLog()) -> KidDetailViewController
+    {
+        let list = KidAccountsViewController()
+        list.loadViewIfNeeded()
+        let vc = KidDetailViewController(kid: kidAccount, list: list)
+        vc.performAction = { action, completion in
+            actions.items.append(action)
+            let (state, error) = reply(action)
+            completion(state, error)
+        }
+        vc.loadViewIfNeeded()
+        return vc
+    }
+
+    final class ActionLog { var items: [KidAction] = [] }
+
+    private func switchOf(_ vc: KidDetailViewController, row: Int) -> UISwitch? {
+        vc.tableView(vc.tableView, cellForRowAt: IndexPath(row: row, section: 1)).accessoryView as? UISwitch
+    }
+
+    func testLayoutAndFooters() {
+        let vc = detail { _ in (nil, "x") }
+        XCTAssertEqual(vc.title, "tim")
+        XCTAssertEqual(vc.numberOfSections(in: vc.tableView), 3)
+        XCTAssertEqual(vc.tableView(vc.tableView, numberOfRowsInSection: 0), 3) // 2 approved + Add player…
+        XCTAssertEqual(vc.tableView(vc.tableView, numberOfRowsInSection: 1), 2)
+        XCTAssertEqual(vc.tableView(vc.tableView, numberOfRowsInSection: 2), 2)
+        XCTAssertEqual(vc.tableView(vc.tableView, titleForFooterInSection: 0),
+                       "Your kid can always chat with you and with pente.org admins.")
+        XCTAssertEqual(vc.tableView(vc.tableView, titleForFooterInSection: 1), KidMode.liveChatCopyNote)
+        XCTAssertTrue(switchOf(vc, row: 0)?.isOn ?? false)
+        XCTAssertFalse(switchOf(vc, row: 1)?.isOn ?? true)
+    }
+
+    func testTogglingSendsOnlyTheToggledFlag() {
+        let log = ActionLog()
+        let updated = KidAccount(kidPid: 7, name: "tim", copyMessages: true, copyLiveChat: true, whitelist: [])
+        let vc = detail({ _ in (self.state(kids: [updated]), nil) }, actions: log)
+        let live = switchOf(vc, row: 1)!
+        live.isOn = true
+        vc.copySwitchChanged(live)
+        XCTAssertEqual(log.items, [.settings(kidPid: 7, copyMessages: nil, copyLiveChat: true)])
+        let msgs = switchOf(vc, row: 0)!
+        msgs.isOn = false
+        vc.copySwitchChanged(msgs)
+        XCTAssertEqual(log.items.last, .settings(kidPid: 7, copyMessages: false, copyLiveChat: nil))
+    }
+
+    func testFailedToggleRevertsSwitch() {
+        let vc = detail { _ in (nil, "boom") }
+        let live = switchOf(vc, row: 1)!
+        live.isOn = true
+        vc.copySwitchChanged(live)
+        XCTAssertFalse(live.isOn)
+    }
+
+    func testSuccessReplacesKidAndReloads() {
+        let updated = KidAccount(kidPid: 7, name: "tim", copyMessages: true, copyLiveChat: false,
+                                 whitelist: [KidPlayer(pid: 1, name: "ann")])
+        let log = ActionLog()
+        let vc = detail({ _ in (self.state(kids: [updated]), nil) }, actions: log)
+        vc.remove(playerPid: 2)
+        XCTAssertEqual(log.items, [.whitelistRemove(kidPid: 7, playerPid: 2)])
+        XCTAssertEqual(vc.tableView(vc.tableView, numberOfRowsInSection: 0), 2)
+    }
+
+    func testReleasedKidPopsToList() {
+        let list = KidAccountsViewController()
+        let nav = UINavigationController(rootViewController: list)
+        let vc = KidDetailViewController(kid: kidAccount, list: list)
+        vc.performAction = { _, completion in completion(self.state(kids: []), nil) }
+        nav.pushViewController(vc, animated: false)
+        vc.release()
+        let deadline = Date().addingTimeInterval(3)
+        while nav.topViewController !== list, Date() < deadline {
+            RunLoop.current.run(until: Date().addingTimeInterval(0.05))
+        }
+        XCTAssertTrue(nav.topViewController === list)
+    }
+}
