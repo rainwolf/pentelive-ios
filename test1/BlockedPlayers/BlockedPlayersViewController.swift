@@ -108,7 +108,7 @@ import UIKit
             ?? UITableViewCell(style: .subtitle, reuseIdentifier: cellID)
         let entry = visible[indexPath.row]
         var content = cell.defaultContentConfiguration()
-        content.text = entry.name
+        content.attributedText = entry.styledName
         content.secondaryText = filter == .both
             ? BlockedPlayers.kindText(invite: entry.ignoreInvite, chat: entry.ignoreChat)
             : nil

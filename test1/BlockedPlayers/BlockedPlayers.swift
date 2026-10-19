@@ -1,4 +1,4 @@
-import Foundation
+import UIKit
 
 /// One row of the account's ignore list (GET /gameServer/ignored).
 struct IgnoreEntry: Decodable, Equatable {
@@ -6,6 +6,44 @@ struct IgnoreEntry: Decodable, Equatable {
     let name: String
     let ignoreInvite: Bool
     let ignoreChat: Bool
+    /// Donor name color as RGB int; 0 = no color. Absent from older servers.
+    let nameColor: Int
+    /// 0 none; 1/2/3 tournament crowns; > 3 KOTH crown (kothWins + 3). Absent from older servers.
+    let tourneyWinner: Int
+
+    init(ignorePid: Int64, name: String, ignoreInvite: Bool, ignoreChat: Bool,
+         nameColor: Int = 0, tourneyWinner: Int = 0) {
+        self.ignorePid = ignorePid
+        self.name = name
+        self.ignoreInvite = ignoreInvite
+        self.ignoreChat = ignoreChat
+        self.nameColor = nameColor
+        self.tourneyWinner = tourneyWinner
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        ignorePid = try c.decode(Int64.self, forKey: .ignorePid)
+        name = try c.decode(String.self, forKey: .name)
+        ignoreInvite = try c.decode(Bool.self, forKey: .ignoreInvite)
+        ignoreChat = try c.decode(Bool.self, forKey: .ignoreChat)
+        nameColor = try c.decodeIfPresent(Int.self, forKey: .nameColor) ?? 0
+        tourneyWinner = try c.decodeIfPresent(Int.self, forKey: .tourneyWinner) ?? 0
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case ignorePid, name, ignoreInvite, ignoreChat, nameColor, tourneyWinner
+    }
+
+    /// The name styled exactly like a dashboard message sender (color, weight, crown),
+    /// by reusing `Message.attributedName` with the same mapping as `DashboardMapping`.
+    var styledName: NSAttributedString {
+        let m = Message()
+        m.author = name
+        m.nameColor = DashboardMapping.uiColor(fromRGB: nameColor)
+        m.crown = Int32(tourneyWinner)
+        return m.attributedName()
+    }
 }
 
 /// Which kind of block a list or an unblock acts on.
