@@ -55,6 +55,8 @@ class PlayerTableCell: UITableViewCell {
     let playSounds = !UserDefaults.standard.bool(forKey: "inAppSoundsOff")
     var playerNamesArray: [String] = []
     var isArena: Bool = false
+    // Main thread only.
+    var isKid = false
     var setupView: ArenaTableSetupView?
     // Requester lobby state (spec C3). Main thread only.
     var arenaMyRequests = ArenaMyRequestsModel()
@@ -359,7 +361,10 @@ class PlayerTableCell: UITableViewCell {
         socket.me = me
         let serverData = event["serverData"] as! [String: Any]
         let messages: [String] = serverData["loginMessages"] as! [String]
+        let kid = KidMode.isKid(loginEvent: event)
         DispatchQueue.main.async {
+            self.isKid = kid
+            self.textField.placeholder = kid ? KidMode.chatHint : nil
             for message in messages {
                 self.textView.text = "\(self.textView.text!)\(message)\n"
             }
@@ -553,13 +558,15 @@ class PlayerTableCell: UITableViewCell {
                     if self.playSounds {
                         AudioServicesPlaySystemSound(self.invitationSndID)
                     }
-                    self.invitationAlertController = UIAlertController(title: NSLocalizedString("\(invitingPlayer) has invited you to his table", comment: ""), message: "message: \(inviteText)", preferredStyle: .alert)
-                    self.invitationAlertController?.addTextField { (textField: UITextField!) in
-                        textField.placeholder = NSLocalizedString("reply message", comment: "")
+                    self.invitationAlertController = UIAlertController(title: NSLocalizedString("\(invitingPlayer) has invited you to his table", comment: ""), message: KidMode.inviteAlertMessage(inviteText), preferredStyle: .alert)
+                    if !self.isKid {
+                        self.invitationAlertController?.addTextField { (textField: UITextField!) in
+                            textField.placeholder = NSLocalizedString("reply message", comment: "")
+                        }
                     }
                     let acceptAction = UIAlertAction(title: NSLocalizedString("accept", comment: ""), style: .default) { _ in
-                        let textField = self.invitationAlertController!.textFields![0] as UITextField
-                        let event = ["dsgInviteResponseTableEvent": ["toPlayer": invitingPlayer, "responseText": textField.text!, "accept": true, "ignore": false, "table": tableId, "time": 0]]
+                        let responseText = self.invitationAlertController!.textFields?.first?.text ?? ""
+                        let event = ["dsgInviteResponseTableEvent": ["toPlayer": invitingPlayer, "responseText": responseText, "accept": true, "ignore": false, "table": tableId, "time": 0]]
                         self.socket.sendEvent(eventDictionary: event)
                         if self.tableViewController != nil {
                             let leaveEvent = ["dsgExitTableEvent": ["forced": false, "table": (self.tableViewController?.table.table)!, "booted": false, "time": 0]]
@@ -570,14 +577,14 @@ class PlayerTableCell: UITableViewCell {
                     }
                     self.invitationAlertController?.addAction(acceptAction)
                     let declineAction = UIAlertAction(title: NSLocalizedString("decline", comment: ""), style: .default) { _ in
-                        let textField = self.invitationAlertController!.textFields![0] as UITextField
-                        let event = ["dsgInviteResponseTableEvent": ["toPlayer": invitingPlayer, "responseText": textField.text!, "accept": false, "ignore": false, "table": tableId, "time": 0]]
+                        let responseText = self.invitationAlertController!.textFields?.first?.text ?? ""
+                        let event = ["dsgInviteResponseTableEvent": ["toPlayer": invitingPlayer, "responseText": responseText, "accept": false, "ignore": false, "table": tableId, "time": 0]]
                         self.socket.sendEvent(eventDictionary: event)
                     }
                     self.invitationAlertController?.addAction(declineAction)
                     let ignoreAction = UIAlertAction(title: NSLocalizedString("ignore invites from this player", comment: ""), style: .destructive) { _ in
-                        let textField = self.invitationAlertController!.textFields![0] as UITextField
-                        let event = ["dsgInviteResponseTableEvent": ["toPlayer": invitingPlayer, "responseText": textField.text!, "accept": false, "ignore": true, "table": tableId, "time": 0]]
+                        let responseText = self.invitationAlertController!.textFields?.first?.text ?? ""
+                        let event = ["dsgInviteResponseTableEvent": ["toPlayer": invitingPlayer, "responseText": responseText, "accept": false, "ignore": true, "table": tableId, "time": 0]]
                         self.socket.sendEvent(eventDictionary: event)
                     }
                     self.invitationAlertController?.addAction(ignoreAction)
@@ -634,7 +641,7 @@ class PlayerTableCell: UITableViewCell {
             let table = self.playersAndTables.table(tableId: tableId)
             self.tableView.reloadData()
             if playerName == self.me {
-                self.tableViewController = TableViewController(table: table!, socket: self.socket, tablesAndPlayers: self.playersAndTables, pente_player: self.pentePlayer!, me: self.me, isArenaTable: self.isArena)
+                self.tableViewController = TableViewController(table: table!, socket: self.socket, tablesAndPlayers: self.playersAndTables, pente_player: self.pentePlayer!, me: self.me, isArenaTable: self.isArena, isKid: self.isKid)
                 self.tableViewController?.pentePlayer = self.pentePlayer
                 self.navigationController?.pushViewController(self.tableViewController!, animated: true)
             } else {

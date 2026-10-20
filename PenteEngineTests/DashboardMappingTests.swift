@@ -121,4 +121,27 @@ final class DashboardMappingTests: XCTestCase {
         XCTAssertEqual(DashboardMapping.parseStoneColor(nil), "")
     }
 
+    private func flags(_ playerJSON: String) throws -> DashboardFlags {
+        let json = #"{"player":"# + playerJSON + "}"
+        return DashboardMapping.map(try JSONDecoder().decode(WireDashboard.self, from: Data(json.utf8))).flags
+    }
+
+    func testSampleWithoutParentPidIsNotKid() throws {
+        XCTAssertFalse(try loadDashboard().flags.isKid)
+    }
+
+    func testParentPidMakesKid() throws {
+        XCTAssertTrue(try flags(#"{"name":"kid_one","parentPid":23000000012345}"#).isKid)
+    }
+
+    func testNullParentPidIsNotKid() throws {
+        XCTAssertFalse(try flags(#"{"name":"bob","parentPid":null}"#).isKid)
+    }
+
+    func testParentPidOfAnyShapeNeverBreaksDecoding() throws {
+        XCTAssertTrue(try flags(#"{"name":"kid_one","parentPid":"23000000012345"}"#).isKid)
+        let f = try flags(#"{"name":"bob","parentPid":{"x":1}}"#)
+        XCTAssertFalse(f.isKid)
+        XCTAssertEqual(f.playerName, "bob")
+    }
 }

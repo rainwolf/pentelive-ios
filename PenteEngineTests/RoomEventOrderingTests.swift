@@ -33,4 +33,51 @@ final class RoomEventOrderingTests: XCTestCase {
         XCTAssertNotNil(room.playersAndTables.player(name: "owner"))
         XCTAssertNotNil(room.playersAndTables.table(tableId: 7)?.players["owner"])
     }
+
+    private func loginEvent(parentPid: Any?) -> [String: Any] {
+        var me: [String: Any] = ["name": "iostest"]
+        if let parentPid { me["parentPid"] = parentPid }
+        return ["player": "iostest", "serverData": ["loginMessages": [String]()], "me": me]
+    }
+
+    private func drainMain() {
+        let drained = expectation(description: "main queue drained")
+        DispatchQueue.main.async { drained.fulfill() }
+        wait(for: [drained], timeout: 5)
+    }
+
+    func testKidLoginSetsKidFlagAndChatHint() throws {
+        let room = try makeRoom()
+        room.socket = PenteLiveSocket(server: "127.0.0.1", port: 1, room: room)
+        defer { room.socket.disconnect() }
+        room.loginEvent(event: loginEvent(parentPid: 42))
+        drainMain()
+        XCTAssertTrue(room.isKid)
+        XCTAssertEqual(room.textField.placeholder, KidMode.chatHint)
+    }
+
+    func testNonKidLoginClearsKidFlagAndChatHint() throws {
+        let room = try makeRoom()
+        room.socket = PenteLiveSocket(server: "127.0.0.1", port: 1, room: room)
+        defer { room.socket.disconnect() }
+        room.loginEvent(event: loginEvent(parentPid: 42))
+        drainMain()
+        room.loginEvent(event: loginEvent(parentPid: nil))
+        drainMain()
+        XCTAssertFalse(room.isKid)
+        XCTAssertNil(room.textField.placeholder)
+    }
+
+    func testTableViewControllerShowsChatHintOnlyForKids() throws {
+        let room = try makeRoom()
+        room.socket = PenteLiveSocket(server: "127.0.0.1", port: 1, room: room)
+        defer { room.socket.disconnect() }
+        let player = PentePlayer()
+        let kidTable = TableViewController(table: Table(table: 1), socket: room.socket, tablesAndPlayers: room.playersAndTables, pente_player: player, me: "iostest", isKid: true)
+        XCTAssertTrue(kidTable.isKid)
+        XCTAssertEqual(kidTable.textField.placeholder, KidMode.chatHint)
+        let adultTable = TableViewController(table: Table(table: 2), socket: room.socket, tablesAndPlayers: room.playersAndTables, pente_player: player, me: "iostest")
+        XCTAssertFalse(adultTable.isKid)
+        XCTAssertNil(adultTable.textField.placeholder)
+    }
 }

@@ -146,7 +146,8 @@ enum DashboardMapping {
             tbHills: tbHills,
             tbRatings: tbRatings,
             livePlayers: p?.livePlayers?.value ?? "0",
-            onlineFollowing: p?.onlineFollowing?.value ?? "0")
+            onlineFollowing: p?.onlineFollowing?.value ?? "0",
+            isKid: !(p?.parentPid?.value ?? "").isEmpty)
 
         return Dashboard(sentInvitations: sent, invitations: received,
                          activeGames: activeMine, nonActiveGames: activeOpp,

@@ -216,23 +216,13 @@ static NSString *PenteHexStringForColor(UIColor *color) {
 }
 
 - (void)viewWillAppear:(BOOL)animated {
-    if ([[NSUserDefaults standardUserDefaults]
-            boolForKey:@"registrationSuccess"]) {
-        // Logged in: the Store row always (vacation days, restore, Manage
-        // subscription), Subscribe! only for non-subscribers (spec 5.4).
-        if (self.navC.player && self.navC.player.subscriber) {
-            self.hiddenKeys =
-                [NSSet setWithObjects:@"SubscribeButton", @"SignUpButton",
-                                      @"SignUpLabel", @"personalizeAds", nil];
-        } else {
-            self.hiddenKeys =
-                [NSSet setWithObjects:@"SignUpButton", @"SignUpLabel", nil];
-        }
-    } else {
-        self.hiddenKeys =
-            [NSSet setWithObjects:@"SubscribeButton", @"StoreButton",
-                                  @"blockedPlayersButton", nil];
-    }
+    BOOL loggedIn = [[NSUserDefaults standardUserDefaults] boolForKey:@"registrationSuccess"];
+    // Logged in: the Store row always (vacation days, restore, Manage
+    // subscription), Subscribe! only for non-subscribers (spec 5.4); kids
+    // never see the Kid accounts row.
+    self.hiddenKeys = [KidMode settingsHiddenKeysWithLoggedIn:loggedIn
+                                                   subscriber:(self.navC.player && self.navC.player.subscriber)
+                                                        isKid:self.navC.player.isKid];
     [self setShowCreditsFooter:YES];
     [self setTitle:@"Settings"];
     [self.tableView setSeparatorColor:[UIColor blueColor]];
@@ -271,6 +261,12 @@ static NSString *PenteHexStringForColor(UIColor *color) {
         [self.navigationController
             pushViewController:[[BlockedPlayersViewController alloc] init]
                       animated:YES];
+        return;
+    }
+    if ([specifier.key isEqualToString:@"kidAccountsButton"]) {
+        KidAccountsViewController *kids = [[KidAccountsViewController alloc] init];
+        kids.player = self.navC.player;
+        [self.navigationController pushViewController:kids animated:YES];
         return;
     }
     if ([specifier.key isEqualToString:@"LoginButton"]) {

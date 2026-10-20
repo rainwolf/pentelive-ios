@@ -61,9 +61,11 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
     var tablesAndPlayers: TablesAndPlayer!
     var invitablePlayers: [String]!
     var pentePlayer: PentePlayer!
+    let isKid: Bool
 
-    init(table: Table, socket: PenteLiveSocket, tablesAndPlayers: TablesAndPlayer, pente_player: PentePlayer, me: String, isArenaTable: Bool = false) {
+    init(table: Table, socket: PenteLiveSocket, tablesAndPlayers: TablesAndPlayer, pente_player: PentePlayer, me: String, isArenaTable: Bool = false, isKid: Bool = false) {
         self.isArenaTable = isArenaTable
+        self.isKid = isKid
         self.table = table
         self.socket = socket
         board = LiveBoard(table: table)
@@ -94,6 +96,7 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
         textField.layer.borderWidth = 1.0
         textField.layer.cornerRadius = 1.0
         textField.returnKeyType = .send
+        textField.placeholder = isKid ? KidMode.chatHint : nil
         textField.backgroundColor = UIColor.white
         view.addSubview(textField)
         playButton.setTitle(NSLocalizedString("play", comment: ""), for: .normal)
@@ -127,6 +130,7 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
         setupView = TableSetupView(coder: aDecoder)
         tablesAndPlayers = TablesAndPlayer()
         me = "guest"
+        isKid = false
         super.init(coder: aDecoder)!
     }
 
@@ -582,8 +586,10 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
         DispatchQueue.main.async {
             self.invitablePlayers = self.tablesAndPlayers.invitablePlayersFor(tableId: self.table.table)
             self.inviteAlertController = UIAlertController(title: NSLocalizedString("invite player", comment: ""), message: nil, preferredStyle: .alert)
-            self.inviteAlertController?.addTextField { (textField: UITextField!) in
-                textField.placeholder = NSLocalizedString("optional message", comment: "")
+            if !self.isKid {
+                self.inviteAlertController?.addTextField { (textField: UITextField!) in
+                    textField.placeholder = NSLocalizedString("optional message", comment: "")
+                }
             }
             self.inviteAlertController?.addTextField { (textField: UITextField!) in
                 textField.placeholder = NSLocalizedString("player", comment: "")
@@ -602,8 +608,8 @@ class TableViewController: UIViewController, UITextFieldDelegate, UIGestureRecog
                 textField.inputAccessoryView = pickerToolbar
             }
             let sendAction = UIAlertAction(title: NSLocalizedString("send invitation", comment: ""), style: .default) { _ in
-                let player = (self.inviteAlertController!.textFields![1] as UITextField).text!
-                let message = (self.inviteAlertController!.textFields![0] as UITextField).text!
+                let player = (self.inviteAlertController!.textFields!.last! as UITextField).text!
+                let message = self.isKid ? "" : (self.inviteAlertController!.textFields![0] as UITextField).text!
                 if player != "" {
                     let event = ["dsgInviteTableEvent": ["toInvite": player, "inviteText": message, "player": self.me, "table": self.table.table, "time": 0] as [String: Any]]
                     self.socket.sendEvent(eventDictionary: event)
