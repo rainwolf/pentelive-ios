@@ -17,7 +17,7 @@ class PenteWebViewController: UIViewController, WKNavigationDelegate {
     let digits = CharacterSet(charactersIn: "0123456789")
 
     private let request: URLRequest
-    private let webView = WKWebView(frame: .zero, configuration: WKWebViewConfiguration())
+    private let webView = WKWebView(frame: .zero, configuration: PenteWebViewController.makeConfiguration())
     private let progressView = UIProgressView(progressViewStyle: .default)
     private var observations: [NSKeyValueObservation] = []
 
@@ -25,6 +25,13 @@ class PenteWebViewController: UIViewController, WKNavigationDelegate {
     private lazy var forwardItem = UIBarButtonItem(image: UIImage(systemName: "chevron.forward"), style: .plain, target: self, action: #selector(goForward))
     private lazy var reloadItem = UIBarButtonItem(barButtonSystemItem: .refresh, target: self, action: #selector(reload))
     private lazy var stopItem = UIBarButtonItem(barButtonSystemItem: .stop, target: self, action: #selector(stopLoading))
+
+    /// Tags the user agent so pente.org serves its mobile layout to this web view.
+    static func makeConfiguration() -> WKWebViewConfiguration {
+        let configuration = WKWebViewConfiguration()
+        configuration.applicationNameForUserAgent = "Mobile/15E148 penteLive-iOS"
+        return configuration
+    }
 
     @objc init(address: String) {
         request = URLRequest(url: URL(string: address)!)
