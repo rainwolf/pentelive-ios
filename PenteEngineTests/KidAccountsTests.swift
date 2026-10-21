@@ -65,7 +65,67 @@ final class KidAccountsTests: XCTestCase {
         XCTAssertEqual(p(.whitelistRemove(kidPid: 5, playerPid: 777)), ["action=whitelistRemove", "kidPid=5", "playerPid=777"])
         XCTAssertEqual(p(.settings(kidPid: 5, copyMessages: true, copyLiveChat: nil)), ["action=settings", "kidPid=5", "copyMessages=Y"])
         XCTAssertEqual(p(.settings(kidPid: 5, copyMessages: nil, copyLiveChat: false)), ["action=settings", "kidPid=5", "copyLiveChat=N"])
+        XCTAssertEqual(p(.settings(kidPid: 5, copyMessages: nil, copyLiveChat: nil, copyTbMessages: true)),
+                       ["action=settings", "kidPid=5", "copyTbMessages=Y"])
+        XCTAssertEqual(p(.settings(kidPid: 5, copyMessages: true, copyLiveChat: false, copyTbMessages: false)),
+                       ["action=settings", "kidPid=5", "copyMessages=Y", "copyLiveChat=N", "copyTbMessages=N"])
         XCTAssertEqual(p(.release(kidPid: 5)), ["action=release", "kidPid=5"])
+    }
+
+    func testParseCopyTbMessages() {
+        func tb(_ field: String) -> Bool?? {
+            let s = parse(#"{"success":true,"isKid":false,"emailVerified":true,"kids":[{"kidPid":1,"name":"k"\#(field)}]}"#)
+            return s?.kids.first.map { $0.copyTbMessages }
+        }
+        XCTAssertEqual(tb(#","copyTbMessages":true"#), .some(true))
+        XCTAssertEqual(tb(#","copyTbMessages":false"#), .some(false))
+        XCTAssertEqual(tb(""), .some(nil))
+    }
+
+    private let gamesExample = #"{"success":true,"kidPid":1,"games":[{"gid":50000000001234,"game":51,"gameName":"Pente","opponentPid":23000000000777,"opponentName":"graviton","kidsTurn":true,"lastMoveDate":1760882580000,"privateGame":true}]}"#
+
+    func testParseActiveGames() {
+        XCTAssertEqual(KidAccounts.parseActiveGames(Data(gamesExample.utf8)),
+                       [KidActiveGame(gid: 50_000_000_001_234, game: 51, gameName: "Pente", opponentPid: 23_000_000_000_777,
+                                      opponentName: "graviton", kidsTurn: true, lastMoveDate: 1_760_882_580_000, privateGame: true)])
+        XCTAssertEqual(KidAccounts.parseActiveGames(Data(#"{"success":true,"kidPid":1,"games":[]}"#.utf8)), [])
+    }
+
+    func testParseActiveGamesSkipsMalformedAndDefaultsOptionals() {
+        let json = #"{"success":true,"games":[{"gid":1,"gameName":"Pente","opponentName":"a"},{"gameName":"no gid"},{"gid":2,"gameName":"Gomoku","opponentName":"b","kidsTurn":true}]}"#
+        let games = KidAccounts.parseActiveGames(Data(json.utf8))
+        XCTAssertEqual(games?.map { $0.gid }, [1, 2])
+        XCTAssertEqual(games?.first, KidActiveGame(gid: 1, game: 0, gameName: "Pente", opponentPid: 0, opponentName: "a",
+                                                   kidsTurn: false, lastMoveDate: 0, privateGame: false))
+    }
+
+    func testParseActiveGamesFailures() {
+        XCTAssertNil(KidAccounts.parseActiveGames(nil))
+        XCTAssertNil(KidAccounts.parseActiveGames(Data("<html>login</html>".utf8)))
+        let notFound = Data(#"{"success":false,"error":"Kid not found"}"#.utf8)
+        XCTAssertNil(KidAccounts.parseActiveGames(notFound))
+        XCTAssertNil(KidAccounts.parseActiveGames(Data(#"{"success":false}"#.utf8)))
+        XCTAssertEqual(KidAccounts.parseError(notFound), "Kid not found")
+        // An old server ignores `action` and returns the plain GET view.
+        XCTAssertEqual(KidAccounts.parseActiveGames(Data(#"{"success":true,"isKid":false,"emailVerified":true,"kids":[]}"#.utf8)), [])
+    }
+
+    private func game(kidsTurn: Bool, lastMoveDate: Int64 = 1_760_882_580_000) -> KidActiveGame {
+        KidActiveGame(gid: 1, game: 51, gameName: "Pente", opponentPid: 7, opponentName: "graviton",
+                      kidsTurn: kidsTurn, lastMoveDate: lastMoveDate, privateGame: false)
+    }
+
+    func testRowTexts() {
+        XCTAssertEqual(game(kidsTurn: true).title, "Pente vs graviton")
+        XCTAssertEqual(game(kidsTurn: true).subtitle(kidName: "tim", formatDate: { _ in "D" }), "tim's turn, last move D")
+        XCTAssertEqual(game(kidsTurn: false).subtitle(kidName: "tim", formatDate: { _ in "D" }), "graviton's turn, last move D")
+    }
+
+    func testSubtitleOmitsUnknownLastMove() {
+        var called = false
+        let s = game(kidsTurn: true, lastMoveDate: 0).subtitle(kidName: "tim", formatDate: { _ in called = true; return "D" })
+        XCTAssertEqual(s, "tim's turn")
+        XCTAssertFalse(called)
     }
 
     func testKidLookup() {

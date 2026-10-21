@@ -31,6 +31,19 @@ final class KidAccountsScreenTests: XCTestCase {
         XCTAssertEqual(request.timeoutInterval, 7.0)
     }
 
+    func testActiveGamesRequest() {
+        let request = KidAccountsService.activeGamesRequest(kidPid: 23_000_000_012_345)
+        XCTAssertEqual(request.httpMethod, "GET")
+        XCTAssertEqual(request.url?.path, "/gameServer/kids")
+        let query = request.url?.query ?? ""
+        XCTAssertTrue(query.contains("action=activeGames"), query)
+        XCTAssertTrue(query.contains("kidPid=23000000012345"), query)
+        XCTAssertTrue(query.contains("name2="), query)
+        XCTAssertTrue(query.contains("password2="), query)
+        XCTAssertEqual(request.cachePolicy, .reloadIgnoringLocalCacheData)
+        XCTAssertEqual(request.timeoutInterval, 7.0)
+    }
+
     func testPostRequestFormEncodesActionAndCredentials() {
         let request = KidAccountsService.postRequest(.create(name: "kid one", password: "p&w"))
         XCTAssertEqual(request.httpMethod, "POST")

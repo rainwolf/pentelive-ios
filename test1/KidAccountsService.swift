@@ -23,6 +23,15 @@ import Foundation
         return request
     }
 
+    static func activeGamesRequest(kidPid: Int64) -> URLRequest {
+        let query = BlockedPlayers.formEncode([("action", "activeGames"), ("kidPid", String(kidPid))] + credentials())
+        var request = URLRequest(url: URL(string: url.absoluteString + "?" + query)!)
+        request.httpMethod = "GET"
+        request.timeoutInterval = timeout
+        request.cachePolicy = .reloadIgnoringLocalCacheData
+        return request
+    }
+
     static func postRequest(_ action: KidAction) -> URLRequest {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -50,6 +59,18 @@ import Foundation
     /// POSTs a change; the reply is the caller's GET view after the change.
     static func perform(_ action: KidAction, _ completion: @escaping (KidAccountsState?, String?) -> Void) {
         send(postRequest(action), completion)
+    }
+
+    /// A kid's active turn-based games; on failure nil plus a message.
+    static func activeGames(kidPid: Int64, _ completion: @escaping ([KidActiveGame]?, String?) -> Void) {
+        PenteHTTPClient.send(activeGamesRequest(kidPid: kidPid)) { data, _, _ in
+            if let games = KidAccounts.parseActiveGames(data) {
+                completion(games, nil)
+            } else {
+                completion(nil, KidAccounts.parseError(data)
+                    ?? NSLocalizedString("Could not load games.", comment: "Kid active games error"))
+            }
+        }
     }
 
     /// Names a kid may message (whitelist plus parent); `[]` on any failure or for a non-kid.
