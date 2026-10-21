@@ -32,6 +32,7 @@
 		32A66A1A6CD3DA16C0CEFF89 /* PenteVariantTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86AC1A8A05D560A06454D468 /* PenteVariantTests.swift */; };
 		35C8D8018B6AA0E7D09F0D97 /* StoreReplyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F255476AD428B119B8ED44D /* StoreReplyTests.swift */; };
 		375FAB3016732E190832BEB7 /* StoreServiceRestoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6649647DFD534004F91B8F22 /* StoreServiceRestoreTests.swift */; };
+		3C9150EA24770485AB618D1A /* TbViewerRole.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75B432F047A89C32398C0051 /* TbViewerRole.swift */; };
 		4117A5C99CA99A275BFEB2CC /* ScanTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDB76AE2B389F2859CE0C808 /* ScanTests.swift */; };
 		41EC6A7DF85ADB818D28BC81 /* Dashboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 410191D1BEE5CCDBB1EAFD9C /* Dashboard.swift */; };
 		46142D4BD1120FE3CAC0C0D6 /* KidModeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B683847BFE676212E9B43972 /* KidModeTests.swift */; };
@@ -41,7 +42,6 @@
 		4B107A0AC64E386CA34E53FA /* GoGameTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5FF3D6A4D1F70E68CC42981 /* GoGameTests.swift */; };
 		4B11137F8EB9E713E604C1F0 /* StoreViewControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8B3FB83B0F64A0F4F64541E /* StoreViewControllerTests.swift */; };
 		56A47E5790F26B1185D1288E /* KidAccountsScreenTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B13EAFBB305B195C1E1A0127 /* KidAccountsScreenTests.swift */; };
-	AAAA11112222333344445551 /* PenteWebViewConfigurationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAAA11112222333344445552 /* PenteWebViewConfigurationTests.swift */; };
 		5AB18D031C159DDA0DE59551 /* StoreTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = F012F4E7BBA0F5D6EF3902A8 /* StoreTypes.swift */; };
 		5B6CDFB315BE503E8B691AC2 /* HarnessSmokeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74EB9EDFFC23705419419557 /* HarnessSmokeTests.swift */; };
 		5E7A1C0F2B9D4E6A8C3F1B20 /* RoomEventOrderingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E7A1C0F2B9D4E6A8C3F1B21 /* RoomEventOrderingTests.swift */; };
@@ -272,6 +272,7 @@
 		A1B2C3D4E5F60718293A4B12 /* MessageReplyInputTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B11 /* MessageReplyInputTests.swift */; };
 		A382731D82157006F34514E4 /* MoveResultTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5F0539DA310A85158CDB99B /* MoveResultTests.swift */; };
 		A72E76357EBE1DC08D5E34E1 /* ArenaWireTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC635F2362D948DA030F4A63 /* ArenaWireTests.swift */; };
+		AAAA11112222333344445551 /* PenteWebViewConfigurationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAAA11112222333344445552 /* PenteWebViewConfigurationTests.swift */; };
 		ACB8501DE77D92A9A2323746 /* PenteVariant.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1195B9EE689C773DA39F77AD /* PenteVariant.swift */; };
 		ADC22B02BC637F2C14B47487 /* dashboard_real_index.json in Resources */ = {isa = PBXBuildFile; fileRef = 46FF0A3E9AAF2484A5A01D4F /* dashboard_real_index.json */; };
 		AE4E208038FC49982C6BAEB8 /* ArenaJoinRequestListModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CED4F565311526EC237865E4 /* ArenaJoinRequestListModelTests.swift */; };
@@ -285,6 +286,7 @@
 		BBA523D1BFE87E6E0839A7BE /* DashboardTransport.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7527ED20D5B800D46E10F91 /* DashboardTransport.swift */; };
 		BCBF98A97B5DCE41E148A93D /* KidAccountsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B85148550AC145C5A4472E98 /* KidAccountsService.swift */; };
 		C2334D35F088D16FD6B18BB7 /* ReceiptReply.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D3B319183B6CB725B68319A /* ReceiptReply.swift */; };
+		C2D0D7FD4525C2DA24C607D7 /* TbViewerRoleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB3F8BBDA5140219BE67408F /* TbViewerRoleTests.swift */; };
 		C39BBF8A4B9D391D75E63514 /* MoveResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9AA0E8424F26F770E4D9CD /* MoveResult.swift */; };
 		CACA6F1D6073D24501A45B3E /* dashboard_sample.json in Resources */ = {isa = PBXBuildFile; fileRef = 1719B0CC190A38E646A3A9D8 /* dashboard_sample.json */; };
 		CC02EAFCD39E557347A3C2FD /* StoreService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 739D6DA0ACE5AEC5DB36CE4F /* StoreService.swift */; };
@@ -604,6 +606,7 @@
 		7050AD4ABDB95FF4BBC49527 /* Scan.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Scan.swift; sourceTree = "<group>"; };
 		739D6DA0ACE5AEC5DB36CE4F /* StoreService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StoreService.swift; sourceTree = "<group>"; };
 		74EB9EDFFC23705419419557 /* HarnessSmokeTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HarnessSmokeTests.swift; sourceTree = "<group>"; };
+		75B432F047A89C32398C0051 /* TbViewerRole.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TbViewerRole.swift; sourceTree = "<group>"; };
 		7640F6E2282BC20AFCD185F3 /* LiveBoardCaptureAnimationTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LiveBoardCaptureAnimationTests.swift; sourceTree = "<group>"; };
 		79438FDA5BFD561B15004165 /* StoreServiceBuyTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StoreServiceBuyTests.swift; sourceTree = "<group>"; };
 		7A1C0E5D2F3B4A6C8D9E0F11 /* PenteSpinnerOverlay.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PenteSpinnerOverlay.h; sourceTree = "<group>"; };
@@ -635,6 +638,7 @@
 		A838F18BBA250038D3596952 /* DashboardDecodingTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DashboardDecodingTests.swift; sourceTree = "<group>"; };
 		A9AB4C36CF0CF7C3D38F97D8 /* PenteBadge.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PenteBadge.m; sourceTree = "<group>"; };
 		AA6E9C65F1C971669AADF4B8 /* PenteBanner.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PenteBanner.m; sourceTree = "<group>"; };
+		AAAA11112222333344445552 /* PenteWebViewConfigurationTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PenteWebViewConfigurationTests.swift; sourceTree = "<group>"; };
 		AC57360A41A0C0C3E0E0BD99 /* PenteEngineTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PenteEngineTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		AF08F02CC6ACC370781E5AA6 /* GoGame.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GoGame.swift; sourceTree = "<group>"; };
 		B0668BE0DE41E8CA04828427 /* DashboardService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DashboardService.swift; sourceTree = "<group>"; };
@@ -643,7 +647,6 @@
 		B10C4ED00000000000000013 /* BlockedPlayersTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockedPlayersTests.swift; sourceTree = "<group>"; };
 		B10C4ED00000000000000014 /* BlockedPlayersViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockedPlayers/BlockedPlayersViewController.swift; sourceTree = "<group>"; };
 		B13EAFBB305B195C1E1A0127 /* KidAccountsScreenTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KidAccountsScreenTests.swift; sourceTree = "<group>"; };
-	AAAA11112222333344445552 /* PenteWebViewConfigurationTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PenteWebViewConfigurationTests.swift; sourceTree = "<group>"; };
 		B5FF3D6A4D1F70E68CC42981 /* GoGameTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GoGameTests.swift; sourceTree = "<group>"; };
 		B683847BFE676212E9B43972 /* KidModeTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KidModeTests.swift; sourceTree = "<group>"; };
 		B85148550AC145C5A4472E98 /* KidAccountsService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KidAccountsService.swift; sourceTree = "<group>"; };
@@ -686,6 +689,7 @@
 		F11B55E9EFB59E2DF3518E4B /* StoreScreenshotTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StoreScreenshotTests.swift; sourceTree = "<group>"; };
 		F7CA59B7AF7DEC7A0BC5268E /* StoreEntryPointsTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StoreEntryPointsTests.swift; sourceTree = "<group>"; };
 		FB0E96BC0C158A9179179CBD /* DashboardEndpoint.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DashboardEndpoint.swift; sourceTree = "<group>"; };
+		FB3F8BBDA5140219BE67408F /* TbViewerRoleTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TbViewerRoleTests.swift; sourceTree = "<group>"; };
 		FCE67D7173E8CFCF3C56944F /* KidAccountsViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KidAccountsViewController.swift; sourceTree = "<group>"; };
 		FEAB9DAD17D481D8D59FE453 /* Pods_penteLive.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_penteLive.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -906,6 +910,7 @@
 				B85148550AC145C5A4472E98 /* KidAccountsService.swift */,
 				FCE67D7173E8CFCF3C56944F /* KidAccountsViewController.swift */,
 				5A7172DD5CF7CDE930E2D7F6 /* KidDetailViewController.swift */,
+				75B432F047A89C32398C0051 /* TbViewerRole.swift */,
 			);
 			name = penteLive;
 			path = test1;
@@ -1180,6 +1185,7 @@
 				B683847BFE676212E9B43972 /* KidModeTests.swift */,
 				B13EAFBB305B195C1E1A0127 /* KidAccountsScreenTests.swift */,
 				AAAA11112222333344445552 /* PenteWebViewConfigurationTests.swift */,
+				FB3F8BBDA5140219BE67408F /* TbViewerRoleTests.swift */,
 			);
 			path = PenteEngineTests;
 			sourceTree = SOURCE_ROOT;
@@ -1575,6 +1581,7 @@
 				46142D4BD1120FE3CAC0C0D6 /* KidModeTests.swift in Sources */,
 				56A47E5790F26B1185D1288E /* KidAccountsScreenTests.swift in Sources */,
 				AAAA11112222333344445551 /* PenteWebViewConfigurationTests.swift in Sources */,
+				C2D0D7FD4525C2DA24C607D7 /* TbViewerRoleTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1674,6 +1681,7 @@
 				BCBF98A97B5DCE41E148A93D /* KidAccountsService.swift in Sources */,
 				CFD7320E3345B16FB1133152 /* KidAccountsViewController.swift in Sources */,
 				6BE53D9F886AD52A09C87C32 /* KidDetailViewController.swift in Sources */,
+				3C9150EA24770485AB618D1A /* TbViewerRole.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

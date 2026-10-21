@@ -31,6 +31,19 @@ final class KidAccountsScreenTests: XCTestCase {
         XCTAssertEqual(request.timeoutInterval, 7.0)
     }
 
+    func testActiveGamesRequest() {
+        let request = KidAccountsService.activeGamesRequest(kidPid: 23_000_000_012_345)
+        XCTAssertEqual(request.httpMethod, "GET")
+        XCTAssertEqual(request.url?.path, "/gameServer/kids")
+        let query = request.url?.query ?? ""
+        XCTAssertTrue(query.contains("action=activeGames"), query)
+        XCTAssertTrue(query.contains("kidPid=23000000012345"), query)
+        XCTAssertTrue(query.contains("name2="), query)
+        XCTAssertTrue(query.contains("password2="), query)
+        XCTAssertEqual(request.cachePolicy, .reloadIgnoringLocalCacheData)
+        XCTAssertEqual(request.timeoutInterval, 7.0)
+    }
+
     func testPostRequestFormEncodesActionAndCredentials() {
         let request = KidAccountsService.postRequest(.create(name: "kid one", password: "p&w"))
         XCTAssertEqual(request.httpMethod, "POST")
@@ -95,7 +108,17 @@ final class KidAccountsScreenTests: XCTestCase {
 
 final class KidDetailScreenTests: XCTestCase {
     private let kidAccount = KidAccount(kidPid: 7, name: "tim", copyMessages: true, copyLiveChat: false,
+                                        copyTbMessages: false,
                                         whitelist: [KidPlayer(pid: 1, name: "ann"), KidPlayer(pid: 2, name: "bob")])
+
+    private func game(_ gid: Int64, _ name: String, kidsTurn: Bool = true) -> KidActiveGame {
+        KidActiveGame(gid: gid, game: 1, gameName: name, opponentPid: 9, opponentName: String(name.suffix(1)),
+                      kidsTurn: kidsTurn, lastMoveDate: 0, privateGame: false)
+    }
+
+    private func text(_ vc: KidDetailViewController, section: Int, row: Int) -> UIListContentConfiguration? {
+        vc.tableView(vc.tableView, cellForRowAt: IndexPath(row: row, section: section)).contentConfiguration as? UIListContentConfiguration
+    }
 
     private func state(kids: [KidAccount]) -> KidAccountsState {
         KidAccountsState(isKid: false, emailVerified: true, parentName: nil,
@@ -103,11 +126,20 @@ final class KidDetailScreenTests: XCTestCase {
     }
 
     private func detail(_ reply: @escaping (KidAction) -> (KidAccountsState?, String?),
-                        actions: ActionLog = ActionLog()) -> KidDetailViewController
+                        actions: ActionLog = ActionLog(),
+                        kid: KidAccount? = nil,
+                        games: ([KidActiveGame]?, String?) = ([], nil),
+                        loads: ActionLog = ActionLog(),
+                        opened: OpenLog = OpenLog()) -> KidDetailViewController
     {
         let list = KidAccountsViewController()
         list.loadViewIfNeeded()
-        let vc = KidDetailViewController(kid: kidAccount, list: list)
+        let vc = KidDetailViewController(kid: kid ?? kidAccount, list: list)
+        vc.loadActiveGames = { pid, completion in
+            loads.pids.append(pid)
+            completion(games.0, games.1)
+        }
+        vc.openBoard = { opened.items.append($0) }
         vc.performAction = { action, completion in
             actions.items.append(action)
             let (state, error) = reply(action)
@@ -117,7 +149,8 @@ final class KidDetailScreenTests: XCTestCase {
         return vc
     }
 
-    final class ActionLog { var items: [KidAction] = [] }
+    final class ActionLog { var items: [KidAction] = []; var pids: [Int64] = [] }
+    final class OpenLog { var items: [KidActiveGame] = [] }
 
     private func switchOf(_ vc: KidDetailViewController, row: Int) -> UISwitch? {
         vc.tableView(vc.tableView, cellForRowAt: IndexPath(row: row, section: 1)).accessoryView as? UISwitch
@@ -126,15 +159,123 @@ final class KidDetailScreenTests: XCTestCase {
     func testLayoutAndFooters() {
         let vc = detail { _ in (nil, "x") }
         XCTAssertEqual(vc.title, "tim")
-        XCTAssertEqual(vc.numberOfSections(in: vc.tableView), 3)
+        XCTAssertEqual(vc.numberOfSections(in: vc.tableView), 4)
         XCTAssertEqual(vc.tableView(vc.tableView, numberOfRowsInSection: 0), 3) // 2 approved + Add player…
-        XCTAssertEqual(vc.tableView(vc.tableView, numberOfRowsInSection: 1), 2)
-        XCTAssertEqual(vc.tableView(vc.tableView, numberOfRowsInSection: 2), 2)
+        XCTAssertEqual(vc.tableView(vc.tableView, numberOfRowsInSection: 1), 3)
+        XCTAssertEqual(vc.tableView(vc.tableView, numberOfRowsInSection: 3), 2)
+        XCTAssertEqual(vc.tableView(vc.tableView, titleForHeaderInSection: 2), "Active turn-based games")
         XCTAssertEqual(vc.tableView(vc.tableView, titleForFooterInSection: 0),
                        "Your kid can always chat with you and with pente.org admins.")
-        XCTAssertEqual(vc.tableView(vc.tableView, titleForFooterInSection: 1), KidMode.liveChatCopyNote)
+        XCTAssertEqual(vc.tableView(vc.tableView, titleForFooterInSection: 1), KidMode.copiesFooter)
         XCTAssertTrue(switchOf(vc, row: 0)?.isOn ?? false)
         XCTAssertFalse(switchOf(vc, row: 1)?.isOn ?? true)
+        XCTAssertFalse(switchOf(vc, row: 2)?.isOn ?? true)
+        XCTAssertNotNil(switchOf(vc, row: 2))
+    }
+
+    func testTbSwitchSendsOnlyTbFlag() {
+        let log = ActionLog()
+        let updated = KidAccount(kidPid: 7, name: "tim", copyMessages: true, copyLiveChat: false, copyTbMessages: true, whitelist: [])
+        let vc = detail({ _ in (self.state(kids: [updated]), nil) }, actions: log)
+        let tb = switchOf(vc, row: 2)!
+        tb.isOn = true
+        vc.copySwitchChanged(tb)
+        XCTAssertEqual(log.items, [.settings(kidPid: 7, copyMessages: nil, copyLiveChat: nil, copyTbMessages: true)])
+    }
+
+    func testTbSwitchShowsStoredValue() {
+        let kid = KidAccount(kidPid: 7, name: "tim", copyMessages: true, copyLiveChat: false, copyTbMessages: true, whitelist: [])
+        let vc = detail({ _ in (nil, "x") }, kid: kid)
+        XCTAssertTrue(switchOf(vc, row: 2)?.isOn ?? false)
+    }
+
+    func testGamesLoadingThenRows() {
+        let loads = ActionLog()
+        let vc = detail({ _ in (nil, "x") }, games: ([game(1, "Pente vs a"), game(2, "Gomoku vs b", kidsTurn: false)], nil), loads: loads)
+        XCTAssertEqual(vc.tableView(vc.tableView, numberOfRowsInSection: 2), 1)
+        XCTAssertEqual(text(vc, section: 2, row: 0)?.text, "Loading…")
+        vc.reloadActiveGames()
+        XCTAssertEqual(loads.pids, [7])
+        XCTAssertEqual(vc.tableView(vc.tableView, numberOfRowsInSection: 2), 2)
+        XCTAssertEqual(text(vc, section: 2, row: 0)?.text, game(1, "Pente vs a").title)
+        XCTAssertTrue(text(vc, section: 2, row: 0)?.secondaryText?.hasPrefix("tim's turn") ?? false)
+        XCTAssertTrue(text(vc, section: 2, row: 1)?.secondaryText?.hasPrefix("b's turn") ?? false)
+        let cell = vc.tableView(vc.tableView, cellForRowAt: IndexPath(row: 0, section: 2))
+        XCTAssertEqual(cell.accessoryType, .disclosureIndicator)
+    }
+
+    func testGamesEmpty() {
+        let vc = detail({ _ in (nil, "x") })
+        vc.reloadActiveGames()
+        XCTAssertEqual(vc.tableView(vc.tableView, numberOfRowsInSection: 2), 1)
+        XCTAssertEqual(text(vc, section: 2, row: 0)?.text, "No active turn-based games.")
+    }
+
+    func testGamesFailureShowsServerError() {
+        let vc = detail({ _ in (nil, "x") }, games: (nil, "Kid not found"))
+        vc.reloadActiveGames()
+        XCTAssertEqual(vc.tableView(vc.tableView, numberOfRowsInSection: 2), 1)
+        XCTAssertEqual(text(vc, section: 2, row: 0)?.text, "Kid not found")
+    }
+
+    func testTappingGameOpensBoardOnly() {
+        let opened = OpenLog()
+        let a = game(1, "Pente vs a"), b = game(2, "Gomoku vs b")
+        let vc = detail({ _ in (nil, "x") }, games: ([a, b], nil), opened: opened)
+        vc.reloadActiveGames()
+        vc.tableView(vc.tableView, didSelectRowAt: IndexPath(row: 1, section: 2))
+        XCTAssertEqual(opened.items, [b])
+        let empty = OpenLog()
+        let vc2 = detail({ _ in (nil, "x") }, games: ([], nil), opened: empty)
+        vc2.reloadActiveGames()
+        vc2.tableView(vc2.tableView, didSelectRowAt: IndexPath(row: 0, section: 2))
+        let failed = OpenLog()
+        let vc3 = detail({ _ in (nil, "x") }, games: (nil, "boom"), opened: failed)
+        vc3.reloadActiveGames()
+        vc3.tableView(vc3.tableView, didSelectRowAt: IndexPath(row: 0, section: 2))
+        XCTAssertTrue(empty.items.isEmpty)
+        XCTAssertTrue(failed.items.isEmpty)
+    }
+
+    func testStaleGamesReplyIsIgnored() {
+        let a = game(1, "Pente vs a"), b = game(2, "Gomoku vs b")
+        var pending: [([KidActiveGame]?, String?) -> Void] = []
+        let list = KidAccountsViewController()
+        list.loadViewIfNeeded()
+        let vc = KidDetailViewController(kid: kidAccount, list: list)
+        vc.loadActiveGames = { _, completion in pending.append(completion) }
+        vc.loadViewIfNeeded()
+        vc.reloadActiveGames()
+        vc.reloadActiveGames()
+        XCTAssertEqual(pending.count, 2)
+        pending[1]([b], nil)
+        pending[0]([a, b], nil)
+        XCTAssertEqual(vc.tableView(vc.tableView, numberOfRowsInSection: 2), 1)
+        XCTAssertEqual(text(vc, section: 2, row: 0)?.text, b.title)
+    }
+
+    func testOldServerHidesTbRowAndGames() {
+        let old = KidAccount(kidPid: 7, name: "tim", copyMessages: true, copyLiveChat: false, copyTbMessages: nil, whitelist: [])
+        let loads = ActionLog()
+        let vc = detail({ _ in (nil, "x") }, kid: old, loads: loads)
+        vc.viewWillAppear(false)
+        vc.reloadActiveGames()
+        XCTAssertEqual(vc.numberOfSections(in: vc.tableView), 4)
+        XCTAssertEqual(vc.tableView(vc.tableView, numberOfRowsInSection: 1), 2)
+        XCTAssertEqual(vc.tableView(vc.tableView, numberOfRowsInSection: 2), 0)
+        XCTAssertNil(vc.tableView(vc.tableView, titleForHeaderInSection: 2))
+        XCTAssertEqual(vc.tableView(vc.tableView, titleForFooterInSection: 1), KidMode.liveChatCopyNote)
+        XCTAssertTrue(loads.pids.isEmpty)
+    }
+
+    func testMakeReadOnlyBoard() {
+        let g = game(42, "Pente vs a")
+        let board = KidDetailViewController.makeReadOnlyBoard(g, replay: { $0.loadViewIfNeeded() })
+        XCTAssertFalse(board.activeGame)
+        XCTAssertEqual(board.game.gameID, String(g.gid))
+        XCTAssertEqual(board.game.remainingTime, "0 days")
+        XCTAssertNotNil(board.boardTapRecognizer)
+        XCTAssertEqual(board.boardTapRecognizer?.isEnabled, false)
     }
 
     func testTogglingSendsOnlyTheToggledFlag() {
@@ -174,6 +315,7 @@ final class KidDetailScreenTests: XCTestCase {
         let nav = UINavigationController(rootViewController: list)
         let vc = KidDetailViewController(kid: kidAccount, list: list)
         vc.performAction = { _, completion in completion(self.state(kids: []), nil) }
+        vc.loadActiveGames = { _, c in c([], nil) }
         nav.pushViewController(vc, animated: false)
         vc.release()
         let deadline = Date().addingTimeInterval(3)

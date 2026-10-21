@@ -45,13 +45,16 @@ struct KidAccount: Decodable, Equatable {
     let name: String
     let copyMessages: Bool
     let copyLiveChat: Bool
+    /// nil: the server predates turn-based message copies, so the UI hides the switch.
+    let copyTbMessages: Bool?
     let whitelist: [KidPlayer]
 
-    init(kidPid: Int64, name: String, copyMessages: Bool, copyLiveChat: Bool, whitelist: [KidPlayer]) {
+    init(kidPid: Int64, name: String, copyMessages: Bool, copyLiveChat: Bool, copyTbMessages: Bool? = nil, whitelist: [KidPlayer]) {
         self.kidPid = kidPid
         self.name = name
         self.copyMessages = copyMessages
         self.copyLiveChat = copyLiveChat
+        self.copyTbMessages = copyTbMessages
         self.whitelist = whitelist
     }
 
@@ -61,12 +64,69 @@ struct KidAccount: Decodable, Equatable {
         name = try c.decode(String.self, forKey: .name)
         copyMessages = try c.decodeIfPresent(Bool.self, forKey: .copyMessages) ?? false
         copyLiveChat = try c.decodeIfPresent(Bool.self, forKey: .copyLiveChat) ?? false
+        copyTbMessages = try c.decodeIfPresent(Bool.self, forKey: .copyTbMessages)
         let lossy = try c.decodeIfPresent([KidAccounts.Lossy<KidPlayer>].self, forKey: .whitelist) ?? []
         whitelist = lossy.compactMap { $0.value }
     }
 
     private enum CodingKeys: String, CodingKey {
-        case kidPid, name, copyMessages, copyLiveChat, whitelist
+        case kidPid, name, copyMessages, copyLiveChat, copyTbMessages, whitelist
+    }
+}
+
+/// One active turn-based game of a kid, as listed to the parent.
+struct KidActiveGame: Decodable, Equatable {
+    let gid: Int64
+    let game: Int
+    let gameName: String
+    let opponentPid: Int64
+    let opponentName: String
+    let kidsTurn: Bool
+    /// Epoch milliseconds; 0 when unknown.
+    let lastMoveDate: Int64
+    let privateGame: Bool
+
+    init(gid: Int64, game: Int, gameName: String, opponentPid: Int64, opponentName: String,
+         kidsTurn: Bool, lastMoveDate: Int64, privateGame: Bool)
+    {
+        self.gid = gid
+        self.game = game
+        self.gameName = gameName
+        self.opponentPid = opponentPid
+        self.opponentName = opponentName
+        self.kidsTurn = kidsTurn
+        self.lastMoveDate = lastMoveDate
+        self.privateGame = privateGame
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        gid = try c.decode(Int64.self, forKey: .gid)
+        game = try c.decodeIfPresent(Int.self, forKey: .game) ?? 0
+        gameName = try c.decode(String.self, forKey: .gameName)
+        opponentPid = try c.decodeIfPresent(Int64.self, forKey: .opponentPid) ?? 0
+        opponentName = try c.decode(String.self, forKey: .opponentName)
+        kidsTurn = try c.decodeIfPresent(Bool.self, forKey: .kidsTurn) ?? false
+        lastMoveDate = try c.decodeIfPresent(Int64.self, forKey: .lastMoveDate) ?? 0
+        privateGame = try c.decodeIfPresent(Bool.self, forKey: .privateGame) ?? false
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case gid, game, gameName, opponentPid, opponentName, kidsTurn, lastMoveDate, privateGame
+    }
+
+    var title: String {
+        String(format: NSLocalizedString("%@ vs %@", comment: "Kid active game row title: game name, opponent"),
+               gameName, opponentName)
+    }
+
+    /// "<name>'s turn", plus ", last move <date>" when the last move time is known.
+    func subtitle(kidName: String, formatDate: (Date) -> String) -> String {
+        let turn = String(format: NSLocalizedString("%@'s turn", comment: "Kid active game row: whose turn it is"),
+                          kidsTurn ? kidName : opponentName)
+        guard lastMoveDate > 0 else { return turn }
+        let date = formatDate(Date(timeIntervalSince1970: Double(lastMoveDate) / 1000))
+        return turn + String(format: NSLocalizedString(", last move %@", comment: "Kid active game row: last move date"), date)
     }
 }
 
@@ -87,7 +147,7 @@ enum KidAction: Equatable {
     case password(kidPid: Int64, password: String)
     case whitelistAdd(kidPid: Int64, playerName: String)
     case whitelistRemove(kidPid: Int64, playerPid: Int64)
-    case settings(kidPid: Int64, copyMessages: Bool?, copyLiveChat: Bool?)
+    case settings(kidPid: Int64, copyMessages: Bool?, copyLiveChat: Bool?, copyTbMessages: Bool? = nil)
     case release(kidPid: Int64)
 
     /// Form parameters; the first pair is always the action name.
@@ -106,13 +166,16 @@ enum KidAction: Equatable {
             return [("action", "whitelistAdd"), ("kidPid", String(kidPid)), ("playerName", playerName)]
         case let .whitelistRemove(kidPid, playerPid):
             return [("action", "whitelistRemove"), ("kidPid", String(kidPid)), ("playerPid", String(playerPid))]
-        case let .settings(kidPid, copyMessages, copyLiveChat):
+        case let .settings(kidPid, copyMessages, copyLiveChat, copyTbMessages):
             var p = [("action", "settings"), ("kidPid", String(kidPid))]
             if let m = copyMessages {
                 p.append(("copyMessages", yn(m)))
             }
             if let l = copyLiveChat {
                 p.append(("copyLiveChat", yn(l)))
+            }
+            if let t = copyTbMessages {
+                p.append(("copyTbMessages", yn(t)))
             }
             return p
         case let .release(kidPid):
@@ -142,6 +205,11 @@ enum KidAccounts {
         let error: String?
     }
 
+    private struct ActiveGamesReply: Decodable {
+        let success: Bool?
+        let games: [Lossy<KidActiveGame>]?
+    }
+
     private static func reply(_ data: Data?) -> Reply? {
         guard let data = data else { return nil }
         return try? JSONDecoder().decode(Reply.self, from: data)
@@ -164,6 +232,15 @@ enum KidAccounts {
             kids: (r.kids ?? []).compactMap { $0.value },
             message: nonEmpty(r.message)
         )
+    }
+
+    /// A kid's active games in server order. nil on no data, a non-JSON body or
+    /// `success != true`; a missing `games` is `[]`; malformed entries are skipped.
+    static func parseActiveGames(_ data: Data?) -> [KidActiveGame]? {
+        guard let data = data,
+              let r = try? JSONDecoder().decode(ActiveGamesReply.self, from: data),
+              r.success == true else { return nil }
+        return (r.games ?? []).compactMap { $0.value }
     }
 
     /// The server's `error` text, nil when absent or the body is not JSON.

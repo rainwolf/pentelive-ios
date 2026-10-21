@@ -4,6 +4,8 @@ import Foundation
     @objc static let chatHint = "Only approved players see your messages"
     @objc static let composerHint = "Approved players only"
     @objc static let liveChatCopyNote = "Live chat copies are best effort: if the server's chat buffer is unavailable, that session isn't copied."
+    @objc static let tbCopyNote = "Turn-based game messages: one email per game when it ends, with every message from both players."
+    @objc static let copiesFooter = liveChatCopyNote + "\n\n" + tbCopyNote
     static let broadcastRefusedText = "Kid accounts can't broadcast."
 
     private static let sendErrors = [
