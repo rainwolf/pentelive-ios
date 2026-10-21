@@ -2112,6 +2112,8 @@ BOOL goMarkStones = NO, goEvaluateDeadStones = NO, go = NO, isGoGame = NO;
     }
 
     __block BOOL iAmP1 = NO;
+    viewerIsPlayer = YES;
+    myMessageLabel = @"me";
 
     [self setReplyMessage:@""];
     [self setReceivedMessage:nil];
@@ -2193,7 +2195,12 @@ BOOL goMarkStones = NO, goEvaluateDeadStones = NO, go = NO, isGoGame = NO;
              }
              [strongSelf.game setRatedNot:jsonResponse[@"rated"]];
              [strongSelf.game setPrivateGame:jsonResponse[@"privateGame"]];
-             iAmP1 = [myUsername isEqualToString:p1Name];
+             TbViewerRole *role = [TbViewerRole roleForUsername:myUsername
+                                                        player1:p1Name
+                                                        player2:p2Name];
+             iAmP1 = role.seesAsPlayer1;
+             strongSelf->viewerIsPlayer = role.isPlayer;
+             strongSelf->myMessageLabel = role.myLabel;
              strongSelf->iAmPlayer1 = iAmP1;
              [strongSelf.game setGameType:jsonResponse[@"gameName"]];
              isGoGame = ([strongSelf.game.gameType hasPrefix:@"Go"] &&
@@ -2227,8 +2234,7 @@ BOOL goMarkStones = NO, goEvaluateDeadStones = NO, go = NO, isGoGame = NO;
 
              cancelMsg = @"";
              if (jsonResponse[@"cancel"]) {
-                 if (![myUsername
-                         isEqualToString:jsonResponse[@"cancel"][@"name"]]) {
+                 if ([role promptsCancelReplyForRequester:jsonResponse[@"cancel"][@"name"]]) {
                      cancelRequest = YES;
                      cancelMsg = [NSString
                          stringWithFormat:@"/n and writes: %@",
@@ -2262,6 +2268,7 @@ BOOL goMarkStones = NO, goEvaluateDeadStones = NO, go = NO, isGoGame = NO;
                  NSString *serverLabel = [MessageAuthorLabel
                      displayForSeat:strongSelf->messageAuthorsHistory[key]
                               iAmP1:strongSelf->iAmPlayer1
+                            myLabel:strongSelf->myMessageLabel
                        opponentName:[strongSelf.game opponentName]
                                text:strongSelf->messagesHistory[key]];
                  if (serverLabel) {
@@ -2284,7 +2291,8 @@ BOOL goMarkStones = NO, goEvaluateDeadStones = NO, go = NO, isGoGame = NO;
                                                      size:15.35f]];
                          strongSelf->receivedMessage = [NSString
                              stringWithFormat:
-                                 @" me: %@",
+                                 @" %@: %@",
+                                 strongSelf->myMessageLabel,
                                  [strongSelf->messagesHistory
                                      objectForKey:[NSString
                                                       stringWithFormat:
@@ -2320,7 +2328,8 @@ BOOL goMarkStones = NO, goEvaluateDeadStones = NO, go = NO, isGoGame = NO;
                                                      size:15.35f]];
                          strongSelf->receivedMessage = [NSString
                              stringWithFormat:
-                                 @" me: %@",
+                                 @" %@: %@",
+                                 strongSelf->myMessageLabel,
                                  [strongSelf->messagesHistory
                                      objectForKey:[NSString
                                                       stringWithFormat:
@@ -2356,7 +2365,8 @@ BOOL goMarkStones = NO, goEvaluateDeadStones = NO, go = NO, isGoGame = NO;
                                                          size:15.35f]];
                              strongSelf->receivedMessage = [NSString
                                  stringWithFormat:
-                                     @" me: %@",
+                                     @" %@: %@",
+                                     strongSelf->myMessageLabel,
                                      [strongSelf->messagesHistory
                                          objectForKey:
                                              [NSString
@@ -2797,9 +2807,9 @@ BOOL goMarkStones = NO, goEvaluateDeadStones = NO, go = NO, isGoGame = NO;
                                                  subtitle:message
                                                     image:nil
                                                      type:
-                                                         (iWin
-                                                              ? PenteBannerTypeSuccess
-                                                              : PenteBannerTypeError)
+                                                         (!strongSelf->viewerIsPlayer ? PenteBannerTypeMessage
+                                                          : (iWin ? PenteBannerTypeSuccess
+                                                                  : PenteBannerTypeError))
                                                      duration:
                                                          PenteBannerDurationAutomatic
                                                  callback:^{
@@ -2845,7 +2855,7 @@ BOOL goMarkStones = NO, goEvaluateDeadStones = NO, go = NO, isGoGame = NO;
              if (drawOffered && strongSelf->activeGame) {
                  // My turn: opponent offered a draw with their move -> respond.
                  [strongSelf presentDrawOptions];
-             } else if (drawOffered) {
+             } else if (drawOffered && strongSelf->viewerIsPlayer) {
                  // Not my turn: I offered; waiting for opponent to reply.
                  dispatch_async(dispatch_get_main_queue(), ^{
                      [PenteBanner
@@ -3483,6 +3493,7 @@ BOOL goMarkStones = NO, goEvaluateDeadStones = NO, go = NO, isGoGame = NO;
         NSString *serverLabel = [MessageAuthorLabel
             displayForSeat:messageAuthorsHistory[key]
                      iAmP1:iAmPlayer1
+                   myLabel:myMessageLabel
               opponentName:[self.game opponentName]
                       text:messagesHistory[key]];
         if (serverLabel) {
@@ -3503,7 +3514,8 @@ BOOL goMarkStones = NO, goEvaluateDeadStones = NO, go = NO, isGoGame = NO;
                                                              size:15.35f]];
                 receivedMessage = [NSString
                     stringWithFormat:
-                        @" me: %@",
+                        @" %@: %@",
+                        myMessageLabel,
                         [messagesHistory
                             objectForKey:[NSString
                                              stringWithFormat:@"%i", untilMove]]];
@@ -3528,7 +3540,8 @@ BOOL goMarkStones = NO, goEvaluateDeadStones = NO, go = NO, isGoGame = NO;
                                                              size:15.35f]];
                 receivedMessage = [NSString
                     stringWithFormat:
-                        @" me: %@",
+                        @" %@: %@",
+                        myMessageLabel,
                         [messagesHistory
                             objectForKey:[NSString
                                              stringWithFormat:@"%i", untilMove]]];
@@ -3552,7 +3565,8 @@ BOOL goMarkStones = NO, goEvaluateDeadStones = NO, go = NO, isGoGame = NO;
                      ((untilMove % 2) == 0))) {
                     receivedMessage = [NSString
                         stringWithFormat:
-                            @" me: %@",
+                            @" %@: %@",
+                            myMessageLabel,
                             [messagesHistory
                                 objectForKey:[NSString
                                                  stringWithFormat:@"%lu",

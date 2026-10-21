@@ -31,6 +31,8 @@
     NSMutableDictionary *messagesHistory;
     NSMutableDictionary *messageAuthorsHistory;
     BOOL iAmPlayer1;
+    BOOL viewerIsPlayer;
+    NSString *myMessageLabel;
     BOOL activeGame, isLastMove;
     UIButton *lockButton;
     SwiftPenteGame *engine;

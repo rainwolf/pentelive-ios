@@ -29,4 +29,9 @@ final class MessageAuthorLabelTests: XCTestCase {
         XCTAssertEqual(MessageAuthorLabel.display(forSeat: "2", iAmP1: true, opponentName: "bob", text: "hi"), " bob: hi")
         XCTAssertFalse(MessageAuthorLabel.isMine(forSeat: "2", iAmP1: true))
     }
+
+    func testMyLabelReplacesMe() {
+        XCTAssertEqual(MessageAuthorLabel.display(forSeat: "1", iAmP1: true, myLabel: "kid", opponentName: "graviton", text: "hi"), " kid: hi")
+        XCTAssertEqual(MessageAuthorLabel.display(forSeat: "2", iAmP1: true, myLabel: "kid", opponentName: "graviton", text: "hi"), " graviton: hi")
+    }
 }
