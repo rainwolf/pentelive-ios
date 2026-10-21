@@ -1396,13 +1396,14 @@ CGFloat bottomOffset = 0;
                                      @"Registration closed. Starts %@", nil),
                                  [tourney date]];
         } else {
-            statusColor = [UIColor greenColor];
             if ([[tourney tournamentState] isEqualToString:@"1"]) {
+                statusColor = [UIColor orangeColor];
                 cell.detailTextLabel.text = [NSString
                     stringWithFormat:NSLocalizedString(
                                          @"Registration is open until %@", nil),
                                      [tourney date]];
             } else {
+                statusColor = [UIColor greenColor];
                 cell.detailTextLabel.text = [NSString
                     stringWithFormat:
                         NSLocalizedString(
