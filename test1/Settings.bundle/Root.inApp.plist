@@ -141,14 +141,14 @@
 		<dict>
 			<key>DefaultValue</key>
 			<string>pente.org</string>
-			<key>File</key>
-			<string>https://m.facebook.com/pente.org</string>
+			<key>Key</key>
+			<string>facebookButton</string>
 			<key>Title</key>
 			<string>Find Us on Facebook</string>
 			<key>IASKCellImage</key>
 			<string>facebook</string>
 			<key>Type</key>
-			<string>IASKOpenURLSpecifier</string>
+			<string>IASKButtonSpecifier</string>
 			<key>IASKTextAlignment</key>
 			<string>IASKUITextAlignmentCenter</string>
 		</dict>

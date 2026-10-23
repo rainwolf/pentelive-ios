@@ -246,6 +246,7 @@
 		63FEFD751693200C0070E9AA /* SimplePickerInputTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 63FEFD741693200B0070E9AA /* SimplePickerInputTableViewCell.m */; };
 		63FEFD78169320AB0070E9AA /* PickerInputTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 63FEFD77169320AA0070E9AA /* PickerInputTableViewCell.m */; };
 		64B1EDFF8AEFE8E4D040F183 /* StoreServiceResyncTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3CE71B4A2818C0A22473B3EA /* StoreServiceResyncTests.swift */; };
+		673954328B6DB1126F62A3B8 /* LinkPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5261D0FED6B8E6E0642B1623 /* LinkPolicy.swift */; };
 		6A0C0FFE0000000000000001 /* GoInteractiveCaptureTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 6A0C0FFE0000000000000002 /* GoInteractiveCaptureTests.m */; };
 		6BE53D9F886AD52A09C87C32 /* KidDetailViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A7172DD5CF7CDE930E2D7F6 /* KidDetailViewController.swift */; };
 		6C6D61B6CD9776820618837B /* CorpusSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = A639685AFB848EDF3272E550 /* CorpusSupport.swift */; };
@@ -314,6 +315,7 @@
 		E85BF75E017CD9218EF3A44B /* KidAccountsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDD12E388BBDA4D20382C826 /* KidAccountsTests.swift */; };
 		EA27C537CC33E627C9C290E0 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8F67AC8BE4C73FF7390EB742 /* Foundation.framework */; };
 		EA6ACE763757DD54B209555E /* MMAIShimTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 4D35AE418CE432E8FBEC6D33 /* MMAIShimTests.m */; };
+		F625A7B91F3EEA9CAC77D213 /* LinkPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE8B1497162B9BA94B0C506B /* LinkPolicyTests.swift */; };
 		F64C17DEC67643AEBAE1EAA1 /* StoreAdaptersTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31CE4CF890E4A150BEFCC1C9 /* StoreAdaptersTests.swift */; };
 		F72B5133FA0A653E9E693B92 /* StoreKitIntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9958ABCE685CCCB2B61E5686 /* StoreKitIntegrationTests.swift */; };
 		FA5D13026A2FA2E0A2A27F38 /* PenteAlert.m in Sources */ = {isa = PBXBuildFile; fileRef = CA18254E693C7E19066ECB56 /* PenteAlert.m */; };
@@ -359,6 +361,7 @@
 		4AF8C41985F00001A440EF86 /* Pods-penteLive.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-penteLive.release.xcconfig"; path = "Pods/Target Support Files/Pods-penteLive/Pods-penteLive.release.xcconfig"; sourceTree = "<group>"; };
 		4D35AE418CE432E8FBEC6D33 /* MMAIShimTests.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = MMAIShimTests.m; sourceTree = "<group>"; };
 		50436E8B3C992E62FFFC15D7 /* BoardVariantMapping.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BoardVariantMapping.swift; sourceTree = "<group>"; };
+		5261D0FED6B8E6E0642B1623 /* LinkPolicy.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LinkPolicy.swift; sourceTree = "<group>"; };
 		56695C43B8B3FC600459EC2F /* DashboardServiceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DashboardServiceTests.swift; sourceTree = "<group>"; };
 		5A7172DD5CF7CDE930E2D7F6 /* KidDetailViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KidDetailViewController.swift; sourceTree = "<group>"; };
 		5E7A1C0F2B9D4E6A8C3F1B21 /* RoomEventOrderingTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RoomEventOrderingTests.swift; sourceTree = "<group>"; };
@@ -653,6 +656,7 @@
 		BB3C419E7F4171209CFAE4B4 /* PenteBadge.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PenteBadge.h; sourceTree = "<group>"; };
 		BDB76AE2B389F2859CE0C808 /* ScanTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ScanTests.swift; sourceTree = "<group>"; };
 		BDD12E388BBDA4D20382C826 /* KidAccountsTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KidAccountsTests.swift; sourceTree = "<group>"; };
+		BE8B1497162B9BA94B0C506B /* LinkPolicyTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LinkPolicyTests.swift; sourceTree = "<group>"; };
 		BF08D052C94A67CE7B1A2ABE /* Capture.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Capture.swift; sourceTree = "<group>"; };
 		C04A941E308F1CBC0804C1A6 /* PenteGameEngineTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PenteGameEngineTests.swift; sourceTree = "<group>"; };
 		C5740BC2A030E4520664D23D /* Ai.cpp */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.cpp.cpp; path = Ai.cpp; sourceTree = "<group>"; };
@@ -911,6 +915,7 @@
 				FCE67D7173E8CFCF3C56944F /* KidAccountsViewController.swift */,
 				5A7172DD5CF7CDE930E2D7F6 /* KidDetailViewController.swift */,
 				75B432F047A89C32398C0051 /* TbViewerRole.swift */,
+				5261D0FED6B8E6E0642B1623 /* LinkPolicy.swift */,
 			);
 			name = penteLive;
 			path = test1;
@@ -1186,6 +1191,7 @@
 				B13EAFBB305B195C1E1A0127 /* KidAccountsScreenTests.swift */,
 				AAAA11112222333344445552 /* PenteWebViewConfigurationTests.swift */,
 				FB3F8BBDA5140219BE67408F /* TbViewerRoleTests.swift */,
+				BE8B1497162B9BA94B0C506B /* LinkPolicyTests.swift */,
 			);
 			path = PenteEngineTests;
 			sourceTree = SOURCE_ROOT;
@@ -1582,6 +1588,7 @@
 				56A47E5790F26B1185D1288E /* KidAccountsScreenTests.swift in Sources */,
 				AAAA11112222333344445551 /* PenteWebViewConfigurationTests.swift in Sources */,
 				C2D0D7FD4525C2DA24C607D7 /* TbViewerRoleTests.swift in Sources */,
+				F625A7B91F3EEA9CAC77D213 /* LinkPolicyTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1682,6 +1689,7 @@
 				CFD7320E3345B16FB1133152 /* KidAccountsViewController.swift in Sources */,
 				6BE53D9F886AD52A09C87C32 /* KidDetailViewController.swift in Sources */,
 				3C9150EA24770485AB618D1A /* TbViewerRole.swift in Sources */,
+				673954328B6DB1126F62A3B8 /* LinkPolicy.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

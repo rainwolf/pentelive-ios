@@ -3452,6 +3452,9 @@ array, and add a new row to the table view
                 }
                 return;
             }
+            // Drop a late response from a previous account (account switch mid-request).
+            NSString *currentUser = [[NSUserDefaults standardUserDefaults] objectForKey:usernameKey];
+            if (user != currentUser && ![user isEqualToString:currentUser]) return;
             [strongSelf applyDashboard:dashboard wantsAvatars:wantsToSeeAvatars];
         });
     }];
@@ -3469,6 +3472,7 @@ array, and add a new row to the table view
     [self.player setDbAccess:flags.dbAccess];
     [self.player setEmailMe:flags.emailMe];
     [self.player setIsKid:flags.isKid];
+    [self.player setKidStatusKnown:YES];
     [defaults setBool:self.player.emailMe forKey:@"emailMe"];
     [defaults setBool:self.player.personalizeAds forKey:PERSONALIZEADSKEY];
 

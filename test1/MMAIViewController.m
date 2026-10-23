@@ -704,6 +704,19 @@
 }
 
 - (void)webView:(WKWebView *)webView
+    decidePolicyForNavigationAction:(WKNavigationAction *)navigationAction
+                    decisionHandler:
+                        (void (^)(WKNavigationActionPolicy))decisionHandler {
+    BOOL allowed = [LinkPolicy
+        shouldLoadInLocalWebView:navigationAction.request.URL
+                   linkActivated:navigationAction.navigationType ==
+                                 WKNavigationTypeLinkActivated
+                            from:self];
+    decisionHandler(allowed ? WKNavigationActionPolicyAllow
+                            : WKNavigationActionPolicyCancel);
+}
+
+- (void)webView:(WKWebView *)webView
     didFinishNavigation:(WKNavigation *)navigation {
     [webView
         evaluateJavaScript:@"document.body.offsetHeight;"

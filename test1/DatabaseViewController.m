@@ -1068,14 +1068,15 @@ BoardViewController *boardController;
             decisionHandler(WKNavigationActionPolicyCancel);
             return;
         }
-        PenteWebViewController *webViewController =
-            [[PenteWebViewController alloc] initWithAddress:urlString];
-        [self.navigationController pushViewController:webViewController
-                                             animated:YES];
+        [LinkPolicy open:urlString from:self];
         decisionHandler(WKNavigationActionPolicyCancel);
         return;
     }
-    decisionHandler(WKNavigationActionPolicyAllow);
+    BOOL allowed = [LinkPolicy shouldLoadInLocalWebView:navigationAction.request.URL
+                                          linkActivated:NO
+                                                   from:self];
+    decisionHandler(allowed ? WKNavigationActionPolicyAllow
+                            : WKNavigationActionPolicyCancel);
 }
 
 - (void)startThinking {
