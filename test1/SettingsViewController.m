@@ -681,11 +681,8 @@ static NSString *PenteHexStringForColor(UIColor *color) {
         [StoreViewController presentFrom:self];
     }
 
-    if ([[specifier type] isEqualToString:kIASKOpenURLSpecifier]) {
-        [[UIApplication sharedApplication]
-                      openURL:[NSURL URLWithString:specifier.file]
-                      options:@{}
-            completionHandler:nil];
+    if ([specifier.key isEqualToString:@"facebookButton"]) {
+        [LinkPolicy open:@"https://m.facebook.com/pente.org" from:self];
     }
 }
 

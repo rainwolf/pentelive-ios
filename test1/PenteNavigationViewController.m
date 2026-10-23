@@ -44,6 +44,8 @@
 // through here.
 - (void)setLoggedIn:(BOOL)value {
     loggedIn = value;
+    // Kid status is per account; re-learned from the dashboard after each login.
+    self.player.kidStatusKnown = NO;
     self.loggedInUsername =
         value ? [[[NSUserDefaults standardUserDefaults] stringForKey:@"username"]
                     lowercaseString]

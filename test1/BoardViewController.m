@@ -4582,16 +4582,13 @@ BOOL goMarkStones = NO, goEvaluateDeadStones = NO, go = NO, isGoGame = NO;
     decidePolicyForNavigationAction:(WKNavigationAction *)navigationAction
                     decisionHandler:
                         (void (^)(WKNavigationActionPolicy))decisionHandler {
-    if (navigationAction.navigationType == WKNavigationTypeLinkActivated) {
-        NSString *urlString = navigationAction.request.URL.absoluteString;
-        PenteWebViewController *webViewController =
-            [[PenteWebViewController alloc] initWithAddress:urlString];
-        [self.navigationController pushViewController:webViewController
-                                             animated:YES];
-        decisionHandler(WKNavigationActionPolicyCancel);
-        return;
-    }
-    decisionHandler(WKNavigationActionPolicyAllow);
+    BOOL linkActivated =
+        navigationAction.navigationType == WKNavigationTypeLinkActivated;
+    BOOL allowed = [LinkPolicy shouldLoadInLocalWebView:navigationAction.request.URL
+                                          linkActivated:linkActivated
+                                                   from:self];
+    decisionHandler(allowed ? WKNavigationActionPolicyAllow
+                            : WKNavigationActionPolicyCancel);
 }
 
 - (void)printAbstractBoard {

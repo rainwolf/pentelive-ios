@@ -114,6 +114,8 @@ BOOL developmentEnabled(void);
     *tournaments, *hills;
 @property(atomic, assign) BOOL dbAccess, emailMe, personalizeAds;
 @property(atomic, assign) BOOL isKid;
+/// YES once the dashboard flags set isKid for the current login; reset on login change.
+@property(atomic, assign) BOOL kidStatusKnown;
 @property(atomic, assign, getter=subscriber, setter=setSubscriber:)
     BOOL subscriber;
 @property(atomic, assign, getter=showAds, setter=setShowAds:) BOOL showAds;

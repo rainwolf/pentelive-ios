@@ -86,7 +86,10 @@ class PenteWebViewController: UIViewController, WKNavigationDelegate {
         ]
 
         updateNavigationItems()
-        webView.load(request)
+        // Only pente.org pages load here; callers route everything else through LinkPolicy.open.
+        if LinkPolicy.classify(request.url?.absoluteString) == .inApp {
+            webView.load(request)
+        }
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -127,7 +130,24 @@ class PenteWebViewController: UIViewController, WKNavigationDelegate {
     @objc private func stopLoading() { webView.stopLoading() }
 
     func webView(_: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping ((WKNavigationActionPolicy) -> Void)) {
-//        print(navigationAction.request.url)
+        // Every navigation (link taps, redirects, form posts, window.open, JS location changes) is checked.
+        let targetURL = navigationAction.request.url
+        if targetURL?.scheme?.lowercased() != "about" {
+            switch LinkPolicy.classify(targetURL?.absoluteString) {
+            case .inApp:
+                break
+            case .external, .blockedForKid:
+                // Subframes are cancelled silently; main-frame and new-window navigations go to the system browser or the kid block.
+                if navigationAction.targetFrame?.isMainFrame ?? true {
+                    LinkPolicy.open(targetURL?.absoluteString, from: self)
+                }
+                decisionHandler(.cancel)
+                return
+            case .blocked:
+                decisionHandler(.cancel)
+                return
+            }
+        }
         var urlStr = navigationAction.request.url?.absoluteString
 //        print(urlStr)
         if navigationAction.navigationType == .linkActivated || navigationAction.navigationType == .other, (urlStr?.contains("?mobile&g="))! || (urlStr?.contains("gameServer/tb/game?gid="))! {
