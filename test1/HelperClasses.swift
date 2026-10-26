@@ -132,7 +132,7 @@ class Table: NSObject {
     func shouldTimerRun() -> Bool {
         if timed {
             if moves.isEmpty {
-                let gameName = Table.gameNames[game]!
+                let gameName = Table.gameNames[game] ?? ""
                 if gameName.contains("D-") || gameName.contains("DK-") || gameName.contains("Go") || gameName.contains("Swap2") {
                     return true
                 }
@@ -621,7 +621,7 @@ class Table: NSObject {
     }
     
     func gameName() -> String {
-        return Table.gameNames[game]!
+        return Table.gameNames[game] ?? ""
     }
     
     func gameColor() -> UIColor {
@@ -806,7 +806,18 @@ class TablesAndPlayer: NSObject {
         players.removeValue(forKey: player)
     }
     
+    /// Live tables whose game id this build does not know (experimental games). They are never
+    /// added to `tables`, so the lobby, counts and every per-table event ignore them.
+    private(set) var hiddenTableIds = Set<Int>()
+
+    func isHidden(tableId: Int) -> Bool {
+        return hiddenTableIds.contains(tableId)
+    }
+
     func joinTable(tableId: Int, player: String) {
+        if hiddenTableIds.contains(tableId) {
+            return
+        }
         if tables[tableId] == nil {
             tables.updateValue(Table(table: tableId), forKey: tableId)
         }
@@ -829,13 +840,23 @@ class TablesAndPlayer: NSObject {
         }
     }
     
-    func changeTable(event: [String: Any]) {
+    /// Returns false when the table's game is unknown to this build: the table is dropped from
+    /// `tables` (if it was there) and remembered as hidden, so later events for it are ignored.
+    @discardableResult
+    func changeTable(event: [String: Any]) -> Bool {
         let tableId = event["table"] as! Int
+        if let game = event["game"] as? Int, !KnownGames.isKnown(id: game) {
+            tables.removeValue(forKey: tableId)
+            hiddenTableIds.insert(tableId)
+            return false
+        }
+        hiddenTableIds.remove(tableId)
         if tables[tableId] == nil {
             tables.updateValue(Table(table: tableId), forKey: tableId)
         }
         let table = tables[tableId]!
         table.changeState(state: event)
+        return true
     }
     
     func sitTable(tableId: Int, player: String, seat: Int) {
