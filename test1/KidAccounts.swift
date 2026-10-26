@@ -235,12 +235,12 @@ enum KidAccounts {
     }
 
     /// A kid's active games in server order. nil on no data, a non-JSON body or
-    /// `success != true`; a missing `games` is `[]`; malformed entries are skipped.
+    /// `success != true`; a missing `games` is `[]`; malformed entries and games unknown to this build are skipped.
     static func parseActiveGames(_ data: Data?) -> [KidActiveGame]? {
         guard let data = data,
               let r = try? JSONDecoder().decode(ActiveGamesReply.self, from: data),
               r.success == true else { return nil }
-        return (r.games ?? []).compactMap { $0.value }
+        return (r.games ?? []).compactMap { $0.value }.filter { $0.game != 0 ? KnownGames.isKnown(id: $0.game) : KnownGames.isKnown(name: $0.gameName) }
     }
 
     /// The server's `error` text, nil when absent or the body is not JSON.

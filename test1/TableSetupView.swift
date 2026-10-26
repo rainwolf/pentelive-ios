@@ -57,6 +57,10 @@ class TableSetupView: UITableView, UITableViewDelegate, UITableViewDataSource, U
             gamePicker.dataSource = self
             gamePicker.tag = 1
             var game = table.game
+            // An unknown (newer) game has no picker row; fall back to the first game.
+            if !KnownGames.isKnown(id: game) {
+                game = 1
+            }
             if game % 2 == 0 {
                 game = game - 1
             }

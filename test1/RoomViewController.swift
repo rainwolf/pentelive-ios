@@ -547,6 +547,9 @@ class PlayerTableCell: UITableViewCell {
             let invitingPlayer = event["player"] as! String
             let invitedPlayer = event["toInvite"] as! String
             let inviteText = event["inviteText"] as! String
+            if self.playersAndTables.isHidden(tableId: tableId) {
+                return
+            }
             if invitedPlayer == self.me {
                 let player = self.playersAndTables.players[invitingPlayer]!
                 if player.muted {
@@ -638,10 +641,18 @@ class PlayerTableCell: UITableViewCell {
         // room join and crashed on the missing player, so the join runs in event order on main.
         DispatchQueue.main.async {
             self.playersAndTables.joinTable(tableId: tableId, player: playerName)
-            let table = self.playersAndTables.table(tableId: tableId)
+            // Unknown-game (hidden) tables are never created, so there is nothing to show or enter.
+            guard let table = self.playersAndTables.table(tableId: tableId) else {
+                // The server seated me at a table I cannot show (it switched to an unknown game
+                // first): leave it, or I stay behind as a ghost watcher.
+                if playerName == self.me && self.playersAndTables.isHidden(tableId: tableId) {
+                    self.sendExitTable(tableId)
+                }
+                return
+            }
             self.tableView.reloadData()
             if playerName == self.me {
-                self.tableViewController = TableViewController(table: table!, socket: self.socket, tablesAndPlayers: self.playersAndTables, pente_player: self.pentePlayer!, me: self.me, isArenaTable: self.isArena, isKid: self.isKid)
+                self.tableViewController = TableViewController(table: table, socket: self.socket, tablesAndPlayers: self.playersAndTables, pente_player: self.pentePlayer!, me: self.me, isArenaTable: self.isArena, isKid: self.isKid)
                 self.tableViewController?.pentePlayer = self.pentePlayer
                 self.navigationController?.pushViewController(self.tableViewController!, animated: true)
             } else {
@@ -671,14 +682,34 @@ class PlayerTableCell: UITableViewCell {
     func changeTableEvent(event: [String: Any]) {
         let tableId = event["table"] as! Int
         DispatchQueue.main.async {
-            self.playersAndTables.changeTable(event: event)
+            let known = self.playersAndTables.changeTable(event: event)
             self.tableView.reloadData()
             if tableId == self.tableViewController?.table.table {
-                self.tableViewController?.stateChanged()
+                if known {
+                    self.tableViewController?.stateChanged()
+                } else {
+                    self.leaveTableWithUnknownGame()
+                }
             }
         }
     }
     
+    /// The table we are in switched to a game this build cannot render: tell the server we leave and
+    /// pop the table view. The view controller is released first so the server's own exit echo does
+    /// not pop the room as well.
+    private func leaveTableWithUnknownGame() {
+        guard let tvc = tableViewController else { return }
+        tableViewController = nil
+        tvc.dismissArenaJoinRequest()
+        sendExitTable(tvc.table.table)
+        _ = tvc.navigationController?.popViewController(animated: true)
+    }
+
+    private func sendExitTable(_ tableId: Int) {
+        let leaveEvent = ["dsgExitTableEvent": ["forced": false, "table": tableId, "booted": false, "time": 0] as [String: Any]]
+        socket.sendEvent(eventDictionary: leaveEvent)
+    }
+
     func sitTableEvent(event: [String: Any]) {
         DispatchQueue.main.async {
             let tableId = event["table"] as! Int

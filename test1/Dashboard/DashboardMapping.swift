@@ -1,5 +1,27 @@
 import UIKit
 
+/// Single "is this game id/name known to this app build" check. The server may
+/// send experimental games (e.g. live 33/34, turn-based 83/84) that only newer
+/// builds know; every list skips them instead of mislabelling or failing.
+/// Source of truth is `Table.gameNames` (live ids 1...32; turn-based = live + 50).
+enum KnownGames {
+    static func isKnown(id: Int) -> Bool {
+        if id > 50 { return Table.gameNames[id - 50] != nil }
+        return Table.gameNames[id] != nil
+    }
+
+    private static let baseNames: Set<String> = Set(Table.gameNames.values.filter { !$0.hasPrefix("Speed ") })
+
+    /// Accepts the server's `gameName` shapes: "Pente", "Speed Pente", "Speed-Pente", "tb-Pente", "Turn-based Pente".
+    static func isKnown(name: String?) -> Bool {
+        guard var n = name else { return false }
+        if n.hasPrefix("tb-") { n.removeFirst(3) }
+        if n.hasPrefix("Turn-based ") { n.removeFirst(11) }
+        if n.hasPrefix("Speed ") || n.hasPrefix("Speed-") { n.removeFirst(6) }
+        return baseNames.contains(n)
+    }
+}
+
 enum DashboardMapping {
 
     static func uiColor(fromRGB rgb: Int) -> UIColor {
@@ -75,11 +97,11 @@ enum DashboardMapping {
             return g
         }
 
-        let sent = (wire.invitationsSent ?? []).map(mapInvitationGame)
-        let received = (wire.invitationsReceived ?? []).map(mapInvitationGame)
-        let activeMine = (wire.activeGamesMyTurn ?? []).map(mapActiveGame)
-        let activeOpp = (wire.activeGamesOpponentTurn ?? []).map(mapActiveGame)
-        let open = (wire.openInvitationGames ?? []).map(mapOpenInvitation)
+        let sent = (wire.invitationsSent ?? []).filter { KnownGames.isKnown(name: $0.gameName) }.map(mapInvitationGame)
+        let received = (wire.invitationsReceived ?? []).filter { KnownGames.isKnown(name: $0.gameName) }.map(mapInvitationGame)
+        let activeMine = (wire.activeGamesMyTurn ?? []).filter { KnownGames.isKnown(name: $0.gameName) }.map(mapActiveGame)
+        let activeOpp = (wire.activeGamesOpponentTurn ?? []).filter { KnownGames.isKnown(name: $0.gameName) }.map(mapActiveGame)
+        let open = (wire.openInvitationGames ?? []).filter { KnownGames.isKnown(name: $0.gameName) }.map(mapOpenInvitation)
 
         let messages: [Message] = (wire.messages ?? []).map { w in
             let m = Message()
@@ -95,7 +117,7 @@ enum DashboardMapping {
         }
 
         var tbHills = 0
-        let hills: [KingOfTheHill] = (wire.kingOfTheHill ?? []).map { w in
+        let hills: [KingOfTheHill] = (wire.kingOfTheHill ?? []).filter { KnownGames.isKnown(id: $0.gameId ?? 0) }.map { w in
             let h = KingOfTheHill()
             h.gameId = Int32(w.gameId ?? 0)
             h.numPlayers = w.numPlayers?.value
@@ -109,7 +131,7 @@ enum DashboardMapping {
         }
 
         var tbRatings = 0
-        let ratings: [RatingStat] = (wire.ratingStats ?? []).map { w in
+        let ratings: [RatingStat] = (wire.ratingStats ?? []).filter { KnownGames.isKnown(id: $0.gameId ?? 0) }.map { w in
             let r = RatingStat()
             r.rating = w.rating?.value
             r.totalGames = w.totalGames?.value

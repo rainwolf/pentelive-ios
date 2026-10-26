@@ -99,6 +99,16 @@ final class KidAccountsTests: XCTestCase {
                                                    kidsTurn: false, lastMoveDate: 0, privateGame: false))
     }
 
+    func testParseActiveGamesSkipsUnknownGame() {
+        let json = #"{"success":true,"games":[{"gid":1,"game":83,"gameName":"NewGame","opponentName":"a"},{"gid":2,"game":51,"gameName":"Pente","opponentName":"b"}]}"#
+        XCTAssertEqual(KidAccounts.parseActiveGames(Data(json.utf8))?.map { $0.gid }, [2])
+    }
+
+    func testParseActiveGamesKeepsTurnBasedNames() {
+        let json = #"{"success":true,"games":[{"gid":1,"game":51,"gameName":"Turn-based Pente","opponentName":"a"},{"gid":2,"game":83,"gameName":"Turn-based NewGame","opponentName":"b"},{"gid":3,"gameName":"Turn-based Go (9x9)","opponentName":"c"}]}"#
+        XCTAssertEqual(KidAccounts.parseActiveGames(Data(json.utf8))?.map { $0.gid }, [1, 3])
+    }
+
     func testParseActiveGamesFailures() {
         XCTAssertNil(KidAccounts.parseActiveGames(nil))
         XCTAssertNil(KidAccounts.parseActiveGames(Data("<html>login</html>".utf8)))

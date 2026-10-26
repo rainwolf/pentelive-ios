@@ -144,4 +144,51 @@ final class DashboardMappingTests: XCTestCase {
         XCTAssertFalse(f.isKid)
         XCTAssertEqual(f.playerName, "bob")
     }
+
+    // MARK: Unknown game ids are skipped (experimental games, e.g. live 33/34, tb 83/84)
+
+    private func map(_ json: String) throws -> Dashboard {
+        DashboardMapping.map(try JSONDecoder().decode(WireDashboard.self, from: Data(json.utf8)))
+    }
+
+    func testKnownGamesIds() {
+        for id in [1, 2, 31, 32, 51, 53, 81] { XCTAssertTrue(KnownGames.isKnown(id: id), "\(id)") }
+        for id in [0, 33, 34, 50, 83, 84, 200, -1] { XCTAssertFalse(KnownGames.isKnown(id: id), "\(id)") }
+    }
+
+    func testKnownGamesNames() {
+        for n in ["Pente", "Speed Pente", "Speed-Pente", "tb-Go (9x9)", "Turn-based Pente", "Turn-based Go (9x9)", "Turn-based Renju", "Speed Renju", "Swap2-Keryo"] {
+            XCTAssertTrue(KnownGames.isKnown(name: n), n)
+        }
+        for n in ["NewGame", "Speed NewGame", "tb-NewGame", "Turn-based NewGame", "Turn-based ", "", "Speed "] { XCTAssertFalse(KnownGames.isKnown(name: n), n) }
+        XCTAssertFalse(KnownGames.isKnown(name: nil))
+    }
+
+    func testUnknownGamesSkippedInGameLists() throws {
+        let known = #"{"setId":1,"gid":10,"gameName":"Pente","opponentName":"a","inviterName":"a"}"#
+        let unknown = #"{"setId":2,"gid":20,"gameName":"Speed NewGame","opponentName":"b","inviterName":"b"}"#
+        let tbKnown = #"{"setId":3,"gid":30,"gameName":"Turn-based Pente","opponentName":"c","inviterName":"c"}"#
+        let tbUnknown = #"{"setId":4,"gid":40,"gameName":"Turn-based NewGame","opponentName":"d","inviterName":"d"}"#
+        let d = try map("""
+        {"invitationsSent":[\(unknown),\(known),\(tbUnknown),\(tbKnown)],"invitationsReceived":[\(known),\(unknown),\(tbKnown),\(tbUnknown)],
+         "activeGamesMyTurn":[\(unknown),\(known),\(tbKnown),\(tbUnknown)],"activeGamesOpponentTurn":[\(unknown),\(known),\(tbKnown)],
+         "openInvitationGames":[\(unknown),\(known),\(unknown),\(tbKnown),\(tbUnknown)]}
+        """)
+        XCTAssertEqual(d.sentInvitations.map { $0.gameType }, ["Pente", "Turn-based Pente"])
+        XCTAssertEqual(d.invitations.map { $0.gameType }, ["Pente", "Turn-based Pente"])
+        XCTAssertEqual(d.activeGames.map { $0.gameType }, ["Pente", "Turn-based Pente"])
+        XCTAssertEqual(d.nonActiveGames.map { $0.gameType }, ["Pente", "Turn-based Pente"])
+        XCTAssertEqual(d.publicInvitations.map { $0.gameType }, ["Pente", "Turn-based Pente"])
+    }
+
+    func testUnknownGamesSkippedInHillsAndRatings() throws {
+        let d = try map("""
+        {"kingOfTheHill":[{"gameId":33},{"gameId":1},{"gameId":83},{"gameId":51}],
+         "ratingStats":[{"gameId":34,"rating":1500},{"gameId":3,"rating":1600},{"gameId":84}]}
+        """)
+        XCTAssertEqual(d.hills.map { $0.gameId }, [1, 51])
+        XCTAssertEqual(d.ratingStats.map { $0.gameId }, [3])
+        XCTAssertEqual(d.flags.tbHills, 1, "skipped hills must not be counted")
+        XCTAssertEqual(d.flags.tbRatings, 0)
+    }
 }
