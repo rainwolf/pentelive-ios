@@ -112,26 +112,13 @@ BoardViewController *boardController;
                                self.view.bounds.size.width)];
     [zoomedBoard setFrame:CGRectMake(0, 0, 2 * self.view.bounds.size.width,
                                      2 * self.view.bounds.size.width)];
-    if ([[[NSUserDefaults standardUserDefaults] objectForKey:@"MMAIGame"]
-            isEqualToString:@"Keryo-Pente"]) {
-        [board setBackgroundColor:[UIColor colorWithRed:0.702
-                                                  green:1
-                                                   blue:0.518
-                                                  alpha:1]];
-        [zoomedBoard setBackgroundColor:[UIColor colorWithRed:0.702
-                                                        green:1
-                                                         blue:0.518
-                                                        alpha:1]];
-    } else {
-        [board setBackgroundColor:[UIColor colorWithRed:0.984
-                                                  green:0.851
-                                                   blue:0.541
-                                                  alpha:1]];
-        [zoomedBoard setBackgroundColor:[UIColor colorWithRed:0.984
-                                                        green:0.851
-                                                         blue:0.541
-                                                        alpha:1]];
-    }
+    UIColor *initialColor = [DBPalette
+        boardColorForGame:[DBGameCatalog
+                              gameIdForName:
+                                  [[NSUserDefaults standardUserDefaults]
+                                      objectForKey:@"MMAIGame"]]];
+    [board setBackgroundColor:initialColor];
+    [zoomedBoard setBackgroundColor:initialColor];
     [board setLastMove:-1];
     [zoomedBoard setLastMove:-1];
     [board setAbstractBoard:abstractBoard];
@@ -300,116 +287,9 @@ BoardViewController *boardController;
 }
 
 - (void)setBoardColor {
-
-    if ([game containsString:@"Keryo-Pente"]) {
-        [board setBackgroundColor:[UIColor colorWithRed:0.702
-                                                  green:1
-                                                   blue:0.518
-                                                  alpha:1]];
-        [zoomedBoard setBackgroundColor:[UIColor colorWithRed:0.702
-                                                        green:1
-                                                         blue:0.518
-                                                        alpha:1]];
-    } else if ([game containsString:@"Gomoku"]) {
-        [board setBackgroundColor:[UIColor colorWithRed:0.612
-                                                  green:1
-                                                   blue:0.898
-                                                  alpha:1]];
-        [zoomedBoard setBackgroundColor:[UIColor colorWithRed:0.612
-                                                        green:1
-                                                         blue:0.898
-                                                        alpha:1]];
-    } else if ([game containsString:@"D-Pente"]) {
-        [board setBackgroundColor:[UIColor colorWithRed:0.584
-                                                  green:0.753
-                                                   blue:0.98
-                                                  alpha:1]];
-        [zoomedBoard setBackgroundColor:[UIColor colorWithRed:0.584
-                                                        green:0.753
-                                                         blue:0.98
-                                                        alpha:1]];
-    } else if ([game containsString:@"G-Pente"]) {
-        [board setBackgroundColor:[UIColor colorWithRed:0.616
-                                                  green:0.545
-                                                   blue:0.965
-                                                  alpha:1]];
-        [zoomedBoard setBackgroundColor:[UIColor colorWithRed:0.616
-                                                        green:0.545
-                                                         blue:0.965
-                                                        alpha:1]];
-    } else if ([game containsString:@"Poof-Pente"]) {
-        [board setBackgroundColor:[UIColor colorWithRed:0.929
-                                                  green:0.639
-                                                   blue:0.992
-                                                  alpha:1]];
-        [zoomedBoard setBackgroundColor:[UIColor colorWithRed:0.929
-                                                        green:0.639
-                                                         blue:0.992
-                                                        alpha:1]];
-    } else if ([game containsString:@"Connect6"]) {
-        [board setBackgroundColor:[UIColor colorWithRed:0.929
-                                                  green:0.639
-                                                   blue:0.992
-                                                  alpha:1]];
-        [zoomedBoard setBackgroundColor:[UIColor colorWithRed:0.929
-                                                        green:0.639
-                                                         blue:0.992
-                                                        alpha:1]];
-    } else if ([game containsString:@"Boat-Pente"]) {
-        [board setBackgroundColor:[UIColor colorWithRed:0.145
-                                                  green:0.729
-                                                   blue:1
-                                                  alpha:1]];
-        [zoomedBoard setBackgroundColor:[UIColor colorWithRed:0.145
-                                                        green:0.729
-                                                         blue:1
-                                                        alpha:1]];
-    } else if ([game containsString:@"DK-Pente"]) {
-        [board setBackgroundColor:[UIColor colorWithRed:1
-                                                  green:165.0 / 255.0
-                                                   blue:0
-                                                  alpha:1]];
-        [zoomedBoard setBackgroundColor:[UIColor colorWithRed:1
-                                                        green:165.0 / 255.0
-                                                         blue:0
-                                                        alpha:1]];
-    } else if ([game containsString:@"O-Pente"]) {
-        [board setBackgroundColor:[UIColor colorWithRed:0.32
-                                                  green:0.75
-                                                   blue:0.50
-                                                  alpha:1.0]];
-        [zoomedBoard setBackgroundColor:[UIColor colorWithRed:0.32
-                                                        green:0.75
-                                                         blue:0.50
-                                                        alpha:1.0]];
-    } else if ([game containsString:@"Swap2-Pente"]) {
-        [board setBackgroundColor:[UIColor colorWithRed:0.90
-                                                  green:0.67
-                                                   blue:0.44
-                                                  alpha:1.00]];
-        [zoomedBoard setBackgroundColor:[UIColor colorWithRed:0.90
-                                                        green:0.67
-                                                         blue:0.44
-                                                        alpha:1.00]];
-    } else if ([game containsString:@"Swap2-Keryo"]) {
-        [board setBackgroundColor:[UIColor colorWithRed:0.31
-                                                  green:0.78
-                                                   blue:0.47
-                                                  alpha:1.00]];
-        [zoomedBoard setBackgroundColor:[UIColor colorWithRed:0.31
-                                                        green:0.78
-                                                         blue:0.47
-                                                        alpha:1.00]];
-    } else if ([game containsString:@"Pente"]) {
-        [board setBackgroundColor:[UIColor colorWithRed:0.984
-                                                  green:0.851
-                                                   blue:0.541
-                                                  alpha:1]];
-        [zoomedBoard setBackgroundColor:[UIColor colorWithRed:0.984
-                                                        green:0.851
-                                                         blue:0.541
-                                                        alpha:1]];
-    }
+    UIColor *c = [DBPalette boardColorForGame:[DBGameCatalog gameIdForName:game]];
+    [board setBackgroundColor:c];
+    [zoomedBoard setBackgroundColor:c];
     [board setNeedsDisplay];
     [zoomedBoard setNeedsDisplay];
     if (game) {

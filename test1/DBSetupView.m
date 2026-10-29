@@ -7,6 +7,7 @@
 //
 
 #import "DBSetupView.h"
+#import "penteLive-Swift.h"
 
 @interface DBSetupView () {
     NSMutableArray<NSString *> *ratingChoices, *gameChoices;
@@ -652,141 +653,12 @@
 //}
 
 - (void)setBoardColor {
-    NSLog(@"%@", board);
-    NSLog(@"%@", zBoard);
     [board setDbOptions:nil];
     [zBoard setDbOptions:nil];
-    NSLog(@"%@", gameCell.textField.text);
-    if ([gameCell.textField.text isEqualToString:@"Keryo-Pente"] ||
-        [gameCell.textField.text isEqualToString:@"Speed Keryo-Pente"]) {
-        [board setBackgroundColor:[UIColor colorWithRed:0.702
-                                                  green:1
-                                                   blue:0.518
-                                                  alpha:1]];
-        [zBoard setBackgroundColor:[UIColor colorWithRed:0.702
-                                                   green:1
-                                                    blue:0.518
-                                                   alpha:1]];
-    } else if ([gameCell.textField.text isEqualToString:@"Gomoku"] ||
-               [gameCell.textField.text isEqualToString:@"Speed Gomoku"]) {
-        //        [gameCell.textField setText:@"Gomoku"];
-        [board setBackgroundColor:[UIColor colorWithRed:0.612
-                                                  green:1
-                                                   blue:0.898
-                                                  alpha:1]];
-        [zBoard setBackgroundColor:[UIColor colorWithRed:0.612
-                                                   green:1
-                                                    blue:0.898
-                                                   alpha:1]];
-    } else if ([gameCell.textField.text isEqualToString:@"D-Pente"] ||
-               [gameCell.textField.text isEqualToString:@"Speed D-Pente"]) {
-        //        [gameCell.textField setText:@"D-Pente"];
-        [board setBackgroundColor:[UIColor colorWithRed:0.584
-                                                  green:0.753
-                                                   blue:0.98
-                                                  alpha:1]];
-        [zBoard setBackgroundColor:[UIColor colorWithRed:0.584
-                                                   green:0.753
-                                                    blue:0.98
-                                                   alpha:1]];
-    } else if ([gameCell.textField.text isEqualToString:@"G-Pente"] ||
-               [gameCell.textField.text isEqualToString:@"Speed G-Pente"]) {
-        //        [gameCell.textField setText:@"G-Pente"];
-        [board setBackgroundColor:[UIColor colorWithRed:0.616
-                                                  green:0.545
-                                                   blue:0.965
-                                                  alpha:1]];
-        [zBoard setBackgroundColor:[UIColor colorWithRed:0.616
-                                                   green:0.545
-                                                    blue:0.965
-                                                   alpha:1]];
-    } else if ([gameCell.textField.text isEqualToString:@"Poof-Pente"] ||
-               [gameCell.textField.text isEqualToString:@"Speed Poof-Pente"]) {
-        //        [gameCell.textField setText:@"Poof-Pente"];
-        [board setBackgroundColor:[UIColor colorWithRed:0.929
-                                                  green:0.639
-                                                   blue:0.992
-                                                  alpha:1]];
-        [zBoard setBackgroundColor:[UIColor colorWithRed:0.929
-                                                   green:0.639
-                                                    blue:0.992
-                                                   alpha:1]];
-    } else if ([gameCell.textField.text isEqualToString:@"Connect6"] ||
-               [gameCell.textField.text isEqualToString:@"Speed Connect6"]) {
-        [board setBackgroundColor:[UIColor colorWithRed:0.929
-                                                  green:0.639
-                                                   blue:0.992
-                                                  alpha:1]];
-        [zBoard setBackgroundColor:[UIColor colorWithRed:0.929
-                                                   green:0.639
-                                                    blue:0.992
-                                                   alpha:1]];
-    } else if ([gameCell.textField.text isEqualToString:@"Boat-Pente"] ||
-               [gameCell.textField.text isEqualToString:@"Speed Boat-Pente"]) {
-        //        [gameCell.textField setText:@"Boat-Pente"];
-        [board setBackgroundColor:[UIColor colorWithRed:0.145
-                                                  green:0.729
-                                                   blue:1
-                                                  alpha:1]];
-        [zBoard setBackgroundColor:[UIColor colorWithRed:0.145
-                                                   green:0.729
-                                                    blue:1
-                                                   alpha:1]];
-    } else if ([gameCell.textField.text isEqualToString:@"Pente"] ||
-               [gameCell.textField.text isEqualToString:@"Speed Pente"]) {
-        //        [gameCell.textField setText:@"Pente"];
-        [board setBackgroundColor:[UIColor colorWithRed:0.984
-                                                  green:0.851
-                                                   blue:0.541
-                                                  alpha:1]];
-        [zBoard setBackgroundColor:[UIColor colorWithRed:0.984
-                                                   green:0.851
-                                                    blue:0.541
-                                                   alpha:1]];
-    } else if ([gameCell.textField.text isEqualToString:@"DK-Pente"] ||
-               [gameCell.textField.text isEqualToString:@"Speed DK-Pente"]) {
-        //        [gameCell.textField setText:@"Pente"];
-        [board setBackgroundColor:[UIColor colorWithRed:1
-                                                  green:165.0 / 255.0
-                                                   blue:0
-                                                  alpha:1]];
-        [zBoard setBackgroundColor:[UIColor colorWithRed:1
-                                                   green:165.0 / 255.0
-                                                    blue:0
-                                                   alpha:1]];
-    } else if ([gameCell.textField.text isEqualToString:@"O-Pente"] ||
-               [gameCell.textField.text isEqualToString:@"Speed O-Pente"]) {
-        [board setBackgroundColor:[UIColor colorWithRed:0.32
-                                                  green:0.75
-                                                   blue:0.50
-                                                  alpha:1.0]];
-        [zBoard setBackgroundColor:[UIColor colorWithRed:0.32
-                                                   green:0.75
-                                                    blue:0.50
-                                                   alpha:1.0]];
-    } else if ([gameCell.textField.text isEqualToString:@"Swap2-Pente"] ||
-               [gameCell.textField.text
-                   isEqualToString:@"Speed Swap2-Pente"]) {
-        [board setBackgroundColor:[UIColor colorWithRed:0.90
-                                                  green:0.67
-                                                   blue:0.44
-                                                  alpha:1.00]];
-        [zBoard setBackgroundColor:[UIColor colorWithRed:0.90
-                                                   green:0.67
-                                                    blue:0.44
-                                                   alpha:1.00]];
-    } else if ([gameCell.textField.text isEqualToString:@"Swap2-Keryo"] ||
-               [gameCell.textField.text
-                   isEqualToString:@"Speed Swap2-Keryo"]) {
-        [board setBackgroundColor:[UIColor colorWithRed:0.31
-                                                  green:0.78
-                                                   blue:0.47
-                                                  alpha:1.00]];
-        [zBoard setBackgroundColor:[UIColor colorWithRed:0.31
-                                                   green:0.78
-                                                    blue:0.47
-                                                   alpha:1.00]];
-    }
+    UIColor *c = [DBPalette
+        boardColorForGame:[DBGameCatalog gameIdForName:gameCell.textField.text]];
+    [board setBackgroundColor:c];
+    [zBoard setBackgroundColor:c];
     [board setNeedsDisplay];
     [zBoard setNeedsDisplay];
 }
