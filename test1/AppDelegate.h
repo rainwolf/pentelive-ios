@@ -30,4 +30,9 @@
 /// controller is not a PenteNavigationViewController. Callers must nil-check.
 + (nullable PenteNavigationViewController *)rootNavigationController;
 
+/// YES when this process was launched by XCTest as a unit-test host. Every
+/// launch path that would talk to the network (push registration, auto-login,
+/// StoreKit listening) checks this so tests never contact pente.org.
++ (BOOL)isRunningUnitTests;
+
 @end
