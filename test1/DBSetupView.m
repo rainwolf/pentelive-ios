@@ -466,7 +466,7 @@
 
         cell.textLabel.text = NSLocalizedString(@"Type", nil);
         NSString *str = [[NSUserDefaults standardUserDefaults]
-            objectForKey:@"DBLiveOrTBCell"];
+            objectForKey:@"DBLiveOrTB"];
         if (str) {
             cell.detailTextLabel.text = str;
         } else {
