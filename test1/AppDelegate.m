@@ -33,6 +33,12 @@
 @synthesize notification;
 @synthesize sndID, broadcastSndID;
 
+#pragma mark - Test host detection
+
++ (BOOL)isRunningUnitTests {
+    return NSProcessInfo.processInfo.environment[@"XCTestConfigurationFilePath"] != nil;
+}
+
 #pragma mark - Window access
 
 + (PenteNavigationViewController *)rootNavigationController {
@@ -100,13 +106,16 @@
               error:nil];
     [[AVAudioSession sharedInstance] setActive:YES error:nil];
 
-    [[UNUserNotificationCenter currentNotificationCenter]
-        requestAuthorizationWithOptions:(UNAuthorizationOptionSound |
-                                         UNAuthorizationOptionAlert |
-                                         UNAuthorizationOptionBadge)
-                      completionHandler:^(BOOL granted, NSError *error){
-                      }];
-    [application registerForRemoteNotifications];
+    // Unit-test host: no permission prompt, no APNs registration.
+    if (![AppDelegate isRunningUnitTests]) {
+        [[UNUserNotificationCenter currentNotificationCenter]
+            requestAuthorizationWithOptions:(UNAuthorizationOptionSound |
+                                             UNAuthorizationOptionAlert |
+                                             UNAuthorizationOptionBadge)
+                          completionHandler:^(BOOL granted, NSError *error){
+                          }];
+        [application registerForRemoteNotifications];
+    }
 
     // MUST be assigned before this method returns. When the app is launched by
     // a tapped notification, iOS delivers the response to this delegate during
@@ -157,7 +166,7 @@
     // login; listening starts now so nothing StoreKit delivers is missed
     // (spec 5.1). Never in the unit-test host: StoreKit Testing transactions
     // must not reach pente.org.
-    if (NSProcessInfo.processInfo.environment[@"XCTestConfigurationFilePath"] == nil) {
+    if (![AppDelegate isRunningUnitTests]) {
         [[StoreService shared] start];
     }
 

@@ -208,7 +208,8 @@ CGFloat bottomOffset = 0;
 - (void)viewDidAppear:(BOOL)animated {
     PenteNavigationViewController *navController =
         (PenteNavigationViewController *)self.navigationController;
-    if (!navController.loggedIn) {
+    // Unit-test host: stay idle, never auto-login against pente.org.
+    if (!navController.loggedIn && ![AppDelegate isRunningUnitTests]) {
         self.tableView.layer.borderWidth = 1.5;
         [self login];
     }
