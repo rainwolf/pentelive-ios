@@ -18,7 +18,10 @@ struct DBFilterState: Codable, Equatable {
     var eitherSeat = false
     var excludeTimeouts = false
     var winner = 0
-    var liveOrTurnBased = "all"
+    static let liveOrTBAll = "all"
+    static let liveOrTBLive = "live"
+    static let liveOrTBTurnBased = "turnBased"
+    var liveOrTurnBased = DBFilterState.liveOrTBAll
     var after: Date?
     var before: Date?
     var scope = "archive"
@@ -115,8 +118,8 @@ struct DBFilterState: Codable, Equatable {
         if scope == "both" { parts.append("Both") }
         if extendedActive {
             if excludeTimeouts { parts.append("no timeouts") }
-            if liveOrTurnBased == "live" { parts.append("live only") }
-            if liveOrTurnBased == "turn-based" { parts.append("turn-based only") }
+            if liveOrTurnBased == Self.liveOrTBLive { parts.append("live only") }
+            if liveOrTurnBased == Self.liveOrTBTurnBased { parts.append("turn-based only") }
         }
         return parts.joined(separator: " · ")
     }
@@ -159,7 +162,14 @@ struct DBFilterStore {
         s.p2MinRating = Int(defaults.string(forKey: "DBP2Rating") ?? "") ?? 0
         if let v = defaults.string(forKey: "DBBothOrEither") { s.eitherSeat = v != "both" }
         if let v = defaults.string(forKey: "DBExcludeTimeouts") { s.excludeTimeouts = v != "no" }
-        if let v = defaults.string(forKey: "DBLiveOrTB"), !v.isEmpty { s.liveOrTurnBased = v }
+        if let v = defaults.string(forKey: "DBLiveOrTB"), !v.isEmpty {
+            // Legacy stored the Type cell's display text, not the wire value.
+            switch v {
+            case "live only": s.liveOrTurnBased = DBFilterState.liveOrTBLive
+            case "turn-based only": s.liveOrTurnBased = DBFilterState.liveOrTBTurnBased
+            default: s.liveOrTurnBased = DBFilterState.liveOrTBAll
+            }
+        }
         return s
     }
 }

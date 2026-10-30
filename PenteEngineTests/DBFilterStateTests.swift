@@ -80,6 +80,8 @@ final class DBFilterStateTests: XCTestCase {
         XCTAssertEqual(w?.includesExtendedKeys, true)
         XCTAssertEqual(w?.excludeTimeouts, true)
         XCTAssertEqual(w?.liveOrTurnBased, "live")
+        s.liveOrTurnBased = "turnBased"
+        XCTAssertEqual(s.toWire()?.liveOrTurnBased, "turnBased")
     }
 
     func testExtendedValuesIgnoredInChipAndDefaultWhenCapabilityOff() {
@@ -94,7 +96,7 @@ final class DBFilterStateTests: XCTestCase {
         XCTAssertFalse(s.isDefault)
         XCTAssertTrue(s.chipSummary().contains("no timeouts"))
         XCTAssertTrue(s.chipSummary().contains("live only"))
-        s.liveOrTurnBased = "turn-based"
+        s.liveOrTurnBased = "turnBased"
         XCTAssertTrue(s.chipSummary().contains("turn-based only"))
     }
 
@@ -163,7 +165,7 @@ final class DBFilterStateTests: XCTestCase {
         let d = freshDefaults()
         d.set("either", forKey: "DBBothOrEither")
         d.set("yes", forKey: "DBExcludeTimeouts")
-        d.set("live", forKey: "DBLiveOrTB")
+        d.set("live only", forKey: "DBLiveOrTB")
         d.set("Go", forKey: "DBGame")
         let s = DBFilterStore(defaults: d).load()
         XCTAssertTrue(s.eitherSeat)
@@ -171,6 +173,11 @@ final class DBFilterStateTests: XCTestCase {
         XCTAssertEqual(s.liveOrTurnBased, "live")
         XCTAssertEqual(s.baseGame, 1, "unsupported legacy game keeps Pente")
         XCTAssertFalse(s.speed)
+        for (legacy, wire) in [("turn-based only", "turnBased"), ("all", "all"), ("bogus", "all")] {
+            let d2 = freshDefaults()
+            d2.set(legacy, forKey: "DBLiveOrTB")
+            XCTAssertEqual(DBFilterStore(defaults: d2).load().liveOrTurnBased, wire)
+        }
     }
 
     func testLegacyMigrationHighRatingKept() {
