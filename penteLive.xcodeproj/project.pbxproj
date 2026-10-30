@@ -37,6 +37,7 @@
 		23D406DC7B60ACE1F3879C92 /* BoardVariantMapping.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50436E8B3C992E62FFFC15D7 /* BoardVariantMapping.swift */; };
 		24F5B3C3A96EEDEA4D1078E8 /* ArenaMyRequestsModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FB2E1A032CEE396D7987441 /* ArenaMyRequestsModel.swift */; };
 		26BC2E6C4E06C896C31BD4F9 /* DBClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC5151ADD885C9D439276F94 /* DBClient.swift */; };
+		2E27DBFACEEC8484E6674E1F /* DBPlayerAutocomplete.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDA296611079266B244FB89D /* DBPlayerAutocomplete.swift */; };
 		317101D2F2CE93FC478F38D5 /* StoreAdapters.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF6E9CF83C944F2B4E0C5C8E /* StoreAdapters.swift */; };
 		32A66A1A6CD3DA16C0CEFF89 /* PenteVariantTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86AC1A8A05D560A06454D468 /* PenteVariantTests.swift */; };
 		35C8D8018B6AA0E7D09F0D97 /* StoreReplyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F255476AD428B119B8ED44D /* StoreReplyTests.swift */; };
@@ -271,6 +272,7 @@
 		6DF419D1BFAAECFD9C12D887 /* RuleSetTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ECBCB2C27E5249A019555B9 /* RuleSetTests.swift */; };
 		704D00F9E428E7746E4942F1 /* CorpusHelperTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8715B8F87E8325A61F04D700 /* CorpusHelperTests.swift */; };
 		70FAFB8857D33AA36493CB88 /* DashboardResultTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0FC944C7EBF9EE152F01111 /* DashboardResultTests.swift */; };
+		7870B7DFA7E08EB36CE1AB3A /* DBPlayerAutocompleteTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFA89B02E0B28838E3B99E61 /* DBPlayerAutocompleteTests.swift */; };
 		7A1C0E5B2F70000100A1B001 /* TestNetworkTripwire.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A1C0E5B2F70000100A1B002 /* TestNetworkTripwire.swift */; };
 		7A1C0E5B2F70000100A1B003 /* TestNetworkTripwireTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A1C0E5B2F70000100A1B004 /* TestNetworkTripwireTests.swift */; };
 		7A1C0E5D2F3B4A6C8D9E0F13 /* PenteSpinnerOverlay.m in Sources */ = {isa = PBXBuildFile; fileRef = 7A1C0E5D2F3B4A6C8D9E0F12 /* PenteSpinnerOverlay.m */; };
@@ -770,6 +772,7 @@
 		EF6E9CF83C944F2B4E0C5C8E /* StoreAdapters.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StoreAdapters.swift; sourceTree = "<group>"; };
 		EF8181BB2003C5DAF15A5359 /* DBPositionServiceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DBPositionServiceTests.swift; sourceTree = "<group>"; };
 		EF8E8FC20ADB028761CFE2A8 /* StoreFakes.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StoreFakes.swift; sourceTree = "<group>"; };
+		EFA89B02E0B28838E3B99E61 /* DBPlayerAutocompleteTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DBPlayerAutocompleteTests.swift; sourceTree = "<group>"; };
 		F012F4E7BBA0F5D6EF3902A8 /* StoreTypes.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StoreTypes.swift; sourceTree = "<group>"; };
 		F0FC944C7EBF9EE152F01111 /* DashboardResultTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DashboardResultTests.swift; sourceTree = "<group>"; };
 		F11B55E9EFB59E2DF3518E4B /* StoreScreenshotTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StoreScreenshotTests.swift; sourceTree = "<group>"; };
@@ -778,6 +781,7 @@
 		FB0E96BC0C158A9179179CBD /* DashboardEndpoint.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DashboardEndpoint.swift; sourceTree = "<group>"; };
 		FB3F8BBDA5140219BE67408F /* TbViewerRoleTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TbViewerRoleTests.swift; sourceTree = "<group>"; };
 		FCE67D7173E8CFCF3C56944F /* KidAccountsViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KidAccountsViewController.swift; sourceTree = "<group>"; };
+		FDA296611079266B244FB89D /* DBPlayerAutocomplete.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DBPlayerAutocomplete.swift; sourceTree = "<group>"; };
 		FEAB9DAD17D481D8D59FE453 /* Pods_penteLive.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_penteLive.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		FFFE2E41DDDCE1659A74E74C /* DBLegacyFilterAdapter.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DBLegacyFilterAdapter.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -1211,6 +1215,7 @@
 				3CF81451617221762C41568B /* DBViewerCursor.swift */,
 				9F7DAB76C7FC9A91EBF3E53C /* DBGameViewerViewController.swift */,
 				A6A7857C0E129DC6D0B2DC05 /* DBFilterState.swift */,
+				FDA296611079266B244FB89D /* DBPlayerAutocomplete.swift */,
 			);
 			name = PenteDB;
 			path = test1/PenteDB;
@@ -1327,6 +1332,7 @@
 				BC43847E9933167B54702288 /* DBViewerCursorTests.swift */,
 				2F37A4A7E94C73ABDA7EFC75 /* DBGameViewerViewControllerTests.swift */,
 				81B69F946997563247262C59 /* DBFilterStateTests.swift */,
+				EFA89B02E0B28838E3B99E61 /* DBPlayerAutocompleteTests.swift */,
 			);
 			path = PenteEngineTests;
 			sourceTree = SOURCE_ROOT;
@@ -1746,6 +1752,7 @@
 				B9649C15B46A3AB2295CE574 /* DBViewerCursorTests.swift in Sources */,
 				3AD89C59C68A0C8D389D08F7 /* DBGameViewerViewControllerTests.swift in Sources */,
 				C8A606AA7A60BA30FFCB4A50 /* DBFilterStateTests.swift in Sources */,
+				7870B7DFA7E08EB36CE1AB3A /* DBPlayerAutocompleteTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1867,6 +1874,7 @@
 				FB3662B37E494E55298D0A60 /* DBViewerCursor.swift in Sources */,
 				A0C897ACC40ECE4CCB290805 /* DBGameViewerViewController.swift in Sources */,
 				1BE71F962B3D3CDC423EC5CE /* DBFilterState.swift in Sources */,
+				2E27DBFACEEC8484E6674E1F /* DBPlayerAutocomplete.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
