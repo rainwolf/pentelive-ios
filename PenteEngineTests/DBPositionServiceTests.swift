@@ -8,13 +8,23 @@ private final class DBScriptedTransport: Transport, @unchecked Sendable {
         var status: Int = 200
         var delay: UInt64 = 0
     }
-    var replies: [Int: Reply] = [:]
+    private let lock = NSLock()
+    private var _replies: [Int: Reply] = [:]
+    private var _searchReplies: [Int: Reply] = [:]
+    private var _requests: [URLRequest] = []
+    var replies: [Int: Reply] {
+        get { lock.lock(); defer { lock.unlock() }; return _replies }
+        set { lock.lock(); defer { lock.unlock() }; _replies = newValue }
+    }
     /// Replies for /games/search, keyed by the request's offset.
-    var searchReplies: [Int: Reply] = [:]
-    private(set) var requests: [URLRequest] = []
+    var searchReplies: [Int: Reply] {
+        get { lock.lock(); defer { lock.unlock() }; return _searchReplies }
+        set { lock.lock(); defer { lock.unlock() }; _searchReplies = newValue }
+    }
+    var requests: [URLRequest] { lock.lock(); defer { lock.unlock() }; return _requests }
 
     func data(for request: URLRequest) async throws -> (Data, URLResponse) {
-        requests.append(request)
+        lock.lock(); _requests.append(request); lock.unlock()
         var key = -1
         if let b = request.httpBody,
            let o = try? JSONSerialization.jsonObject(with: b) as? [String: Any],
