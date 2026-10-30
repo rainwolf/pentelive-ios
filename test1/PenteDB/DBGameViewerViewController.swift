@@ -31,7 +31,7 @@ final class DBMoveGridCell: UICollectionViewCell {
         label.text = cell.label
         switch cell.state {
         case .current:
-            label.textColor = UIColor(dbHex: DBMoveCell.currentHex)
+            label.textColor = DBPalette.accent
             label.font = .monospacedDigitSystemFont(ofSize: 14, weight: .bold)
             contentView.backgroundColor = DBPalette.chipSelectedFill
         case .future:

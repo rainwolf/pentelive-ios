@@ -18,13 +18,21 @@ import UIKit
         return boards[DBGameCatalog.baseGame(id)] ?? penteHex
     }
 
-    static let ink = UIColor(dbHex: 0x16181D)
-    static let secondaryText = UIColor(dbHex: 0x4A4F5A)
-    static let secondaryText2 = UIColor(dbHex: 0x5C616B)
-    static let accent = UIColor(dbHex: 0x1F5FD6)
-    static let divider = UIColor(dbHex: 0xE2E4E9)
-    static let chipOutline = UIColor(dbHex: 0xC8CCD4)
-    static let chipSelectedFill = UIColor(dbHex: 0xE3ECFC)
+    /// Chrome colours follow the interface style: the light value is the
+    /// original fixed hex, the dark one a light-on-dark counterpart. A fixed
+    /// light ink drew near-black text on the dark background.
+    private static func adaptive(light: UInt32, dark: UInt32) -> UIColor {
+        let l = UIColor(dbHex: light), d = UIColor(dbHex: dark)
+        return UIColor { $0.userInterfaceStyle == .dark ? d : l }
+    }
+
+    @objc static let ink = adaptive(light: 0x16181D, dark: 0xF2F3F5)
+    static let secondaryText = adaptive(light: 0x4A4F5A, dark: 0xB8BCC6)
+    static let secondaryText2 = adaptive(light: 0x5C616B, dark: 0xA9AEB9)
+    @objc static let accent = adaptive(light: 0x1F5FD6, dark: 0x6EA2FF)
+    static let divider = adaptive(light: 0xE2E4E9, dark: 0x3A3D44)
+    @objc static let chipOutline = adaptive(light: 0xC8CCD4, dark: 0x4A4F5A)
+    @objc static let chipSelectedFill = adaptive(light: 0xE3ECFC, dark: 0x1B2F52)
     static let futureMove = UIColor(dbHex: 0x8A8F99)
 }
 

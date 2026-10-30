@@ -11,9 +11,12 @@ final class DBMoveRowCell: UITableViewCell {
     let pctLabel = UILabel()
     let gamesLabel = UILabel()
     private var barWidth: NSLayoutConstraint?
+    /// The row whose stone is flashing on the board.
+    private(set) var isMarked = false
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
+        selectionStyle = .none
         dot.layer.cornerRadius = 7
         dot.layer.borderWidth = 1
         dot.layer.borderColor = UIColor(white: 0, alpha: 0.25).cgColor
@@ -22,7 +25,6 @@ final class DBMoveRowCell: UITableViewCell {
         barTrack.backgroundColor = DBPalette.divider
         barTrack.layer.cornerRadius = 3
         barTrack.clipsToBounds = true
-        barFill.backgroundColor = DBPalette.accent
         pctLabel.font = .monospacedDigitSystemFont(ofSize: 14, weight: .regular)
         pctLabel.textColor = DBPalette.ink
         pctLabel.textAlignment = .right
@@ -63,8 +65,11 @@ final class DBMoveRowCell: UITableViewCell {
     @available(*, unavailable)
     required init?(coder: NSCoder) { fatalError("init(coder:) is not supported") }
 
-    func configure(_ row: DBMoveRow) {
+    func configure(_ row: DBMoveRow, marked: Bool = false) {
         dot.backgroundColor = row.color
+        // The bar wears the colour the move has on the board.
+        barFill.backgroundColor = row.color
+        setMarked(marked)
         moveLabel.text = row.label
         pctLabel.text = row.pctText
         gamesLabel.text = row.gamesText
@@ -73,6 +78,16 @@ final class DBMoveRowCell: UITableViewCell {
                                                   multiplier: CGFloat(max(0.0001, row.barFraction)))
         barWidth?.isActive = true
         accessibilityLabel = "\(row.label), \(row.pctText), \(row.gamesText) games"
+    }
+
+    func setMarked(_ marked: Bool) {
+        isMarked = marked
+        contentView.backgroundColor = marked ? DBPalette.chipSelectedFill : .clear
+        if marked {
+            accessibilityTraits.insert(.selected)
+        } else {
+            accessibilityTraits.remove(.selected)
+        }
     }
 }
 
@@ -159,8 +174,12 @@ final class DBGameRowCell: UITableViewCell {
 /// the service but never sets its callbacks; the host forwards state to it.
 @objc final class DBResultsViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
     private let service: DBPositionService
-    @objc var onPlayMove: ((Int) -> Void)?
+    /// A Moves row was selected (its cell), or the selection ended (-1). The
+    /// host flashes that cell on the board; nothing is played or searched.
+    @objc var onSelectionChanged: ((Int) -> Void)?
     @objc var onShowCountChanged: (() -> Void)?
+    /// The Win % / Popular choice changed; the host recomputes heat and reloads.
+    @objc var onSortChanged: (() -> Void)?
     /// Retry after a failure; the host refetches every failed endpoint.
     @objc var onRetry: (() -> Void)?
     /// "Show more" (or its retry after a failed page).
@@ -170,6 +189,8 @@ final class DBGameRowCell: UITableViewCell {
     @objc var onOpenGame: ((Int64, Bool) -> Void)?
 
     private(set) var rows: [DBMoveRow] = []
+    /// The Moves row whose cell flashes on the board (one at a time).
+    private(set) var selectedCell: Int?
     private(set) var games: [DBGameHeader] = []
     private var statsState: DBLoadState = .idle
     private(set) var gamesState: DBLoadState = .idle
@@ -178,7 +199,10 @@ final class DBGameRowCell: UITableViewCell {
 
     let segmented = UISegmentedControl(items: [NSLocalizedString("Moves", comment: ""),
                                                NSLocalizedString("Games", comment: "")])
+    let sortControl = UISegmentedControl(items: [NSLocalizedString("Win %", comment: ""),
+                                                 NSLocalizedString("Popular", comment: "")])
     let showButton = UIButton(type: .system)
+    private let movesBar = UIStackView()
     let tableView = UITableView(frame: .zero, style: .plain)
     let gamesTableView = UITableView(frame: .zero, style: .plain)
     let gamesHeader = UIStackView()
@@ -212,6 +236,10 @@ final class DBGameRowCell: UITableViewCell {
         segmented.selectedSegmentIndex = 0
         segmented.accessibilityIdentifier = "dbResultsTabs"
         segmented.addTarget(self, action: #selector(tabChanged), for: .valueChanged)
+
+        sortControl.selectedSegmentIndex = service.preferences.moveSort == .games ? 1 : 0
+        sortControl.accessibilityIdentifier = "dbMoveSort"
+        sortControl.addTarget(self, action: #selector(sortChanged), for: .valueChanged)
 
         showButton.showsMenuAsPrimaryAction = true
         showButton.titleLabel?.font = .systemFont(ofSize: 14)
@@ -277,10 +305,15 @@ final class DBGameRowCell: UITableViewCell {
 
         spinner.hidesWhenStopped = true
 
-        let header = UIStackView(arrangedSubviews: [segmented, showButton])
-        header.axis = .horizontal
-        header.spacing = 12
-        header.alignment = .center
+        movesBar.addArrangedSubview(sortControl)
+        movesBar.addArrangedSubview(showButton)
+        movesBar.axis = .horizontal
+        movesBar.spacing = 12
+        movesBar.alignment = .center
+        let header = UIStackView(arrangedSubviews: [segmented, movesBar])
+        header.axis = .vertical
+        header.spacing = 8
+        header.alignment = .leading
         let message = UIStackView(arrangedSubviews: [messageLabel, retryButton])
         message.axis = .vertical
         message.spacing = 8
@@ -324,10 +357,12 @@ final class DBGameRowCell: UITableViewCell {
 
     @objc func reload() {
         loadViewIfNeeded()
+        clearSelection()
         if let stats = service.lastStats {
             let n = service.preferences.movesShown
             rows = DBMovesViewModel.rows(stats: stats, occupied: service.occupied,
-                                         limit: n > 0 ? n : nil, game: service.game)
+                                         limit: n > 0 ? n : nil, game: service.game,
+                                         sort: service.preferences.moveSort)
         } else {
             rows = []
         }
@@ -338,6 +373,7 @@ final class DBGameRowCell: UITableViewCell {
         loadViewIfNeeded()
         statsState = state
         if state == .loading {
+            clearSelection()
             rows = []
             tableView.reloadData()
         }
@@ -373,8 +409,26 @@ final class DBGameRowCell: UITableViewCell {
     /// Saves the "Show N moves" choice; the host recomputes heat and reloads.
     func selectShowCount(_ n: Int) {
         service.preferences.movesShown = n
+        clearSelection()
         rebuildShowMenu()
         onShowCountChanged?()
+    }
+
+    /// Saves the Win % / Popular choice; the host recomputes heat and reloads.
+    func selectSort(_ sort: DBMoveSort) {
+        service.preferences.moveSort = sort
+        sortControl.selectedSegmentIndex = sort == .games ? 1 : 0
+        clearSelection()
+        onSortChanged?()
+    }
+
+    /// Ends the row selection (and tells the host to stop the flashing).
+    /// Silent when nothing is selected.
+    @objc func clearSelection() {
+        guard selectedCell != nil else { return }
+        selectedCell = nil
+        tableView.reloadData()
+        onSelectionChanged?(-1)
     }
 
     var gamesFooterTitle: String? {
@@ -450,6 +504,8 @@ final class DBGameRowCell: UITableViewCell {
         scopeLabel.text = DBResultsViewController.listHeaderLabel(scope: service.scope,
                                                                   moveCount: service.moveCount)
         showButton.isHidden = games
+        sortControl.isHidden = games
+        movesBar.isHidden = games
     }
 
     private func updateGamesTitle() {
@@ -498,6 +554,10 @@ final class DBGameRowCell: UITableViewCell {
         showButton.setTitle(DBResultsViewController.showTitle(current), for: .normal)
     }
 
+    @objc private func sortChanged() {
+        selectSort(sortControl.selectedSegmentIndex == 1 ? .games : .winRate)
+    }
+
     @objc private func tabChanged() {
         render()
     }
@@ -526,7 +586,7 @@ final class DBGameRowCell: UITableViewCell {
         }
         let cell = tableView.dequeueReusableCell(withIdentifier: DBMoveRowCell.reuseId)
             as? DBMoveRowCell ?? DBMoveRowCell(style: .default, reuseIdentifier: DBMoveRowCell.reuseId)
-        cell.configure(rows[indexPath.row])
+        cell.configure(rows[indexPath.row], marked: rows[indexPath.row].cell == selectedCell)
         return cell
     }
 
@@ -538,6 +598,9 @@ final class DBGameRowCell: UITableViewCell {
             return
         }
         guard indexPath.row < rows.count else { return }
-        onPlayMove?(rows[indexPath.row].cell)
+        let cell = rows[indexPath.row].cell
+        selectedCell = selectedCell == cell ? nil : cell
+        tableView.reloadData()
+        onSelectionChanged?(selectedCell ?? -1)
     }
 }

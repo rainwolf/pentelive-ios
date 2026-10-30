@@ -483,20 +483,41 @@ final class DBDatabaseScreenTests: XCTestCase {
         XCTAssertEqual(mirror(vc), [180, 181, 200])
     }
 
-    func testResultsTapsIgnoredWhileAIThinks() {
+    private func flashing(_ vc: UIViewController) -> DBBoardView {
+        return board(vc, "board") as! DBBoardView
+    }
+
+    func testSelectionDoesNotAffectTheLineAndAIGuardStillHolds() {
         let vc = makeVC(game: "Pente", moves: [180, 181, 200])
         var pushed: [UIViewController] = []
         let pusher: @convention(block) (UIViewController) -> Void = { pushed.append($0) }
         vc.setValue(pusher, forKey: "gameViewerPusher")
         aiStart(vc)
-        results(vc).onPlayMove?(10)
+        results(vc).onSelectionChanged?(10)
         results(vc).onOpenGame?(77, false)
         XCTAssertEqual(mirror(vc), [180, 181, 200])
+        XCTAssertEqual(flashing(vc).flashCell, -1, "no flashing while the AI thinks")
         XCTAssertTrue(pushed.isEmpty)
         aiFinish(vc, 5)
         XCTAssertEqual(mirror(vc), [180, 181, 200, 5])
-        results(vc).onPlayMove?(10)
-        XCTAssertEqual(mirror(vc), [180, 181, 200, 5, 10])
+        results(vc).onSelectionChanged?(10)
+        XCTAssertEqual(mirror(vc), [180, 181, 200, 5], "selecting never plays")
+        XCTAssertEqual(Int(flashing(vc).flashCell), 10)
+        XCTAssertEqual(line(vc).redoCount, 0)
+    }
+
+    func testAIStartClearsSelectionAndFlashing() async {
+        transport.replies[181] = (stats([(10, 60), (11, 40)]), 200)
+        let vc = makeVC(game: "Pente", moves: [180, 181, 200])
+        back(vc)
+        let shown = await waitUntil { self.results(vc).rows.count == 2 }
+        XCTAssertTrue(shown)
+        results(vc).tableView(results(vc).tableView, didSelectRowAt: IndexPath(row: 0, section: 0))
+        XCTAssertEqual(Int(flashing(vc).flashCell), results(vc).rows[0].cell)
+        aiStart(vc)
+        XCTAssertNil(results(vc).selectedCell)
+        XCTAssertEqual(flashing(vc).flashCell, -1)
+        XCTAssertFalse(flashing(vc).isFlashAnimating)
     }
 
     // MARK: injected Go/Renju (F2)
@@ -610,15 +631,94 @@ final class DBDatabaseScreenTests: XCTestCase {
         XCTAssertTrue(blocked)
     }
 
-    func testResultsRowTapPlaysMoveOnHost() async {
+    func testResultsRowTapSelectsAndFlashesWithoutPlayingOrSearching() async {
         transport.replies[181] = (stats([(10, 60), (11, 40)]), 200)
         let vc = makeVC(game: "Pente", moves: [180, 181, 200])
         back(vc)
         let shown = await waitUntil { self.results(vc).rows.count == 2 }
         XCTAssertTrue(shown)
-        results(vc).onPlayMove?(10)
-        XCTAssertEqual(mirror(vc), [180, 181, 10])
-        XCTAssertEqual(line(vc).redoCount, 0)
+        let sent = transport.requests.count
+        let searches = transport.searchRequests.count
+        let r = results(vc)
+        r.tableView(r.tableView, didSelectRowAt: IndexPath(row: 0, section: 0))
+        let cell = r.rows[0].cell
+        XCTAssertEqual(mirror(vc), [180, 181], "selecting never plays")
+        XCTAssertEqual(line(vc).redoCount, 1)
+        XCTAssertEqual(Int(flashing(vc).flashCell), cell)
+        XCTAssertEqual(flashing(vc).flashColor, dbOptions(vc)?[NSNumber(value: cell)])
+        XCTAssertEqual(flashing(vc).reduceMotion, UIAccessibility.isReduceMotionEnabled)
+        try? await Task.sleep(nanoseconds: 100_000_000)
+        XCTAssertEqual(transport.requests.count, sent, "no stats query")
+        XCTAssertEqual(transport.searchRequests.count, searches, "no games query")
+        // Same row again: unselect and stop.
+        r.tableView(r.tableView, didSelectRowAt: IndexPath(row: 0, section: 0))
+        XCTAssertEqual(flashing(vc).flashCell, -1)
+        XCTAssertFalse(flashing(vc).isFlashAnimating)
+    }
+
+    func testFlashStoneIsTheSideToMove() async {
+        transport.replies[181] = (stats([(10, 60)]), 200)
+        let vc = makeVC(game: "Pente", moves: [180, 181, 200])
+        back(vc) // two moves played: white to move
+        let shown = await waitUntil { self.results(vc).rows.count == 1 }
+        XCTAssertTrue(shown)
+        flashing(vc).reduceMotionOverride = NSNumber(value: false)
+        let r = results(vc)
+        r.tableView(r.tableView, didSelectRowAt: IndexPath(row: 0, section: 0))
+        XCTAssertTrue(flashing(vc).flashStoneIsWhite)
+        XCTAssertTrue(flashing(vc).isFlashAnimating)
+        XCTAssertTrue(flashing(vc).flashStoneVisible)
+        flashing(vc).flashTick()
+        XCTAssertFalse(flashing(vc).flashStoneVisible, "alternates with the heat colour")
+        flashing(vc).flashTick()
+        XCTAssertTrue(flashing(vc).flashStoneVisible)
+    }
+
+    func testReduceMotionShowsStaticHighlightWithoutTimer() async {
+        transport.replies[181] = (stats([(10, 60)]), 200)
+        let vc = makeVC(game: "Pente", moves: [180, 181, 200])
+        back(vc)
+        let shown = await waitUntil { self.results(vc).rows.count == 1 }
+        XCTAssertTrue(shown)
+        flashing(vc).reduceMotionOverride = NSNumber(value: true)
+        let r = results(vc)
+        r.tableView(r.tableView, didSelectRowAt: IndexPath(row: 0, section: 0))
+        XCTAssertEqual(Int(flashing(vc).flashCell), 10)
+        XCTAssertFalse(flashing(vc).isFlashAnimating, "no animation under Reduce Motion")
+        flashing(vc).flashTick()
+        XCTAssertTrue(flashing(vc).flashStoneVisible, "tick is inert under Reduce Motion")
+    }
+
+    func testPlacingAStoneOrNavigatingClearsSelection() async {
+        transport.replies[181] = (stats([(10, 60), (11, 40)]), 200)
+        let vc = makeVC(game: "Pente", moves: [180, 181, 200])
+        back(vc)
+        let shown = await waitUntil { self.results(vc).rows.count == 2 }
+        XCTAssertTrue(shown)
+        let r = results(vc)
+        r.tableView(r.tableView, didSelectRowAt: IndexPath(row: 1, section: 0))
+        XCTAssertGreaterThanOrEqual(flashing(vc).flashCell, 0)
+        layout(vc, CGSize(width: 390, height: 844))
+        tap(vc, cell: 250, state: .ended) // a stone placed on the board
+        XCTAssertNil(r.selectedCell)
+        XCTAssertEqual(flashing(vc).flashCell, -1)
+        back(vc)
+        XCTAssertNil(r.selectedCell)
+    }
+
+    func testSortChangeResortsListAndBoardHeatWithoutRefetch() async {
+        transport.replies[181] = (stats([(10, 60), (11, 40)]), 200)
+        let vc = makeVC(game: "Pente", moves: [180, 181, 200])
+        back(vc)
+        let shown = await waitUntil { self.results(vc).rows.count == 2 }
+        XCTAssertTrue(shown)
+        let before = results(vc).rows.map(\.cell)
+        results(vc).selectSort(.games)
+        XCTAssertEqual(prefs.moveSort, .games)
+        XCTAssertEqual(results(vc).rows.count, 2)
+        XCTAssertEqual(Set(results(vc).rows.map(\.cell)), Set(before))
+        XCTAssertEqual(heatKeys(vc), Set(before.map { NSNumber(value: $0) }))
+        XCTAssertEqual(transport.requests.count, 1, "no refetch")
     }
 
     func testResultsRetryRefetches() async {

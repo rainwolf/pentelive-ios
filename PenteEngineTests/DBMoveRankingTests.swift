@@ -33,6 +33,25 @@ final class DBMoveRankingTests: XCTestCase {
         XCTAssertEqual(sorted.map { $0.move }, [2, 1])
     }
 
+    func testGamesSortOrdersByGameCountDescending() {
+        let r = DBMoveRanking.sorted([mv(1, games: 10, wins: 9), mv(2, games: 100, wins: 40), mv(3, games: 50, wins: 25)],
+                                     by: .games)
+        XCTAssertEqual(r.map { $0.move }, [2, 3, 1])
+    }
+
+    func testGamesSortTieBreaksByWilsonOrder() {
+        // Equal game counts: the higher win rate (Wilson order) comes first.
+        let r = DBMoveRanking.sorted([mv(1, games: 40, wins: 10), mv(2, games: 40, wins: 30), mv(3, games: 40, wins: 20)],
+                                     by: .games)
+        XCTAssertEqual(r.map { $0.move }, [2, 3, 1])
+    }
+
+    func testWinRateSortIsTheWilsonRanking() {
+        let moves = [mv(1, games: 4, wins: 4), mv(2, games: 100, wins: 40), mv(3, games: 10, wins: 7)]
+        XCTAssertEqual(DBMoveRanking.sorted(moves, by: .winRate).map { $0.move },
+                       DBMoveRanking.sorted(moves).map { $0.move })
+    }
+
     func testWilsonZeroGames() {
         XCTAssertEqual(DBMoveRanking.wilsonLowerBound(wins: 0, games: 0), 0)
     }

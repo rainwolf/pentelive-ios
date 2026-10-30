@@ -125,12 +125,139 @@ final class DBResultsViewControllerTests: XCTestCase {
         XCTAssertEqual(vc.showButton.title(for: .normal), "Show 20 moves")
     }
 
-    func testSelectingRowPlaysMove() async {
+    private func tapRow(_ vc: DBResultsViewController, _ row: Int) {
+        vc.tableView(vc.tableView, didSelectRowAt: IndexPath(row: row, section: 0))
+    }
+
+    func testTappingRowSelectsItWithoutAnyRequest() async {
         let vc = await load(stats([(181, 50, 25, 50), (200, 50, 30, 60)]))
-        var played: [Int] = []
-        vc.onPlayMove = { played.append($0) }
-        vc.tableView(vc.tableView, didSelectRowAt: IndexPath(row: 0, section: 0))
-        XCTAssertEqual(played, [vc.rows[0].cell])
+        let requests = transport.count
+        var changes: [Int] = []
+        vc.onSelectionChanged = { changes.append($0) }
+        tapRow(vc, 0)
+        XCTAssertEqual(vc.selectedCell, vc.rows[0].cell)
+        XCTAssertEqual(changes, [vc.rows[0].cell])
+        await Task.yield()
+        XCTAssertEqual(transport.count, requests, "selecting never queries the server")
+    }
+
+    func testTappingSelectedRowAgainUnselects() async {
+        let vc = await load(stats([(181, 50, 25, 50), (200, 50, 30, 60)]))
+        var changes: [Int] = []
+        vc.onSelectionChanged = { changes.append($0) }
+        tapRow(vc, 0)
+        tapRow(vc, 0)
+        XCTAssertNil(vc.selectedCell)
+        XCTAssertEqual(changes, [vc.rows[0].cell, -1])
+    }
+
+    func testTappingAnotherRowMovesTheSelection() async {
+        let vc = await load(stats([(181, 50, 25, 50), (200, 50, 30, 60)]))
+        var changes: [Int] = []
+        vc.onSelectionChanged = { changes.append($0) }
+        tapRow(vc, 0)
+        tapRow(vc, 1)
+        XCTAssertEqual(vc.selectedCell, vc.rows[1].cell)
+        XCTAssertEqual(changes, [vc.rows[0].cell, vc.rows[1].cell])
+    }
+
+    func testReloadSortAndShowCountClearTheSelection() async {
+        let many = (0 ..< 15).map { (100 + $0, 50, 25, Double(40 + $0)) }
+        let vc = await load(stats(many))
+        var changes: [Int] = []
+        vc.onSelectionChanged = { changes.append($0) }
+        tapRow(vc, 2)
+        vc.reload()
+        XCTAssertNil(vc.selectedCell)
+        tapRow(vc, 2)
+        vc.selectSort(.games)
+        XCTAssertNil(vc.selectedCell)
+        tapRow(vc, 2)
+        vc.selectShowCount(10)
+        XCTAssertNil(vc.selectedCell)
+        tapRow(vc, 2)
+        vc.showState(.loading)
+        XCTAssertNil(vc.selectedCell)
+        XCTAssertEqual(changes.filter { $0 == -1 }.count, 4)
+        vc.clearSelection()
+        XCTAssertEqual(changes.filter { $0 == -1 }.count, 4, "nothing selected: no notification")
+    }
+
+    func testSelectedRowIsMarkedInTheTable() async {
+        let vc = await load(stats([(181, 50, 25, 50), (200, 50, 30, 60)]))
+        tapRow(vc, 1)
+        let selected = vc.tableView(vc.tableView, cellForRowAt: IndexPath(row: 1, section: 0)) as! DBMoveRowCell
+        let other = vc.tableView(vc.tableView, cellForRowAt: IndexPath(row: 0, section: 0)) as! DBMoveRowCell
+        XCTAssertTrue(selected.isMarked)
+        XCTAssertFalse(other.isMarked)
+        XCTAssertTrue(selected.accessibilityTraits.contains(.selected))
+        XCTAssertNotEqual(selected.contentView.backgroundColor, other.contentView.backgroundColor)
+    }
+
+    func testBarIsFilledWithTheMovesBoardColour() async {
+        let vc = await load(stats([(181, 50, 25, 50), (200, 50, 30, 60), (201, 50, 40, 80)]))
+        for i in 0 ..< vc.rows.count {
+            let cell = vc.tableView(vc.tableView, cellForRowAt: IndexPath(row: i, section: 0)) as! DBMoveRowCell
+            XCTAssertEqual(cell.barFill.backgroundColor, vc.rows[i].color, "row \(i)")
+            XCTAssertEqual(cell.barFill.backgroundColor, service.currentHeat[NSNumber(value: vc.rows[i].cell)])
+        }
+    }
+
+    func testSortControlOffersWinPercentAndPopularAndDefaultsToWinPercent() {
+        let vc = DBResultsViewController(service: service)
+        vc.loadViewIfNeeded()
+        XCTAssertEqual(vc.sortControl.numberOfSegments, 2)
+        XCTAssertEqual(vc.sortControl.titleForSegment(at: 0), "Win %")
+        XCTAssertEqual(vc.sortControl.titleForSegment(at: 1), "Popular")
+        XCTAssertEqual(vc.sortControl.selectedSegmentIndex, 0)
+    }
+
+    func testSortControlReflectsSavedPreference() {
+        prefs.moveSort = .games
+        let vc = DBResultsViewController(service: service)
+        vc.loadViewIfNeeded()
+        XCTAssertEqual(vc.sortControl.selectedSegmentIndex, 1)
+    }
+
+    func testSortChangeResortsLocallyAndSavesPreference() async {
+        // 181 is the most played (1000), 200 has the better rate (70% of 400).
+        let vc = await load(stats([(220, 5, 4, 80), (181, 1000, 500, 50), (200, 400, 280, 70)]))
+        XCTAssertEqual(vc.rows.map(\.cell), [200, 181, 220])
+        let requests = transport.count
+        var notified = 0
+        vc.onSortChanged = { notified += 1 }
+        vc.sortControl.selectedSegmentIndex = 1
+        vc.sortControl.sendActions(for: .valueChanged)
+        XCTAssertEqual(prefs.moveSort, .games)
+        XCTAssertEqual(notified, 1)
+        vc.reload()
+        XCTAssertEqual(vc.rows.map(\.cell), [181, 200, 220])
+        vc.sortControl.selectedSegmentIndex = 0
+        vc.sortControl.sendActions(for: .valueChanged)
+        XCTAssertEqual(prefs.moveSort, .winRate)
+        XCTAssertEqual(notified, 2)
+        vc.reload()
+        XCTAssertEqual(vc.rows.map(\.cell), [200, 181, 220])
+        await Task.yield()
+        XCTAssertEqual(transport.count, requests, "re-sorting never queries the server")
+    }
+
+    func testPopularSortOrdersListAndBoardHeatByGames() async {
+        let vc = await load(stats([(220, 50, 45, 90), (181, 400, 100, 25), (200, 100, 60, 60)]))
+        XCTAssertEqual(vc.rows.map(\.cell), [220, 200, 181])
+        vc.selectSort(.games)
+        vc.reload()
+        XCTAssertEqual(vc.rows.map(\.cell), [181, 200, 220])
+        for r in vc.rows { XCTAssertEqual(r.color, service.currentHeat[NSNumber(value: r.cell)]) }
+    }
+
+    func testSortAndShowCountControlsBelongToTheMovesTab() async {
+        let vc = await load(stats([(181, 50, 25, 50)]))
+        XCTAssertFalse(vc.sortControl.isHidden)
+        vc.segmented.selectedSegmentIndex = 1
+        vc.segmented.sendActions(for: .valueChanged)
+        XCTAssertTrue(vc.sortControl.isHidden)
+        XCTAssertTrue(vc.showButton.isHidden)
     }
 
     func testRowCellShowsLabelPctAndGames() async {
