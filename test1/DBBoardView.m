@@ -22,6 +22,10 @@
 
 static const NSTimeInterval kFlashInterval = 0.45;
 
+- (int)grid {
+    return self.gridSize > 0 ? self.gridSize : 19;
+}
+
 - (int)flashCell {
     return _flashing ? _flashCell : -1;
 }
@@ -52,7 +56,8 @@ static const NSTimeInterval kFlashInterval = 0.45;
              stoneIsWhite:(BOOL)stoneIsWhite
                 heatColor:(UIColor *)heatColor {
     [self stopFlashing];
-    if (cell < 0 || cell >= 361) {
+    int grid = [self grid];
+    if (cell < 0 || cell >= grid * grid) {
         return;
     }
     _flashing = YES;
@@ -144,9 +149,10 @@ static const NSTimeInterval kFlashInterval = 0.45;
     CGContextRef context = UIGraphicsGetCurrentContext();
     CGContextSetLineWidth(context, 1.2);
     CGContextSetStrokeColorWithColor(context, [UIColor blackColor].CGColor);
-    float margin = self.bounds.size.width / 38;
+    int grid = [self grid];
+    float margin = self.bounds.size.width / (2 * grid);
     // draw the grid
-    for (int i = 0; i < 19; ++i) {
+    for (int i = 0; i < grid; ++i) {
         CGContextMoveToPoint(context, margin, margin + i * margin * 2);
         CGContextAddLineToPoint(context, self.bounds.size.width - margin,
                                 margin + i * margin * 2);
@@ -156,35 +162,64 @@ static const NSTimeInterval kFlashInterval = 0.45;
                                 self.bounds.size.width - margin);
         CGContextStrokePath(context);
     }
-    // draw the 5 little special circles
-    CGRect circle =
-        CGRectMake(margin + 12 * margin - margin / 2,
-                   margin + 12 * margin - margin / 2, margin, margin);
-    CGContextAddEllipseInRect(context, circle);
-    CGContextStrokePath(context);
-    circle.origin.x =
-        self.bounds.size.width - margin - 12 * margin - margin / 2;
-    CGContextAddEllipseInRect(context, circle);
-    CGContextStrokePath(context);
-    circle.origin.x =
-        self.bounds.size.width - margin - 12 * margin - margin / 2;
-    circle.origin.y =
-        self.bounds.size.width - margin - 12 * margin - margin / 2;
-    CGContextAddEllipseInRect(context, circle);
-    CGContextStrokePath(context);
-    circle.origin.x = margin + 12 * margin - margin / 2;
-    circle.origin.y =
-        self.bounds.size.width - margin - 12 * margin - margin / 2;
-    CGContextAddEllipseInRect(context, circle);
-    CGContextStrokePath(context);
-    circle.origin.x = self.bounds.size.width / 2 - margin / 2;
-    circle.origin.y = self.bounds.size.width / 2 - margin / 2;
-    CGContextAddEllipseInRect(context, circle);
-    CGContextStrokePath(context);
+    CGRect circle;
+    if (self.go) {
+        // Go star points, as on the live BoardView.
+        CGContextSetFillColorWithColor(context, [UIColor blackColor].CGColor);
+        int c = grid / 2, l = grid == 9 ? 2 : 3;
+        int r = grid - 1 - l;
+        int stars[9][2] = {{c, c}, {l, l}, {l, r}, {r, r}, {r, l},
+                           {l, c}, {c, l}, {c, r}, {r, c}};
+        int count = grid > 9 ? 9 : 5;
+        for (int s = 0; s < count; ++s) {
+            circle = CGRectMake(margin + 2 * stars[s][0] * margin - margin / 4,
+                                margin + 2 * stars[s][1] * margin - margin / 4,
+                                margin / 2, margin / 2);
+            CGContextAddEllipseInRect(context, circle);
+            CGContextFillPath(context);
+        }
+    } else if (grid == 15) {
+        // Renju: 9 circles at cols/rows {3, 7, 11}, as on the live BoardView.
+        int starPoints[9] = {48, 52, 56, 108, 112, 116, 168, 172, 176};
+        for (int s = 0; s < 9; ++s) {
+            int col = starPoints[s] % grid, row = starPoints[s] / grid;
+            circle = CGRectMake(margin + 2 * col * margin - margin / 2,
+                                margin + 2 * row * margin - margin / 2, margin,
+                                margin);
+            CGContextAddEllipseInRect(context, circle);
+            CGContextStrokePath(context);
+        }
+    } else {
+        // draw the 5 little special circles
+        circle =
+            CGRectMake(margin + 12 * margin - margin / 2,
+                       margin + 12 * margin - margin / 2, margin, margin);
+        CGContextAddEllipseInRect(context, circle);
+        CGContextStrokePath(context);
+        circle.origin.x =
+            self.bounds.size.width - margin - 12 * margin - margin / 2;
+        CGContextAddEllipseInRect(context, circle);
+        CGContextStrokePath(context);
+        circle.origin.x =
+            self.bounds.size.width - margin - 12 * margin - margin / 2;
+        circle.origin.y =
+            self.bounds.size.width - margin - 12 * margin - margin / 2;
+        CGContextAddEllipseInRect(context, circle);
+        CGContextStrokePath(context);
+        circle.origin.x = margin + 12 * margin - margin / 2;
+        circle.origin.y =
+            self.bounds.size.width - margin - 12 * margin - margin / 2;
+        CGContextAddEllipseInRect(context, circle);
+        CGContextStrokePath(context);
+        circle.origin.x = self.bounds.size.width / 2 - margin / 2;
+        circle.origin.y = self.bounds.size.width / 2 - margin / 2;
+        CGContextAddEllipseInRect(context, circle);
+        CGContextStrokePath(context);
+    }
     // draw the game
 
-    for (int i = 0; i < 19; ++i) {
-        for (int j = 0; j < 19; ++j) {
+    for (int i = 0; i < grid; ++i) {
+        for (int j = 0; j < grid; ++j) {
             if (abstractBoard[i][j] > 0) {
                 circle = CGRectMake(j * 2 * margin, i * 2 * margin, 2 * margin,
                                     2 * margin);
@@ -249,10 +284,11 @@ static const NSTimeInterval kFlashInterval = 0.45;
     //    NSLog(@"kittys %i",lastConnect6Move);
     //    NSLog(@"kittys %i",lastMove);
     CGContextSaveGState(context);
-    if (lastMove > -1) {
+    // A pass (grid²) has no cell.
+    if (lastMove > -1 && lastMove < grid * grid) {
         CGContextSetFillColorWithColor(
             context, [UIColor colorWithRed:1 green:0 blue:0 alpha:0.8].CGColor);
-        int i = lastMove / 19, j = lastMove % 19;
+        int i = lastMove / grid, j = lastMove % grid;
         circle = CGRectMake(j * 2 * margin + 2 * margin / 3,
                             i * 2 * margin + 2 * margin / 3, 2 * margin / 3,
                             2 * margin / 3);
@@ -263,7 +299,10 @@ static const NSTimeInterval kFlashInterval = 0.45;
 
     for (NSNumber *move in [dbOptions allKeys]) {
         int moveInt = [move intValue];
-        int i = moveInt / 19, j = moveInt % 19;
+        if (moveInt < 0 || moveInt >= grid * grid) {
+            continue;
+        }
+        int i = moveInt / grid, j = moveInt % grid;
         CGContextSaveGState(context);
         CGContextSetFillColorWithColor(context,
                                        [dbOptions objectForKey:move].CGColor);
@@ -286,7 +325,7 @@ static const NSTimeInterval kFlashInterval = 0.45;
     }
 
     if (_flashing) {
-        int i = _flashCell / 19, j = _flashCell % 19;
+        int i = _flashCell / grid, j = _flashCell % grid;
         circle =
             CGRectMake(j * 2 * margin, i * 2 * margin, 2 * margin, 2 * margin);
         CGContextSaveGState(context);

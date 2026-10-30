@@ -18,6 +18,14 @@ typedef int AbstractBoard[19];
 }
 
 @property int lastMove;
+/// Board side in cells. 0 (the zero value storyboard views start with)
+/// means 19; Go uses 9/13/19, Renju 15. The abstract board keeps row stride
+/// 19 and only its top-left grid x grid corner is drawn.
+@property(nonatomic) int gridSize;
+/// Go star points (filled dots) instead of the Pente / Renju circles.
+@property(nonatomic) BOOL go;
+/// gridSize, or 19 when it is unset.
+- (int)grid;
 @property(retain, nonatomic) NSDictionary<NSNumber *, UIColor *> *dbOptions;
 /// The selected Moves row's cell, or -1. The cell alternates between the
 /// side to move's stone and `flashColor` (its heat colour); with Reduce
