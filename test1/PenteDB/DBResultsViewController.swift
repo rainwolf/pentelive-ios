@@ -567,24 +567,10 @@ final class DBGameRowCell: UITableViewCell {
     }
 
     @objc private func infoTapped() {
-        let vc = UIViewController()
-        let label = UILabel()
-        label.numberOfLines = 0
-        label.font = .preferredFont(forTextStyle: .footnote)
-        label.textColor = .label
-        label.text = NSLocalizedString(
-            "Win % ranks moves by a confidence-adjusted win rate (Wilson lower bound), so a move with a high percentage from few games ranks below a slightly lower percentage from many games. That is why the percentages are not strictly descending.\n\nPopularity sorts by number of games.",
-            comment: "")
-        label.translatesAutoresizingMaskIntoConstraints = false
-        vc.view.addSubview(label)
-        let m = vc.view.layoutMarginsGuide
-        NSLayoutConstraint.activate([
-            label.topAnchor.constraint(equalTo: m.topAnchor),
-            label.bottomAnchor.constraint(equalTo: m.bottomAnchor),
-            label.leadingAnchor.constraint(equalTo: m.leadingAnchor),
-            label.trailingAnchor.constraint(equalTo: m.trailingAnchor),
-        ])
-        vc.preferredContentSize = CGSize(width: 300, height: 190)
+        let text = String(format: NSLocalizedString(
+            "Win %% is sorted by how sure we can be of the win rate, not by the raw percentage. A move that won 7 of 10 games (70%%) can rank below one that won 120 of 200 (60%%), because 10 games is too few to trust. Moves with fewer than %ld games always come last.\n\nPopularity sorts by number of games.",
+            comment: ""), DBMoveRanking.lowSampleThreshold)
+        let vc = DBInfoPopoverController(text: text)
         vc.modalPresentationStyle = .popover
         vc.popoverPresentationController?.sourceView = infoButton
         vc.popoverPresentationController?.sourceRect = infoButton.bounds
@@ -647,4 +633,59 @@ final class DBGameRowCell: UITableViewCell {
 final class DBInfoPopoverDelegate: NSObject, UIPopoverPresentationControllerDelegate {
     static let shared = DBInfoPopoverDelegate()
     func adaptivePresentationStyle(for controller: UIPresentationController) -> UIModalPresentationStyle { .none }
+}
+
+/// Win % explanation popover. Its height is the label's fitted height at the
+/// current Dynamic Type size, recomputed on every layout pass, so it never clips.
+final class DBInfoPopoverController: UIViewController {
+    private static let width: CGFloat = 300
+    private let text: String
+    private let label = UILabel()
+
+    init(text: String) {
+        self.text = text
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) { fatalError("init(coder:) is not supported") }
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        label.numberOfLines = 0
+        label.font = .preferredFont(forTextStyle: .footnote)
+        label.adjustsFontForContentSizeCategory = true
+        label.textColor = .label
+        label.text = text
+        label.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(label)
+        let m = view.layoutMarginsGuide
+        NSLayoutConstraint.activate([
+            label.topAnchor.constraint(equalTo: m.topAnchor),
+            label.bottomAnchor.constraint(equalTo: m.bottomAnchor),
+            label.leadingAnchor.constraint(equalTo: m.leadingAnchor),
+            label.trailingAnchor.constraint(equalTo: m.trailingAnchor),
+        ])
+    }
+
+    override func viewWillLayoutSubviews() {
+        super.viewWillLayoutSubviews()
+        fitPreferredContentSize(traits: traitCollection)
+    }
+
+    /// Sizes the popover to the text at the given Dynamic Type size. The label itself
+    /// follows its own trait collection (adjustsFontForContentSizeCategory), so the
+    /// measurement uses the same scaled footnote font.
+    func fitPreferredContentSize(traits: UITraitCollection) {
+        let font = UIFontMetrics(forTextStyle: .footnote)
+            .scaledFont(for: UIFont.systemFont(ofSize: 13), compatibleWith: traits)
+        let m = view.layoutMargins
+        let textWidth = Self.width - m.left - m.right
+        let textHeight = (text as NSString).boundingRect(
+            with: CGSize(width: textWidth, height: .greatestFiniteMagnitude),
+            options: [.usesLineFragmentOrigin, .usesFontLeading],
+            attributes: [.font: font], context: nil).height
+        let size = CGSize(width: Self.width, height: ceil(textHeight) + m.top + m.bottom)
+        if preferredContentSize != size { preferredContentSize = size }
+    }
 }

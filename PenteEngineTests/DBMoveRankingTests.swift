@@ -27,6 +27,12 @@ final class DBMoveRankingTests: XCTestCase {
         XCTAssertEqual(r.map { $0.move }, [2, 1])
     }
 
+    func testSmallSampleHighPctRanksBelowLargerSampleLowerPct() {
+        // 7 of 10 (70%) is below 120 of 200 (60%): 10 games are too few to trust the rate.
+        let r = DBMoveRanking.sorted([mv(1, games: 10, wins: 7), mv(2, games: 200, wins: 120)], by: .winRate)
+        XCTAssertEqual(r.map { $0.move }, [2, 1])
+    }
+
     func testTieBreakGamesDesc() {
         // Both rows have games >= 5 and Wilson == 0, so only games-descending decides the order.
         let sorted = DBMoveRanking.sorted([mv(1, games: 6, wins: 0), mv(2, games: 10, wins: 0)])
