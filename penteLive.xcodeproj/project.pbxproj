@@ -285,6 +285,7 @@
 		A1B2C3D4E5F60718293A4B05 /* MessageThreadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B06 /* MessageThreadView.swift */; };
 		A1B2C3D4E5F60718293A4B07 /* MessageThreadViewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B08 /* MessageThreadViewTests.swift */; };
 		A1B2C3D4E5F60718293A4B12 /* MessageReplyInputTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B11 /* MessageReplyInputTests.swift */; };
+		A245B34F0CBB9440F269AD67 /* DBDatabaseScreenTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CF83B9335D52B70DCFA1CBE /* DBDatabaseScreenTests.swift */; };
 		A382731D82157006F34514E4 /* MoveResultTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5F0539DA310A85158CDB99B /* MoveResultTests.swift */; };
 		A72E76357EBE1DC08D5E34E1 /* ArenaWireTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC635F2362D948DA030F4A63 /* ArenaWireTests.swift */; };
 		AAAA11112222333344445551 /* PenteWebViewConfigurationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAAA11112222333344445552 /* PenteWebViewConfigurationTests.swift */; };
@@ -360,6 +361,7 @@
 		09F5047DA9643A56940CC815 /* StoreKitTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKitTest.framework; path = System/Library/Frameworks/StoreKitTest.framework; sourceTree = SDKROOT; };
 		0BB7D9EDC42A7C21CE614BEB /* BoardVariantMappingTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BoardVariantMappingTests.swift; sourceTree = "<group>"; };
 		0CD896F5287C139D124DF4D5 /* StoreInfo.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StoreInfo.swift; sourceTree = "<group>"; };
+		0CF83B9335D52B70DCFA1CBE /* DBDatabaseScreenTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DBDatabaseScreenTests.swift; sourceTree = "<group>"; };
 		0DAA75D2D52B843143873591 /* TableEngineRoutingTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TableEngineRoutingTests.swift; sourceTree = "<group>"; };
 		0ECA09C532731E03061C1308 /* DashboardEndpointTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DashboardEndpointTests.swift; sourceTree = "<group>"; };
 		0EE8889DAE0C593E75FD80A7 /* ArenaWire.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ArenaWire.swift; sourceTree = "<group>"; };
@@ -1270,6 +1272,7 @@
 				5CFAC1D44728183B6FA59CD4 /* DBPreferencesTests.swift */,
 				A52CC9CFE66340C90A4601B5 /* DBLegacyFilterAdapterTests.swift */,
 				EF8181BB2003C5DAF15A5359 /* DBPositionServiceTests.swift */,
+				0CF83B9335D52B70DCFA1CBE /* DBDatabaseScreenTests.swift */,
 			);
 			path = PenteEngineTests;
 			sourceTree = SOURCE_ROOT;
@@ -1679,6 +1682,7 @@
 				D4E9FF39D9AB2B203A1F5372 /* DBPreferencesTests.swift in Sources */,
 				8DD380D4EC18285424D9A0E7 /* DBLegacyFilterAdapterTests.swift in Sources */,
 				F18A54B5B7204C7FCF880780 /* DBPositionServiceTests.swift in Sources */,
+				A245B34F0CBB9440F269AD67 /* DBDatabaseScreenTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

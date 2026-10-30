@@ -45,6 +45,9 @@ static BOOL DBAllowsOffCenterFirstStone(NSString *gameType) {
     char coordinateLetters[19];
     BOOL aiThinking;
     LegacyPenteGame *penteGame;
+    BOOL didStartInitialLoad, didShowSubscriptionAlert;
+    UILabel *dbStatusLabel;
+    UIButton *dbRetryButton;
 }
 @synthesize aiPlayer;
 @synthesize board;
@@ -68,6 +71,8 @@ static BOOL DBAllowsOffCenterFirstStone(NSString *gameType) {
 @synthesize progressView;
 @synthesize aiButton;
 @synthesize aiSetupView;
+@synthesize line;
+@synthesize dbService;
 
 BoardViewController *boardController;
 
@@ -233,6 +238,59 @@ BoardViewController *boardController;
         movesList = [[NSMutableArray alloc] init];
         [self resetState];
     }
+    // Always after the block above, so a movesList handed in by
+    // BoardViewController.toDB seeds the line too.
+    line = [[DBLine alloc] initWithGame:[DBGameCatalog gameIdForName:game]
+                                  moves:[movesList copy]];
+    if (dbService == nil) {
+        dbService = [DBPositionService makeDefault];
+    }
+    __weak typeof(self) weakSelf = self;
+    dbService.onHeat = ^(NSDictionary<NSNumber *, UIColor *> *heat) {
+        [weakSelf applyHeat:heat];
+    };
+    dbService.onStatsState = ^(DBLoadState state) {
+        [weakSelf statsStateChanged:state];
+    };
+
+    // The storyboard only has the left (back) swipe for this scene.
+    UISwipeGestureRecognizer *forwardSwipe = [[UISwipeGestureRecognizer alloc]
+        initWithTarget:self
+                action:@selector(goForwardOneMoveSwipe:)];
+    forwardSwipe.direction = UISwipeGestureRecognizerDirectionRight;
+    [self.view addGestureRecognizer:forwardSwipe];
+
+    // Under-board strip: "Not supported yet" label / "Couldn't load" retry.
+    CGRect stripRect =
+        CGRectMake(self.view.bounds.size.width / 4, CGRectGetMaxY(button.frame),
+                   self.view.bounds.size.width / 2, 22);
+    dbStatusLabel = [[UILabel alloc] initWithFrame:stripRect];
+    dbStatusLabel.textAlignment = NSTextAlignmentCenter;
+    dbStatusLabel.font = [UIFont systemFontOfSize:14];
+    dbStatusLabel.textColor = [UIColor colorWithRed:0x4A / 255.0
+                                              green:0x4F / 255.0
+                                               blue:0x5A / 255.0
+                                              alpha:1];
+    dbStatusLabel.accessibilityIdentifier = @"dbStatusLabel";
+    dbStatusLabel.hidden = YES;
+    [self.view addSubview:dbStatusLabel];
+    dbRetryButton = [UIButton buttonWithType:UIButtonTypeSystem];
+    dbRetryButton.frame = stripRect;
+    dbRetryButton.titleLabel.font = [UIFont systemFontOfSize:14];
+    [dbRetryButton setTitle:NSLocalizedString(@"Couldn't load. Retry", nil)
+                   forState:UIControlStateNormal];
+    [dbRetryButton setTitleColor:[UIColor colorWithRed:0x1F / 255.0
+                                                       green:0x5F / 255.0
+                                                        blue:0xD6 / 255.0
+                                                       alpha:1]
+                        forState:UIControlStateNormal];
+    [dbRetryButton addTarget:self
+                      action:@selector(retryPositionStats:)
+            forControlEvents:UIControlEventTouchUpInside];
+    dbRetryButton.accessibilityIdentifier = @"dbRetryButton";
+    dbRetryButton.hidden = YES;
+    [self.view addSubview:dbRetryButton];
+
     self.progressView = [[PenteSpinnerOverlay alloc]
         initWithFrame:CGRectMake(0, 0, self.view.frame.size.width,
                                  self.view.frame.size.height)];
@@ -271,6 +329,10 @@ BoardViewController *boardController;
         [self setBoardColor];
         [self replayGame];
         [self searchDB:nil];
+        if (!didStartInitialLoad) {
+            didStartInitialLoad = YES;
+            [self positionChanged];
+        }
     }
     //    [whiteStoneCaptures setStoneColor: WHITE];
     //    [whiteStoneCaptures setNeedsDisplay];
@@ -293,14 +355,211 @@ BoardViewController *boardController;
     [board setNeedsDisplay];
     [zoomedBoard setNeedsDisplay];
     if (game) {
-        if ([game isEqualToString:@"Pente"] ||
-            [game isEqualToString:@"Speed Pente"] ||
-            [game containsString:@"Keryo-Pente"]) {
-            [aiButton setHidden:NO];
-        } else {
-            [aiButton setHidden:YES];
+        [self updateAIButtonVisibility];
+    }
+}
+
+/// The AI only plays Pente, Speed Pente and the Keryo-Pente variants.
+- (void)updateAIButtonVisibility {
+    if ([game isEqualToString:@"Pente"] ||
+        [game isEqualToString:@"Speed Pente"] ||
+        [game containsString:@"Keryo-Pente"]) {
+        [aiButton setHidden:NO];
+    } else {
+        [aiButton setHidden:YES];
+    }
+}
+
+#pragma mark - Line, redo and position-stats
+
+/// movesList mirrors line.moves; every line mutation ends here.
+- (void)lineDidChange {
+    movesList = [line.moves mutableCopy];
+    [self replayGame];
+    [self positionChanged];
+}
+
+/// Points line.game at the current game name. A game switch always goes
+/// through resetWithMoves: so a redo stack never outlives its game.
+- (void)syncLineGame {
+    NSInteger gameId = [DBGameCatalog gameIdForName:game];
+    if (line.game != gameId) {
+        line.game = gameId;
+        [line resetWithMoves:[movesList copy]];
+    }
+}
+
+- (void)positionChanged {
+    didStartInitialLoad = YES;
+    [board setDbOptions:nil];
+    [zoomedBoard setDbOptions:nil];
+    [board setNeedsDisplay];
+    [zoomedBoard setNeedsDisplay];
+
+    // Occupied = a stone on the board after replay; captured and poofed
+    // cells are free again.
+    NSMutableArray<NSNumber *> *occupied = [[NSMutableArray alloc] init];
+    for (int y = 0; y < 19; ++y) {
+        for (int x = 0; x < 19; ++x) {
+            if (abstractBoard[y][x] != 0) {
+                [occupied addObject:@(y * 19 + x)];
+            }
         }
     }
+    [self applyLegacyFilters];
+    [dbService positionDidChangeWithGame:[DBGameCatalog gameIdForName:game]
+                                   moves:line.moves
+                                occupied:occupied];
+}
+
+/// Same setup-view sources (and saved fallbacks) as the legacy searchDB:.
+- (void)applyLegacyFilters {
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    NSInteger winner = 0;
+    NSString *winnerStr = setupView.winnerCell.detailTextLabel.text;
+    if ([winnerStr isEqualToString:NSLocalizedString(@"player 1", nil)]) {
+        winner = 1;
+    } else if ([winnerStr
+                   isEqualToString:NSLocalizedString(@"player 2", nil)]) {
+        winner = 2;
+    }
+    NSString *p1Rating = setupView.p1RatingCell.textField.text;
+    if (p1Rating == nil) {
+        p1Rating = [defaults objectForKey:@"DBP1Rating"];
+    }
+    NSString *p2Rating = setupView.p2RatingCell.textField.text;
+    if (p2Rating == nil) {
+        p2Rating = [defaults objectForKey:@"DBP2Rating"];
+    }
+    NSString *bothOrEither = setupView.eitherOrBothp1p2Cell.detailTextLabel.text;
+    if (!bothOrEither) {
+        bothOrEither = [defaults objectForKey:@"DBBothOrEither"];
+    }
+    BOOL eitherSeat =
+        bothOrEither &&
+        ![bothOrEither isEqualToString:NSLocalizedString(@"both", nil)];
+    NSDate *after = setupView.afterCell.textField.text.length > 0
+                        ? setupView.afterPicker.date
+                        : nil;
+    NSDate *before = setupView.beforeCell.textField.text.length > 0
+                         ? setupView.beforePicker.date
+                         : nil;
+    [dbService setLegacyFiltersWithP1Name:setupView.player1Cell.textField.text
+                                   p2Name:setupView.player2Cell.textField.text
+                                 p1Rating:p1Rating
+                                 p2Rating:p2Rating
+                               eitherSeat:eitherSeat
+                                   winner:winner
+                                    after:after
+                                   before:before];
+}
+
+- (void)applyHeat:(NSDictionary<NSNumber *, UIColor *> *)heat {
+    NSDictionary<NSNumber *, UIColor *> *options =
+        (dbService.preferences.heatOnBoard && heat.count > 0) ? heat : nil;
+    [board setDbOptions:options];
+    [zoomedBoard setDbOptions:options];
+    [board setNeedsDisplay];
+    [zoomedBoard setNeedsDisplay];
+}
+
+- (void)statsStateChanged:(DBLoadState)state {
+    dbStatusLabel.hidden = YES;
+    dbRetryButton.hidden = YES;
+    switch (state) {
+    case DBLoadStateUnsupported:
+        dbStatusLabel.text = NSLocalizedString(@"Not supported yet", nil);
+        dbStatusLabel.hidden = NO;
+        break;
+    case DBLoadStateFailed:
+        dbRetryButton.hidden = NO;
+        break;
+    case DBLoadStateSubscriptionRequired:
+        [self showSubscriptionRequired];
+        break;
+    case DBLoadStateUnauthorized:
+        [self showLogInAgain];
+        break;
+    default:
+        break;
+    }
+}
+
+- (void)retryPositionStats:(UIButton *)sender {
+    [self positionChanged];
+}
+
+- (UIViewController *)alertPresenter {
+    return self.presentedViewController ?: self;
+}
+
+/// Same copy as GamesTableViewController's openDatabase gate. Shown once per
+/// screen so every swipe does not raise it again.
+- (void)showSubscriptionRequired {
+    if (didShowSubscriptionAlert || self.view.window == nil) {
+        return;
+    }
+    didShowSubscriptionAlert = YES;
+    UIAlertController *alert = [UIAlertController
+        alertControllerWithTitle:NSLocalizedString(@"Level up your game", nil)
+                         message:
+                             NSLocalizedString(
+                                 @"The database allows you to search games "
+                                 @"in "
+                                 @"the pente.org database by position. "
+                                 @"This "
+                                 @"powerful tool enables you to study and "
+                                 @"analyze games and opponents, practice "
+                                 @"opening moves, sort the results by most "
+                                 @"played or highest win percentage, and "
+                                 @"filter by player name and winner. More "
+                                 @"features will be added in the "
+                                 @"future.\n\nThe database is open to "
+                                 @"subscribers or new users after their "
+                                 @"first "
+                                 @"rated game in their first two months "
+                                 @"only.",
+                                 nil)
+                  preferredStyle:UIAlertControllerStyleAlert];
+    [alert addAction:[UIAlertAction
+                         actionWithTitle:NSLocalizedString(@"dismiss", nil)
+                                   style:UIAlertActionStyleCancel
+                                 handler:nil]];
+    __weak typeof(self) weakSelf = self;
+    [alert addAction:[UIAlertAction
+                         actionWithTitle:NSLocalizedString(
+                                             @"subscription info", nil)
+                                   style:UIAlertActionStyleDefault
+                                 handler:^(UIAlertAction *action) {
+                                     if (weakSelf) {
+                                         [StoreViewController
+                                             presentFrom:weakSelf];
+                                     }
+                                 }]];
+    [[self alertPresenter] presentViewController:alert
+                                        animated:YES
+                                      completion:nil];
+}
+
+- (void)showLogInAgain {
+    if (self.view.window == nil) {
+        return;
+    }
+    UIAlertController *alert = [UIAlertController
+        alertControllerWithTitle:NSLocalizedString(@"Please log in again", nil)
+                         message:nil
+                  preferredStyle:UIAlertControllerStyleAlert];
+    __weak typeof(self) weakSelf = self;
+    [alert addAction:[UIAlertAction
+                         actionWithTitle:@"OK"
+                                   style:UIAlertActionStyleDefault
+                                 handler:^(UIAlertAction *action) {
+                                     [weakSelf.navigationController
+                                         popToRootViewControllerAnimated:YES];
+                                 }]];
+    [[self alertPresenter] presentViewController:alert
+                                        animated:YES
+                                      completion:nil];
 }
 
 - (BOOL)shouldAutorotate {
@@ -319,12 +578,8 @@ BoardViewController *boardController;
 
 - (IBAction)goBackOneMoveSwipe:(UISwipeGestureRecognizer *)sender {
     [board setLastMove:-1];
-    if ([movesList count] > 1 ||
-        ([movesList count] > 0 && DBAllowsOffCenterFirstStone(game))) {
-        [movesList removeLastObject];
-        [self replayGame];
-        [board setDbOptions:nil];
-        [zoomedBoard setDbOptions:nil];
+    if ([line back]) {
+        [self lineDidChange];
     }
     //    if ([[aiPlayer moves] count] > 1 && !aiThinking) {
     //        [[aiPlayer moves] removeLastObject];
@@ -337,34 +592,59 @@ BoardViewController *boardController;
     //    }
 }
 
+- (IBAction)goForwardOneMoveSwipe:(UISwipeGestureRecognizer *)sender {
+    [board setLastMove:-1];
+    if ([line forward]) {
+        [self lineDidChange];
+    }
+}
+
+/// Colours the placement stones for the side to move.
+- (void)prepareStoneColor {
+    if ([game containsString:@"Connect6"]) {
+        if ((([movesList count] % 4) == 0) || (([movesList count] % 4) == 3)) {
+            [stone setStoneColor:WHITE];
+            [zoomedStone setStoneColor:WHITE];
+        } else {
+            [stone setStoneColor:BLACK];
+            [zoomedStone setStoneColor:BLACK];
+        }
+    } else if ([movesList count] % 2 == 1) {
+        [stone setStoneColor:BLACK];
+        [zoomedStone setStoneColor:BLACK];
+    } else {
+        [stone setStoneColor:WHITE];
+        [zoomedStone setStoneColor:WHITE];
+    }
+    [stone setNeedsDisplay];
+    [zoomedStone setNeedsDisplay];
+}
+
 - (IBAction)boardTap:(UILongPressGestureRecognizer *)recognizer {
     int i, j;
     CGPoint currentPoint = [recognizer locationInView:self.board];
     float cellSize = self.board.bounds.size.width / 19;
     j = (int)floorf(currentPoint.x / cellSize);
     i = (int)floorf(currentPoint.y / cellSize);
+    BOOL onBoard = i >= 0 && i < 19 && j >= 0 && j < 19;
+    // A heat dot is played with a plain tap: no magnifier over it.
+    BOOL onDot = onBoard && board.dbOptions[@(19 * i + j)] != nil;
+
+    if (onDot && [recognizer state] != UIGestureRecognizerStateEnded) {
+        [board setLastMove:-1];
+        [self prepareStoneColor];
+        [zoomedBoard setHidden:YES];
+        [zoomedStone setHidden:YES];
+        [horizontalLine setHidden:YES];
+        [verticalLine setHidden:YES];
+        [stone setHidden:YES];
+        return;
+    }
 
     switch ([recognizer state]) {
     case UIGestureRecognizerStateBegan:
         [board setLastMove:-1];
-        if ([game containsString:@"Connect6"]) {
-            if ((([movesList count] % 4) == 0) ||
-                (([movesList count] % 4) == 3)) {
-                [stone setStoneColor:WHITE];
-                [zoomedStone setStoneColor:WHITE];
-            } else {
-                [stone setStoneColor:BLACK];
-                [zoomedStone setStoneColor:BLACK];
-            }
-        } else if ([movesList count] % 2 == 1) {
-            [stone setStoneColor:BLACK];
-            [zoomedStone setStoneColor:BLACK];
-        } else {
-            [stone setStoneColor:WHITE];
-            [zoomedStone setStoneColor:WHITE];
-        }
-        [stone setNeedsDisplay];
-        [zoomedStone setNeedsDisplay];
+        [self prepareStoneColor];
         [zoomedBoard setHidden:NO];
         [stone setHidden:YES];
         if (abstractBoard[i][j] == 0) {
@@ -375,7 +655,7 @@ BoardViewController *boardController;
         break;
     case UIGestureRecognizerStateEnded:
         [zoomedBoard setHidden:YES];
-        if (abstractBoard[i][j] == 0) {
+        if (onBoard && abstractBoard[i][j] == 0) {
             stone.center = CGPointMake(cellSize * j + cellSize / 2,
                                        cellSize * i + cellSize / 2);
             [zoomedStone setHidden:YES];
@@ -383,97 +663,15 @@ BoardViewController *boardController;
             [verticalLine setHidden:YES];
 
             finalMove = 19 * i + j;
-
-            //                [self detectCaptureOfOpponent:(([[stone
-            //                stoneColor] isEqual: [UIColor blackColor]]) ? 1 :
-            //                2) atPosition: finalMove];
-            if ([game containsString:@"Connect6"]) {
-                abstractBoard[i][j] = ((([movesList count] % 4) == 0) ||
-                                       (([movesList count] % 4) == 3))
-                                          ? 1
-                                          : 2;
-            } else {
-                abstractBoard[i][j] = 1 + ([movesList count] % 2);
-            }
-            [movesList addObject:[NSNumber numberWithInt:finalMove]];
             if (!game) {
                 game = setupView.gameCell.textField.text;
             }
             if (!game) {
                 game = @"Pente";
             }
-            if (![game containsString:@"Gomoku"] &&
-                ![game containsString:@"Connect6"]) {
-                int color = 2 - ([movesList count] % 2),
-                    opponentColor = (color == 2) ? 1 : 2;
-                if ([game containsString:@"Poof-Pente"] ||
-                    [game containsString:@"O-Pente"]) {
-                    [self detectPoof:color atPosition:finalMove];
-                }
-                if ([game containsString:@"O-Pente"]) {
-                    [self detectKeryoPoof:color atPosition:finalMove];
-                }
-                [self detectCaptureOfOpponent:opponentColor
-                                   atPosition:finalMove];
-                if ([game containsString:@"Keryo-Pente"] ||
-                    [game containsString:@"DK-Pente"] ||
-                    [game containsString:@"Swap2-Keryo"] ||
-                    [game containsString:@"O-Pente"]) {
-                    [self detectKeryoCaptureOfOpponent:opponentColor
-                                            atPosition:finalMove];
-                }
-                if ([game containsString:@"G-Pente"] &&
-                    [movesList count] == 2) {
-                    [penteGame maskGPenteOpening];
-                } else if ([game containsString:@"G-Pente"] &&
-                           [movesList count] == 3) {
-                    [penteGame unmaskGPenteOpening];
-                }
-            }
-            if ([game containsString:@"Connect6"]) {
-                if ((([movesList count] - 3) % 4) == 0) {
-                    [moveStatsString
-                        appendString:[NSString stringWithFormat:
-                                                   @"&nbsp; <b>%lu.</b> ",
-                                                   (unsigned long)(
-                                                       [movesList count] >> 2) +
-                                                       2]];
-                } else if ((([movesList count] - 3) % 4) == 2 ||
-                           [movesList count] == 1) {
-                    [moveStatsString appendString:@" - "];
-                } else {
-                    [moveStatsString appendString:@"-"];
-                }
-            } else if (([movesList count] % 2) == 1) {
-                [moveStatsString
-                    appendString:[NSString
-                                     stringWithFormat:@"&nbsp; <b>%lu.</b> ",
-                                                      (unsigned long)(
-                                                          [movesList count] >>
-                                                          1) +
-                                                          1]];
-            } else {
-                [moveStatsString appendString:@" - "];
-            }
-            [moveStatsString
-                appendString:[NSString
-                                 stringWithFormat:@"%c%d",
-                                                  coordinateLetters[finalMove %
-                                                                    19],
-                                                  19 - (finalMove / 19)]];
-            [playerStats
-                loadHTMLString:[HEADERSTRING stringByAppendingString:
-                                                 [playerStatsBaseString
-                                                     stringByAppendingString:
-                                                         moveStatsString]]
-                       baseURL:nil];
-            [board setAbstractBoard:abstractBoard];
-            [zoomedBoard setAbstractBoard:abstractBoard];
-            [board setDbOptions:nil];
-            [zoomedBoard setDbOptions:nil];
-            [board setNeedsDisplay];
-            [zoomedBoard setNeedsDisplay];
-            [self updateCaptures];
+            [self syncLineGame];
+            [line play:finalMove];
+            [self lineDidChange];
         }
         break;
     default:
@@ -763,7 +961,6 @@ BoardViewController *boardController;
              }
 
              NSMutableArray<NSNumber *> *moves = [[NSMutableArray alloc] init];
-             NSMutableArray<UIColor *> *colors = [[NSMutableArray alloc] init];
 
              dashboardString = @"";
              NSError *jsonError = nil;
@@ -776,37 +973,6 @@ BoardViewController *boardController;
                  ![jsonResponse[@"blocked"] boolValue]) {
                  for (NSNumber *moveNum in jsonResponse[@"moves"]) {
                      [moves addObject:moveNum];
-                 }
-                 NSArray *occurrenceList = jsonResponse[@"occurrence"];
-                 double max = 0.0, min = DBL_MAX;
-                 for (NSString *pctStr in occurrenceList) {
-                     double v = [pctStr doubleValue];
-                     if (v > max)
-                         max = v;
-                     if (v < min)
-                         min = v;
-                 }
-                 if (max == min) {
-                     max = 100.0;
-                     min = 0.0;
-                 }
-                 for (NSString *pctStr in occurrenceList) {
-                     double dblValue =
-                         ([pctStr doubleValue] - min) / (max - min);
-                     if (dblValue <= 0.5) {
-                         [colors
-                             addObject:[UIColor colorWithRed:1.0
-                                                       green:(dblValue / 0.5)
-                                                        blue:0
-                                                       alpha:1]];
-                     } else {
-                         [colors
-                             addObject:[UIColor
-                                           colorWithRed:(1.0 - dblValue) / 0.5
-                                                  green:1
-                                                   blue:0
-                                                  alpha:1]];
-                     }
                  }
                  NSMutableString *gamesHTML = [[NSMutableString alloc] init];
                  for (NSDictionary *gameEntry in jsonResponse[@"games"]) {
@@ -887,13 +1053,6 @@ BoardViewController *boardController;
                      [setupView.player2Cell setInvitedHistory:invitedHistory];
                  }
              }
-             NSMutableDictionary<NSNumber *, UIColor *> *dbOptions =
-                 [[NSMutableDictionary alloc] init];
-             for (int i = 0; i < [moves count]; ++i) {
-                 [dbOptions setObject:[colors objectAtIndex:i]
-                               forKey:[moves objectAtIndex:i]];
-             }
-
              [playerStats
                  loadHTMLString:
                      [HEADERSTRING
@@ -902,12 +1061,6 @@ BoardViewController *boardController;
                                  stringByAppendingString:@"</center><br>"]
                                  stringByAppendingString:dashboardString]]
                         baseURL:nil];
-             //    dbOptions = [NSDictionary dictionaryWithObjects:colors
-             //    forKeys:moves count:[moves count]];
-             [board setDbOptions:dbOptions];
-             [zoomedBoard setDbOptions:dbOptions];
-             [board setNeedsDisplay];
-             [zoomedBoard setNeedsDisplay];
              [self.progressView stopAnimating];
              [self.progressView removeFromSuperview];
          }];
@@ -1012,54 +1165,13 @@ BoardViewController *boardController;
                         waitUntilDone:NO];
 }
 - (void)stopThinking {
-    int i = finalMove / 19;
-    int j = finalMove % 19;
     [board setLastMove:finalMove];
-
-    //                [self detectCaptureOfOpponent:(([[stone stoneColor]
-    //                isEqual: [UIColor blackColor]]) ? 1 : 2) atPosition:
-    //                finalMove];
-    abstractBoard[i][j] = 1 + ([movesList count] % 2);
-    [movesList addObject:[NSNumber numberWithInt:finalMove]];
     if (game == nil) {
         game = setupView.gameCell.textField.text;
     }
-    int color = 2 - ([movesList count] % 2),
-        opponentColor = (color == 2) ? 1 : 2;
-    [self detectCaptureOfOpponent:opponentColor atPosition:finalMove];
-    if ([game containsString:@"Keryo-Pente"]) {
-        [self detectKeryoCaptureOfOpponent:opponentColor atPosition:finalMove];
-    }
-    if (([movesList count] % 2) == 1) {
-        [moveStatsString
-            appendString:[NSString
-                             stringWithFormat:@"&nbsp; <b>%lu.</b> ",
-                                              (unsigned long)(
-                                                  [movesList count] >> 1) +
-                                                  1]];
-    } else {
-        [moveStatsString appendString:@" - "];
-    }
-    [moveStatsString
-        appendString:[NSString
-                         stringWithFormat:@"%c%d",
-                                          coordinateLetters[finalMove % 19],
-                                          19 - (finalMove / 19)]];
-    //    [playerStats loadHTMLString: [playerStatsBaseString
-    //    stringByAppendingString:moveStatsString] baseURL:nil];
-    [playerStats
-        loadHTMLString:[HEADERSTRING
-                           stringByAppendingString:
-                               [playerStatsBaseString
-                                   stringByAppendingString:moveStatsString]]
-               baseURL:nil];
-    [board setAbstractBoard:abstractBoard];
-    [zoomedBoard setAbstractBoard:abstractBoard];
-    [board setDbOptions:nil];
-    [zoomedBoard setDbOptions:nil];
-    [board setNeedsDisplay];
-    [zoomedBoard setNeedsDisplay];
-    [self updateCaptures];
+    [self syncLineGame];
+    [line play:finalMove];
+    [self lineDidChange];
 
     [progressView stopAnimating];
     [progressView removeFromSuperview];
@@ -1221,6 +1333,7 @@ BoardViewController *boardController;
     abstractBoard[9][9] = 1;
     [movesList removeAllObjects];
     [movesList addObject:[NSNumber numberWithInt:180]];
+    [line resetWithMoves:@[ @180 ]];
     [board setAbstractBoard:abstractBoard];
     [zoomedBoard setAbstractBoard:abstractBoard];
     [board setNeedsDisplay];
@@ -1257,11 +1370,19 @@ BoardViewController *boardController;
                   title:NSLocalizedString(@"ask the AI", nil)
                 atPoint:CGPointMake(aiButton.center.x, aiButton.frame.origin.y)
                  inView:self.view
-              onDismiss:[self setupPopoverOnDismiss]];
+              onDismiss:[self aiPopoverOnDismiss]];
 }
 
-/// Both popovers (search parameters and ask the AI) apply the search setup
-/// when they close, as the popover delegate's dismiss callback used to.
+/// The "ask the AI" popover only refreshes the AI button for the current
+/// game. It must not re-read the setup view's game cell or refetch.
+- (void (^)(void))aiPopoverOnDismiss {
+    __weak typeof(self) weakSelf = self;
+    return ^{
+        [weakSelf updateAIButtonVisibility];
+    };
+}
+
+/// The search-parameters popover applies the setup when it closes.
 - (void (^)(void))setupPopoverOnDismiss {
     __weak typeof(self) weakSelf = self;
     return ^{
@@ -1288,13 +1409,11 @@ BoardViewController *boardController;
         !DBAllowsOffCenterFirstStone(game)) {
         [self resetState];
     }
-    if ([game isEqualToString:@"Pente"] ||
-        [game isEqualToString:@"Speed Pente"] ||
-        [game containsString:@"Keryo-Pente"]) {
-        [aiButton setHidden:NO];
-    } else {
-        [aiButton setHidden:YES];
-    }
+    [self updateAIButtonVisibility];
+    [self syncLineGame];
+    [self setBoardColor];
+    [self replayGame];
+    [self positionChanged];
 }
 
 - (NSString *)URLEncodedString_ch:(NSString *)input {

@@ -15,6 +15,8 @@
 #import "PentePopover.h"
 #import <UIKit/UIKit.h>
 @class MMAI;
+@class DBLine;
+@class DBPositionService;
 
 // #define IS_IPHONE_5 ( fabs( ( double )[ [ UIScreen mainScreen ] bounds
 // ].size.height - ( double )568 ) < DBL_EPSILON )
@@ -51,6 +53,12 @@
 @property(nonatomic, retain) WKWebView *playerStats;
 @property(nonatomic, retain) PentePopover *messagePopover;
 - (IBAction)goBackOneMoveSwipe:(UISwipeGestureRecognizer *)sender;
+- (IBAction)goForwardOneMoveSwipe:(UISwipeGestureRecognizer *)sender;
+
+/// The line on the board (with redo); movesList mirrors line.moves.
+@property(nonatomic, strong) DBLine *line;
+/// Position-stats facade. Created in viewDidLoad unless already set.
+@property(nonatomic, strong) DBPositionService *dbService;
 
 @property(strong, nonatomic)
     IBOutlet UILongPressGestureRecognizer *boardTapRecognizer;

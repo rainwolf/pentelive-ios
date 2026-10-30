@@ -10,7 +10,7 @@ import UIKit
 @MainActor
 @objc final class DBPositionService: NSObject {
     private let client: DBClient
-    let preferences: DBPreferences
+    @objc let preferences: DBPreferences
     private let gate = DBRequestGate()
     private var statsTask: Task<Void, Never>?
 
