@@ -35,8 +35,15 @@ enum DBCaptureReplay {
         let s = DBCaptureReplay.summary(game: game, moves: moves.map { $0.intValue })
         let out = NSMutableAttributedString(string: name, attributes: [.font: font])
         guard s.showsIcons else { return out }
-        let ink = UIColor(dbHex: 0x16181D)
         out.append(NSAttributedString(string: "  ", attributes: [.font: font]))
+        out.append(captureIcons(s, font: font))
+        return out
+    }
+
+    /// Capture icons only (no game name), shared with the viewer header.
+    static func captureIcons(_ s: DBCaptureSummary, font: UIFont) -> NSAttributedString {
+        let out = NSMutableAttributedString()
+        let ink = UIColor(dbHex: 0x16181D)
         out.append(NSAttributedString(string: "●", attributes: [
             .font: font, .foregroundColor: UIColor.white,
             .strokeColor: ink, .strokeWidth: -2 as NSNumber]))
