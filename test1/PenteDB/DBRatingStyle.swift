@@ -43,10 +43,13 @@ enum DBRatingStyle {
         return 0x888888
     }
 
+    /// `raw` is a 32-bit ARGB int; the server sends it signed, so compare
+    /// bit patterns. 0xFF000001 is the "black" sentinel (pure black would be 0).
     static func nameHex(_ raw: Int) -> UInt32? {
-        if raw == 0 { return nil }
-        if raw == (255 << 24) + 1 { return 0x000000 }
-        return UInt32(truncatingIfNeeded: raw) & 0xFFFFFF
+        let bits = UInt32(truncatingIfNeeded: raw)
+        if bits == 0 { return nil }
+        if bits == 0xFF00_0001 { return 0x000000 }
+        return bits & 0xFFFFFF
     }
 
     static func nameString(_ p: DBPlayer?, font: UIFont, alignRight: Bool) -> NSAttributedString {

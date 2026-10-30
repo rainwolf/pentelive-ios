@@ -35,6 +35,9 @@ final class DBRatingStyleTests: XCTestCase {
         XCTAssertNil(DBRatingStyle.nameHex(0))
         XCTAssertEqual(DBRatingStyle.nameHex((255 << 24) + 1), 0x000000)
         XCTAssertEqual(DBRatingStyle.nameHex(0xFF00AA00), 0x00AA00)
+        // The server sends signed 32-bit ARGB ints.
+        XCTAssertEqual(DBRatingStyle.nameHex(-16_777_215), 0x000000)
+        XCTAssertEqual(DBRatingStyle.nameHex(-65536), 0xFF0000)
     }
 
     func testNullPlayerIsQuestionMark() {

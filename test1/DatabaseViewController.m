@@ -59,7 +59,6 @@ static BOOL DBAllowsOffCenterFirstStone(NSString *gameType) {
     UIButton *dbRetryButton;
     UIBarButtonItem *heatButton;
     UILabel *dbTitleLabel, *dbSubtitleLabel;
-    UIButton *dbSearchButton;
     UIBarButtonItem *dbSetupButton, *movesButton;
     // Bottom of the under-board strip (AI button, captures, status/retry,
     // move notation), in view coordinates.
@@ -67,6 +66,8 @@ static BOOL DBAllowsOffCenterFirstStone(NSString *gameType) {
     BOOL didAutoPresentResults, wasShowingResultsSheet;
     // Test seam: when set, receives the results sheet instead of a window.
     void (^resultsSheetPresenter)(UIViewController *);
+    // Test seam: when set, receives the game viewer instead of a push.
+    void (^gameViewerPusher)(UIViewController *);
 }
 @synthesize aiPlayer;
 @synthesize board;
@@ -157,17 +158,6 @@ BoardViewController *boardController;
     [board setAbstractBoard:abstractBoard];
     [zoomedBoard setAbstractBoard:abstractBoard];
 
-    UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
-    button.backgroundColor = [UIColor clearColor];
-    button.titleLabel.font = [UIFont boldSystemFontOfSize:20];
-    [button setTitleColor:[UIColor blueColor] forState:UIControlStateNormal];
-    [button setTitle:NSLocalizedString(@"  search  ", nil)
-            forState:UIControlStateNormal];
-    [button addTarget:self
-                  action:@selector(searchDB:)
-        forControlEvents:UIControlEventTouchUpInside];
-    dbSearchButton = button;
-    [self.view addSubview:button];
     aiButton = [UIButton buttonWithType:UIButtonTypeCustom];
     aiButton.backgroundColor = [UIColor clearColor];
     aiButton.titleLabel.font = [UIFont boldSystemFontOfSize:20];
@@ -239,6 +229,18 @@ BoardViewController *boardController;
     };
     self.resultsVC.onRetry = ^{
         [weakSelf positionChanged];
+    };
+    self.resultsVC.onLoadMore = ^{
+        [weakSelf.dbService loadMoreGames];
+    };
+    self.resultsVC.onOpenGame = ^(int64_t gid) {
+        [weakSelf openGame:gid];
+    };
+    dbService.onGamesChanged = ^{
+        [weakSelf.resultsVC reloadGames];
+    };
+    dbService.onGamesState = ^(DBLoadState state) {
+        [weakSelf gamesStateChanged:state];
     };
 
     // The storyboard only has the left (back) swipe for this scene.
@@ -319,9 +321,6 @@ BoardViewController *boardController;
     CGFloat left = CGRectGetMinX(boardFrame);
     CGFloat y0 = CGRectGetMaxY(boardFrame) + 2;
     CGRect r;
-    r.size = [dbSearchButton intrinsicContentSize];
-    r.origin = CGPointMake(CGRectGetMidX(boardFrame) - r.size.width / 2, y0);
-    dbSearchButton.frame = r;
     r.size = [aiButton intrinsicContentSize];
     r.origin = CGPointMake(CGRectGetMaxX(boardFrame) - r.size.width - 15, y0);
     aiButton.frame = r;
@@ -339,8 +338,8 @@ BoardViewController *boardController;
     r.origin = CGPointMake(left + 8, CGRectGetMaxY(whiteCapturesCountLabel.frame) + 3);
     blackStoneCaptures.frame = r;
 
-    CGRect stripRect = CGRectMake(CGRectGetMidX(boardFrame) - side / 4,
-                                  CGRectGetMaxY(dbSearchButton.frame), side / 2, 22);
+    CGRect stripRect = CGRectMake(CGRectGetMidX(boardFrame) - side / 4, y0 + 4,
+                                  side / 2, 22);
     dbStatusLabel.frame = stripRect;
     dbRetryButton.frame = stripRect;
 
@@ -519,11 +518,6 @@ BoardViewController *boardController;
     } else {
         [self setBoardColor];
         [self replayGame];
-        // Legacy mobileController/search hits pente.org; never from the
-        // unit-test host (screen tests put this controller in a window).
-        if (![AppDelegate isRunningUnitTests]) {
-            [self searchDB:nil];
-        }
         if (!didStartInitialLoad) {
             didStartInitialLoad = YES;
             [self positionChanged];
@@ -621,7 +615,7 @@ BoardViewController *boardController;
     }
 }
 
-/// Same setup-view sources (and saved fallbacks) as the legacy searchDB:.
+/// Same setup-view sources (and saved fallbacks) the legacy search used.
 - (void)applyLegacyFilters {
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
     NSInteger winner = 0;
@@ -736,6 +730,51 @@ BoardViewController *boardController;
     }
 }
 
+/// Games search state: the results VC shows it; 401 and subscription raise
+/// the same once-per-screen alerts as position-stats.
+- (void)gamesStateChanged:(DBLoadState)state {
+    [self.resultsVC showGamesState:state isLoadMore:dbService.gamesStateIsLoadMore];
+    if (state == DBLoadStateSubscriptionRequired) {
+        [self showSubscriptionRequired];
+    } else if (state == DBLoadStateUnauthorized) {
+        [self showLogInAgain];
+    }
+}
+
+/// A Games row was tapped. iPhone: the sheet goes away first and comes back
+/// (same retained VC, same tab and scroll offset) in viewDidAppear. iPad:
+/// the inline panel is a child view, so the viewer is just pushed.
+- (void)openGame:(int64_t)gid {
+    DBGameViewerViewController *viewer = [dbService makeGameViewerWithGid:gid];
+    __weak typeof(self) weakSelf = self;
+    viewer.onUnauthorized = ^(UIViewController *presenter) {
+        [presenter presentViewController:[weakSelf logInAlert]
+                                animated:YES
+                              completion:nil];
+    };
+    viewer.onSubscriptionRequired = ^(UIViewController *presenter) {
+        [presenter presentViewController:[weakSelf subscriptionAlertOpeningStoreFrom:presenter]
+                                animated:YES
+                              completion:nil];
+    };
+    if (gameViewerPusher != nil) {
+        gameViewerPusher(viewer);
+        return;
+    }
+    [self dismissResultsSheetForPush];
+    [self.navigationController pushViewController:viewer animated:YES];
+}
+
+/// Dismisses the compact-width results sheet (if up) so a pushed screen
+/// does not sit under it; viewDidAppear re-presents it on return.
+- (void)dismissResultsSheetForPush {
+    if (self.resultsVC.presentingViewController != nil &&
+        self.resultsVC.parentViewController == nil) {
+        wasShowingResultsSheet = YES;
+        [self.resultsVC dismissViewControllerAnimated:NO completion:nil];
+    }
+}
+
 - (void)retryPositionStats:(UIButton *)sender {
     [self positionChanged];
 }
@@ -751,6 +790,16 @@ BoardViewController *boardController;
         return;
     }
     didShowSubscriptionAlert = YES;
+    [[self alertPresenter] presentViewController:[self subscriptionAlertOpeningStoreFrom:nil]
+                                        animated:YES
+                                      completion:nil];
+}
+
+/// "subscription info" opens the store from `presenter` (the game viewer),
+/// or, when nil, from this screen with the results sheet out of the way:
+/// the store pushes on the navigation stack and the sheet comes back in
+/// viewDidAppear, instead of stacking a form sheet on the results sheet.
+- (UIAlertController *)subscriptionAlertOpeningStoreFrom:(UIViewController *)presenter {
     UIAlertController *alert = [UIAlertController
         alertControllerWithTitle:NSLocalizedString(@"Level up your game", nil)
                          message:
@@ -777,19 +826,27 @@ BoardViewController *boardController;
                                    style:UIAlertActionStyleCancel
                                  handler:nil]];
     __weak typeof(self) weakSelf = self;
+    __weak UIViewController *weakPresenter = presenter;
+    BOOL fromHost = presenter == nil;
     [alert addAction:[UIAlertAction
                          actionWithTitle:NSLocalizedString(
                                              @"subscription info", nil)
                                    style:UIAlertActionStyleDefault
                                  handler:^(UIAlertAction *action) {
-                                     if (weakSelf) {
-                                         [StoreViewController
-                                             presentFrom:[weakSelf alertPresenter]];
+                                     if (!fromHost) {
+                                         if (weakPresenter) {
+                                             [StoreViewController presentFrom:weakPresenter];
+                                         }
+                                     } else {
+                                         [weakSelf openStoreFromHost];
                                      }
                                  }]];
-    [[self alertPresenter] presentViewController:alert
-                                        animated:YES
-                                      completion:nil];
+    return alert;
+}
+
+- (void)openStoreFromHost {
+    [self dismissResultsSheetForPush];
+    [StoreViewController presentFrom:self];
 }
 
 - (void)showLogInAgain {
@@ -798,6 +855,18 @@ BoardViewController *boardController;
         return;
     }
     didShowLogInAlert = YES;
+    UIAlertController *alert = [self logInAlert];
+    if (logInAlertPresenter != nil) {
+        logInAlertPresenter(alert);
+        return;
+    }
+    [[self alertPresenter] presentViewController:alert
+                                        animated:YES
+                                      completion:nil];
+}
+
+/// OK pops to the root screen (also from the pushed game viewer).
+- (UIAlertController *)logInAlert {
     UIAlertController *alert = [UIAlertController
         alertControllerWithTitle:NSLocalizedString(@"Please log in again", nil)
                          message:nil
@@ -810,13 +879,7 @@ BoardViewController *boardController;
                                      [weakSelf.navigationController
                                          popToRootViewControllerAnimated:YES];
                                  }]];
-    if (logInAlertPresenter != nil) {
-        logInAlertPresenter(alert);
-        return;
-    }
-    [[self alertPresenter] presentViewController:alert
-                                        animated:YES
-                                      completion:nil];
+    return alert;
 }
 
 - (BOOL)shouldAutorotate {
@@ -989,343 +1052,6 @@ BoardViewController *boardController;
     }
 }
 
-- (void)searchDB:(UIButton *)sender {
-    [board setLastMove:-1];
-    [self.progressView startAnimating];
-    [self.view addSubview:self.progressView];
-    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-    //    [[NSRunLoop mainRunLoop] runUntilDate:[NSDate
-    //    dateWithTimeIntervalSinceNow:2.0]];
-    NSMutableString *movesStr = [[NSMutableString alloc] init];
-    for (NSNumber *move in movesList) {
-        int moveInt = [move intValue];
-        [movesStr
-            appendString:[NSString
-                             stringWithFormat:@"%c%d,",
-                                              coordinateLetters[moveInt % 19],
-                                              19 - (moveInt / 19)]];
-    }
-    NSString *winnerStr = @"0";
-    if (setupView.winnerCell.detailTextLabel.text) {
-        if ([setupView.winnerCell.detailTextLabel.text
-                isEqualToString:NSLocalizedString(@"player 1", nil)]) {
-            winnerStr = @"1";
-        } else if ([setupView.winnerCell.detailTextLabel.text
-                       isEqualToString:NSLocalizedString(@"player 2", nil)]) {
-            winnerStr = @"2";
-        }
-    }
-    NSString *afterStr = setupView.afterCell.textField.text,
-             *beforeStr = setupView.beforeCell.textField.text;
-    if (afterStr && ![afterStr isEqualToString:@""]) {
-        afterStr = [NSString stringWithFormat:@"&after_date=%@", afterStr];
-    } else {
-        afterStr = @"";
-    }
-    if (beforeStr && ![beforeStr isEqualToString:@""]) {
-        beforeStr = [NSString stringWithFormat:@"&before_date=%@", beforeStr];
-    } else {
-        beforeStr = @"";
-    }
-    NSString *p1Str = [setupView.player1Cell.textField.text lowercaseString];
-    if (p1Str == nil) {
-        p1Str = @"";
-    }
-    NSString *p2Str = [setupView.player2Cell.textField.text lowercaseString];
-    if (p2Str == nil) {
-        p2Str = @"";
-    }
-    NSString *gameStr;
-    if (game) {
-        gameStr = game;
-    } else {
-        gameStr = setupView.gameCell.textField.text;
-    }
-    if (!game) {
-        game = @"Pente";
-    }
-    NSString *p1RatingStr = setupView.p1RatingCell.textField.text;
-    if (p1RatingStr == nil) {
-        p1RatingStr = [defaults objectForKey:@"DBP1Rating"];
-    }
-    if (p1RatingStr == nil || [p1RatingStr isEqualToString:@""]) {
-        p1RatingStr = @"0";
-    } else {
-        [defaults setObject:p1RatingStr forKey:@"DBP1Rating"];
-    }
-    NSString *p2RatingStr = setupView.p2RatingCell.textField.text;
-    if (p2RatingStr == nil) {
-        p2RatingStr = [defaults objectForKey:@"DBP2Rating"];
-    }
-    if (p2RatingStr == nil || [p2RatingStr isEqualToString:@""]) {
-        p2RatingStr = @"0";
-    } else {
-        [defaults setObject:p2RatingStr forKey:@"DBP2Rating"];
-    }
-    NSString *bothOrEitherStr =
-        setupView.eitherOrBothp1p2Cell.detailTextLabel.text;
-    if (!bothOrEitherStr) {
-        bothOrEitherStr = [defaults objectForKey:@"DBBothOrEither"];
-    }
-    if (!bothOrEitherStr ||
-        [bothOrEitherStr isEqualToString:NSLocalizedString(@"both", nil)]) {
-        bothOrEitherStr = @"";
-    } else {
-        bothOrEitherStr = @"&p1_or_p2=true";
-    }
-    NSString *excludeTimeoutStr =
-        setupView.excludeTimeoutCell.detailTextLabel.text;
-    if (!excludeTimeoutStr) {
-        excludeTimeoutStr = [defaults objectForKey:@"DBExcludeTimeouts"];
-    }
-    if (!excludeTimeoutStr ||
-        [excludeTimeoutStr isEqualToString:NSLocalizedString(@"no", nil)]) {
-        excludeTimeoutStr = @"";
-    } else {
-        excludeTimeoutStr = @"&exclude_timeout=true";
-    }
-    NSString *liveOrTBStr = setupView.liveOrTBCell.detailTextLabel.text;
-    if (!liveOrTBStr) {
-        liveOrTBStr = [defaults objectForKey:@"DBLiveOrTB"];
-    } else {
-        [defaults setObject:liveOrTBStr forKey:@"DBLiveOrTB"];
-    }
-    if (!liveOrTBStr ||
-        [liveOrTBStr isEqualToString:NSLocalizedString(@"all", nil)]) {
-        liveOrTBStr = @"";
-    } else {
-        if ([liveOrTBStr
-                isEqualToString:NSLocalizedString(@"live only", nil)]) {
-            liveOrTBStr = @"&only_live=yes";
-        } else {
-            liveOrTBStr = @"&only_turn_based=yes";
-        }
-    }
-    //        NSLog(@"testkitty %@", [NSString
-    //        stringWithFormat:@"start_game_num=0&end_game_num=100&player_1_name=%@&player_2_name=%@&game=%@&site=All%%20Sites&event=All%%20Events&round=All%%20Rounds&section=All%%20Sections&winner=%@%@%@&p1_rating_above=%@&p2_rating_above=%@%@%@%@&iPhone=yes",
-    //        p1Str, p2Str, gameStr, winnerStr, afterStr, beforeStr,
-    //        p1RatingStr, p2RatingStr, bothOrEitherStr,
-    //        excludeTimeoutStr, liveOrTBStr]);
-    int sort = 1;
-    NSString *sortString = setupView.sortCell.detailTextLabel.text;
-    if (!sortString) {
-        sortString = [defaults stringForKey:@"DBSort"];
-    }
-    if (sortString &&
-        ![sortString isEqualToString:NSLocalizedString(@"popularity", nil)]) {
-        sort = 2;
-    }
-    NSString *getStr = [NSString
-        stringWithFormat:
-            @"moves=%@&response_format=org.pente.gameDatabase."
-            @"SimpleHtmlGameStorerSearchResponseFormat&response_params="
-            @"%@&"
-            @"results_order=%i&filter_data=%@",
-            [self URLEncodedString_ch:movesStr],
-            [self URLEncodedString_ch:@"zippedPartNumParam=1"], sort,
-            [self URLEncodedString_ch:
-                      [NSString stringWithFormat:
-                                    @"start_game_num=0&end_game_num=100&"
-                                    @"player_1_"
-                                    @"name=%@&player_2_name=%@&game=%@&site="
-                                    @"All%%"
-                                    @"20Sites&event=All%%20Events&round=All%%"
-                                    @"20Rounds&section=All%%20Sections&"
-                                    @"winner=%@%"
-                                    @"@%@&p1_rating_above=%@&p2_rating_above="
-                                    @"%@%@"
-                                    @"%@%@&iPhone=yes",
-                                    p1Str, p2Str, gameStr, winnerStr, afterStr,
-                                    beforeStr, p1RatingStr, p2RatingStr,
-                                    bothOrEitherStr, excludeTimeoutStr,
-                                    liveOrTBStr]]];
-
-    //        NSLog(@"\ngetkittyyyyyyString -\n%@-", [self
-    //        URLEncodedString_ch:getStr]);
-    //        NSLog(@"\n\ngetkittyyyyyyString
-    //        -\n%@-", getStr);
-    NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
-    NSString *url = [NSString
-        stringWithFormat:@"https://www.pente.org/gameServer/mobileController/"
-                         @"search?json=&format_name=org.pente.gameDatabase."
-                         @"SimpleGameStorerSearchRequestFormat&format_data=%@",
-                         [self URLEncodedString_ch:getStr]];
-    if (development) {
-        url =
-            [NSString stringWithFormat:
-                          @"https://localhost/gameServer/mobileController/"
-                          @"search?json=&format_name=org.pente.gameDatabase."
-                          @"SimpleGameStorerSearchRequestFormat&format_data=%@",
-                          [self URLEncodedString_ch:getStr]];
-    }
-    [request setURL:[NSURL URLWithString:url]];
-    [request setHTTPMethod:@"GET"];
-    [request setTimeoutInterval:200.0];
-    [PenteHTTPClient
-        sendRequest:request
-         completion:^(NSData *responseData, NSURLResponse *response,
-                      NSError *error) {
-             NSString *dashboardString =
-                 [[NSString alloc] initWithData:responseData
-                                       encoding:NSUTF8StringEncoding];
-             //            NSLog(@"kittyyyyyyString -\n%@-", dashboardString);
-
-             if (error) {
-                 [PenteAlert
-                         showWithTitle:NSLocalizedString(@"Error", nil)
-                               message:[NSString stringWithFormat:
-                                                     NSLocalizedString(
-                                                         @"Reason: %@", nil),
-                                                     error.localizedDescription]
-                     cancelButtonTitle:@"OK"];
-                 [self.progressView stopAnimating];
-                 [self.progressView removeFromSuperview];
-                 return;
-             }
-
-             moveStatsString = [[NSMutableString alloc] init];
-             for (int i = 0; i < [movesList count]; ++i) {
-                 int rowCol = [[movesList objectAtIndex:i] intValue];
-                 if (i == 0) {
-                     [moveStatsString appendString:@"<center><b>1.</b> "];
-                 } else {
-                     if ([game containsString:@"Connect6"]) {
-                         if (((i - 3) % 4) == 0) {
-                             [moveStatsString
-                                 appendString:
-                                     [NSString
-                                         stringWithFormat:@"&nbsp; <b>%i.</b> ",
-                                                          (i >> 2) + 2]];
-                         } else if (((i - 3) % 4) == 2 || i == 1) {
-                             [moveStatsString appendString:@" - "];
-                         } else {
-                             [moveStatsString appendString:@"-"];
-                         }
-                     } else {
-                         if ((i % 2) == 0) {
-                             [moveStatsString
-                                 appendString:
-                                     [NSString
-                                         stringWithFormat:@"&nbsp; <b>%i.</b> ",
-                                                          (i >> 1) + 1]];
-                         } else {
-                             [moveStatsString appendString:@" - "];
-                         }
-                     }
-                 }
-                 [moveStatsString
-                     appendString:[NSString stringWithFormat:
-                                                @"%c%d",
-                                                coordinateLetters[rowCol % 19],
-                                                19 - (rowCol / 19)]];
-             }
-
-             NSMutableArray<NSNumber *> *moves = [[NSMutableArray alloc] init];
-
-             dashboardString = @"";
-             NSError *jsonError = nil;
-             NSDictionary *jsonResponse =
-                 [NSJSONSerialization JSONObjectWithData:responseData
-                                                 options:0
-                                                   error:&jsonError];
-             if (!jsonError && jsonResponse &&
-                 [jsonResponse[@"access"] boolValue] &&
-                 ![jsonResponse[@"blocked"] boolValue]) {
-                 for (NSNumber *moveNum in jsonResponse[@"moves"]) {
-                     [moves addObject:moveNum];
-                 }
-                 NSMutableString *gamesHTML = [[NSMutableString alloc] init];
-                 for (NSDictionary *gameEntry in jsonResponse[@"games"]) {
-                     NSString *viewUrl = gameEntry[@"viewUrl"];
-                     NSDictionary *p1 = gameEntry[@"player1"];
-                     NSDictionary *p2 = gameEntry[@"player2"];
-                     NSString *p1Name =
-                         [p1[@"winner"] boolValue]
-                             ? [NSString
-                                   stringWithFormat:@"<b>%@</b>", p1[@"name"]]
-                             : p1[@"name"];
-                     NSString *p2Name =
-                         [p2[@"winner"] boolValue]
-                             ? [NSString
-                                   stringWithFormat:@"<b>%@</b>", p2[@"name"]]
-                             : p2[@"name"];
-                     [gamesHTML
-                         appendFormat:
-                             @"<a href=\"https://www.pente.org%@\">%@ vs %@"
-                             @" - %@ (%@)</a><br>",
-                             viewUrl, p1Name, p2Name, gameEntry[@"date"],
-                             gameEntry[@"event"]];
-                 }
-                 dashboardString = gamesHTML;
-             }
-             if ([moves count] == 0 &&
-                 ![dashboardString
-                     containsString:@"https://www.pente.org/gameServer/"
-                                    @"viewLiveGame?mobile&g="]) {
-                 dashboardString = NSLocalizedString(@"No search results", nil);
-             } else {
-                 NSString
-                     *p1Str =
-                         [setupView.player1Cell.textField.text lowercaseString],
-                     *p2Str =
-                         [setupView.player2Cell.textField.text lowercaseString];
-                 if ((p1Str || p2Str) && !([p1Str isEqualToString:@""] &&
-                                           [p2Str isEqualToString:@""])) {
-                     NSUserDefaults *defaults =
-                         [NSUserDefaults standardUserDefaults];
-                     NSMutableArray *invitedHistory = [[defaults
-                         objectForKey:@"invitedHistory"] mutableCopy];
-                     if (!invitedHistory) {
-                         invitedHistory = [[NSMutableArray alloc] init];
-                     }
-                     if (p1Str) {
-                         NSArray<NSString *> *names =
-                             [[p1Str stringByReplacingOccurrencesOfString:@" "
-                                                               withString:@""]
-                                 componentsSeparatedByString:@","];
-                         for (NSString *name in names) {
-                             NSString *lowerStr = [name lowercaseString];
-                             if (![invitedHistory containsObject:lowerStr] &&
-                                 ![name containsString:@"*"]) {
-                                 [invitedHistory addObject:lowerStr];
-                             }
-                         }
-                     }
-                     if (p2Str) {
-                         NSArray<NSString *> *names =
-                             [[p2Str stringByReplacingOccurrencesOfString:@" "
-                                                               withString:@""]
-                                 componentsSeparatedByString:@","];
-                         for (NSString *name in names) {
-                             NSString *lowerStr = [name lowercaseString];
-                             if (![invitedHistory containsObject:lowerStr] &&
-                                 ![name containsString:@"*"]) {
-                                 [invitedHistory addObject:lowerStr];
-                             }
-                         }
-                     }
-
-                     [invitedHistory
-                         sortUsingSelector:@selector(caseInsensitiveCompare:)];
-                     [defaults setObject:invitedHistory
-                                  forKey:@"invitedHistory"];
-                     [setupView.player1Cell setInvitedHistory:invitedHistory];
-                     [setupView.player2Cell setInvitedHistory:invitedHistory];
-                 }
-             }
-             [playerStats
-                 loadHTMLString:
-                     [HEADERSTRING
-                         stringByAppendingString:
-                             [[moveStatsString
-                                 stringByAppendingString:@"</center><br>"]
-                                 stringByAppendingString:dashboardString]]
-                        baseURL:nil];
-             [self.progressView stopAnimating];
-             [self.progressView removeFromSuperview];
-         }];
-}
-
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
     if ([segue.identifier isEqualToString:@"viewGameSegue"]) {
         boardController =
@@ -1345,22 +1071,6 @@ BoardViewController *boardController;
                         (void (^)(WKNavigationActionPolicy))decisionHandler {
     if (navigationAction.navigationType == WKNavigationTypeLinkActivated) {
         NSString *urlString = navigationAction.request.URL.absoluteString;
-        if ([urlString rangeOfString:@"mobile&g="].location != NSNotFound) {
-
-            NSString *gameStr = [urlString
-                substringFromIndex:[urlString rangeOfString:@"="].location + 1];
-            [self performSegueWithIdentifier:@"viewGameSegue" sender:self];
-            Game *gameObj = [[Game alloc] init];
-            [gameObj setGameID:gameStr];
-            [gameObj setRemainingTime:@"0 days"];
-
-            [boardController setActiveGame:NO];
-            [boardController setGame:gameObj];
-            [boardController replayGame];
-            [[boardController boardTapRecognizer] setEnabled:NO];
-            decisionHandler(WKNavigationActionPolicyCancel);
-            return;
-        }
         [LinkPolicy open:urlString from:self];
         decisionHandler(WKNavigationActionPolicyCancel);
         return;

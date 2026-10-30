@@ -450,6 +450,9 @@
             cell.detailTextLabel.text = NSLocalizedString(@"no", nil);
         }
 
+        // No effect until the Filters sheet (Task 21) wires it up.
+        cell.userInteractionEnabled = NO;
+        cell.textLabel.enabled = NO;
         excludeTimeoutCell = cell;
 
         return cell;
@@ -473,6 +476,9 @@
             cell.detailTextLabel.text = NSLocalizedString(@"all", nil);
         }
 
+        // No effect until the Filters sheet (Task 21) wires it up.
+        cell.userInteractionEnabled = NO;
+        cell.textLabel.enabled = NO;
         liveOrTBCell = cell;
 
         return cell;

@@ -46,6 +46,11 @@ import UIKit
         return DBPositionService(client: DBClient(endpoint: endpoint))
     }
 
+    /// The game viewer shares this service's client (and its cookie auth).
+    @objc func makeGameViewer(gid: Int64) -> DBGameViewerViewController {
+        DBGameViewerViewController(gid: gid, client: client)
+    }
+
     @objc func setLegacyFilters(p1Name: String?, p2Name: String?, p1Rating: String?, p2Rating: String?,
                                 eitherSeat: Bool, winner: Int, after: Date?, before: Date?) {
         filters = DBLegacyFilterAdapter.filters(p1Name: p1Name, p2Name: p2Name, p1Rating: p1Rating,

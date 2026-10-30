@@ -15,18 +15,36 @@ enum DBGameRowFormatter {
         var greg = Calendar(identifier: .gregorian)
         greg.timeZone = timeZone
         let sameYear = greg.component(.year, from: parsed) == greg.component(.year, from: now)
+        return displayFormatter(template: sameYear ? "MMMd" : "yMMMd", locale: locale, timeZone: timeZone)
+            .string(from: parsed)
+    }
+
+    // The list formats a date per cell, so formatters are built once per
+    // (template, locale, time zone) and reused. DateFormatter and
+    // ISO8601DateFormatter are thread-safe for formatting and parsing.
+    private static let lock = NSLock()
+    private static var displayCache: [String: DateFormatter] = [:]
+    private static let plainISO = ISO8601DateFormatter()
+    private static let fractionalISO: ISO8601DateFormatter = {
+        let f = ISO8601DateFormatter()
+        f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return f
+    }()
+
+    private static func displayFormatter(template: String, locale: Locale, timeZone: TimeZone) -> DateFormatter {
+        let key = "\(template)|\(locale.identifier)|\(timeZone.identifier)"
+        lock.lock()
+        defer { lock.unlock() }
+        if let f = displayCache[key] { return f }
         let f = DateFormatter()
         f.locale = locale
         f.timeZone = timeZone
-        f.setLocalizedDateFormatFromTemplate(sameYear ? "MMMd" : "yMMMd")
-        return f.string(from: parsed)
+        f.setLocalizedDateFormatFromTemplate(template)
+        displayCache[key] = f
+        return f
     }
 
     private static func parseISO(_ s: String) -> Date? {
-        let plain = ISO8601DateFormatter()
-        if let d = plain.date(from: s) { return d }
-        let frac = ISO8601DateFormatter()
-        frac.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        return frac.date(from: s)
+        plainISO.date(from: s) ?? fractionalISO.date(from: s)
     }
 }

@@ -6,11 +6,18 @@ import XCTest
 private final class DBResultsTransport: Transport, @unchecked Sendable {
     private let lock = NSLock()
     private var _body = "{}"
+    private var _gamesBody = "{}"
     private var _count = 0
 
     var body: String {
         get { lock.lock(); defer { lock.unlock() }; return _body }
         set { lock.lock(); defer { lock.unlock() }; _body = newValue }
+    }
+
+    /// Reply to /games/search.
+    var gamesBody: String {
+        get { lock.lock(); defer { lock.unlock() }; return _gamesBody }
+        set { lock.lock(); defer { lock.unlock() }; _gamesBody = newValue }
     }
 
     var count: Int {
@@ -21,7 +28,7 @@ private final class DBResultsTransport: Transport, @unchecked Sendable {
     func data(for request: URLRequest) async throws -> (Data, URLResponse) {
         lock.lock()
         _count += 1
-        let b = _body
+        let b = request.url?.path.hasSuffix("/games/search") == true ? _gamesBody : _body
         lock.unlock()
         let resp = HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil,
                                    headerFields: nil)!
@@ -135,14 +142,114 @@ final class DBResultsViewControllerTests: XCTestCase {
         XCTAssertTrue(texts.contains(vc.rows[0].gamesText), "\(texts)")
     }
 
-    func testSegmentsShowTotalAndGamesIsDisabled() async {
-        let vc = await load(stats([(181, 50, 25, 50)], total: 1234))
+    func testSegmentsShowGamesTotalFromSearch() async {
+        transport.gamesBody = games(total: 1234, count: 2)
+        let vc = await load(stats([(181, 50, 25, 50)], total: 99))
+        let done = await waitUntil { self.service.pager.total == 1234 }
+        XCTAssertTrue(done)
+        vc.reloadGames()
+        vc.showGamesState(.loaded, isLoadMore: false)
         XCTAssertEqual(vc.segmented.numberOfSegments, 2)
         XCTAssertEqual(vc.segmented.titleForSegment(at: 0), "Moves")
-        XCTAssertTrue(vc.segmented.titleForSegment(at: 1)?.hasPrefix("Games · ") ?? false)
-        XCTAssertTrue(vc.segmented.titleForSegment(at: 1)?.hasSuffix("234") ?? false)
-        XCTAssertFalse(vc.segmented.isEnabledForSegment(at: 1))
+        let title = vc.segmented.titleForSegment(at: 1) ?? ""
+        XCTAssertTrue(title.hasPrefix("Games · "), title)
+        XCTAssertTrue(title.hasSuffix("234"), title)
+        XCTAssertTrue(vc.segmented.isEnabledForSegment(at: 1))
         XCTAssertEqual(vc.segmented.selectedSegmentIndex, 0)
+    }
+
+    func testGamesTitleDropsPreviousTotalWhileLoadingOrFailed() async {
+        transport.gamesBody = games(total: 1234, count: 2)
+        let vc = await load(stats([(181, 50, 25, 50)]))
+        _ = await waitUntil { self.service.pager.total == 1234 }
+        vc.reloadGames()
+        vc.showGamesState(.loaded, isLoadMore: false)
+        vc.showGamesState(.loading, isLoadMore: false)
+        XCTAssertEqual(vc.segmented.titleForSegment(at: 1), "Games")
+        vc.showGamesState(.failed, isLoadMore: false)
+        XCTAssertEqual(vc.segmented.titleForSegment(at: 1), "Games")
+    }
+
+    func testGamesRowsShowPlayersScoreAndDate() async {
+        transport.gamesBody = games(total: 1, count: 1)
+        let vc = await loadGames()
+        XCTAssertEqual(vc.gamesTableView.numberOfRows(inSection: 0), 1)
+        let cell = vc.tableView(vc.gamesTableView, cellForRowAt: IndexPath(row: 0, section: 0))
+        let texts = Self.labels(cell).compactMap { $0.attributedText?.string ?? $0.text }
+        XCTAssertTrue(texts.contains { $0.hasPrefix("alice0") }, "\(texts)")
+        XCTAssertTrue(texts.contains { $0.hasPrefix("bob0") }, "\(texts)")
+        XCTAssertTrue(texts.contains("1 \u{2013} 0"), "\(texts)")
+        XCTAssertTrue(texts.contains("\u{25A0} 1950"), "\(texts)")
+        XCTAssertTrue(texts.contains { $0.contains("2019") }, "other-year date shows the year: \(texts)")
+        XCTAssertEqual(vc.gamesHeaderTitles, ["Player 1", "Newest first", "Player 2"])
+    }
+
+    func testShowMoreFooterAndLoadMoreFailureKeepsRows() async {
+        transport.gamesBody = games(total: 30, count: 25)
+        let vc = await loadGames()
+        XCTAssertEqual(vc.gamesFooterTitle, "Show more")
+        var more = 0
+        vc.onLoadMore = { more += 1 }
+        vc.footerButton.sendActions(for: .touchUpInside)
+        XCTAssertEqual(more, 1)
+        vc.showGamesState(.loading, isLoadMore: true)
+        XCTAssertEqual(vc.gamesTableView.numberOfRows(inSection: 0), 25)
+        vc.showGamesState(.failed, isLoadMore: true)
+        XCTAssertEqual(vc.gamesFooterTitle, "Couldn't load more. Retry")
+        XCTAssertEqual(vc.gamesTableView.numberOfRows(inSection: 0), 25, "a page-2 failure keeps the rows")
+        XCTAssertFalse(vc.gamesTableView.isHidden)
+        vc.footerButton.sendActions(for: .touchUpInside)
+        XCTAssertEqual(more, 2)
+    }
+
+    func testNoFooterWhenAllLoaded() async {
+        transport.gamesBody = games(total: 2, count: 2)
+        let vc = await loadGames()
+        XCTAssertNil(vc.gamesFooterTitle)
+    }
+
+    func testGamesFirstPageStates() {
+        let vc = DBResultsViewController(service: service)
+        vc.loadViewIfNeeded()
+        vc.segmented.selectedSegmentIndex = 1
+        vc.segmented.sendActions(for: .valueChanged)
+        let cases: [(DBLoadState, String)] = [
+            (.empty, "No games"),
+            (.blocked, "Database unavailable during your rated game"),
+            (.failed, "Couldn't load"),
+        ]
+        for (state, text) in cases {
+            vc.showGamesState(state, isLoadMore: false)
+            XCTAssertEqual(vc.messageLabel.text, text)
+            XCTAssertFalse(vc.messageLabel.isHidden)
+            XCTAssertTrue(vc.gamesTableView.isHidden)
+            XCTAssertEqual(vc.retryButton.isHidden, state != .failed, "\(state)")
+        }
+        vc.showGamesState(.loading, isLoadMore: false)
+        XCTAssertTrue(vc.spinner.isAnimating)
+        XCTAssertTrue(vc.gamesTableView.isHidden)
+        XCTAssertTrue(vc.showButton.isHidden, "Show N belongs to the Moves tab")
+    }
+
+    func testTabsKeepTheirOwnState() {
+        let vc = DBResultsViewController(service: service)
+        vc.loadViewIfNeeded()
+        vc.showState(.empty)
+        vc.showGamesState(.failed, isLoadMore: false)
+        XCTAssertEqual(vc.messageLabel.text, "No moves from this position")
+        vc.segmented.selectedSegmentIndex = 1
+        vc.segmented.sendActions(for: .valueChanged)
+        XCTAssertEqual(vc.messageLabel.text, "Couldn't load")
+        XCTAssertTrue(vc.tableView.isHidden)
+    }
+
+    func testSelectingGameRowOpensLongGid() async {
+        transport.gamesBody = games(total: 1, count: 1, firstGid: 50_000_000_000_123)
+        let vc = await loadGames()
+        var opened: [Int64] = []
+        vc.onOpenGame = { opened.append($0) }
+        vc.tableView(vc.gamesTableView, didSelectRowAt: IndexPath(row: 0, section: 0))
+        XCTAssertEqual(opened, [50_000_000_000_123])
     }
 
     func testStateMessages() {
@@ -186,6 +293,29 @@ final class DBResultsViewControllerTests: XCTestCase {
         vc.reload()
         XCTAssertNil(service.onHeat)
         XCTAssertNil(service.onStatsState)
+        XCTAssertNil(service.onGamesState)
+        XCTAssertNil(service.onGamesChanged)
+    }
+
+    private func games(total: Int, count: Int, firstGid: Int64 = 1000) -> String {
+        let rows = (0 ..< count).map { i in
+            "{\"gid\":\(firstGid + Int64(i)),\"game\":1,\"player1\":{\"name\":\"alice\(i)\",\"rating\":1950}," +
+                "\"player2\":{\"name\":\"bob\(i)\",\"rating\":1500},\"winner\":1," +
+                "\"playDate\":\"2019-03-04T10:00:00Z\",\"moveCount\":40}"
+        }.joined(separator: ",")
+        return "{\"total\":\(total),\"games\":[\(rows)],\"blocked\":false}"
+    }
+
+    /// Loads a position, then shows the Games tab with the first page.
+    private func loadGames() async -> DBResultsViewController {
+        let vc = await load(stats([(181, 50, 25, 50)]))
+        let done = await waitUntil { self.service.pager.total > 0 }
+        XCTAssertTrue(done)
+        vc.segmented.selectedSegmentIndex = 1
+        vc.segmented.sendActions(for: .valueChanged)
+        vc.reloadGames()
+        vc.showGamesState(.loaded, isLoadMore: false)
+        return vc
     }
 
     private static func labels(_ v: UIView) -> [UILabel] {

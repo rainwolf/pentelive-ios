@@ -521,6 +521,27 @@ final class DBDatabaseScreenTests: XCTestCase {
         XCTAssertNil(results(vc).parent, "not embedded in compact width")
     }
 
+    // MARK: games list + viewer (Task 18)
+
+    func testHostForwardsGamesStateToResults() async {
+        // The stats body decodes as an empty games page (total 0).
+        transport.replies[181] = (stats([(10, 60)]), 200)
+        let vc = makeVC(game: "Pente", moves: [180, 181, 200])
+        back(vc)
+        let forwarded = await waitUntil { self.results(vc).gamesState == .empty }
+        XCTAssertTrue(forwarded)
+    }
+
+    func testOpeningAGamePushesViewerForThatGid() {
+        let vc = makeVC(game: "Pente", moves: [180])
+        var pushed: [UIViewController] = []
+        let pusher: @convention(block) (UIViewController) -> Void = { pushed.append($0) }
+        vc.setValue(pusher, forKey: "gameViewerPusher")
+        results(vc).onOpenGame?(50_000_000_000_123)
+        XCTAssertEqual(pushed.count, 1)
+        XCTAssertEqual((pushed.first as? DBGameViewerViewController)?.gid, 50_000_000_000_123)
+    }
+
     func testCompactSheetUsesBelowBoardDetentWithUndimmedSmallDetent() {
         let vc = makeVC(game: "Pente", moves: [180])
         layout(vc, CGSize(width: 402, height: 734))
