@@ -108,8 +108,11 @@ final class StoreKitIntegrationTests: XCTestCase {
     /// `Transaction.updates`, and waits until the server has `count` POSTs.
     /// StoreKit Testing sometimes drops such an action: when nothing is posted
     /// after 10 s and the session shows the action not applied (`applied`
-    /// false), it is run once more. When the session shows it applied but no
-    /// POST came, the failure says which side lost it.
+    /// false), it is run once more. When the session shows it applied but
+    /// `Transaction.updates` never delivered it (StoreKit Testing, iOS 27.2
+    /// simulator: an approved ask-to-buy went undelivered in 8 of 10 runs,
+    /// 2026-10-30, the transaction sitting in `Transaction.unfinished`), the
+    /// foreground resync, the app's own net for a missed update, must post it.
     private func perform(_ what: String, until count: Int, applied: () throws -> Bool,
                          _ action: () throws -> Void,
                          file: StaticString = #filePath, line: UInt = #line) async throws {
@@ -126,13 +129,17 @@ final class StoreKitIntegrationTests: XCTestCase {
             NSLog("STOREKIT-TEST-RETRY: StoreKit Testing dropped the %@; running it again", what)
             try action()
             if await posted(within: 15) { return }
-        } else if await posted(within: 5) {
-            return
+        }
+        if try applied() {
+            NSLog("STOREKIT-TEST-NO-UPDATE: Transaction.updates did not deliver the %@; "
+                  + "running the foreground resync", what)
+            await service.performResync(explicit: false)
+            if await posted(within: 5) { return }
         }
         let held = await source.unfinished().map { "\($0.productID)\($0.isRevoked ? " (revoked)" : "")" }
-        XCTFail("\(what): \(server.posted.count) of \(count) POSTs; StoreKit Testing shows it "
-                + "\(try applied() ? "applied" : "not applied"); adapter holds \(held) "
-                + "(empty: Transaction.updates never delivered it)", file: file, line: line)
+        XCTFail("\(what): \(server.posted.count) of \(count) POSTs, also after the foreground resync; "
+                + "StoreKit Testing shows it \(try applied() ? "applied" : "not applied"); "
+                + "unfinished (adapter and StoreKit): \(held)", file: file, line: line)
     }
 
     /// A fresh StoreKit Testing session and a StoreService over the real adapter.

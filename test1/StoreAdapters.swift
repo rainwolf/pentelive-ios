@@ -102,6 +102,8 @@ final class PenteStoreServer: StoreServerClient {
 final class StoreKitTransactionSource: TransactionSource {
     private var productsByID: [String: Product] = [:]
     private var pending: [UInt64: VerificationResult<Transaction>] = [:]
+    /// `finishedKey`s of the transactions this adapter finished.
+    private var finished: Set<String> = []
     private var updatesTask: Task<Void, Never>?
 
     deinit {
@@ -172,9 +174,11 @@ final class StoreKitTransactionSource: TransactionSource {
 
     func finish(_ transactionID: UInt64) async {
         if let result = pending.removeValue(forKey: transactionID) {
+            finished.insert(Self.finishedKey(result.unsafePayloadValue))
             await result.unsafePayloadValue.finish()
         }
         for await result in Transaction.unfinished where result.unsafePayloadValue.id == transactionID {
+            finished.insert(Self.finishedKey(result.unsafePayloadValue))
             await result.unsafePayloadValue.finish()
         }
     }
@@ -194,7 +198,7 @@ final class StoreKitTransactionSource: TransactionSource {
         updatesTask = Task.detached { [weak self] in
             for await result in Transaction.updates {
                 guard let source = self else { return }
-                await source.record(result)
+                guard await source.record(result) else { continue }
                 await onUpdate()
             }
         }
@@ -216,8 +220,24 @@ final class StoreKitTransactionSource: TransactionSource {
         }
     }
 
-    private func record(_ result: VerificationResult<Transaction>) {
-        pending[result.unsafePayloadValue.id] = result
+    /// Keeps an update until it is finished. False, and nothing kept, for an
+    /// unchanged copy of a transaction this adapter already finished: StoreKit
+    /// can deliver a purchase on `Transaction.updates` after `purchase` returned
+    /// it and it was posted and finished (StoreKit Testing, iOS 27.2 simulator).
+    /// Kept, that copy would be posted a second time.
+    private func record(_ result: VerificationResult<Transaction>) -> Bool {
+        let transaction = result.unsafePayloadValue
+        guard !finished.contains(Self.finishedKey(transaction)) else { return false }
+        pending[transaction.id] = result
+        return true
+    }
+
+    /// One state of a transaction: a revocation is a new state, so it is never
+    /// mistaken for the copy finished before it. The purchase date is in the
+    /// key because StoreKit Testing gives every transaction id 0.
+    private nonisolated static func finishedKey(_ transaction: Transaction) -> String {
+        "\(transaction.id)@\(transaction.purchaseDate.timeIntervalSince1970)"
+            + "/\(transaction.revocationDate?.timeIntervalSince1970 ?? 0)"
     }
 
     private func product(_ id: String) async -> Product? {
