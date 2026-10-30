@@ -14,7 +14,6 @@
 		0D18EC2BFA5C62D2DD620AFA /* StoreServiceBuyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79438FDA5BFD561B15004165 /* StoreServiceBuyTests.swift */; };
 		0DE3CE73AC53D120E8F38629 /* DBCaptureReplayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCE7511E185730A52F6E89A5 /* DBCaptureReplayTests.swift */; };
 		0F517DEF255BDD9409111928 /* TableEngineRoutingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DAA75D2D52B843143873591 /* TableEngineRoutingTests.swift */; };
-		0FA6727C32177EC05DF0536D /* DBSetupViewKeyTests.m in Sources */ = {isa = PBXBuildFile; fileRef = A9C87EEF94CBCE7275D0A942 /* DBSetupViewKeyTests.m */; };
 		0FB5A193D1B268D3EF01F740 /* DBGamesPagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA93ABE46EB1FC281CF2A2F4 /* DBGamesPagerTests.swift */; };
 		10AA9EC6ED75BD1AEA84D8DF /* DBResultsViewControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11B4ED219224150D41395472 /* DBResultsViewControllerTests.swift */; };
 		11624A088F5FA7A3BA8789DF /* Capture.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF08D052C94A67CE7B1A2ABE /* Capture.swift */; };
@@ -238,7 +237,6 @@
 		63EF95CB2F6582CA001C269F /* PenteHTTPClient.m in Sources */ = {isa = PBXBuildFile; fileRef = 63EF95CA2F6582CA001C269F /* PenteHTTPClient.m */; };
 		63EFAEAB1DB570A50029DA41 /* DatabaseViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 63EFAEAA1DB570A50029DA41 /* DatabaseViewController.m */; };
 		63EFAEAE1DB576F60029DA41 /* DBBoardView.m in Sources */ = {isa = PBXBuildFile; fileRef = 63EFAEAD1DB576F60029DA41 /* DBBoardView.m */; };
-		63EFAEB11DB579DB0029DA41 /* DBSetupView.m in Sources */ = {isa = PBXBuildFile; fileRef = 63EFAEB01DB579DB0029DA41 /* DBSetupView.m */; };
 		63EFAEB41DB647C60029DA41 /* database.png in Resources */ = {isa = PBXBuildFile; fileRef = 63EFAEB21DB647C60029DA41 /* database.png */; };
 		63EFAEB51DB647C60029DA41 /* database@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 63EFAEB31DB647C60029DA41 /* database@2x.png */; };
 		63FA911A16A0C6A700ED66D1 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 63FA911916A0C6A700ED66D1 /* AudioToolbox.framework */; };
@@ -631,8 +629,6 @@
 		63EFAEAA1DB570A50029DA41 /* DatabaseViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DatabaseViewController.m; sourceTree = "<group>"; };
 		63EFAEAC1DB576F60029DA41 /* DBBoardView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DBBoardView.h; sourceTree = "<group>"; };
 		63EFAEAD1DB576F60029DA41 /* DBBoardView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DBBoardView.m; sourceTree = "<group>"; };
-		63EFAEAF1DB579DB0029DA41 /* DBSetupView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DBSetupView.h; sourceTree = "<group>"; };
-		63EFAEB01DB579DB0029DA41 /* DBSetupView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DBSetupView.m; sourceTree = "<group>"; };
 		63EFAEB21DB647C60029DA41 /* database.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = database.png; sourceTree = "<group>"; };
 		63EFAEB31DB647C60029DA41 /* database@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "database@2x.png"; sourceTree = "<group>"; };
 		63FA911716A0C65800ED66D1 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
@@ -712,7 +708,6 @@
 		A7527ED20D5B800D46E10F91 /* DashboardTransport.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DashboardTransport.swift; sourceTree = "<group>"; };
 		A838F18BBA250038D3596952 /* DashboardDecodingTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DashboardDecodingTests.swift; sourceTree = "<group>"; };
 		A9AB4C36CF0CF7C3D38F97D8 /* PenteBadge.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PenteBadge.m; sourceTree = "<group>"; };
-		A9C87EEF94CBCE7275D0A942 /* DBSetupViewKeyTests.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = DBSetupViewKeyTests.m; sourceTree = "<group>"; };
 		AA6E9C65F1C971669AADF4B8 /* PenteBanner.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PenteBanner.m; sourceTree = "<group>"; };
 		AAAA11112222333344445552 /* PenteWebViewConfigurationTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PenteWebViewConfigurationTests.swift; sourceTree = "<group>"; };
 		AC57360A41A0C0C3E0E0BD99 /* PenteEngineTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PenteEngineTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -919,8 +914,6 @@
 				63EFAEAD1DB576F60029DA41 /* DBBoardView.m */,
 				63EFAEA91DB570A50029DA41 /* DatabaseViewController.h */,
 				63EFAEAA1DB570A50029DA41 /* DatabaseViewController.m */,
-				63EFAEAF1DB579DB0029DA41 /* DBSetupView.h */,
-				63EFAEB01DB579DB0029DA41 /* DBSetupView.m */,
 				63178F021DE5FF2B00EA41D7 /* DBAISetupView.m */,
 				63178F041DE5FF3C00EA41D7 /* DBAISetupView.h */,
 				63D299F11D991196005AED78 /* penteLive.entitlements */,
@@ -1318,7 +1311,6 @@
 				7A1C0E5B2F70000100A1B004 /* TestNetworkTripwireTests.swift */,
 				BB1F2B0447F3ED19EEEC9D5B /* DBPaletteTests.swift */,
 				DAA2C3922D9D3F3936D97D9D /* DBGameCatalogTests.swift */,
-				A9C87EEF94CBCE7275D0A942 /* DBSetupViewKeyTests.m */,
 				40F3795CA283F67FCCDC464A /* DBAPIModelsTests.swift */,
 				3F97B127ABAEA163D1509053 /* DBClientTests.swift */,
 				7C48F0C418487816CB1F1738 /* DBLineTests.swift */,
@@ -1739,7 +1731,6 @@
 				7A1C0E5B2F70000100A1B003 /* TestNetworkTripwireTests.swift in Sources */,
 				AD57EACF0103643EA5EFB3E8 /* DBPaletteTests.swift in Sources */,
 				B74EC7FB084C6A09EF96B513 /* DBGameCatalogTests.swift in Sources */,
-				0FA6727C32177EC05DF0536D /* DBSetupViewKeyTests.m in Sources */,
 				FEAB7B3D998B39D5FEB924DD /* DBAPIModelsTests.swift in Sources */,
 				C26FDFDB32472BC9CA6CE4E5 /* DBClientTests.swift in Sources */,
 				3C2B85848FFE8908E8FCD9DC /* DBLineTests.swift in Sources */,
@@ -1816,7 +1807,6 @@
 				6322A5A31D2BB1830023304F /* KOTHChallengeView.m in Sources */,
 				639F1A2B1D0975D6008BD3DE /* AISetupView.m in Sources */,
 				6353F6761DF5C2EB0094BB3B /* LiveBoard.swift in Sources */,
-				63EFAEB11DB579DB0029DA41 /* DBSetupView.m in Sources */,
 				11624A088F5FA7A3BA8789DF /* Capture.swift in Sources */,
 				D4A11111111111111111A001 /* RenjuOfferSymmetry.swift in Sources */,
 				D4A11111111111111111C001 /* RenjuTracking.swift in Sources */,
