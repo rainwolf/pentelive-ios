@@ -1,9 +1,13 @@
 import UIKit
 
 enum DBHeatScale {
+    /// Drops occupied cells and anything off the `gridSize` board. The pass
+    /// sentinel is dropped too: on 9x9/13x13/15x15 the server's rotation can
+    /// turn it into junk (negative, past the board), so a PASS row is unreliable.
     static func displayed(_ moves: [DBNextMove], occupied: Set<Int>, limit: Int?,
-                          sort: DBMoveSort = .winRate) -> [DBNextMove] {
-        let free = moves.filter { !occupied.contains($0.move) }
+                          sort: DBMoveSort = .winRate, gridSize: Int = 19) -> [DBNextMove] {
+        let cells = gridSize * gridSize
+        let free = moves.filter { $0.move >= 0 && $0.move < cells && !occupied.contains($0.move) }
         let sorted = DBMoveRanking.sorted(free, by: sort)
         guard let limit = limit else { return sorted }
         return Array(sorted.prefix(max(0, limit)))

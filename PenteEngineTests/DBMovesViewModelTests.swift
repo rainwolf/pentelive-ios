@@ -23,6 +23,17 @@ final class DBMovesViewModelTests: XCTestCase {
         XCTAssertEqual(rows[0].barFraction, 0.5804, accuracy: 1e-9)
     }
 
+    func testNineByNineLabelsAndOffBoardRowsDropped() {
+        let s = stats([DBNextMove(move: 0, games: 10, wins: 6, winPct: 60),
+                       DBNextMove(move: 81, games: 30, wins: 20, winPct: 66),
+                       DBNextMove(move: 40, games: 20, wins: 10, winPct: 50)])
+        let rows = DBMovesViewModel.rows(stats: s, occupied: [], limit: nil, game: 22)
+        XCTAssertEqual(rows.map { $0.label }, ["A9", "E5"])
+        let renju = DBMovesViewModel.rows(stats: stats([DBNextMove(move: 113, games: 10, wins: 5, winPct: 50)]),
+                                          occupied: [], limit: nil, game: 31)
+        XCTAssertEqual(renju.map { $0.label }, ["J8"])
+    }
+
     func testRowColourEqualsBoardColour() {
         let moves = [
             DBNextMove(move: 180, games: 100, wins: 70, winPct: 70),

@@ -123,6 +123,32 @@ final class DBPositionServiceTests: XCTestCase {
         XCTAssertEqual(heats.last.map { Set($0.keys) }, [NSNumber(value: 101)])
     }
 
+    func testGoNineByNineSendsGameIdAndDropsOffBoardHeat() async {
+        transport.replies[40] = .init(body: stats([(30, 50, 40), (81, 50, 90), (90, 50, 10), (-3, 50, 70)]))
+        service.positionDidChange(game: 22, moves: [40], occupied: [40])
+        await settle()
+        XCTAssertEqual(states.last, .loaded)
+        XCTAssertEqual(heats.last.map { Set($0.keys) }, [NSNumber(value: 30)])
+        XCTAssertEqual(service.displayedMoves().map { $0.move }, [30])
+        let bodies = transport.requests.compactMap { $0.httpBody }
+            .compactMap { try? JSONSerialization.jsonObject(with: $0) as? [String: Any] }
+        XCTAssertFalse(bodies.isEmpty)
+        for b in bodies { XCTAssertEqual(b["game"] as? Int, 22) }
+    }
+
+    func testEmptyGoStartIsQueriedAndRenjuIsSupported() async {
+        service.positionDidChange(game: 19, moves: [], occupied: [])
+        await settle()
+        XCTAssertNotEqual(states.last, .unsupported)
+        service.positionDidChange(game: 31, moves: [112], occupied: [112])
+        await settle()
+        XCTAssertNotEqual(states.last, .unsupported)
+        let games = transport.requests.compactMap { $0.httpBody }
+            .compactMap { try? JSONSerialization.jsonObject(with: $0) as? [String: Any] }
+            .compactMap { $0["game"] as? Int }
+        XCTAssertEqual(Set(games), [19, 31])
+    }
+
     func testBlockedResponseSetsBlockedState() async {
         transport.replies[10] = .init(body: stats([], blocked: true))
         service.positionDidChange(game: 1, moves: [10], occupied: [10])
@@ -223,11 +249,19 @@ final class DBPositionServiceTests: XCTestCase {
         XCTAssertEqual(fresh.filterGameId, 4)
     }
 
+    func testAdoptInjectedGoAndRenju() {
+        service.adoptInjectedGame("Go (9x9)")
+        XCTAssertEqual(service.filterGameId, 21)
+        service.adoptInjectedGame("Speed Renju")
+        XCTAssertEqual(service.filterGameId, 32)
+        XCTAssertEqual(store.load().gameId, 32)
+    }
+
     func testAdoptInjectedGameSavesSupportedOnly() {
         service.adoptInjectedGame("Speed Keryo-Pente")
         XCTAssertEqual(service.filterGameId, 4)
         XCTAssertEqual(store.load().gameId, 4)
-        service.adoptInjectedGame("Go")
+        service.adoptInjectedGame("Tombstone")
         service.adoptInjectedGame(nil)
         XCTAssertEqual(service.filterGameId, 4, "unsupported names leave the filters alone")
         XCTAssertEqual(store.load().gameId, 4)
