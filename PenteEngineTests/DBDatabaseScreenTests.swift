@@ -281,4 +281,74 @@ final class DBDatabaseScreenTests: XCTestCase {
         XCTAssertNil(visibleView(vc, id: "dbRetryButton"))
         XCTAssertEqual(dbOptions(vc).map { Set($0.keys) }, [NSNumber(value: 10)])
     }
+    // MARK: Task 12
+
+    private func allLabels(_ v: UIView) -> [UILabel] {
+        var out: [UILabel] = []
+        if let l = v as? UILabel { out.append(l) }
+        for s in v.subviews { out += allLabels(s) }
+        return out
+    }
+
+    func testHeatToggleHidesAndShowsDotsWithoutRefetch() async {
+        transport.replies[181] = (stats([(10, 60), (11, 40)]), 200)
+        let vc = makeVC(game: "Pente", moves: [180, 181, 200])
+        back(vc)
+        let painted = await waitUntil { self.heatKeys(vc) == [NSNumber(value: 10), NSNumber(value: 11)] }
+        XCTAssertTrue(painted)
+        let items = vc.navigationItem.rightBarButtonItems ?? []
+        XCTAssertEqual(items.count, 2, "setup + heat buttons")
+        let requestsBefore = transport.requests.count
+
+        vc.perform(NSSelectorFromString("toggleHeat"))
+        XCTAssertFalse(prefs.heatOnBoard)
+        XCTAssertNil(dbOptions(vc))
+        XCTAssertNil(dbOptions(vc, "zoomedBoard"))
+
+        vc.perform(NSSelectorFromString("toggleHeat"))
+        XCTAssertTrue(prefs.heatOnBoard)
+        XCTAssertEqual(heatKeys(vc), [NSNumber(value: 10), NSNumber(value: 11)])
+        XCTAssertEqual(transport.requests.count, requestsBefore, "toggle must not refetch")
+    }
+
+    func testToggleWhileInFlightPaintsNothing() {
+        let vc = makeVC(game: "Pente", moves: [180, 181, 200])
+        back(vc)
+        // Reply not yet processed: currentHeat is empty, so nothing may paint.
+        vc.perform(NSSelectorFromString("toggleHeat"))
+        vc.perform(NSSelectorFromString("toggleHeat"))
+        XCTAssertNil(dbOptions(vc))
+    }
+
+    func testTitleViewShowsDatabaseOverSubtitle() {
+        let vc = makeVC(game: "Pente", moves: [180, 181, 200, 182, 183])
+        vc.perform(NSSelectorFromString("replayGame"))
+        XCTAssertEqual(vc.title, "Database")
+        guard let tv = vc.navigationItem.titleView else { return XCTFail("no titleView") }
+        let texts = allLabels(tv).map { $0.attributedText?.string ?? $0.text ?? "" }
+        XCTAssertTrue(texts.contains("Database"), "\(texts)")
+        XCTAssertTrue(texts.contains { $0.hasPrefix("Pente") }, "\(texts)")
+    }
+
+    func testTitleViewSubtitleHasNoCapturesForGomoku() {
+        let vc = makeVC(game: "Gomoku", moves: [180, 181])
+        vc.perform(NSSelectorFromString("replayGame"))
+        let texts = allLabels(vc.navigationItem.titleView ?? UIView()).map { $0.attributedText?.string ?? $0.text ?? "" }
+        XCTAssertTrue(texts.contains("Gomoku"), "\(texts)")
+        XCTAssertFalse(texts.contains { $0.contains("●") })
+    }
+
+    func testRepeated401sPresentOnlyOneLoginAlert() {
+        // No window: alerts are captured through the presenter seam.
+        let vc = makeVC(game: "Pente", moves: [180, 181])
+        var presented: [UIAlertController] = []
+        let presenter: @convention(block) (UIAlertController) -> Void = { presented.append($0) }
+        vc.setValue(presenter, forKey: "logInAlertPresenter")
+        let sel = NSSelectorFromString("showLogInAgain")
+        vc.perform(sel)
+        vc.perform(sel)
+        vc.perform(sel)
+        XCTAssertEqual(presented.count, 1)
+        XCTAssertEqual(presented.first?.title, "Please log in again")
+    }
 }

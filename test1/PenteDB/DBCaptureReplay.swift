@@ -12,6 +12,9 @@ enum DBCaptureReplay {
             return DBCaptureSummary(whiteStonesCaptured: 0, blackStonesCaptured: 0,
                                     showsIcons: DBGameCatalog.hasCaptures(game: game))
         }
+        // Pass sentinel (gridSize^2) and junk must never be written into the board.
+        let cells = DBGameCatalog.gridSize(forGame: game)
+        let moves = moves.filter { $0 >= 0 && $0 < cells * cells }
         let board = UnsafeMutablePointer<AbstractBoard>.allocate(capacity: 19)
         defer { board.deallocate() }
         board.initialize(repeating: (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), count: 19)

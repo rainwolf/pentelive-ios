@@ -43,4 +43,21 @@ final class DBCaptureReplayTests: XCTestCase {
     func testSubtitleNameOnlyForGomoku() {
         XCTAssertEqual(subtitle(5, [180, 181]).string, "Gomoku")
     }
+
+    func testOutOfRangeCellsAreIgnored() {
+        // Pass sentinel (gridSize^2), negatives and huge values must never reach the board.
+        let clean = DBCaptureReplay.summary(game: 1, moves: [180, 181, 200, 182, 183])
+        let dirty = DBCaptureReplay.summary(game: 1, moves: [180, 361, 181, -1, 200, 999, 182, 183])
+        XCTAssertEqual(dirty, clean)
+        XCTAssertEqual(DBCaptureReplay.summary(game: 1, moves: [361]).blackStonesCaptured, 0)
+    }
+
+    func testFirstSubtitleDotHasInkStroke() {
+        let a = subtitle(1, [180, 181, 200, 182, 183])
+        let at = (a.string as NSString).range(of: "●").location
+        let stroke = a.attribute(.strokeColor, at: at, effectiveRange: nil) as? UIColor
+        let width = a.attribute(.strokeWidth, at: at, effectiveRange: nil) as? NSNumber
+        XCTAssertEqual(stroke?.dbHexString, "#16181D")
+        XCTAssertLessThan(width?.doubleValue ?? 0, 0, "negative width = stroke and fill")
+    }
 }

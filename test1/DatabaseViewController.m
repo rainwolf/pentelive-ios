@@ -46,9 +46,13 @@ static BOOL DBAllowsOffCenterFirstStone(NSString *gameType) {
     char coordinateLetters[19];
     BOOL aiThinking;
     LegacyPenteGame *penteGame;
-    BOOL didStartInitialLoad, didShowSubscriptionAlert;
+    BOOL didStartInitialLoad, didShowSubscriptionAlert, didShowLogInAlert;
+    // Test seam: when set, receives the log-in alert instead of a window.
+    void (^logInAlertPresenter)(UIAlertController *);
     UILabel *dbStatusLabel;
     UIButton *dbRetryButton;
+    UIBarButtonItem *heatButton;
+    UILabel *dbTitleLabel, *dbSubtitleLabel;
 }
 @synthesize aiPlayer;
 @synthesize board;
@@ -109,7 +113,13 @@ BoardViewController *boardController;
                 style:UIBarButtonItemStylePlain
                target:self
                action:@selector(showSetup)];
-    [self.navigationItem setRightBarButtonItem:setupButton];
+    heatButton = [[UIBarButtonItem alloc]
+        initWithImage:[self heatButtonImage]
+                style:UIBarButtonItemStylePlain
+               target:self
+               action:@selector(toggleHeat)];
+    heatButton.accessibilityIdentifier = @"dbHeatToggle";
+    [self.navigationItem setRightBarButtonItems:@[ setupButton, heatButton ]];
 
     [self setTitle:NSLocalizedString(@"Database & AI", nil)];
     [self setTitle:NSLocalizedString(@"Database", nil)];
@@ -246,6 +256,7 @@ BoardViewController *boardController;
     if (dbService == nil) {
         dbService = [DBPositionService makeDefault];
     }
+    heatButton.image = [self heatButtonImage];
     __weak typeof(self) weakSelf = self;
     dbService.onHeat = ^(NSDictionary<NSNumber *, UIColor *> *heat) {
         [weakSelf applyHeat:heat];
@@ -459,6 +470,44 @@ BoardViewController *boardController;
                                    before:before];
 }
 
+- (UIImage *)heatButtonImage {
+    NSString *name = dbService.preferences.heatOnBoard ? @"flame.fill" : @"flame";
+    return [UIImage systemImageNamed:name];
+}
+
+/// Flips the board-heat preference. No refetch: currentHeat is [:] while a
+/// request is in flight, so this never paints stale dots.
+- (void)toggleHeat {
+    DBPreferences *prefs = dbService.preferences;
+    prefs.heatOnBoard = !prefs.heatOnBoard;
+    heatButton.image = [self heatButtonImage];
+    [self applyHeat:dbService.currentHeat];
+}
+
+/// Two-line title: "Database" over the game name and capture counts.
+- (void)refreshTitleView {
+    if (dbTitleLabel == nil) {
+        dbTitleLabel = [[UILabel alloc] init];
+        dbTitleLabel.font = [UIFont boldSystemFontOfSize:15];
+        dbTitleLabel.textAlignment = NSTextAlignmentCenter;
+        dbTitleLabel.text = NSLocalizedString(@"Database", nil);
+        dbSubtitleLabel = [[UILabel alloc] init];
+        dbSubtitleLabel.textAlignment = NSTextAlignmentCenter;
+        dbSubtitleLabel.adjustsFontSizeToFitWidth = YES;
+        dbSubtitleLabel.minimumScaleFactor = 0.7;
+        UIStackView *stack = [[UIStackView alloc]
+            initWithArrangedSubviews:@[ dbTitleLabel, dbSubtitleLabel ]];
+        stack.axis = UILayoutConstraintAxisVertical;
+        stack.alignment = UIStackViewAlignmentCenter;
+        stack.frame = CGRectMake(0, 0, 200, 36);
+        self.navigationItem.titleView = stack;
+    }
+    dbSubtitleLabel.attributedText = [DBSubtitleFormatter
+        attributedSubtitleWithGame:[DBGameCatalog gameIdForName:game]
+                             moves:movesList ?: @[]
+                              font:[UIFont systemFontOfSize:12]];
+}
+
 - (void)applyHeat:(NSDictionary<NSNumber *, UIColor *> *)heat {
     NSDictionary<NSNumber *, UIColor *> *options =
         (dbService.preferences.heatOnBoard && heat.count > 0) ? heat : nil;
@@ -547,9 +596,11 @@ BoardViewController *boardController;
 }
 
 - (void)showLogInAgain {
-    if (self.view.window == nil) {
+    // Once per screen: several 401s in a row raise a single alert.
+    if (didShowLogInAlert || (logInAlertPresenter == nil && self.view.window == nil)) {
         return;
     }
+    didShowLogInAlert = YES;
     UIAlertController *alert = [UIAlertController
         alertControllerWithTitle:NSLocalizedString(@"Please log in again", nil)
                          message:nil
@@ -562,6 +613,10 @@ BoardViewController *boardController;
                                      [weakSelf.navigationController
                                          popToRootViewControllerAnimated:YES];
                                  }]];
+    if (logInAlertPresenter != nil) {
+        logInAlertPresenter(alert);
+        return;
+    }
     [[self alertPresenter] presentViewController:alert
                                         animated:YES
                                       completion:nil];
@@ -1197,6 +1252,7 @@ BoardViewController *boardController;
     if (game == nil) {
         game = setupView.gameCell.textField.text;
     }
+    [self refreshTitleView];
     for (NSNumber *move in movesList) {
         int rowCol = [move intValue];
         int color = (i % 2) + 1, opponentColor = (color == 2) ? 1 : 2;
