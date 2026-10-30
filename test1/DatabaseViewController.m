@@ -22,6 +22,7 @@
 
 #import "PenteSpinnerOverlay.h"
 #import "DatabaseViewController.h"
+#import "AppDelegate.h"
 #import "BoardViewController.h"
 #import "DBBoardView.h"
 #import "MMAI.h"
@@ -328,7 +329,11 @@ BoardViewController *boardController;
     } else {
         [self setBoardColor];
         [self replayGame];
-        [self searchDB:nil];
+        // Legacy mobileController/search hits pente.org; never from the
+        // unit-test host (screen tests put this controller in a window).
+        if (![AppDelegate isRunningUnitTests]) {
+            [self searchDB:nil];
+        }
         if (!didStartInitialLoad) {
             didStartInitialLoad = YES;
             [self positionChanged];

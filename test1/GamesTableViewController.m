@@ -3402,6 +3402,11 @@ array, and add a new row to the table view
 // pente.org answered HTTP 401 to a Store request: log in again as at launch;
 // the post-login resync then sends what is still unfinished (spec 5.3).
 - (void)storeSessionLost:(NSNotification *)notification {
+    // Unit-test host: StoreService tests post this notification; the live
+    // root controller must not log in to pente.org in response.
+    if ([AppDelegate isRunningUnitTests]) {
+        return;
+    }
     [self login];
 }
 
