@@ -117,6 +117,17 @@ final class DBFiltersViewController: UIViewController, UITextFieldDelegate {
         refresh()
     }
 
+    /// `CALayer` colours are not dynamic: resolve them for the current appearance.
+    private func updateChipBorders() {
+        let border = DBPalette.chipOutline.resolvedColor(with: traitCollection).cgColor
+        gameChips.forEach { $0.layer.borderColor = border }
+    }
+
+    override func traitCollectionDidChange(_ previous: UITraitCollection?) {
+        super.traitCollectionDidChange(previous)
+        if previous?.userInterfaceStyle != traitCollection.userInterfaceStyle { updateChipBorders() }
+    }
+
     private func makeHeader() -> UIView {
         resetButton.setTitle(NSLocalizedString("Reset", comment: ""), for: .normal)
         resetButton.addTarget(self, action: #selector(resetTapped), for: .touchUpInside)
@@ -182,7 +193,6 @@ final class DBFiltersViewController: UIViewController, UITextFieldDelegate {
             b.titleLabel?.adjustsFontSizeToFitWidth = true
             b.titleLabel?.minimumScaleFactor = 0.7
             b.layer.borderWidth = 1
-            b.layer.borderColor = DBPalette.chipOutline.cgColor
             b.layer.cornerRadius = 14
             b.heightAnchor.constraint(equalToConstant: 30).isActive = true
             b.addTarget(self, action: #selector(chipTapped(_:)), for: .touchUpInside)
@@ -190,6 +200,7 @@ final class DBFiltersViewController: UIViewController, UITextFieldDelegate {
             current?.addArrangedSubview(b)
         }
         addRow("game", nil, chipRows)
+        updateChipBorders()
 
         // 2. Speed.
         speedSwitch.addTarget(self, action: #selector(speedChanged), for: .valueChanged)

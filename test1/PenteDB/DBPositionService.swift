@@ -250,7 +250,8 @@ import UIKit
     func displayedMoves() -> [DBNextMove] {
         guard let s = lastStats else { return [] }
         let n = preferences.movesShown
-        return DBHeatScale.displayed(s.nextMoves, occupied: occupied, limit: n > 0 ? n : nil)
+        return DBHeatScale.displayed(s.nextMoves, occupied: occupied, limit: n > 0 ? n : nil,
+                                   sort: preferences.moveSort)
     }
 
     private static func state(for error: Error) -> DBLoadState {

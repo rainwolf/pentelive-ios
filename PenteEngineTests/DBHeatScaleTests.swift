@@ -57,4 +57,15 @@ final class DBHeatScaleTests: XCTestCase {
         XCTAssertEqual(shown, [])
         XCTAssertTrue(DBHeatScale.colors(for: shown).isEmpty)
     }
+
+    func testPopularSortKeepsMostPlayedAndLimitAppliesAfterSorting() {
+        func g(_ cell: Int, games: Int, pct: Double) -> DBNextMove {
+            DBNextMove(move: cell, games: games, wins: Int(Double(games) * pct / 100), winPct: pct)
+        }
+        let moves = [g(1, games: 10, pct: 90), g(2, games: 500, pct: 40), g(3, games: 300, pct: 50), g(4, games: 100, pct: 60)]
+        let shown = DBHeatScale.displayed(moves, occupied: [], limit: 2, sort: .games)
+        XCTAssertEqual(shown.map { $0.move }, [2, 3])
+        let colors = DBHeatScale.colors(for: shown)
+        XCTAssertEqual(Set(colors.keys), [2, 3], "heat covers exactly the displayed moves")
+    }
 }

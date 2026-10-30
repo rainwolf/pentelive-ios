@@ -173,7 +173,7 @@ final class DBGameViewerViewControllerTests: XCTestCase {
         vc.moveGrid.layoutIfNeeded()
         let cur = vc.moveGrid.dataSource?.collectionView(vc.moveGrid, cellForItemAt: IndexPath(item: 1, section: 0)) as? DBMoveGridCell
         let fut = vc.moveGrid.dataSource?.collectionView(vc.moveGrid, cellForItemAt: IndexPath(item: 2, section: 0)) as? DBMoveGridCell
-        XCTAssertEqual(cur?.label.textColor, UIColor(dbHex: DBMoveCell.currentHex))
+        XCTAssertEqual(cur?.label.textColor, DBPalette.accent)
         XCTAssertEqual(fut?.label.textColor, UIColor(dbHex: DBMoveCell.futureHex))
     }
 

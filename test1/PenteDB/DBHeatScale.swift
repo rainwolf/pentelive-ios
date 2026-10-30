@@ -1,9 +1,10 @@
 import UIKit
 
 enum DBHeatScale {
-    static func displayed(_ moves: [DBNextMove], occupied: Set<Int>, limit: Int?) -> [DBNextMove] {
+    static func displayed(_ moves: [DBNextMove], occupied: Set<Int>, limit: Int?,
+                          sort: DBMoveSort = .winRate) -> [DBNextMove] {
         let free = moves.filter { !occupied.contains($0.move) }
-        let sorted = DBMoveRanking.sorted(free)
+        let sorted = DBMoveRanking.sorted(free, by: sort)
         guard let limit = limit else { return sorted }
         return Array(sorted.prefix(max(0, limit)))
     }

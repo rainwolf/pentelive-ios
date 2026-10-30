@@ -60,4 +60,28 @@ final class DBMovesViewModelTests: XCTestCase {
         XCTAssertEqual(rows.map { $0.cell }, [181])
         XCTAssertEqual(DBMovesViewModel.showOptions, [10, 20, 40, 0])
     }
+
+    func testPopularSortOrdersRowsByGamesAndShowNAppliesAfterSorting() {
+        let moves = [
+            DBNextMove(move: 180, games: 10, wins: 9, winPct: 90),
+            DBNextMove(move: 181, games: 500, wins: 200, winPct: 40),
+            DBNextMove(move: 182, games: 300, wins: 150, winPct: 50),
+        ]
+        let all = DBMovesViewModel.rows(stats: stats(moves), occupied: [], limit: nil, game: 1, sort: .games)
+        XCTAssertEqual(all.map { $0.cell }, [181, 182, 180])
+        let top2 = DBMovesViewModel.rows(stats: stats(moves), occupied: [], limit: 2, game: 1, sort: .games)
+        XCTAssertEqual(top2.map { $0.cell }, [181, 182])
+        // Colour domain is the two displayed moves (min-max), not all three.
+        let colors = DBHeatScale.colors(for: DBHeatScale.displayed(moves, occupied: [], limit: 2, sort: .games))
+        for r in top2 { XCTAssertEqual(r.color, colors[r.cell]) }
+    }
+
+    func testDefaultSortIsWinRate() {
+        let moves = [
+            DBNextMove(move: 180, games: 4, wins: 4, winPct: 100),
+            DBNextMove(move: 181, games: 500, wins: 300, winPct: 60),
+        ]
+        let rows = DBMovesViewModel.rows(stats: stats(moves), occupied: [], limit: nil, game: 1)
+        XCTAssertEqual(rows.map { $0.cell }, [181, 180]) // low-sample row last
+    }
 }

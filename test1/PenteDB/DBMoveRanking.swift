@@ -28,6 +28,16 @@ enum DBMoveRanking {
         }.map { $0.m }
     }
 
+    /// 'games': most played first; equal counts keep the Wilson order.
+    static func sorted(_ moves: [DBNextMove], by sort: DBMoveSort) -> [DBNextMove] {
+        let wilson = sorted(moves)
+        guard sort == .games else { return wilson }
+        return wilson.enumerated().sorted { a, b in
+            if a.element.games != b.element.games { return a.element.games > b.element.games }
+            return a.offset < b.offset
+        }.map { $0.element }
+    }
+
     static func label(cell: Int, gridSize: Int) -> String {
         if cell == gridSize * gridSize { return "PASS" }
         let x = cell % gridSize

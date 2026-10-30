@@ -36,7 +36,6 @@ struct DBMoveCell: Equatable {
     var label: String
     var state: DBMoveCellState
 
-    static let currentHex: UInt32 = 0x1F5FD6
     static let futureHex: UInt32 = 0x8A8F99
 
     /// Numbering mirrors DatabaseViewController's move list: pairs per turn;

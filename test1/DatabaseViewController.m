@@ -221,8 +221,11 @@
         [weakSelf statsStateChanged:state];
     };
     self.resultsVC = [[DBResultsViewController alloc] initWithService:dbService];
-    self.resultsVC.onPlayMove = ^(NSInteger cell) {
-        [weakSelf playDBMove:cell];
+    self.resultsVC.onSelectionChanged = ^(NSInteger cell) {
+        [weakSelf moveSelectionChanged:cell];
+    };
+    self.resultsVC.onSortChanged = ^{
+        [weakSelf showCountChanged];
     };
     self.resultsVC.onShowCountChanged = ^{
         [weakSelf showCountChanged];
@@ -507,29 +510,24 @@
     return YES;
 }
 
-/// A Moves row was tapped: play it like a tap on its heat dot.
-- (void)playDBMove:(NSInteger)cell {
-    // The AI's move is due on this line: Moves rows wait until it lands.
-    if (aiThinking) {
+/// A Moves row was selected (or the selection ended: cell < 0). The row's
+/// cell flashes on the board; nothing is played and nothing is searched.
+- (void)moveSelectionChanged:(NSInteger)cell {
+    if (cell < 0) {
+        [board stopFlashing];
         return;
     }
     NSInteger grid = [DBGameCatalog gridSizeForGame:[DBGameCatalog gameIdForName:game]];
-    if (grid > 19 || cell < 0 || cell >= grid * grid) {
+    // The AI's move is due on this line: a selection waits until it lands.
+    if (aiThinking || grid > 19 || cell >= grid * grid ||
+        abstractBoard[cell / grid][cell % grid] != 0) {
+        [self.resultsVC clearSelection];
         return;
     }
-    if (abstractBoard[cell / grid][cell % grid] != 0) {
-        return;
-    }
-    [board setLastMove:-1];
-    if (!game) {
-        game = [DBGameCatalog nameForGame:dbService.filterGameId];
-    }
-    if (!game) {
-        game = @"Pente";
-    }
-    [self syncLineGame];
-    [line play:cell];
-    [self lineDidChange];
+    [self prepareStoneColor];
+    [board startFlashingCell:(int)cell
+                stoneIsWhite:stone.stoneColor == WHITE
+                   heatColor:dbService.currentHeat[@(cell)]];
 }
 
 /// "Show N" changed: recolour the board from the cached stats (no refetch)
@@ -584,6 +582,7 @@
 
 - (void)viewWillDisappear:(BOOL)animated {
     [super viewWillDisappear:animated];
+    [self.resultsVC clearSelection];
     // A sheet would otherwise float over the pushed or popped-to screen.
     if (self.resultsVC.presentingViewController != nil &&
         self.resultsVC.parentViewController == nil) {
@@ -645,6 +644,9 @@
 }
 
 - (void)positionChanged {
+    // A new position makes the selected row's cell meaningless.
+    [self.resultsVC clearSelection];
+    [board stopFlashing];
     [board setDbOptions:nil];
     [zoomedBoard setDbOptions:nil];
     [board setNeedsDisplay];
@@ -1192,9 +1194,10 @@
     [self aiDidChooseMove:@(finalMove)];
 }
 
-/// Records the line the AI is asked about. While it thinks, Moves-row plays
+/// Records the line the AI is asked about. While it thinks, Moves-row selections
 /// and Games-row opens are ignored (the results sheet stays tappable).
 - (void)aiWillThink {
+    [self.resultsVC clearSelection];
     aiThinking = YES;
     aiLineToken = [line.moves copy];
 }

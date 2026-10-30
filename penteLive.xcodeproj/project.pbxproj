@@ -37,6 +37,7 @@
 		24F5B3C3A96EEDEA4D1078E8 /* ArenaMyRequestsModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FB2E1A032CEE396D7987441 /* ArenaMyRequestsModel.swift */; };
 		26BC2E6C4E06C896C31BD4F9 /* DBClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC5151ADD885C9D439276F94 /* DBClient.swift */; };
 		2E27DBFACEEC8484E6674E1F /* DBPlayerAutocomplete.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDA296611079266B244FB89D /* DBPlayerAutocomplete.swift */; };
+		3073157652041657C69361F9 /* DBDarkModeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E3DFAB528AA0DB41BB5E041 /* DBDarkModeTests.swift */; };
 		317101D2F2CE93FC478F38D5 /* StoreAdapters.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF6E9CF83C944F2B4E0C5C8E /* StoreAdapters.swift */; };
 		32A66A1A6CD3DA16C0CEFF89 /* PenteVariantTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86AC1A8A05D560A06454D468 /* PenteVariantTests.swift */; };
 		35C8D8018B6AA0E7D09F0D97 /* StoreReplyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F255476AD428B119B8ED44D /* StoreReplyTests.swift */; };
@@ -676,6 +677,7 @@
 		7A1C0E5D2F3B4A6C8D9E0F42 /* PentePopover.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PentePopover.m; sourceTree = "<group>"; };
 		7BEAC58A3C6C7DFFFD5DCCBD /* DashboardError.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DashboardError.swift; sourceTree = "<group>"; };
 		7C48F0C418487816CB1F1738 /* DBLineTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DBLineTests.swift; sourceTree = "<group>"; };
+		7E3DFAB528AA0DB41BB5E041 /* DBDarkModeTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DBDarkModeTests.swift; sourceTree = "<group>"; };
 		7F4FC62C1D5EDE1056909DCD /* DBFiltersViewControllerTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DBFiltersViewControllerTests.swift; sourceTree = "<group>"; };
 		7FB2E1A032CEE396D7987441 /* ArenaMyRequestsModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ArenaMyRequestsModel.swift; sourceTree = "<group>"; };
 		8057D7F2D83F1A6F28F3DBB6 /* StoreInfoTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StoreInfoTests.swift; sourceTree = "<group>"; };
@@ -1331,6 +1333,7 @@
 				EFA89B02E0B28838E3B99E61 /* DBPlayerAutocompleteTests.swift */,
 				7F4FC62C1D5EDE1056909DCD /* DBFiltersViewControllerTests.swift */,
 				C41380FB28017A8D7C00E66A /* DBViewerModelsTests.swift */,
+				7E3DFAB528AA0DB41BB5E041 /* DBDarkModeTests.swift */,
 			);
 			path = PenteEngineTests;
 			sourceTree = SOURCE_ROOT;
@@ -1751,6 +1754,7 @@
 				7870B7DFA7E08EB36CE1AB3A /* DBPlayerAutocompleteTests.swift in Sources */,
 				6D564C4FE2E6185DE4823E4D /* DBFiltersViewControllerTests.swift in Sources */,
 				404BD4B0D90D54BE254CFAFD /* DBViewerModelsTests.swift in Sources */,
+				3073157652041657C69361F9 /* DBDarkModeTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
