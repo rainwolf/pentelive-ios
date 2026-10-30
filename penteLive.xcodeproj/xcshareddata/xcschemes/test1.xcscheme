@@ -36,18 +36,12 @@
             ReferencedContainer = "container:penteLive.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
-      <Testables>
-         <TestableReference
-            skipped = "NO">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "0F47148383F57A310F51032B"
-               BuildableName = "PenteEngineTests.xctest"
-               BlueprintName = "PenteEngineTests"
-               ReferencedContainer = "container:penteLive.xcodeproj">
-            </BuildableReference>
-         </TestableReference>
-      </Testables>
+      <TestPlans>
+         <TestPlanReference
+            reference = "container:test1.xctestplan"
+            default = "YES">
+         </TestPlanReference>
+      </TestPlans>
    </TestAction>
    <LaunchAction
       buildConfiguration = "Release"

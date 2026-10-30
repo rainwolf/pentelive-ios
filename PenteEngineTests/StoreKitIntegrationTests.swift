@@ -19,8 +19,8 @@ final class StoreKitIntegrationTests: XCTestCase {
     private var source: StoreKitTransactionSource!
     private var service: StoreService!
 
-    /// A stuck purchase fails the test instead of hanging the run (enforced
-    /// with `-test-timeouts-enabled YES`).
+    /// A stuck purchase fails the test instead of hanging the run (test timeouts
+    /// are on in `test1.xctestplan`).
     override func setUp() async throws {
         try await super.setUp()
         executionTimeAllowance = 60
@@ -77,6 +77,69 @@ final class StoreKitIntegrationTests: XCTestCase {
             keys = await source.unfinished().map { (try? transactionKey($0.jws)) ?? "?" }
         }
         return keys
+    }
+
+    /// `service.buy`, bounded. On the iOS 27.2 simulator StoreKit Testing
+    /// once never answered `Product.purchase` (`StoreAdapters.swift`, the
+    /// `product.purchase(options:)` await) with a simulated error set: no
+    /// result, no throw, the test suspended until killed. A purchase is not
+    /// cancellable, so the call runs in its own task and the test fails here,
+    /// with the product named, instead of waiting on it.
+    private func buy(_ productID: String, scene: UIWindowScene? = nil, within timeout: TimeInterval = 20,
+                     file: StaticString = #filePath, line: UInt = #line) async {
+        var done = false
+        let service = self.service!
+        Task { @MainActor in
+            await service.buy(productID: productID, scene: scene)
+            done = true
+        }
+        let deadline = Date().addingTimeInterval(timeout)
+        while !done {
+            if Date() > deadline {
+                XCTFail("StoreKit Testing did not answer the purchase of \(productID) within \(timeout) s "
+                        + "(Product.purchase neither returned nor threw)", file: file, line: line)
+                return
+            }
+            try? await Task.sleep(nanoseconds: 10_000_000)
+        }
+    }
+
+    /// Runs a StoreKit Testing action whose transaction reaches the app on
+    /// `Transaction.updates`, and waits until the server has `count` POSTs.
+    /// StoreKit Testing sometimes drops such an action: when nothing is posted
+    /// after 10 s and the session shows the action not applied (`applied`
+    /// false), it is run once more. When the session shows it applied but
+    /// `Transaction.updates` never delivered it (StoreKit Testing, iOS 27.2
+    /// simulator: an approved ask-to-buy went undelivered in 8 of 10 runs,
+    /// 2026-10-30, the transaction sitting in `Transaction.unfinished`), the
+    /// foreground resync, the app's own net for a missed update, must post it.
+    private func perform(_ what: String, until count: Int, applied: () throws -> Bool,
+                         _ action: () throws -> Void,
+                         file: StaticString = #filePath, line: UInt = #line) async throws {
+        func posted(within timeout: TimeInterval) async -> Bool {
+            let deadline = Date().addingTimeInterval(timeout)
+            while server.posted.count < count, Date() < deadline {
+                try? await Task.sleep(nanoseconds: 10_000_000)
+            }
+            return server.posted.count >= count
+        }
+        try action()
+        if await posted(within: 10) { return }
+        if try !applied() {
+            NSLog("STOREKIT-TEST-RETRY: StoreKit Testing dropped the %@; running it again", what)
+            try action()
+            if await posted(within: 15) { return }
+        }
+        if try applied() {
+            NSLog("STOREKIT-TEST-NO-UPDATE: Transaction.updates did not deliver the %@; "
+                  + "running the foreground resync", what)
+            await service.performResync(explicit: false)
+            if await posted(within: 5) { return }
+        }
+        let held = await source.unfinished().map { "\($0.productID)\($0.isRevoked ? " (revoked)" : "")" }
+        XCTFail("\(what): \(server.posted.count) of \(count) POSTs, also after the foreground resync; "
+                + "StoreKit Testing shows it \(try applied() ? "applied" : "not applied"); "
+                + "unfinished (adapter and StoreKit): \(held)", file: file, line: line)
     }
 
     /// A fresh StoreKit Testing session and a StoreService over the real adapter.
@@ -161,7 +224,7 @@ final class StoreKitIntegrationTests: XCTestCase {
         server.defaultInfo = .info(StoreFixtures.info(token: StoreFixtures.tokenA))
         server.defaultReply = .success
 
-        await service.buy(productID: StoreProducts.yearly, scene: nil)
+        await buy(StoreProducts.yearly)
 
         XCTAssertEqual(server.posted.count, 1)
         let claims = try payload(server.posted[0])
@@ -178,7 +241,7 @@ final class StoreKitIntegrationTests: XCTestCase {
         server.replies = [.retryLater]
         server.defaultReply = .success
 
-        await service.buy(productID: StoreProducts.monthPass, scene: nil)
+        await buy(StoreProducts.monthPass)
         XCTAssertEqual(messages.shown, [.saved])
         XCTAssertEqual(server.posted.count, 1)
         guard server.posted.count == 1 else { return }
@@ -211,7 +274,7 @@ final class StoreKitIntegrationTests: XCTestCase {
         try await start()
         try await session.setSimulatedError(.generic(.unknown), forAPI: .purchase)
 
-        await service.buy(productID: "vacation_10", scene: nil)
+        await buy("vacation_10")
         try await session.setSimulatedError(nil, forAPI: .purchase)
 
         XCTAssertEqual(server.posted, [])
@@ -223,14 +286,17 @@ final class StoreKitIntegrationTests: XCTestCase {
         service.start()
         session.askToBuyEnabled = true
 
-        await service.buy(productID: "vacation_10", scene: nil)
+        await buy("vacation_10")
         XCTAssertEqual(messages.shown, [.pending])
         XCTAssertEqual(server.posted, [])
 
         // StoreKit Testing loses an approval made right after the purchase.
         try await Task.sleep(nanoseconds: 2_000_000_000)
-        try session.approveAskToBuyTransaction(identifier: try skTransaction(for: "vacation_10").identifier)
-        await waitFor(20) { self.server.posted.count == 1 }
+        let asked = try skTransaction(for: "vacation_10").identifier
+        try await perform("ask-to-buy approval", until: 1,
+                          applied: { try !self.skTransaction(for: "vacation_10").pendingAskToBuyConfirmation }) {
+            try self.session.approveAskToBuyTransaction(identifier: asked)
+        }
         guard server.posted.count == 1 else { return }
         XCTAssertEqual(try payload(server.posted[0])["productId"] as? String, "vacation_10")
         XCTAssertEqual(messages.shown, [.pending])
@@ -239,16 +305,18 @@ final class StoreKitIntegrationTests: XCTestCase {
     func testRefundIsPostedFinishedAndRefreshesTheDashboard() async throws {
         try await start()
         service.start()
-        await service.buy(productID: StoreProducts.yearly, scene: nil)
+        await buy(StoreProducts.yearly)
         XCTAssertEqual(server.posted.count, 1)
         let changesAfterBuy = host.entitlementChanges
         server.replies = [.invalidReceipt]
 
         // StoreKit Testing sometimes drops a refund made right after the purchase.
         try await Task.sleep(nanoseconds: 2_000_000_000)
-        try session.refundTransaction(identifier: try skTransaction(for: StoreProducts.yearly).identifier)
-
-        await waitFor(20) { self.server.posted.count == 2 }
+        let bought = try skTransaction(for: StoreProducts.yearly).identifier
+        try await perform("refund", until: 2,
+                          applied: { try self.skTransaction(for: StoreProducts.yearly).cancelDate != nil }) {
+            try self.session.refundTransaction(identifier: bought)
+        }
         guard server.posted.count == 2 else { return }
         XCTAssertNotNil(try payload(server.posted[1])["revocationDate"], "the revoked transaction is posted")
         await waitFor(20) { self.host.entitlementChanges > changesAfterBuy }
@@ -267,7 +335,7 @@ final class StoreKitIntegrationTests: XCTestCase {
     func testRenewalIsPostedSilently() async throws {
         try await start()
         service.start()
-        await service.buy(productID: StoreProducts.yearly, scene: nil)
+        await buy(StoreProducts.yearly)
         XCTAssertEqual(server.posted.count, 1)
         guard let bought = server.posted.first else { return }
         let boughtID = try transactionID(bought)
@@ -292,7 +360,7 @@ final class StoreKitIntegrationTests: XCTestCase {
 
     func testRestorePostsTheEntitlementAndSaysUpToDate() async throws {
         try await start()
-        await service.buy(productID: StoreProducts.yearly, scene: nil)
+        await buy(StoreProducts.yearly)
         server.replies = [.known]
 
         await service.restore()
@@ -306,7 +374,7 @@ final class StoreKitIntegrationTests: XCTestCase {
     /// `inactive` for it, which restores nothing.
     func testRestoreAfterExpiryHasNothingToRestore() async throws {
         try await start()
-        await service.buy(productID: StoreProducts.yearly, scene: nil)
+        await buy(StoreProducts.yearly)
 
         try session.expireSubscription(productIdentifier: StoreProducts.yearly)
         var entitled = await source.latestEntitlements()
@@ -332,7 +400,7 @@ final class StoreKitIntegrationTests: XCTestCase {
         try await start()
         // Finished, but no success*: this account has not been swept yet.
         server.replies = [.invalidReceipt]
-        await service.buy(productID: StoreProducts.yearly, scene: nil)
+        await buy(StoreProducts.yearly)
         XCTAssertEqual(messages.shown, [.purchaseFailed])
         server.defaultReply = .known
 
@@ -352,7 +420,7 @@ final class StoreKitIntegrationTests: XCTestCase {
         try await start()
         let scene = try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first)
 
-        await service.buy(productID: "vacation_30", scene: scene)
+        await buy("vacation_30", scene: scene)
 
         XCTAssertEqual(server.posted.count, 1)
         XCTAssertEqual(try payload(server.posted[0])["productId"] as? String, "vacation_30")
