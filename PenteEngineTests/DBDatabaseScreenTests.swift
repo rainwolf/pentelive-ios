@@ -706,16 +706,82 @@ final class DBDatabaseScreenTests: XCTestCase {
         XCTAssertNil(r.selectedCell)
     }
 
-    func testSortChangeResortsListAndBoardHeatWithoutRefetch() async {
+    private func selectFirstRow(_ vc: UIViewController) async {
         transport.replies[181] = (stats([(10, 60), (11, 40)]), 200)
+        back(vc)
+        let shown = await waitUntil { self.results(vc).rows.count == 2 }
+        XCTAssertTrue(shown)
+        let r = results(vc)
+        r.tableView(r.tableView, didSelectRowAt: IndexPath(row: 0, section: 0))
+        XCTAssertNotNil(r.selectedCell)
+        XCTAssertGreaterThanOrEqual(flashing(vc).flashCell, 0)
+    }
+
+    func testViewWillDisappearAloneClearsSelection() async {
+        let vc = makeVC(game: "Pente", moves: [180, 181, 200])
+        await selectFirstRow(vc)
+        vc.viewWillDisappear(false)
+        XCTAssertNil(results(vc).selectedCell)
+        XCTAssertEqual(flashing(vc).flashCell, -1)
+    }
+
+    func testBackNavigationAloneClearsSelection() async {
+        let vc = makeVC(game: "Pente", moves: [180, 181, 200])
+        transport.replies[181] = (stats([(10, 60), (11, 40)]), 200)
+        back(vc)
+        let shown = await waitUntil { self.results(vc).rows.count == 2 }
+        XCTAssertTrue(shown)
+        transport.replies[180] = (stats([(12, 60), (13, 40)]), 200)
+        let r = results(vc)
+        r.tableView(r.tableView, didSelectRowAt: IndexPath(row: 0, section: 0))
+        XCTAssertNotNil(r.selectedCell)
+        back(vc)
+        XCTAssertNil(r.selectedCell)
+        XCTAssertEqual(flashing(vc).flashCell, -1)
+    }
+
+    func testReduceMotionChangeWhileFlashingSwitchesTimerMode() async {
+        transport.replies[181] = (stats([(10, 60)]), 200)
+        let vc = makeVC(game: "Pente", moves: [180, 181, 200])
+        back(vc)
+        let shown = await waitUntil { self.results(vc).rows.count == 1 }
+        XCTAssertTrue(shown)
+        let fb = flashing(vc)
+        fb.reduceMotionOverride = NSNumber(value: false)
+        let r = results(vc)
+        r.tableView(r.tableView, didSelectRowAt: IndexPath(row: 0, section: 0))
+        XCTAssertTrue(fb.isFlashAnimating)
+        fb.reduceMotionOverride = NSNumber(value: true)
+        NotificationCenter.default.post(name: UIAccessibility.reduceMotionStatusDidChangeNotification, object: nil)
+        XCTAssertEqual(Int(fb.flashCell), 10, "still flashing the same cell")
+        XCTAssertFalse(fb.isFlashAnimating, "timer off after Reduce Motion turns on")
+        fb.reduceMotionOverride = NSNumber(value: false)
+        NotificationCenter.default.post(name: UIAccessibility.reduceMotionStatusDidChangeNotification, object: nil)
+        XCTAssertEqual(Int(fb.flashCell), 10)
+        XCTAssertTrue(fb.isFlashAnimating, "timer back on after Reduce Motion turns off")
+        // Not flashing: a notification must not start anything.
+        fb.stopFlashing()
+        NotificationCenter.default.post(name: UIAccessibility.reduceMotionStatusDidChangeNotification, object: nil)
+        XCTAssertEqual(fb.flashCell, -1)
+        XCTAssertFalse(fb.isFlashAnimating)
+    }
+
+    func testSortChangeResortsListAndBoardHeatWithoutRefetch() async {
+        // Win % and game counts rank the two moves in opposite order.
+        let json = "{\"totalGames\":10,\"totalWinPct\":50,\"nextMoves\":[" +
+            "{\"move\":10,\"games\":20,\"wins\":1,\"winPct\":60}," +
+            "{\"move\":11,\"games\":90,\"wins\":1,\"winPct\":40}],\"blocked\":false}"
+        transport.replies[181] = (json, 200)
         let vc = makeVC(game: "Pente", moves: [180, 181, 200])
         back(vc)
         let shown = await waitUntil { self.results(vc).rows.count == 2 }
         XCTAssertTrue(shown)
         let before = results(vc).rows.map(\.cell)
+        XCTAssertEqual(before, [10, 11])
         results(vc).selectSort(.games)
         XCTAssertEqual(prefs.moveSort, .games)
         XCTAssertEqual(results(vc).rows.count, 2)
+        XCTAssertEqual(results(vc).rows.map(\.cell), [11, 10], "order flips, not just the set")
         XCTAssertEqual(Set(results(vc).rows.map(\.cell)), Set(before))
         XCTAssertEqual(heatKeys(vc), Set(before.map { NSNumber(value: $0) }))
         XCTAssertEqual(transport.requests.count, 1, "no refetch")

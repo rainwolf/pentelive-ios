@@ -60,6 +60,11 @@ static const NSTimeInterval kFlashInterval = 0.45;
     _flashStoneIsWhite = stoneIsWhite;
     _flashColor = heatColor ?: [UIColor orangeColor];
     _flashStoneVisible = YES;
+    [[NSNotificationCenter defaultCenter]
+        addObserver:self
+           selector:@selector(reduceMotionStatusChanged:)
+               name:UIAccessibilityReduceMotionStatusDidChangeNotification
+             object:nil];
     if (![self reduceMotion]) {
         __weak typeof(self) weakSelf = self;
         flashTimer = [NSTimer timerWithTimeInterval:kFlashInterval
@@ -72,7 +77,21 @@ static const NSTimeInterval kFlashInterval = 0.45;
     [self setNeedsDisplay];
 }
 
+- (void)reduceMotionStatusChanged:(NSNotification *)note {
+    if (!_flashing) {
+        return;
+    }
+    // Restart so the timer switches on or off for the new setting.
+    [self startFlashingCell:_flashCell
+               stoneIsWhite:_flashStoneIsWhite
+                  heatColor:_flashColor];
+}
+
 - (void)stopFlashing {
+    [[NSNotificationCenter defaultCenter]
+        removeObserver:self
+                  name:UIAccessibilityReduceMotionStatusDidChangeNotification
+                object:nil];
     [flashTimer invalidate];
     flashTimer = nil;
     BOOL wasFlashing = _flashing;
@@ -93,6 +112,7 @@ static const NSTimeInterval kFlashInterval = 0.45;
 }
 
 - (void)dealloc {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
     [flashTimer invalidate];
 }
 

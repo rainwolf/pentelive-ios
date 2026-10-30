@@ -173,9 +173,15 @@ final class DBDarkModeTests: XCTestCase {
                 view.layer.render(in: ctx.cgContext)
             }
         }
-        let dir = URL(fileURLWithPath: "/private/tmp/claude-501/native-db-tmp/ios2")
-        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-        try? image.pngData()?.write(to: dir.appendingPathComponent(name))
+        let attachment = XCTAttachment(image: image)
+        attachment.name = name
+        attachment.lifetime = .keepAlways
+        add(attachment)
+        if let path = ProcessInfo.processInfo.environment["DB_SCREENSHOT_DIR"], !path.isEmpty {
+            let dir = URL(fileURLWithPath: path)
+            try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+            try? image.pngData()?.write(to: dir.appendingPathComponent(name))
+        }
     }
 
     func testWritesDarkFiltersScreenshot() {
