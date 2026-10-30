@@ -4,13 +4,28 @@ import XCTest
 /// Scripted position-stats transport keyed by the last move in the request
 /// body. Never touches the network.
 private final class DBScreenTransport: Transport, @unchecked Sendable {
-    var replies: [Int: (body: String, status: Int)] = [:]
-    private(set) var requests: [URLRequest] = []
+    // data(for:) runs off the main actor (DBClient is nonisolated), so a
+    // superseded request and its replacement can hit it concurrently.
+    private let lock = NSLock()
+    private var _replies: [Int: (body: String, status: Int)] = [:]
+    private var _requests: [URLRequest] = []
+
+    var replies: [Int: (body: String, status: Int)] {
+        get { lock.lock(); defer { lock.unlock() }; return _replies }
+        set { lock.lock(); defer { lock.unlock() }; _replies = newValue }
+    }
+
+    var requests: [URLRequest] {
+        lock.lock(); defer { lock.unlock() }
+        return _requests
+    }
 
     func data(for request: URLRequest) async throws -> (Data, URLResponse) {
-        requests.append(request)
         let key = DBScreenTransport.moves(of: request).last ?? -1
-        let r = replies[key] ?? (body: "{}", status: 200)
+        lock.lock()
+        _requests.append(request)
+        let r = _replies[key] ?? (body: "{}", status: 200)
+        lock.unlock()
         let resp = HTTPURLResponse(url: request.url!, statusCode: r.status,
                                    httpVersion: nil, headerFields: nil)!
         return (Data(r.body.utf8), resp)
@@ -114,8 +129,27 @@ final class DBDatabaseScreenTests: XCTestCase {
         return "{\"totalGames\":10,\"totalWinPct\":50,\"nextMoves\":[\(nm)],\"blocked\":false}"
     }
 
+    /// Fixed sleep, only for asserting that something did NOT happen.
     private func settle(_ seconds: Double = 0.3) async {
         try? await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
+    }
+
+    /// Polls `condition` on the main actor until it holds or ~2 s pass.
+    private func waitUntil(timeout: Double = 2, _ condition: () -> Bool) async -> Bool {
+        let deadline = Date().addingTimeInterval(timeout)
+        while !condition() {
+            if Date() > deadline { return false }
+            try? await Task.sleep(nanoseconds: 20_000_000)
+        }
+        return true
+    }
+
+    private func sentMoves() -> [[Int]] {
+        return transport.requests.map(DBScreenTransport.moves(of:))
+    }
+
+    private func heatKeys(_ vc: UIViewController, _ key: String = "board") -> Set<NSNumber>? {
+        return dbOptions(vc, key).map { Set($0.keys) }
     }
 
     private func visibleView(_ vc: UIViewController, id: String) -> UIView? {
@@ -148,13 +182,14 @@ final class DBDatabaseScreenTests: XCTestCase {
         back(vc)
         XCTAssertEqual(mirror(vc), [180, 181])
         XCTAssertEqual(line(vc).redoCount, 1)
-        await settle()
+        let firstSent = await waitUntil { self.transport.requests.count == 1 }
+        XCTAssertTrue(firstSent)
         forward(vc)
         XCTAssertEqual(mirror(vc), [180, 181, 200])
         XCTAssertEqual(line(vc).redoCount, 0)
-        await settle()
-        XCTAssertEqual(transport.requests.map(DBScreenTransport.moves(of:)),
-                       [[180, 181], [180, 181, 200]])
+        let secondSent = await waitUntil { self.transport.requests.count == 2 }
+        XCTAssertTrue(secondSent)
+        XCTAssertEqual(sentMoves(), [[180, 181], [180, 181, 200]])
     }
 
     func testBackStopsAtFixedCentreStone() {
@@ -170,18 +205,19 @@ final class DBDatabaseScreenTests: XCTestCase {
         XCTAssertEqual(mirror(vc), [180, 181, 0])
         XCTAssertEqual(line(vc).cells, [180, 181, 0])
         XCTAssertEqual(line(vc).redoCount, 0)
-        await settle()
         // The superseded [180, 181] request may still reach the transport
         // late (the stale gate drops its reply); the new position must be sent.
-        XCTAssertTrue(transport.requests.map(DBScreenTransport.moves(of:)).contains([180, 181, 0]))
+        let sent = await waitUntil { self.sentMoves().contains([180, 181, 0]) }
+        XCTAssertTrue(sent, "sent: \(sentMoves())")
     }
 
     func testHeatPaintsBothBoardsAndDotTapSkipsMagnifier() async {
         transport.replies[181] = (stats([(10, 60), (11, 40)]), 200)
         let vc = makeVC(game: "Pente", moves: [180, 181, 200])
         back(vc)
-        await settle()
-        XCTAssertEqual(dbOptions(vc).map { Set($0.keys) }, [NSNumber(value: 10), NSNumber(value: 11)])
+        let painted = await waitUntil { self.heatKeys(vc) == [NSNumber(value: 10), NSNumber(value: 11)] }
+        XCTAssertTrue(painted)
+        XCTAssertEqual(heatKeys(vc), [NSNumber(value: 10), NSNumber(value: 11)])
         XCTAssertEqual(dbOptions(vc, "zoomedBoard").map { Set($0.keys) },
                        [NSNumber(value: 10), NSNumber(value: 11)])
 
@@ -204,7 +240,8 @@ final class DBDatabaseScreenTests: XCTestCase {
         transport.replies[181] = (stats([(10, 60)]), 200)
         let vc = makeVC(game: "Pente", moves: [180, 181, 200])
         back(vc)
-        await settle()
+        let loaded = await waitUntil { self.service.lastStats != nil }
+        XCTAssertTrue(loaded)
         XCTAssertTrue(dbOptions(vc)?.isEmpty ?? true)
         XCTAssertTrue(dbOptions(vc, "zoomedBoard")?.isEmpty ?? true)
     }
@@ -230,12 +267,16 @@ final class DBDatabaseScreenTests: XCTestCase {
         transport.replies[181] = ("{\"error\":{\"code\":\"oops\"}}", 500)
         let vc = makeVC(game: "Pente", moves: [180, 181, 200])
         back(vc)
-        await settle()
+        let failed = await waitUntil { self.visibleView(vc, id: "dbRetryButton") != nil }
+        XCTAssertTrue(failed)
         let retry = visibleView(vc, id: "dbRetryButton") as? UIButton
         XCTAssertNotNil(retry)
         transport.replies[181] = (stats([(10, 60)]), 200)
         retry?.sendActions(for: .touchUpInside)
-        await settle()
+        let recovered = await waitUntil {
+            self.visibleView(vc, id: "dbRetryButton") == nil && self.heatKeys(vc) == [NSNumber(value: 10)]
+        }
+        XCTAssertTrue(recovered)
         XCTAssertEqual(transport.requests.count, 2)
         XCTAssertNil(visibleView(vc, id: "dbRetryButton"))
         XCTAssertEqual(dbOptions(vc).map { Set($0.keys) }, [NSNumber(value: 10)])
