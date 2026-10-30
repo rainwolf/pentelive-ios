@@ -114,6 +114,19 @@ final class DBDatabaseScreenTests: XCTestCase {
         return vc
     }
 
+    /// A screen opened from the menu: no injected game or moves, so the saved
+    /// filter game and its starting line (resetState) apply.
+    private func makeFreshVC(filterGame: Int) -> UIViewController {
+        var s = DBFilterState()
+        s.setGame(id: filterGame)
+        service.filterState = s
+        let sb = UIStoryboard(name: "MainStoryboard", bundle: Bundle.main)
+        let vc = sb.instantiateViewController(withIdentifier: "databaseViewController")
+        vc.setValue(service, forKey: "dbService")
+        vc.loadViewIfNeeded()
+        return vc
+    }
+
     private func line(_ vc: UIViewController) -> DBLine {
         return vc.value(forKey: "line") as! DBLine
     }
@@ -138,11 +151,11 @@ final class DBDatabaseScreenTests: XCTestCase {
         vc.perform(NSSelectorFromString("goForwardOneMoveSwipe:"), with: nil)
     }
 
-    private func tap(_ vc: UIViewController, cell: Int, state: UIGestureRecognizer.State) {
+    private func tap(_ vc: UIViewController, cell: Int, state: UIGestureRecognizer.State, grid: Int = 19) {
         let b = board(vc, "board")
-        let cs = b.bounds.width / 19
+        let cs = b.bounds.width / CGFloat(grid)
         let rec = FakeLongPress()
-        rec.point = CGPoint(x: (CGFloat(cell % 19) + 0.5) * cs, y: (CGFloat(cell / 19) + 0.5) * cs)
+        rec.point = CGPoint(x: (CGFloat(cell % grid) + 0.5) * cs, y: (CGFloat(cell / grid) + 0.5) * cs)
         rec.fakeState = state
         vc.perform(NSSelectorFromString("boardTap:"), with: rec)
     }
@@ -278,7 +291,7 @@ final class DBDatabaseScreenTests: XCTestCase {
     }
 
     func testUnsupportedGameShowsLabelAndSendsNothing() async {
-        let vc = makeVC(game: "Go", moves: [180, 181])
+        let vc = makeVC(game: "Tombstone", moves: [180, 181])
         back(vc)
         await settle()
         XCTAssertTrue(transport.requests.isEmpty)
@@ -522,20 +535,117 @@ final class DBDatabaseScreenTests: XCTestCase {
 
     // MARK: injected Go/Renju (F2)
 
-    func testInjectedGoIsNotReplayedWithPenteRules() {
-        // Under Pente rules 183 would capture 181+182; 361 is a Go pass.
-        let vc = makeVC(game: "Go", moves: [180, 181, 300, 182, 183, 361])
+    func testInjectedGoReplaysWithGoRulesAndSendsRequest() async {
+        // B A9, W B9, B C9, W E5, B B8 captures W B9 (cell 1).
+        let vc = makeVC(game: "Go (9x9)", moves: [0, 1, 2, 40, 10])
         vc.perform(NSSelectorFromString("replayGame"))
         vc.perform(NSSelectorFromString("positionChanged"))
-        XCTAssertEqual(service.occupied, [])
+        XCTAssertEqual(service.occupied, [0, 2, 40, 10])
+        let sent = await waitUntil { !self.transport.requests.isEmpty }
+        XCTAssertTrue(sent)
+        XCTAssertEqual(gamesOfRequests().last, 21)
+        XCTAssertEqual(sentMoves().last, [0, 1, 2, 40, 10])
         vc.perform(NSSelectorFromString("setBoardColor"))
         for key in ["whiteStoneCaptures", "blackStoneCaptures",
                     "whiteCapturesCountLabel", "blackCapturesCountLabel"] {
-            XCTAssertTrue(board(vc, key).isHidden, key)
+            XCTAssertFalse(board(vc, key).isHidden, key)
         }
+        XCTAssertEqual((board(vc, "whiteCapturesCountLabel") as? UILabel)?.text, "x 1")
         let texts = allLabels(vc.navigationItem.titleView ?? UIView()).map { $0.attributedText?.string ?? $0.text ?? "" }
-        XCTAssertTrue(texts.contains("Go"), "\(texts)")
-        XCTAssertFalse(texts.contains { $0.contains("●") }, "\(texts)")
+        XCTAssertEqual(texts.first, "Go (9x9)", "\(texts)")
+        XCTAssertTrue(texts.contains { $0.contains("● × 1") }, "\(texts)")
+        let b = flashing(vc)
+        XCTAssertEqual(b.gridSize, 9)
+        XCTAssertTrue(b.go)
+        XCTAssertEqual((board(vc, "zoomedBoard") as! DBBoardView).gridSize, 9)
+        XCTAssertEqual(board(vc, "board").backgroundColor?.dbHexString, "#FAC832")
+    }
+
+    func testInjectedGoPassKeepsParityAndShowsInNotation() {
+        // W passes, so B8 is black and captures W B9.
+        let vc = makeVC(game: "Speed Go (9x9)", moves: [0, 1, 2, 81, 10])
+        vc.perform(NSSelectorFromString("replayGame"))
+        vc.perform(NSSelectorFromString("positionChanged"))
+        XCTAssertEqual(service.occupied, [0, 2, 10])
+        let notation = vc.value(forKey: "moveStatsString") as? String ?? ""
+        XCTAssertTrue(notation.hasPrefix("<b>1.</b> A9"), notation)
+        XCTAssertTrue(notation.contains("<b>2.</b> C9 - PASS"), notation)
+        XCTAssertTrue(notation.hasSuffix("<b>3.</b> B8"), notation)
+    }
+
+    func testGoKoCellIsOccupiedSoItGetsNoHeatOrTap() {
+        let vc = makeVC(game: "Go (9x9)", moves: [1, 2, 9, 20, 19, 12, 40, 10, 11])
+        vc.perform(NSSelectorFromString("replayGame"))
+        vc.perform(NSSelectorFromString("positionChanged"))
+        XCTAssertTrue(service.occupied.contains(10), "ko point")
+        tap(vc, cell: 10, state: .ended, grid: 9)
+        XCTAssertEqual(line(vc).cells.count, 9, "retaking the ko at once is refused")
+    }
+
+    func testGoStartsEmptyAndTapMapsToNineByNineCell() {
+        let vc = makeFreshVC(filterGame: 21)
+        XCTAssertEqual(game(vc), "Go (9x9)")
+        XCTAssertEqual(line(vc).cells, [])
+        XCTAssertEqual(mirror(vc), [])
+        XCTAssertEqual(vc.value(forKey: "moveStatsString") as? String, "")
+        layout(vc, CGSize(width: 402, height: 734))
+        let side = board(vc, "board").bounds.width
+        XCTAssertEqual(board(vc, "stone").bounds.width, 1.2 * side / 9, accuracy: 0.01)
+        tap(vc, cell: 40, state: .began, grid: 9)
+        XCTAssertEqual((board(vc, "stone") as? StoneView)?.stoneColor, Int32(BLACK), "black moves first")
+        tap(vc, cell: 40, state: .ended, grid: 9)
+        XCTAssertEqual(line(vc).cells, [40])
+        XCTAssertEqual(service.occupied, [40])
+        tap(vc, cell: 80, state: .began, grid: 9)
+        XCTAssertEqual((board(vc, "stone") as? StoneView)?.stoneColor, Int32(WHITE))
+        tap(vc, cell: 80, state: .ended, grid: 9)
+        XCTAssertEqual(line(vc).cells, [40, 80], "bottom-right corner J1")
+        back(vc)
+        back(vc)
+        XCTAssertEqual(line(vc).cells, [], "Go steps back to the empty board")
+    }
+
+    func testRenjuStartsAtCentre112() {
+        let vc = makeFreshVC(filterGame: 31)
+        XCTAssertEqual(game(vc), "Renju")
+        XCTAssertEqual(line(vc).cells, [112])
+        XCTAssertEqual(vc.value(forKey: "moveStatsString") as? String, "<b>1.</b> H8")
+        vc.perform(NSSelectorFromString("replayGame"))
+        vc.perform(NSSelectorFromString("positionChanged"))
+        XCTAssertEqual(service.occupied, [112])
+        XCTAssertEqual(flashing(vc).gridSize, 15)
+        XCTAssertFalse(flashing(vc).go)
+        layout(vc, CGSize(width: 402, height: 734))
+        // White answers next to the black centre stone.
+        tap(vc, cell: 113, state: .began, grid: 15)
+        XCTAssertEqual((board(vc, "stone") as? StoneView)?.stoneColor, Int32(WHITE))
+        tap(vc, cell: 113, state: .ended, grid: 15)
+        XCTAssertEqual(line(vc).cells, [112, 113])
+        back(vc)
+        XCTAssertFalse(line(vc).back(), "the Renju centre stone stays")
+    }
+
+    func testPenteStillStartsAtK10WithWhite() {
+        let vc = makeFreshVC(filterGame: 1)
+        XCTAssertEqual(line(vc).cells, [180])
+        XCTAssertEqual(vc.value(forKey: "moveStatsString") as? String, "<b>1.</b> K10")
+        XCTAssertEqual(flashing(vc).gridSize, 0, "storyboard default until a replay")
+        vc.perform(NSSelectorFromString("replayGame"))
+        XCTAssertEqual(flashing(vc).gridSize, 19)
+        layout(vc, CGSize(width: 402, height: 734))
+        tap(vc, cell: 181, state: .began)
+        XCTAssertEqual((board(vc, "stone") as? StoneView)?.stoneColor, Int32(BLACK))
+        tap(vc, cell: 181, state: .ended)
+        XCTAssertEqual(line(vc).cells, [180, 181])
+    }
+
+    func testHeatDropsOffBoardCandidatesOnSmallBoard() async {
+        transport.replies[40] = (stats([(30, 60), (81, 90), (90, 10), (-3, 70)]), 200)
+        let vc = makeVC(game: "Go (9x9)", moves: [40])
+        vc.perform(NSSelectorFromString("replayGame"))
+        vc.perform(NSSelectorFromString("positionChanged"))
+        let painted = await waitUntil { self.heatKeys(vc) == [NSNumber(value: 30)] }
+        XCTAssertTrue(painted, "\(String(describing: heatKeys(vc)))")
     }
 
     // MARK: strip states on compact width (M3)
@@ -559,8 +669,17 @@ final class DBDatabaseScreenTests: XCTestCase {
 
     // MARK: injected Go then Apply (M6)
 
-    func testApplyUnchangedFiltersAfterInjectedGoSwitchesToFilterGame() {
-        let vc = makeVC(game: "Go", moves: [180, 181])
+    func testApplyUnchangedFiltersAfterInjectedGoKeepsGoAndTheLine() {
+        let vc = makeVC(game: "Go (9x9)", moves: [40, 41])
+        guard let sheet = openFilters(vc) else { return XCTFail("no filters sheet") }
+        sheet.applyButton.sendActions(for: .touchUpInside)
+        XCTAssertEqual(game(vc), "Go (9x9)")
+        XCTAssertEqual(line(vc).game, 21)
+        XCTAssertEqual(mirror(vc), [40, 41])
+    }
+
+    func testApplyUnchangedFiltersAfterUnknownGameSwitchesToFilterGame() {
+        let vc = makeVC(game: "Tombstone", moves: [180, 181])
         guard let sheet = openFilters(vc) else { return XCTFail("no filters sheet") }
         sheet.applyButton.sendActions(for: .touchUpInside)
         XCTAssertEqual(game(vc), "Pente")
@@ -581,9 +700,9 @@ final class DBDatabaseScreenTests: XCTestCase {
     }
 
     func testTitleFollowsGameChangeFromFilters() {
-        let vc = makeVC(game: "Go", moves: [180, 181])
+        let vc = makeVC(game: "Tombstone", moves: [180, 181])
         vc.perform(NSSelectorFromString("replayGame"))
-        XCTAssertEqual(vc.title, "Go")
+        XCTAssertEqual(vc.title, "Tombstone")
         guard let sheet = openFilters(vc) else { return XCTFail("no filters sheet") }
         sheet.applyButton.sendActions(for: .touchUpInside)
         XCTAssertEqual(vc.title, "Pente")
@@ -1008,9 +1127,17 @@ final class DBDatabaseScreenTests: XCTestCase {
     }
 
     func testInjectedUnsupportedGameKeepsNameAndFilters() {
-        let vc = makeVC(game: "Go", moves: [180, 181])
-        XCTAssertEqual(game(vc), "Go")
+        let vc = makeVC(game: "Tombstone", moves: [180, 181])
+        XCTAssertEqual(game(vc), "Tombstone")
         XCTAssertEqual(service.filterGameId, 1)
+    }
+
+    func testInjectedGoAndRenjuAreAdoptedIntoFilters() {
+        _ = makeVC(game: "Speed Go (13x13)", moves: [84])
+        XCTAssertEqual(service.filterGameId, 24)
+        XCTAssertEqual(filterStore.load().gameId, 24)
+        _ = makeVC(game: "Renju", moves: [112, 113])
+        XCTAssertEqual(service.filterGameId, 31)
     }
 
     func testChipRowShowsSummaryInsideStrip() {
@@ -1056,6 +1183,40 @@ final class DBDatabaseScreenTests: XCTestCase {
         let sent = await waitUntil { self.gamesOfRequests().contains(3) }
         XCTAssertTrue(sent)
         XCTAssertEqual(sentMoves().last, [180])
+    }
+
+    func testApplyGoThenRenjuThenPenteResetsLineAndGrid() async {
+        let vc = makeVC(game: "Pente", moves: [180, 181, 200])
+        layout(vc, CGSize(width: 402, height: 734))
+        guard let sheet = openFilters(vc) else { return XCTFail("no filters sheet") }
+        sheet.gameChips.first { $0.tag == 23 }!.sendActions(for: .touchUpInside)
+        sheet.applyButton.sendActions(for: .touchUpInside)
+        XCTAssertEqual(game(vc), "Go (13x13)")
+        XCTAssertEqual(line(vc).game, 23)
+        XCTAssertEqual(line(vc).cells, [])
+        XCTAssertEqual(service.occupied, [], "the Pente stones are gone")
+        XCTAssertEqual(flashing(vc).gridSize, 13)
+        XCTAssertTrue(flashing(vc).go)
+        XCTAssertEqual(board(vc, "board").backgroundColor, DBPalette.boardColor(forGame: 23))
+        let sent = await waitUntil { self.gamesOfRequests().contains(23) }
+        XCTAssertTrue(sent)
+        XCTAssertEqual(sentMoves().last, [])
+
+        guard let sheet2 = openFilters(vc) else { return XCTFail("no filters sheet") }
+        sheet2.gameChips.first { $0.tag == 31 }!.sendActions(for: .touchUpInside)
+        sheet2.applyButton.sendActions(for: .touchUpInside)
+        XCTAssertEqual(line(vc).cells, [112])
+        XCTAssertEqual(service.occupied, [112])
+        XCTAssertEqual(flashing(vc).gridSize, 15)
+        XCTAssertFalse(flashing(vc).go)
+
+        guard let sheet3 = openFilters(vc) else { return XCTFail("no filters sheet") }
+        sheet3.gameChips.first { $0.tag == 1 }!.sendActions(for: .touchUpInside)
+        sheet3.applyButton.sendActions(for: .touchUpInside)
+        XCTAssertEqual(line(vc).cells, [180])
+        XCTAssertEqual(service.occupied, [180])
+        XCTAssertEqual(flashing(vc).gridSize, 19)
+        XCTAssertEqual(vc.value(forKey: "moveStatsString") as? String, "<b>1.</b> K10")
     }
 
     func testApplySameGameKeepsLineAndRefetchesWithFilters() async {
