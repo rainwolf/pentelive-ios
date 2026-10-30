@@ -29,6 +29,7 @@
 		21715C319AA4E90E18E94A90 /* DashboardEndpointTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0ECA09C532731E03061C1308 /* DashboardEndpointTests.swift */; };
 		23D406DC7B60ACE1F3879C92 /* BoardVariantMapping.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50436E8B3C992E62FFFC15D7 /* BoardVariantMapping.swift */; };
 		24F5B3C3A96EEDEA4D1078E8 /* ArenaMyRequestsModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FB2E1A032CEE396D7987441 /* ArenaMyRequestsModel.swift */; };
+		26BC2E6C4E06C896C31BD4F9 /* DBClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC5151ADD885C9D439276F94 /* DBClient.swift */; };
 		317101D2F2CE93FC478F38D5 /* StoreAdapters.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF6E9CF83C944F2B4E0C5C8E /* StoreAdapters.swift */; };
 		32A66A1A6CD3DA16C0CEFF89 /* PenteVariantTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86AC1A8A05D560A06454D468 /* PenteVariantTests.swift */; };
 		35C8D8018B6AA0E7D09F0D97 /* StoreReplyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F255476AD428B119B8ED44D /* StoreReplyTests.swift */; };
@@ -292,6 +293,7 @@
 		BBA523D1BFE87E6E0839A7BE /* DashboardTransport.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7527ED20D5B800D46E10F91 /* DashboardTransport.swift */; };
 		BCBF98A97B5DCE41E148A93D /* KidAccountsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B85148550AC145C5A4472E98 /* KidAccountsService.swift */; };
 		C2334D35F088D16FD6B18BB7 /* ReceiptReply.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D3B319183B6CB725B68319A /* ReceiptReply.swift */; };
+		C26FDFDB32472BC9CA6CE4E5 /* DBClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F97B127ABAEA163D1509053 /* DBClientTests.swift */; };
 		C2D0D7FD4525C2DA24C607D7 /* TbViewerRoleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB3F8BBDA5140219BE67408F /* TbViewerRoleTests.swift */; };
 		C39BBF8A4B9D391D75E63514 /* MoveResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9AA0E8424F26F770E4D9CD /* MoveResult.swift */; };
 		CACA6F1D6073D24501A45B3E /* dashboard_sample.json in Resources */ = {isa = PBXBuildFile; fileRef = 1719B0CC190A38E646A3A9D8 /* dashboard_sample.json */; };
@@ -360,6 +362,7 @@
 		351CBE2A7B2AAF91BC6615EE /* StoreScreenModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StoreScreenModel.swift; sourceTree = "<group>"; };
 		3CE71B4A2818C0A22473B3EA /* StoreServiceResyncTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StoreServiceResyncTests.swift; sourceTree = "<group>"; };
 		3D3B319183B6CB725B68319A /* ReceiptReply.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ReceiptReply.swift; sourceTree = "<group>"; };
+		3F97B127ABAEA163D1509053 /* DBClientTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DBClientTests.swift; sourceTree = "<group>"; };
 		40F3795CA283F67FCCDC464A /* DBAPIModelsTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DBAPIModelsTests.swift; sourceTree = "<group>"; };
 		410191D1BEE5CCDBB1EAFD9C /* Dashboard.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Dashboard.swift; sourceTree = "<group>"; };
 		41D62F7AEBDFB3F97F09C64F /* PenteAlert.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PenteAlert.h; sourceTree = "<group>"; };
@@ -691,6 +694,7 @@
 		D8C659756B4CDB24A820A4F4 /* Products.storekit */ = {isa = PBXFileReference; includeInIndex = 1; path = Products.storekit; sourceTree = "<group>"; };
 		DAA2C3922D9D3F3936D97D9D /* DBGameCatalogTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DBGameCatalogTests.swift; sourceTree = "<group>"; };
 		DB29EC885CE63665B0B3C374 /* ArenaMyRequestsModelTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ArenaMyRequestsModelTests.swift; sourceTree = "<group>"; };
+		DC5151ADD885C9D439276F94 /* DBClient.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DBClient.swift; sourceTree = "<group>"; };
 		DC635F2362D948DA030F4A63 /* ArenaWireTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ArenaWireTests.swift; sourceTree = "<group>"; };
 		DD7A8072E91AD17EAC167C81 /* StoreScreenModelTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StoreScreenModelTests.swift; sourceTree = "<group>"; };
 		DF79B5FAA47E933A0410E3FD /* DashboardMapping.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DashboardMapping.swift; sourceTree = "<group>"; };
@@ -1124,6 +1128,7 @@
 				F7C6301B1FFA90AF3EFFC698 /* DBGameCatalog.swift */,
 				5358C63FD6FAECC96B89B521 /* DBPalette.swift */,
 				CA9129A89E021A92511C5467 /* DBAPIModels.swift */,
+				DC5151ADD885C9D439276F94 /* DBClient.swift */,
 			);
 			name = PenteDB;
 			path = test1/PenteDB;
@@ -1222,6 +1227,7 @@
 				DAA2C3922D9D3F3936D97D9D /* DBGameCatalogTests.swift */,
 				A9C87EEF94CBCE7275D0A942 /* DBSetupViewKeyTests.m */,
 				40F3795CA283F67FCCDC464A /* DBAPIModelsTests.swift */,
+				3F97B127ABAEA163D1509053 /* DBClientTests.swift */,
 			);
 			path = PenteEngineTests;
 			sourceTree = SOURCE_ROOT;
@@ -1623,6 +1629,7 @@
 				B74EC7FB084C6A09EF96B513 /* DBGameCatalogTests.swift in Sources */,
 				0FA6727C32177EC05DF0536D /* DBSetupViewKeyTests.m in Sources */,
 				FEAB7B3D998B39D5FEB924DD /* DBAPIModelsTests.swift in Sources */,
+				C26FDFDB32472BC9CA6CE4E5 /* DBClientTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1727,6 +1734,7 @@
 				8168BCA9C713B0FC0D21EFB3 /* DBGameCatalog.swift in Sources */,
 				E35685AEAE9F449735868B98 /* DBPalette.swift in Sources */,
 				377815FD5FA402CD1C8F59BA /* DBAPIModels.swift in Sources */,
+				26BC2E6C4E06C896C31BD4F9 /* DBClient.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
