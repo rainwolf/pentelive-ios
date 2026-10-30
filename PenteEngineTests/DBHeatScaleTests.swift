@@ -38,8 +38,17 @@ final class DBHeatScaleTests: XCTestCase {
     }
 
     func testLimitAppliesAfterSort() {
+        // Ascending winPct input: a prefix taken before sorting would return cells 0..<20.
         let moves = (0..<25).map { mv($0, Double($0)) }
-        XCTAssertEqual(DBHeatScale.displayed(moves, occupied: [], limit: 20).count, 20)
+        let shown = DBHeatScale.displayed(moves, occupied: [], limit: 20)
+        XCTAssertEqual(shown.map { $0.move }, Array((5...24).reversed()))
+    }
+
+    func testOccupiedDroppedBeforeLimitCut() {
+        // Cell 99 ranks first but is occupied; it must not consume one of the 3 slots.
+        let moves = [mv(99, 90), mv(1, 80), mv(2, 70), mv(3, 60), mv(4, 50)]
+        let shown = DBHeatScale.displayed(moves, occupied: [99], limit: 3)
+        XCTAssertEqual(shown.map { $0.move }, [1, 2, 3])
     }
 
     func testAllOccupiedYieldsEmpty() {
