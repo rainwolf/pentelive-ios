@@ -56,6 +56,11 @@
     if (!_hasBackgrounded) {
         return;
     }
+    // Unit-test host: a simulator background/foreground mid-run must not
+    // refresh the dashboard from pente.org.
+    if ([AppDelegate isRunningUnitTests]) {
+        return;
+    }
     NSLog(@"penteliveee: foreground");
     PenteNavigationViewController *nav =
         (PenteNavigationViewController *)self.window.rootViewController;
