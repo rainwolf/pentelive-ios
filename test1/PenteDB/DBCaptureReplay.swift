@@ -12,20 +12,14 @@ enum DBCaptureReplay {
             return DBCaptureSummary(whiteStonesCaptured: 0, blackStonesCaptured: 0,
                                     showsIcons: DBGameCatalog.hasCaptures(game: game))
         }
-        // Pass sentinel (gridSize^2) and junk must never be written into the board.
-        let cells = DBGameCatalog.gridSize(forGame: game)
-        let moves = moves.filter { $0 >= 0 && $0 < cells * cells }
-        let board = UnsafeMutablePointer<AbstractBoard>.allocate(capacity: 19)
-        defer { board.deallocate() }
-        board.initialize(repeating: (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), count: 19)
-        let g = LegacyPenteGame()
-        g.abstractBoard = board
-        let variant = PenteGameVariant(rawValue: DBGameCatalog.variant(forGame: game).rawValue) ?? .pente
-        g.replayMoves(moves.map { NSNumber(value: $0) }, variant: variant, untilMove: moves.count)
-        let result = DBCaptureSummary(whiteStonesCaptured: Int(g.whiteCaptures),
-                                      blackStonesCaptured: Int(g.blackCaptures), showsIcons: true)
-        g.abstractBoard = nil
-        return result
+        // DBBoardReplayer keeps pass sentinels (grid²) out of the board and
+        // replays Go with Go rules.
+        var cells = [Int32](repeating: 0, count: 361)
+        let r = cells.withUnsafeMutableBufferPointer {
+            DBBoardReplayer.replay(game: game, moves: moves, until: moves.count, into: $0.baseAddress!)
+        }
+        return DBCaptureSummary(whiteStonesCaptured: r.whiteCaptures,
+                                blackStonesCaptured: r.blackCaptures, showsIcons: true)
     }
 }
 

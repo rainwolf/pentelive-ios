@@ -13,6 +13,19 @@ final class DBHeatScaleTests: XCTestCase {
         return (Int((r * 255).rounded()), Int((g * 255).rounded()), Int((b * 255).rounded()))
     }
 
+    func testOffBoardCandidatesDroppedOnSmallBoard() {
+        // 9x9: the pass (81), past-the-board (90) and negative cells are junk.
+        let moves = [mv(30, 50), mv(81, 90), mv(90, 10), mv(-3, 70), mv(80, 40)]
+        let shown = DBHeatScale.displayed(moves, occupied: [], limit: nil, gridSize: 9)
+        XCTAssertEqual(Set(shown.map { $0.move }), [30, 80])
+        XCTAssertEqual(Set(DBHeatScale.colors(for: shown).keys), [30, 80])
+    }
+
+    func testDefaultGridKeepsEveryNineteenByNineteenCell() {
+        let moves = [mv(0, 50), mv(360, 60), mv(361, 70)]
+        XCTAssertEqual(Set(DBHeatScale.displayed(moves, occupied: [], limit: nil).map { $0.move }), [0, 360])
+    }
+
     func testThreeCandidates() {
         let a = DBHeatScale.rgb(winPct: 40, min: 40, max: 60)
         let b = DBHeatScale.rgb(winPct: 50, min: 40, max: 60)

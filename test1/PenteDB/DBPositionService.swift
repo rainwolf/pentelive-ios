@@ -89,8 +89,8 @@ import UIKit
     }
 
     /// "To DB" from a live game: a supported game becomes the saved filter
-    /// game (legacy wrote `DBGame` in BoardViewController.toDB). Go, Renju
-    /// and nil leave the filters alone.
+    /// game (legacy wrote `DBGame` in BoardViewController.toDB). Go and Renju
+    /// included; unknown names and nil leave the filters alone.
     @objc func adoptInjectedGame(_ name: String?) {
         let id = DBGameCatalog.gameId(forName: name)
         guard DBGameCatalog.isSupported(id) else { return }
@@ -251,7 +251,8 @@ import UIKit
         guard let s = lastStats else { return [] }
         let n = preferences.movesShown
         return DBHeatScale.displayed(s.nextMoves, occupied: occupied, limit: n > 0 ? n : nil,
-                                   sort: preferences.moveSort)
+                                   sort: preferences.moveSort,
+                                   gridSize: DBGameCatalog.gridSize(forGame: game))
     }
 
     private static func state(for error: Error) -> DBLoadState {

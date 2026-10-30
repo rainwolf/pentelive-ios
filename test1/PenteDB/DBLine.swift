@@ -12,11 +12,11 @@ enum DBStepPolicy {
         return (count - 1) % 2 == 0 ? 2 : 1
     }
 
-    /// D-Pente, DK-Pente and Swap2-* may start off-centre; others keep the
-    /// fixed centre stone.
+    /// D-Pente, DK-Pente, Swap2-* and Go (empty start) may start off-centre;
+    /// others, Renju included, keep the fixed centre stone.
     static func minimumCount(game: Int) -> Int {
         switch DBGameCatalog.baseGame(game) {
-        case 7, 17, 27, 29: return 0
+        case 7, 17, 19, 21, 23, 27, 29: return 0
         default: return 1
         }
     }

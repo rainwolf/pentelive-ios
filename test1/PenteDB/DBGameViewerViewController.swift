@@ -87,9 +87,9 @@ final class DBMoveGridCell: UICollectionViewCell {
     let moveGrid = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
     private(set) var gridCells: [DBMoveCell] = []
 
-    /// 19x19 buffer DBBoardView draws from; owned here, freed in deinit.
+    /// 19x19 buffer (row stride 19) DBBoardView draws from; owned here,
+    /// freed in deinit. Smaller boards use its top-left corner.
     private let board: UnsafeMutablePointer<AbstractBoard>
-    private let game = LegacyPenteGame()
 
     /// Test seam: stands in for `isMovingFromParent` (no navigation stack).
     var movingFromParentOverride: Bool?
@@ -101,7 +101,6 @@ final class DBMoveGridCell: UICollectionViewCell {
         board = UnsafeMutablePointer<AbstractBoard>.allocate(capacity: 19)
         board.initialize(repeating: (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), count: 19)
         super.init(nibName: nil, bundle: nil)
-        game.abstractBoard = board
         hidesBottomBarWhenPushed = true
     }
 
@@ -110,7 +109,6 @@ final class DBMoveGridCell: UICollectionViewCell {
 
     deinit {
         loadTask?.cancel()
-        game.abstractBoard = nil
         board.deinitialize(count: 19)
         board.deallocate()
     }
@@ -353,10 +351,14 @@ final class DBMoveGridCell: UICollectionViewCell {
         self.detail = detail
         let gameId = detail.header?.game ?? 1
         let grid = DBGameCatalog.gridSize(forGame: gameId)
-        // Pass sentinels and junk are never written into the board.
-        let moves = detail.moves.filter { $0 >= 0 && $0 < grid * grid }
+        // Junk is dropped. Go/Renju passes (grid²) stay: they keep the colour
+        // parity and show as "PASS"; DBBoardReplayer never places them.
+        let keepsPass = DBGameCatalog.blackMovesFirst(game: gameId)
+        let moves = detail.moves.filter { $0 >= 0 && ($0 < grid * grid || (keepsPass && $0 == grid * grid)) }
         cursor = DBViewerCursor(moves: moves, game: gameId)
         boardView.backgroundColor = DBPalette.boardColor(forGame: gameId)
+        boardView.gridSize = Int32(grid)
+        boardView.go = DBGameCatalog.isGo(gameId)
         if let h = detail.header {
             title = "\(h.player1?.name ?? "?") \u{2013} \(h.player2?.name ?? "?")"
         }
@@ -407,8 +409,8 @@ final class DBMoveGridCell: UICollectionViewCell {
 
     private func redraw() {
         guard let c = cursor else { return }
-        let variant = PenteGameVariant(rawValue: DBGameCatalog.variant(forGame: c.game).rawValue) ?? .pente
-        game.replayMoves(c.moves.map { NSNumber(value: $0) }, variant: variant, untilMove: c.index)
+        DBBoardReplayer.replay(game: c.game, moves: c.moves, until: c.index,
+                               into: UnsafeMutableRawPointer(board).assumingMemoryBound(to: Int32.self))
         boardView.lastMove = c.index > 0 ? Int32(c.moves[c.index - 1]) : -1
         boardView.setNeedsDisplay()
         moveLabel.text = String(format: NSLocalizedString("Move %ld / %ld", comment: ""), c.index, c.moves.count)
@@ -433,8 +435,10 @@ final class DBMoveGridCell: UICollectionViewCell {
 
     /// Stone colour at `cell` after the current replay (0 = empty). For tests.
     func stone(at cell: Int) -> Int32 {
-        guard cell >= 0, cell < 361 else { return 0 }
-        return UnsafeMutableRawPointer(board).assumingMemoryBound(to: Int32.self)[cell]
+        let g = DBGameCatalog.gridSize(forGame: cursor?.game ?? 1)
+        guard cell >= 0, cell < g * g else { return 0 }
+        let index = (cell / g) * DBBoardReplayer.stride + cell % g
+        return UnsafeMutableRawPointer(board).assumingMemoryBound(to: Int32.self)[index]
     }
 
     @objc private func retryTapped() {

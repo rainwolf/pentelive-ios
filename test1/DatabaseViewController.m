@@ -196,7 +196,7 @@
         dbService = [DBPositionService makeDefault];
     }
     // Game source: an injected game (BoardViewController.toDB) becomes the
-    // saved filter game when supported; Go/Renju keep their name and show
+    // saved filter game when supported; an unknown name is kept and shows
     // "Not supported yet". Otherwise the saved filters pick the game.
     if (game != nil) {
         [dbService adoptInjectedGame:game];
@@ -358,7 +358,7 @@
         zoomedBoard.bounds = (CGRect){CGPointZero, zoomed};
         [zoomedBoard setNeedsDisplay];
     }
-    CGFloat stoneSide = 1.2 * side / 19;
+    CGFloat stoneSide = 1.2 * side / [self boardGrid];
     stone.bounds = CGRectMake(0, 0, stoneSide, stoneSide);
     zoomedStone.bounds = CGRectMake(0, 0, 1.5 * 2 * stoneSide, 1.5 * 2 * stoneSide);
 
@@ -519,7 +519,7 @@
     }
     NSInteger grid = [DBGameCatalog gridSizeForGame:[DBGameCatalog gameIdForName:game]];
     // The AI's move is due on this line: a selection waits until it lands.
-    if (aiThinking || grid > 19 || cell >= grid * grid ||
+    if (aiThinking || cell >= grid * grid ||
         abstractBoard[cell / grid][cell % grid] != 0) {
         [self.resultsVC clearSelection];
         return;
@@ -596,7 +596,31 @@
     }
 }
 
+/// Cells per side for the current game: 9/13/19 for Go, 15 for Renju,
+/// else 19. abstractBoard keeps row stride 19; cell = row * grid + col.
+- (int)boardGrid {
+    return (int)[DBGameCatalog gridSizeForGame:[DBGameCatalog gameIdForName:game]];
+}
+
+/// Points both boards at the current game's grid and star points.
+- (void)syncBoardGeometry {
+    NSInteger gameId = [DBGameCatalog gameIdForName:game];
+    int grid = [self boardGrid];
+    BOOL go = [DBGameCatalog isGo:gameId];
+    if (board.gridSize == grid && board.go == go) {
+        return;
+    }
+    for (DBBoardView *b in @[ board, zoomedBoard ]) {
+        b.gridSize = grid;
+        b.go = go;
+        [b setNeedsDisplay];
+    }
+    // Stone size follows the cell size.
+    [self.view setNeedsLayout];
+}
+
 - (void)setBoardColor {
+    [self syncBoardGeometry];
     UIColor *c = [DBPalette boardColorForGame:[DBGameCatalog gameIdForName:game]];
     [board setBackgroundColor:c];
     [zoomedBoard setBackgroundColor:c];
@@ -654,11 +678,13 @@
 
     // Occupied = a stone on the board after replay; captured and poofed
     // cells are free again.
+    // A Go ko point (-1) counts as occupied: it may not be retaken at once.
     NSMutableArray<NSNumber *> *occupied = [[NSMutableArray alloc] init];
-    for (int y = 0; y < 19; ++y) {
-        for (int x = 0; x < 19; ++x) {
+    int grid = [self boardGrid];
+    for (int y = 0; y < grid; ++y) {
+        for (int x = 0; x < grid; ++x) {
             if (abstractBoard[y][x] != 0) {
-                [occupied addObject:@(y * 19 + x)];
+                [occupied addObject:@(y * grid + x)];
             }
         }
     }
@@ -684,13 +710,14 @@
     [self applyHeat:dbService.currentHeat];
 }
 
-/// Two-line title: "Database" over the game name and capture counts.
+/// Two-line title: the current game's name over its capture counts.
 - (void)refreshTitleView {
+    NSString *gameName = game.length > 0 ? game : NSLocalizedString(@"Database", nil);
+    self.title = gameName;
     if (dbTitleLabel == nil) {
         dbTitleLabel = [[UILabel alloc] init];
         dbTitleLabel.font = [UIFont boldSystemFontOfSize:15];
         dbTitleLabel.textAlignment = NSTextAlignmentCenter;
-        dbTitleLabel.text = NSLocalizedString(@"Database", nil);
         dbSubtitleLabel = [[UILabel alloc] init];
         dbSubtitleLabel.textAlignment = NSTextAlignmentCenter;
         dbSubtitleLabel.adjustsFontSizeToFitWidth = YES;
@@ -699,21 +726,31 @@
             initWithArrangedSubviews:@[ dbTitleLabel, dbSubtitleLabel ]];
         stack.axis = UILayoutConstraintAxisVertical;
         stack.alignment = UIStackViewAlignmentCenter;
-        stack.frame = CGRectMake(0, 0, 200, 36);
         self.navigationItem.titleView = stack;
     }
+    dbTitleLabel.text = gameName;
     NSInteger gameId = [DBGameCatalog gameIdForName:game];
     if (![DBGameCatalog isSupported:gameId]) {
-        // Go/Renju from a live game: the name only, never Pente captures.
-        dbSubtitleLabel.attributedText = [[NSAttributedString alloc]
-            initWithString:game ?: @""
-                attributes:@{NSFontAttributeName : [UIFont systemFontOfSize:12]}];
-        return;
+        // Unknown game from a live board: name only, never Pente captures.
+        dbSubtitleLabel.attributedText = nil;
+        dbSubtitleLabel.text = @"";
+    } else {
+        NSMutableAttributedString *sub = [[DBSubtitleFormatter
+            attributedSubtitleWithGame:gameId
+                                 moves:movesList ?: @[]
+                                  font:[UIFont systemFontOfSize:12]] mutableCopy];
+        // The formatter leads with the game name, which is now the title.
+        NSRange dot = [sub.string rangeOfString:@"\u25CF"];
+        if (dot.location != NSNotFound && dot.location > 0) {
+            [sub deleteCharactersInRange:NSMakeRange(0, dot.location)];
+        } else if (dot.location == NSNotFound) {
+            [sub deleteCharactersInRange:NSMakeRange(0, sub.length)];
+        }
+        dbSubtitleLabel.attributedText = sub;
     }
-    dbSubtitleLabel.attributedText = [DBSubtitleFormatter
-        attributedSubtitleWithGame:gameId
-                             moves:movesList ?: @[]
-                              font:[UIFont systemFontOfSize:12]];
+    UIView *tv = self.navigationItem.titleView;
+    CGSize fit = [tv systemLayoutSizeFittingSize:UILayoutFittingCompressedSize];
+    tv.frame = CGRectMake(0, 0, fit.width, fit.height);
 }
 
 - (void)applyHeat:(NSDictionary<NSNumber *, UIColor *> *)heat {
@@ -984,7 +1021,12 @@
 
 /// Colours the placement stones for the side to move.
 - (void)prepareStoneColor {
-    if ([game containsString:@"Connect6"]) {
+    if ([DBGameCatalog blackMovesFirstWithGame:[DBGameCatalog gameIdForName:game]]) {
+        // Go and Renju: black first. Passes count as moves.
+        int color = ([movesList count] % 2 == 0) ? BLACK : WHITE;
+        [stone setStoneColor:color];
+        [zoomedStone setStoneColor:color];
+    } else if ([game containsString:@"Connect6"]) {
         if ((([movesList count] % 4) == 0) || (([movesList count] % 4) == 3)) {
             [stone setStoneColor:WHITE];
             [zoomedStone setStoneColor:WHITE];
@@ -1006,12 +1048,13 @@
 - (IBAction)boardTap:(UILongPressGestureRecognizer *)recognizer {
     int i, j;
     CGPoint currentPoint = [recognizer locationInView:self.board];
-    float cellSize = self.board.bounds.size.width / 19;
+    int grid = [self boardGrid];
+    float cellSize = self.board.bounds.size.width / grid;
     j = (int)floorf(currentPoint.x / cellSize);
     i = (int)floorf(currentPoint.y / cellSize);
-    BOOL onBoard = i >= 0 && i < 19 && j >= 0 && j < 19;
+    BOOL onBoard = i >= 0 && i < grid && j >= 0 && j < grid;
     // A heat dot is played with a plain tap: no magnifier over it.
-    BOOL onDot = onBoard && board.dbOptions[@(19 * i + j)] != nil;
+    BOOL onDot = onBoard && board.dbOptions[@(grid * i + j)] != nil;
 
     if (onDot && [recognizer state] != UIGestureRecognizerStateEnded) {
         [board setLastMove:-1];
@@ -1045,7 +1088,7 @@
             [horizontalLine setHidden:YES];
             [verticalLine setHidden:YES];
 
-            finalMove = 19 * i + j;
+            finalMove = grid * i + j;
             if (!game) {
                 game = [DBGameCatalog nameForGame:dbService.filterGameId];
             }
@@ -1090,7 +1133,7 @@
             CGPointMake(boardMid.x - (currentPoint.x - boardMid.x),
                         boardMid.y - (currentPoint.y - boardMid.y));
         // re-center the stone, re-snap if needed.
-        float cellSize = self.zoomedBoard.bounds.size.width / 19;
+        float cellSize = self.zoomedBoard.bounds.size.width / grid;
         if ((fabs(zoomedStone.center.x - 2 * currentPoint.x) >= cellSize / 2) ||
             (fabs(zoomedStone.center.y - 2 * currentPoint.y) >= cellSize / 2)) {
 
@@ -1211,8 +1254,9 @@
     NSArray<NSNumber *> *asked = aiLineToken;
     aiLineToken = nil;
     int cell = move.intValue;
+    int grid = [self boardGrid];
     if (asked == nil || ![asked isEqualToArray:line.moves] || cell < 0 ||
-        cell >= 361 || abstractBoard[cell / 19][cell % 19] != 0) {
+        cell >= grid * grid || abstractBoard[cell / grid][cell % grid] != 0) {
         return;
     }
     [board setLastMove:cell];
@@ -1240,10 +1284,26 @@
         game = [DBGameCatalog nameForGame:dbService.filterGameId];
     }
     [self refreshTitleView];
-    // Go/Renju (injected from a live game) are never replayed with these
-    // 19x19 Pente rules: the screen shows only the "Not supported" state.
-    BOOL supported = [DBGameCatalog isSupported:[DBGameCatalog gameIdForName:game]];
-    for (NSNumber *move in (supported ? movesList : @[])) {
+    [self syncBoardGeometry];
+    // Unknown games (id 0) show only the "Not supported" state. Go and
+    // Renju replay through DBBoardReplayer (Go captures and ko, black
+    // first, passes kept for parity); the Pente family uses the loop below.
+    NSInteger gameId = [DBGameCatalog gameIdForName:game];
+    BOOL supported = [DBGameCatalog isSupported:gameId];
+    BOOL goOrRenju = [DBGameCatalog isGo:gameId] || [DBGameCatalog isRenju:gameId];
+    int grid = [self boardGrid];
+    if (supported && goOrRenju) {
+        int32_t white = 0, black = 0;
+        [DBBoardReplayer replayWithGame:gameId
+                                  moves:movesList
+                                  until:movesList.count
+                                   into:&abstractBoard[0][0]
+                          whiteCaptures:&white
+                          blackCaptures:&black];
+        whiteCaptures = white;
+        blackCaptures = black;
+    }
+    for (NSNumber *move in (supported && !goOrRenju ? movesList : @[])) {
         int rowCol = [move intValue];
         if (rowCol < 0 || rowCol >= 361) {
             continue; // pass sentinel or junk: never written into the board
@@ -1289,7 +1349,9 @@
     moveStatsString = [[NSMutableString alloc] init];
     for (int i = 0; supported && i < [movesList count]; ++i) {
         int rowCol = [[movesList objectAtIndex:i] intValue];
-        if (rowCol < 0 || rowCol >= 361) {
+        // Go/Renju passes (grid²) are listed as "PASS"; junk never is.
+        if (rowCol < 0 || rowCol > grid * grid ||
+            (rowCol == grid * grid && !goOrRenju)) {
             continue;
         }
         if (i == 0) {
@@ -1317,11 +1379,8 @@
                 }
             }
         }
-        [moveStatsString
-            appendString:[NSString
-                             stringWithFormat:@"%c%d",
-                                              coordinateLetters[rowCol % 19],
-                                              19 - (rowCol / 19)]];
+        [moveStatsString appendString:[DBGameCatalog moveLabelWithCell:rowCol
+                                                                  game:gameId]];
     }
     [playerStats
         loadHTMLString:[HEADERSTRING
@@ -1377,9 +1436,17 @@
     [self updateCaptures];
 }
 
+/// The game's starting line: the centre stone (K10, or H8 on Renju's
+/// 15x15), or an empty Go board.
 - (void)resetState {
+    NSInteger gameId = [DBGameCatalog gameIdForName:game];
+    NSArray<NSNumber *> *start = [DBGameCatalog initialMovesForGame:gameId];
     moveStatsString = [[NSMutableString alloc] init];
-    [moveStatsString appendString:@"<b>1.</b> K10"];
+    if (start.count > 0) {
+        [moveStatsString appendString:@"<b>1.</b> "];
+        [moveStatsString appendString:[DBGameCatalog moveLabelWithCell:start[0].intValue
+                                                                  game:gameId]];
+    }
     [playerStats
         loadHTMLString:[HEADERSTRING
                            stringByAppendingString:
@@ -1387,10 +1454,15 @@
                                    stringByAppendingString:moveStatsString]]
                baseURL:nil];
     [self resetBoard];
-    abstractBoard[9][9] = 1;
+    int grid = [self boardGrid];
+    for (NSNumber *cell in start) {
+        int c = cell.intValue;
+        abstractBoard[c / grid][c % grid] =
+            [DBGameCatalog blackMovesFirstWithGame:gameId] ? 2 : 1;
+    }
     [movesList removeAllObjects];
-    [movesList addObject:[NSNumber numberWithInt:180]];
-    [line resetWithMoves:@[ @180 ]];
+    [movesList addObjectsFromArray:start];
+    [line resetWithMoves:start];
     [board setAbstractBoard:abstractBoard];
     [zoomedBoard setAbstractBoard:abstractBoard];
     [board setNeedsDisplay];
@@ -1419,7 +1491,7 @@
 /// the line to the centre stone (legacy resetState) and recolours; then
 /// both requests refire at offset 0 and the chip row follows.
 - (void)filtersApplied:(BOOL)gameChanged {
-    // An injected Go/Renju board is not the filter game either: Apply moves
+    // An injected unknown game is not the filter game either: Apply moves
     // the board onto the filter game so it and the chip row agree.
     if (gameChanged || [DBGameCatalog gameIdForName:game] != dbService.filterGameId) {
         game = [DBGameCatalog nameForGame:dbService.filterGameId];

@@ -142,6 +142,35 @@ final class DBFilterStateTests: XCTestCase {
         XCTAssertTrue(s.chipSummary().contains("after "))
     }
 
+    func testGoAndRenjuGameIdsOnTheWire() {
+        var s = DBFilterState()
+        s.setGame(id: 24)
+        XCTAssertEqual(s.baseGame, 23)
+        XCTAssertTrue(s.speed)
+        XCTAssertEqual(s.gameId, 24)
+        s.setGame(id: 21)
+        XCTAssertEqual(s.gameId, 21)
+        s.speed = true
+        XCTAssertEqual(s.gameId, 22, "Speed Go (9x9)")
+        s.setGame(id: 32)
+        XCTAssertEqual(s.baseGame, 31)
+        XCTAssertEqual(s.gameId, 32)
+        s.setGame(id: 19)
+        XCTAssertEqual(s.gameId, 19)
+        XCTAssertFalse(s.speed)
+    }
+
+    func testLegacyGoAndRenjuGamesMigrate() {
+        for (legacy, base, speed) in [("Renju", 31, false), ("Go (9x9)", 21, false),
+                                      ("Speed Go (13x13)", 23, true), ("Go", 19, false)] {
+            let d = freshDefaults()
+            d.set(legacy, forKey: "DBGame")
+            let s = DBFilterStore(defaults: d).load()
+            XCTAssertEqual(s.baseGame, base, legacy)
+            XCTAssertEqual(s.speed, speed, legacy)
+        }
+    }
+
     func testLegacyMigration() {
         let d = freshDefaults()
         d.set("Speed Keryo-Pente", forKey: "DBGame")
@@ -162,7 +191,7 @@ final class DBFilterStateTests: XCTestCase {
         d.set("either", forKey: "DBBothOrEither")
         d.set("yes", forKey: "DBExcludeTimeouts")
         d.set("live only", forKey: "DBLiveOrTB")
-        d.set("Go", forKey: "DBGame")
+        d.set("Tombstone", forKey: "DBGame")
         let s = DBFilterStore(defaults: d).load()
         XCTAssertTrue(s.eitherSeat)
         XCTAssertTrue(s.excludeTimeouts)

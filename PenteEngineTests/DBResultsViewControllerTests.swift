@@ -203,13 +203,49 @@ final class DBResultsViewControllerTests: XCTestCase {
         }
     }
 
-    func testSortControlOffersWinPercentAndPopularAndDefaultsToWinPercent() {
+    func testSortControlOffersWinPercentAndPopularityAndDefaultsToWinPercent() {
         let vc = DBResultsViewController(service: service)
         vc.loadViewIfNeeded()
         XCTAssertEqual(vc.sortControl.numberOfSegments, 2)
         XCTAssertEqual(vc.sortControl.titleForSegment(at: 0), "Win %")
-        XCTAssertEqual(vc.sortControl.titleForSegment(at: 1), "Popular")
+        XCTAssertEqual(vc.sortControl.titleForSegment(at: 1), "Popularity")
         XCTAssertEqual(vc.sortControl.selectedSegmentIndex, 0)
+    }
+
+    func testInfoButtonExistsAndPresentsWinRateExplanation() {
+        let vc = DBResultsViewController(service: service)
+        vc.loadViewIfNeeded()
+        XCTAssertEqual(vc.infoButton.accessibilityLabel, "About win %")
+        XCTAssertNotNil(vc.infoButton.image(for: .normal))
+        var presented: UIViewController?
+        vc.presentInfo = { presented = $0 }
+        vc.infoButton.sendActions(for: .touchUpInside)
+        guard let p = presented else { return XCTFail("nothing presented") }
+        XCTAssertEqual(p.modalPresentationStyle, .popover)
+        p.loadViewIfNeeded()
+        let text = p.view.subviews.compactMap { ($0 as? UILabel)?.text }.joined()
+        XCTAssertTrue(text.contains("Popularity"), text)
+        XCTAssertTrue(text.contains("Win % is sorted by how sure we can be"), text)
+        XCTAssertTrue(text.contains("(70%) can rank below one that won 120 of 200 (60%)"), text)
+        XCTAssertTrue(text.contains("fewer than \(DBMoveRanking.lowSampleThreshold) games always come last"), text)
+    }
+
+    func testInfoPopoverHeightGrowsWithLargerDynamicType() {
+        let vc = DBResultsViewController(service: service)
+        vc.loadViewIfNeeded()
+        var presented: UIViewController?
+        vc.presentInfo = { presented = $0 }
+        vc.infoButton.sendActions(for: .touchUpInside)
+        guard let popover = presented as? DBInfoPopoverController else { return XCTFail("no info popover") }
+        popover.loadViewIfNeeded()
+        popover.fitPreferredContentSize(traits: UITraitCollection(preferredContentSizeCategory: .large))
+        let standardHeight = popover.preferredContentSize.height
+
+        popover.fitPreferredContentSize(
+            traits: UITraitCollection(preferredContentSizeCategory: .accessibilityExtraExtraExtraLarge))
+        let label = popover.view.subviews.compactMap { $0 as? UILabel }.first
+        XCTAssertEqual(label?.adjustsFontForContentSizeCategory, true)
+        XCTAssertGreaterThan(popover.preferredContentSize.height, standardHeight)
     }
 
     func testSortControlReflectsSavedPreference() {

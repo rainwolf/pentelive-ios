@@ -43,6 +43,18 @@ final class DBLineTests: XCTestCase {
         XCTAssertEqual(line.redoCount, 0)
     }
 
+    func testGoBacksToEmptyRenjuKeepsCentre() {
+        for id in [19, 21, 24] {
+            let go = DBLine(game: id, moves: [40])
+            XCTAssertTrue(go.back(), "\(id)")
+            XCTAssertEqual(go.cells, [], "\(id)")
+            XCTAssertFalse(go.back(), "\(id)")
+        }
+        let renju = DBLine(game: 31, moves: [112])
+        XCTAssertFalse(renju.back())
+        XCTAssertEqual(renju.cells, [112])
+    }
+
     func testMinimumCount() {
         XCTAssertEqual(DBStepPolicy.minimumCount(game: 7), 0)
         XCTAssertEqual(DBStepPolicy.minimumCount(game: 17), 0)

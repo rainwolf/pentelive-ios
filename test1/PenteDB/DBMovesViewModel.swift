@@ -15,9 +15,10 @@ enum DBMovesViewModel {
 
     static func rows(stats: DBPositionStats, occupied: Set<Int>, limit: Int?, game: Int,
                      sort: DBMoveSort = .winRate, locale: Locale = .current) -> [DBMoveRow] {
-        let displayed = DBHeatScale.displayed(stats.nextMoves, occupied: occupied, limit: limit, sort: sort)
-        let colors = DBHeatScale.colors(for: displayed)
         let grid = DBGameCatalog.gridSize(forGame: game)
+        let displayed = DBHeatScale.displayed(stats.nextMoves, occupied: occupied, limit: limit,
+                                              sort: sort, gridSize: grid)
+        let colors = DBHeatScale.colors(for: displayed)
         let formatter = NumberFormatter()
         formatter.locale = locale
         formatter.numberStyle = .decimal
