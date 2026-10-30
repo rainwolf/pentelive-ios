@@ -31,6 +31,16 @@ struct DBEndpoint {
         s.addingPercentEncoding(withAllowedCharacters: strict) ?? ""
     }
 
+    /// The server reads cookie values raw (LoginCookieHandler.loadCookie never
+    /// URL-decodes), so credentials go out verbatim. A value is usable only when
+    /// non-empty and every character is an RFC 6265 cookie-octet: printable ASCII
+    /// except space, double quote, comma, semicolon and backslash.
+    static func isCookieSafe(_ s: String) -> Bool {
+        !s.isEmpty && s.unicodeScalars.allSatisfy { c in
+            c.value >= 0x21 && c.value <= 0x7E && !"\",;\\".unicodeScalars.contains(c)
+        }
+    }
+
     func ping() -> URLRequest { get("/ping") }
 
     func positionStats(_ body: DBPositionStatsRequest) -> URLRequest {
@@ -52,8 +62,10 @@ struct DBEndpoint {
         r.setValue("application/json", forHTTPHeaderField: "Accept")
         if let c = credentials {
             r.httpShouldHandleCookies = false
-            r.setValue("name2=\(DBEndpoint.encode(c.username)); password2=\(DBEndpoint.encode(c.password))",
-                       forHTTPHeaderField: "Cookie")
+            // Unsafe credentials send no Cookie: a clean 401 beats injected attributes.
+            if DBEndpoint.isCookieSafe(c.username) && DBEndpoint.isCookieSafe(c.password) {
+                r.setValue("name2=\(c.username); password2=\(c.password)", forHTTPHeaderField: "Cookie")
+            }
         }
         return r
     }

@@ -98,13 +98,25 @@ final class DBClientTests: XCTestCase {
     }
 
     func testCookieHeaderWhenCredentials() {
-        let e = DBEndpoint(useLocalhost: false, credentials: DBCredentials(username: "bob", password: "p;w=1"))
+        let e = DBEndpoint(useLocalhost: false, credentials: DBCredentials(username: "bob", password: "p@ss!"))
         let r = e.positionStats(statsRequest())
-        let cookie = r.value(forHTTPHeaderField: "Cookie") ?? ""
-        XCTAssertTrue(cookie.contains("name2=bob"))
-        XCTAssertTrue(cookie.contains("password2=p%3Bw%3D1"))
+        XCTAssertEqual(r.value(forHTTPHeaderField: "Cookie"), "name2=bob; password2=p@ss!")
         XCTAssertFalse(r.httpShouldHandleCookies)
         XCTAssertNil(prod.ping().value(forHTTPHeaderField: "Cookie"))
+    }
+
+    func testCookieValuesSentRawForAllCookieOctets() {
+        let pw = "!#$%&'()*+-./:<=>?@[]^_`{|}~Az09"
+        let e = DBEndpoint(useLocalhost: false, credentials: DBCredentials(username: "a.b_c", password: pw))
+        XCTAssertEqual(e.ping().value(forHTTPHeaderField: "Cookie"), "name2=a.b_c; password2=\(pw)")
+    }
+
+    func testNoCookieHeaderWhenCredentialsNotCookieSafe() {
+        for (user, pw) in [("bob", "p;w"), ("bob", "p w"), ("bob", "p\"q"), ("bob", "p,w"),
+                           ("bob", "p\\w"), ("bob", "p\u{7F}"), ("bob", "pé"), ("b;ob", "pw"), ("", "pw"), ("bob", "")] {
+            let e = DBEndpoint(useLocalhost: false, credentials: DBCredentials(username: user, password: pw))
+            XCTAssertNil(e.ping().value(forHTTPHeaderField: "Cookie"), "\(user)/\(pw)")
+        }
     }
 
     // MARK: Error mapping
