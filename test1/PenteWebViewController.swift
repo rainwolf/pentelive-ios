@@ -87,6 +87,8 @@ class PenteWebViewController: UIViewController, WKNavigationDelegate {
 
         updateNavigationItems()
         // Only pente.org pages load here; callers route everything else through LinkPolicy.open.
+        // Unit-test host: WKWebView bypasses the URL loading system, so the tripwire is asked here.
+        if let url = request.url, TestNetworkTripwire.refuse(url, method: "WKWebView") { return }
         if LinkPolicy.classify(request.url?.absoluteString) == .inApp {
             webView.load(request)
         }
