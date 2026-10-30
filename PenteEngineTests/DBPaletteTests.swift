@@ -14,6 +14,15 @@ final class DBPaletteTests: XCTestCase {
         }
     }
 
+    func testGoAndRenjuBoardHex() {
+        for id in [19, 20, 21, 22, 23, 24, 69, 71, 73] {
+            XCTAssertEqual(DBPalette.boardHex(forGame: id), 0xFAC832, "game \(id)")
+        }
+        for id in [31, 32, 81] {
+            XCTAssertEqual(DBPalette.boardHex(forGame: id), 0xD98880, "game \(id)")
+        }
+    }
+
     func testSpeedUsesBase() {
         XCTAssertEqual(DBPalette.boardHex(forGame: 2), DBPalette.boardHex(forGame: 1))
         XCTAssertEqual(DBPalette.boardHex(forGame: 18), DBPalette.boardHex(forGame: 17))

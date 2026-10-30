@@ -7,6 +7,8 @@ import UIKit
         1: 0xFDDEA3, 3: 0xBAFDA3, 5: 0xA3FDEB, 7: 0xA3CDFD, 9: 0xAEA3FD,
         11: 0xEDA3FD, 13: 0xEDA3FD, 15: 0x25BAFF, 17: 0xFFA500, 25: 0x52BE80,
         27: 0xE5AA70, 29: 0x50C878,
+        // Go and Renju: the web board.css and live-board colours.
+        19: 0xFAC832, 21: 0xFAC832, 23: 0xFAC832, 31: 0xD98880,
     ]
 
     @objc static func boardColor(forGame id: Int) -> UIColor {
