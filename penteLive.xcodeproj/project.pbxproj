@@ -17,6 +17,7 @@
 		0FA6727C32177EC05DF0536D /* DBSetupViewKeyTests.m in Sources */ = {isa = PBXBuildFile; fileRef = A9C87EEF94CBCE7275D0A942 /* DBSetupViewKeyTests.m */; };
 		10AA9EC6ED75BD1AEA84D8DF /* DBResultsViewControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11B4ED219224150D41395472 /* DBResultsViewControllerTests.swift */; };
 		11624A088F5FA7A3BA8789DF /* Capture.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF08D052C94A67CE7B1A2ABE /* Capture.swift */; };
+		1489A2A1754D0A0ED6F89723 /* DBRatingStyleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E45EB7EF5F2F69E8338D8B1D /* DBRatingStyleTests.swift */; };
 		14FE00FB473FBD53DA6200A3 /* PenteGame.m in Sources */ = {isa = PBXBuildFile; fileRef = 636163A62019E5AA00D5E176 /* PenteGame.m */; };
 		16E5F864BD8732BEB8BD3390 /* dashboard_allsections.json in Resources */ = {isa = PBXBuildFile; fileRef = 951457CB93326E388167AD11 /* dashboard_allsections.json */; };
 		1A596BBC3B5FB8DB1B8F9210 /* DashboardMapping.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF79B5FAA47E933A0410E3FD /* DashboardMapping.swift */; };
@@ -316,6 +317,7 @@
 		CC02EAFCD39E557347A3C2FD /* StoreService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 739D6DA0ACE5AEC5DB36CE4F /* StoreService.swift */; };
 		CEF7661E709823AE2A325338 /* PenteGame.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8314997135E2AC0910B84356 /* PenteGame.swift */; };
 		CFD7320E3345B16FB1133152 /* KidAccountsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCE67D7173E8CFCF3C56944F /* KidAccountsViewController.swift */; };
+		D12C6A8598FBEE876294CBCC /* DBRatingStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94C4C6A44E793BEE77BF8116 /* DBRatingStyle.swift */; };
 		D31C13F16F5DA54AFE50F435 /* RuleSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0D2331507464E3A0A3E4DEC /* RuleSet.swift */; };
 		D4A11111111111111111A001 /* RenjuOfferSymmetry.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4A11111111111111111A002 /* RenjuOfferSymmetry.swift */; };
 		D4A11111111111111111B003 /* RenjuOfferSymmetryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4A11111111111111111B004 /* RenjuOfferSymmetryTests.swift */; };
@@ -672,6 +674,7 @@
 		8715B8F87E8325A61F04D700 /* CorpusHelperTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CorpusHelperTests.swift; sourceTree = "<group>"; };
 		8ECBCB2C27E5249A019555B9 /* RuleSetTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RuleSetTests.swift; sourceTree = "<group>"; };
 		8F67AC8BE4C73FF7390EB742 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
+		94C4C6A44E793BEE77BF8116 /* DBRatingStyle.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DBRatingStyle.swift; sourceTree = "<group>"; };
 		951457CB93326E388167AD11 /* dashboard_allsections.json */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.json; path = dashboard_allsections.json; sourceTree = "<group>"; };
 		9958ABCE685CCCB2B61E5686 /* StoreKitIntegrationTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StoreKitIntegrationTests.swift; sourceTree = "<group>"; };
 		9B8F0CA4C0325E1831E3C9DF /* DBResultsViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DBResultsViewController.swift; sourceTree = "<group>"; };
@@ -740,6 +743,7 @@
 		DF79B5FAA47E933A0410E3FD /* DashboardMapping.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DashboardMapping.swift; sourceTree = "<group>"; };
 		E0487D93E252253264372A56 /* CPoint.cpp */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.cpp.cpp; path = CPoint.cpp; sourceTree = "<group>"; };
 		E36732198C6FD461BF86E5D2 /* KidAccounts.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KidAccounts.swift; sourceTree = "<group>"; };
+		E45EB7EF5F2F69E8338D8B1D /* DBRatingStyleTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DBRatingStyleTests.swift; sourceTree = "<group>"; };
 		E4BA6089918203FB8F929268 /* CorpusSnapshotGeneratorTests.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = CorpusSnapshotGeneratorTests.m; sourceTree = "<group>"; };
 		E5F0539DA310A85158CDB99B /* MoveResultTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MoveResultTests.swift; sourceTree = "<group>"; };
 		E8B3FB83B0F64A0F4F64541E /* StoreViewControllerTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StoreViewControllerTests.swift; sourceTree = "<group>"; };
@@ -1181,6 +1185,7 @@
 				63CFA41315F985DC94CF0C2F /* DBPositionService.swift */,
 				CD20CBB79F8E19636D6831D6 /* DBMovesViewModel.swift */,
 				9B8F0CA4C0325E1831E3C9DF /* DBResultsViewController.swift */,
+				94C4C6A44E793BEE77BF8116 /* DBRatingStyle.swift */,
 			);
 			name = PenteDB;
 			path = test1/PenteDB;
@@ -1291,6 +1296,7 @@
 				0CF83B9335D52B70DCFA1CBE /* DBDatabaseScreenTests.swift */,
 				1F9565B87244927165CCC4F4 /* DBMovesViewModelTests.swift */,
 				11B4ED219224150D41395472 /* DBResultsViewControllerTests.swift */,
+				E45EB7EF5F2F69E8338D8B1D /* DBRatingStyleTests.swift */,
 			);
 			path = PenteEngineTests;
 			sourceTree = SOURCE_ROOT;
@@ -1704,6 +1710,7 @@
 				A245B34F0CBB9440F269AD67 /* DBDatabaseScreenTests.swift in Sources */,
 				6562F4B76DDE6A54F8457931 /* DBMovesViewModelTests.swift in Sources */,
 				10AA9EC6ED75BD1AEA84D8DF /* DBResultsViewControllerTests.swift in Sources */,
+				1489A2A1754D0A0ED6F89723 /* DBRatingStyleTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1819,6 +1826,7 @@
 				59341695CEED597E37579115 /* DBPositionService.swift in Sources */,
 				4275914A172B3E5D9E5D36A9 /* DBMovesViewModel.swift in Sources */,
 				D7418C4FEBCAAB421932157A /* DBResultsViewController.swift in Sources */,
+				D12C6A8598FBEE876294CBCC /* DBRatingStyle.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
