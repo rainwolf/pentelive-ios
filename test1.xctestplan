@@ -1,0 +1,25 @@
+{
+  "configurations" : [
+    {
+      "id" : "5B3F2C1E-7A4D-4E8B-9C21-3D6F0A1B2C3D",
+      "name" : "Default",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "defaultTestExecutionTimeAllowance" : 120,
+    "testTimeoutsEnabled" : true
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:penteLive.xcodeproj",
+        "identifier" : "0F47148383F57A310F51032B",
+        "name" : "PenteEngineTests"
+      }
+    }
+  ],
+  "version" : 1
+}
