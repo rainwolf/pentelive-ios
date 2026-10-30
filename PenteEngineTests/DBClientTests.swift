@@ -175,6 +175,21 @@ final class DBClientTests: XCTestCase {
         XCTAssertNil(d.header)
     }
 
+    func testGameGidZeroThrowsWithoutRequest() async {
+        // Header gid missing decodes to 0; requesting 0 must not "match" it.
+        let t = DBStubTransport("{\"header\":{\"game\":1},\"moves\":[180]}")
+        await expectError(.decoding) { try await self.client(t).game(gid: 0) }
+        await expectError(.decoding) { try await self.client(t).game(gid: -1) }
+        XCTAssertEqual(t.requests.count, 0)
+    }
+
+    func testHeaderGidZeroIsNotARealGame() throws {
+        let h = try JSONDecoder().decode(DBGameHeader.self, from: Data("{\"game\":1}".utf8))
+        XCTAssertFalse(h.hasRealGid)
+        let h2 = try JSONDecoder().decode(DBGameHeader.self, from: Data("{\"gid\":50000000000123}".utf8))
+        XCTAssertTrue(h2.hasRealGid)
+    }
+
     func testPlayersShortQueryMakesNoRequest() async throws {
         let t = DBStubTransport("{\"players\":[\"x\"]}")
         let c = client(t)

@@ -159,10 +159,14 @@ final class DBClient {
     }
 
     /// A blocked reply is returned as is. Otherwise the header must match `gid`.
+    /// A gid <= 0 is never a real game: throws `.decoding` without a request.
     func game(gid: Int64) async throws -> DBGameDetail {
+        guard gid > 0 else { throw DBError.decoding }
         let detail: DBGameDetail = try await send(endpoint.game(gid: gid))
         if detail.blocked { return detail }
-        guard let header = detail.header, header.gid == gid else { throw DBError.decoding }
+        guard let header = detail.header, header.hasRealGid, header.gid == gid else {
+            throw DBError.decoding
+        }
         return detail
     }
 

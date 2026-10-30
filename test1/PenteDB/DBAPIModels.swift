@@ -181,6 +181,10 @@ struct DBGameHeader: Decodable, Equatable {
     var playDate: String?
     var moveCount: Int
 
+    /// A missing gid decodes to 0, which is never a real game id: never open
+    /// it by id or let it pass a stale-response gid check.
+    var hasRealGid: Bool { gid > 0 }
+
     private enum CodingKeys: String, CodingKey {
         case gid, game, player1, player2, winner, site, event, round, section, playDate, moveCount
     }
