@@ -152,6 +152,7 @@
 		63A6C22116C5142200718708 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 63A6C22016C5142200718708 /* QuartzCore.framework */; };
 		63A6C22F16C5B2A800718708 /* blueGradientBackground.png in Resources */ = {isa = PBXBuildFile; fileRef = 63A6C22E16C5B2A800718708 /* blueGradientBackground.png */; };
 		63A6C23116C5C4CB00718708 /* UINavigationBarBlackOpaqueButton.png in Resources */ = {isa = PBXBuildFile; fileRef = 63A6C23016C5C4CB00718708 /* UINavigationBarBlackOpaqueButton.png */; };
+		63A74739828726DB09259D58 /* DBGameRowFormatterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 967BAFDF47BF6BC9509C06C6 /* DBGameRowFormatterTests.swift */; };
 		63AB65741B0A031200514D52 /* penteLiveNotificationSound.caf in Resources */ = {isa = PBXBuildFile; fileRef = 63AB65731B0A031200514D52 /* penteLiveNotificationSound.caf */; };
 		63AC5E1E0000000000000003 /* SceneDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 63AC5E1E0000000000000002 /* SceneDelegate.m */; };
 		63AEDEF91875AFAA006892F7 /* cancel.png in Resources */ = {isa = PBXBuildFile; fileRef = 63AEDEF71875AFAA006892F7 /* cancel.png */; };
@@ -275,6 +276,7 @@
 		7BB8B7B4FAA8A10594D9A4F0 /* StoreViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44E014A1F49AF27985876A8C /* StoreViewController.swift */; };
 		8168BCA9C713B0FC0D21EFB3 /* DBGameCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7C6301B1FFA90AF3EFFC698 /* DBGameCatalog.swift */; };
 		854DB91E5547FFA1AAC18610 /* StoreWiringTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44E7D16AB0E5519271369985 /* StoreWiringTests.swift */; };
+		8898D4F3D8862F84E94FD32E /* DBGameRowFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE49BDF02F27565171F5874A /* DBGameRowFormatter.swift */; };
 		88A50FE84F56B4E70121AFB2 /* KidMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 248A985A4E77B24C449CE493 /* KidMode.swift */; };
 		8B0435817CBBE45B2ECA9CCB /* DBHeatScale.swift in Sources */ = {isa = PBXBuildFile; fileRef = D11E9B7B4419B1E1C3690E21 /* DBHeatScale.swift */; };
 		8C3BAF99F80B9158925BCCF5 /* StoreScreenshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11B55E9EFB59E2DF3518E4B /* StoreScreenshotTests.swift */; };
@@ -676,6 +678,7 @@
 		8F67AC8BE4C73FF7390EB742 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
 		94C4C6A44E793BEE77BF8116 /* DBRatingStyle.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DBRatingStyle.swift; sourceTree = "<group>"; };
 		951457CB93326E388167AD11 /* dashboard_allsections.json */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.json; path = dashboard_allsections.json; sourceTree = "<group>"; };
+		967BAFDF47BF6BC9509C06C6 /* DBGameRowFormatterTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DBGameRowFormatterTests.swift; sourceTree = "<group>"; };
 		9958ABCE685CCCB2B61E5686 /* StoreKitIntegrationTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StoreKitIntegrationTests.swift; sourceTree = "<group>"; };
 		9B8F0CA4C0325E1831E3C9DF /* DBResultsViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DBResultsViewController.swift; sourceTree = "<group>"; };
 		9B9AA0E8424F26F770E4D9CD /* MoveResult.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MoveResult.swift; sourceTree = "<group>"; };
@@ -710,6 +713,7 @@
 		BB3C419E7F4171209CFAE4B4 /* PenteBadge.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PenteBadge.h; sourceTree = "<group>"; };
 		BDB76AE2B389F2859CE0C808 /* ScanTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ScanTests.swift; sourceTree = "<group>"; };
 		BDD12E388BBDA4D20382C826 /* KidAccountsTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KidAccountsTests.swift; sourceTree = "<group>"; };
+		BE49BDF02F27565171F5874A /* DBGameRowFormatter.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DBGameRowFormatter.swift; sourceTree = "<group>"; };
 		BE8B1497162B9BA94B0C506B /* LinkPolicyTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LinkPolicyTests.swift; sourceTree = "<group>"; };
 		BF08D052C94A67CE7B1A2ABE /* Capture.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Capture.swift; sourceTree = "<group>"; };
 		C04A941E308F1CBC0804C1A6 /* PenteGameEngineTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PenteGameEngineTests.swift; sourceTree = "<group>"; };
@@ -1186,6 +1190,7 @@
 				CD20CBB79F8E19636D6831D6 /* DBMovesViewModel.swift */,
 				9B8F0CA4C0325E1831E3C9DF /* DBResultsViewController.swift */,
 				94C4C6A44E793BEE77BF8116 /* DBRatingStyle.swift */,
+				BE49BDF02F27565171F5874A /* DBGameRowFormatter.swift */,
 			);
 			name = PenteDB;
 			path = test1/PenteDB;
@@ -1297,6 +1302,7 @@
 				1F9565B87244927165CCC4F4 /* DBMovesViewModelTests.swift */,
 				11B4ED219224150D41395472 /* DBResultsViewControllerTests.swift */,
 				E45EB7EF5F2F69E8338D8B1D /* DBRatingStyleTests.swift */,
+				967BAFDF47BF6BC9509C06C6 /* DBGameRowFormatterTests.swift */,
 			);
 			path = PenteEngineTests;
 			sourceTree = SOURCE_ROOT;
@@ -1711,6 +1717,7 @@
 				6562F4B76DDE6A54F8457931 /* DBMovesViewModelTests.swift in Sources */,
 				10AA9EC6ED75BD1AEA84D8DF /* DBResultsViewControllerTests.swift in Sources */,
 				1489A2A1754D0A0ED6F89723 /* DBRatingStyleTests.swift in Sources */,
+				63A74739828726DB09259D58 /* DBGameRowFormatterTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1827,6 +1834,7 @@
 				4275914A172B3E5D9E5D36A9 /* DBMovesViewModel.swift in Sources */,
 				D7418C4FEBCAAB421932157A /* DBResultsViewController.swift in Sources */,
 				D12C6A8598FBEE876294CBCC /* DBRatingStyle.swift in Sources */,
+				8898D4F3D8862F84E94FD32E /* DBGameRowFormatter.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
