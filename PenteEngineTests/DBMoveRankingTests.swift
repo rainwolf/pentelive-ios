@@ -28,10 +28,9 @@ final class DBMoveRankingTests: XCTestCase {
     }
 
     func testTieBreakGamesDesc() {
-        // 0 wins each: equal Wilson (lower bound > 0 differs by n), so use 0/0 style equal bound via identical wilson
-        let a = mv(1, games: 6, wins: 0), b = mv(2, games: 6, wins: 0)
-        XCTAssertEqual(DBMoveRanking.wilsonLowerBound(wins: 0, games: 6), DBMoveRanking.wilsonLowerBound(wins: 0, games: 6))
-        XCTAssertEqual(DBMoveRanking.sorted([a, b]).map { $0.move }, [1, 2])
+        // Both rows have games >= 5 and Wilson == 0, so only games-descending decides the order.
+        let sorted = DBMoveRanking.sorted([mv(1, games: 6, wins: 0), mv(2, games: 10, wins: 0)])
+        XCTAssertEqual(sorted.map { $0.move }, [2, 1])
     }
 
     func testWilsonZeroGames() {
