@@ -171,7 +171,7 @@ final class DBFiltersViewController: UIViewController, UITextFieldDelegate {
     }
 
     private func buildForm() {
-        // 1. Game chips, 3 rows of 4.
+        // 1. Game chips, 4 rows of 4 (web picker order).
         let chipRows = UIStackView()
         chipRows.axis = .vertical
         chipRows.spacing = 6

@@ -41,7 +41,43 @@ final class DBFiltersViewControllerTests: XCTestCase {
         while !cond() && Date() < end { try? await Task.sleep(nanoseconds: 10_000_000) }
     }
 
-    func testTwelveGameChipsInCatalogOrderWithSelection() {
+    func testSixteenChipsInWebOrderFourRowsOfFour() {
+        let vc = make()
+        XCTAssertEqual(vc.gameChips.map { $0.tag }, [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31])
+        XCTAssertEqual(vc.gameChips.map { $0.title(for: .normal) ?? "" }.suffix(7),
+                       ["Go", "Go (9x9)", "Go (13x13)", "O-Pente", "Swap2-Pente", "Swap2-Keryo", "Renju"])
+        let rows = Set(vc.gameChips.compactMap { $0.superview.map(ObjectIdentifier.init) })
+        XCTAssertEqual(rows.count, 4)
+        for chip in vc.gameChips { XCTAssertEqual(chip.superview?.subviews.count, 4) }
+    }
+
+    func testGoAndRenjuChipsSelectGameAndAllowSpeed() {
+        let vc = make()
+        vc.gameChips.first { $0.tag == 21 }!.sendActions(for: .touchUpInside)
+        XCTAssertEqual(vc.draft.baseGame, 21)
+        XCTAssertTrue(vc.speedSwitch.isEnabled)
+        vc.speedSwitch.isOn = true
+        vc.speedSwitch.sendActions(for: .valueChanged)
+        XCTAssertEqual(vc.draft.gameId, 22)
+        var applied: DBFilterState?
+        vc.onApply = { applied = $0 }
+        vc.applyButton.sendActions(for: .touchUpInside)
+        XCTAssertEqual(applied?.gameId, 22)
+        vc.gameChips.first { $0.tag == 31 }!.sendActions(for: .touchUpInside)
+        XCTAssertTrue(vc.speedSwitch.isEnabled)
+        XCTAssertEqual(vc.draft.gameId, 32, "speed stays on: Speed Renju")
+        XCTAssertEqual(vc.gameChips.filter { $0.isSelected }.map { $0.tag }, [31])
+    }
+
+    func testAppliedGoGameIsSelected() {
+        var s = DBFilterState()
+        s.setGame(id: 24)
+        let vc = make(s)
+        XCTAssertEqual(vc.gameChips.filter { $0.isSelected }.map { $0.tag }, [23])
+        XCTAssertTrue(vc.speedSwitch.isOn)
+    }
+
+    func testGameChipsInCatalogOrderWithSelection() {
         var s = DBFilterState()
         s.setGame(id: 3)
         let vc = make(s)
