@@ -32,14 +32,6 @@
 #import "penteLive-Swift.h"
 #import <QuartzCore/QuartzCore.h>
 
-/// Games whose first stone may be played off-center and taken back again.
-/// Every other game seeds a fixed, unremovable center stone at K10.
-static BOOL DBAllowsOffCenterFirstStone(NSString *gameType) {
-    return [gameType containsString:@"D-Pente"] ||
-           [gameType containsString:@"DK-Pente"] ||
-           [gameType containsString:@"Swap2-"];
-}
-
 @interface DatabaseViewController ()
 /// Created once in viewDidLoad and kept for the screen's lifetime, so its
 /// scroll offset survives dismissal and re-presentation.
@@ -68,6 +60,10 @@ static BOOL DBAllowsOffCenterFirstStone(NSString *gameType) {
     void (^resultsSheetPresenter)(UIViewController *);
     // Test seam: when set, receives the game viewer instead of a push.
     void (^gameViewerPusher)(UIViewController *);
+    // Test seam: when set, receives the filters sheet instead of a window.
+    void (^filtersPresenter)(UIViewController *);
+    // Under-board chip row: active filters summary; opens the filters sheet.
+    UIButton *dbChipButton;
 }
 @synthesize aiPlayer;
 @synthesize board;
@@ -87,7 +83,6 @@ static BOOL DBAllowsOffCenterFirstStone(NSString *gameType) {
 @synthesize playerStats;
 @synthesize moveStatsString;
 @synthesize playerStatsBaseString, game;
-@synthesize setupView;
 @synthesize progressView;
 @synthesize aiButton;
 @synthesize aiSetupView;
@@ -190,16 +185,17 @@ BoardViewController *boardController;
     //    playerStats.contentInset = UIEdgeInsetsMake(-5.0,0.0,0,0.0);
     [self.view addSubview:playerStats];
 
-    setupView = [[DBSetupView alloc]
-        initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width * 7 / 8,
-                                 44 * 7 + 22)];
-    setupView.layer.cornerRadius = 5.0f;
-    setupView.layer.borderWidth = 1.0f;
-    [setupView setScrollEnabled:YES];
-    [setupView setDelegate:setupView];
-    [setupView setDataSource:setupView];
-    [setupView setBoard:board];
-    [setupView setZBoard:zoomedBoard];
+    if (dbService == nil) {
+        dbService = [DBPositionService makeDefault];
+    }
+    // Game source: an injected game (BoardViewController.toDB) becomes the
+    // saved filter game when supported; Go/Renju keep their name and show
+    // "Not supported yet". Otherwise the saved filters pick the game.
+    if (game != nil) {
+        [dbService adoptInjectedGame:game];
+    } else {
+        game = [DBGameCatalog nameForGame:dbService.filterGameId];
+    }
 
     if (movesList == nil) {
         movesList = [[NSMutableArray alloc] init];
@@ -209,9 +205,6 @@ BoardViewController *boardController;
     // BoardViewController.toDB seeds the line too.
     line = [[DBLine alloc] initWithGame:[DBGameCatalog gameIdForName:game]
                                   moves:[movesList copy]];
-    if (dbService == nil) {
-        dbService = [DBPositionService makeDefault];
-    }
     heatButton.image = [self heatButtonImage];
     __weak typeof(self) weakSelf = self;
     dbService.onHeat = ^(NSDictionary<NSNumber *, UIColor *> *heat) {
@@ -278,6 +271,33 @@ BoardViewController *boardController;
     dbRetryButton.accessibilityIdentifier = @"dbRetryButton";
     dbRetryButton.hidden = YES;
     [self.view addSubview:dbRetryButton];
+
+    dbChipButton = [UIButton buttonWithType:UIButtonTypeSystem];
+    dbChipButton.titleLabel.font = [UIFont systemFontOfSize:13];
+    dbChipButton.titleLabel.lineBreakMode = NSLineBreakByTruncatingTail;
+    dbChipButton.contentEdgeInsets = UIEdgeInsetsMake(0, 10, 0, 10);
+    [dbChipButton setTitleColor:[UIColor colorWithRed:0x16 / 255.0
+                                                green:0x18 / 255.0
+                                                 blue:0x1D / 255.0
+                                                alpha:1]
+                       forState:UIControlStateNormal];
+    dbChipButton.backgroundColor = [UIColor colorWithRed:0xE3 / 255.0
+                                                   green:0xEC / 255.0
+                                                    blue:0xFC / 255.0
+                                                   alpha:1];
+    dbChipButton.layer.borderWidth = 1;
+    dbChipButton.layer.borderColor = [UIColor colorWithRed:0xC8 / 255.0
+                                                     green:0xCC / 255.0
+                                                      blue:0xD4 / 255.0
+                                                     alpha:1]
+                                         .CGColor;
+    dbChipButton.layer.cornerRadius = 13;
+    [dbChipButton addTarget:self
+                     action:@selector(showSetup)
+           forControlEvents:UIControlEventTouchUpInside];
+    dbChipButton.accessibilityIdentifier = @"dbFilterChips";
+    [self.view addSubview:dbChipButton];
+    [self refreshChipRow];
 
     self.progressView = [[PenteSpinnerOverlay alloc]
         initWithFrame:CGRectMake(0, 0, self.view.frame.size.width,
@@ -347,6 +367,8 @@ BoardViewController *boardController;
                                 CGRectGetMaxY(blackCapturesCountLabel.frame)),
                             MAX(CGRectGetMaxY(stripRect), CGRectGetMaxY(aiButton.frame))) +
                         3;
+    dbChipButton.frame = CGRectMake(left + 2, notationY, side - 4, 26);
+    notationY = CGRectGetMaxY(dbChipButton.frame) + 3;
     playerStats.frame = CGRectMake(left + 2, notationY, side - 4, 44);
     stripMaxY = CGRectGetMaxY(playerStats.frame) + 4;
 }
@@ -475,7 +497,7 @@ BoardViewController *boardController;
     }
     [board setLastMove:-1];
     if (!game) {
-        game = setupView.gameCell.textField.text;
+        game = [DBGameCatalog nameForGame:dbService.filterGameId];
     }
     if (!game) {
         game = @"Pente";
@@ -512,16 +534,13 @@ BoardViewController *boardController;
 }
 
 - (void)viewDidAppear:(BOOL)animated {
-    //    if ([movesList count] < 2 && game == nil) {
-    if (game == nil) {
-        [self showSetup];
-    } else {
-        [self setBoardColor];
-        [self replayGame];
-        if (!didStartInitialLoad) {
-            didStartInitialLoad = YES;
-            [self positionChanged];
-        }
+    // game is never nil here: viewDidLoad takes it from the injected game
+    // or the saved filters.
+    [self setBoardColor];
+    [self replayGame];
+    if (!didStartInitialLoad) {
+        didStartInitialLoad = YES;
+        [self positionChanged];
     }
     // Returning from a pushed screen re-shows the sheet where it was.
     if (wasShowingResultsSheet) {
@@ -557,6 +576,12 @@ BoardViewController *boardController;
     if (game) {
         [self updateAIButtonVisibility];
     }
+    BOOL hideCaptures =
+        ![DBGameCatalog hasCapturesWithGame:[DBGameCatalog gameIdForName:game]];
+    [whiteStoneCaptures setHidden:hideCaptures];
+    [whiteCapturesCountLabel setHidden:hideCaptures];
+    [blackStoneCaptures setHidden:hideCaptures];
+    [blackCapturesCountLabel setHidden:hideCaptures];
 }
 
 /// The AI only plays Pente, Speed Pente and the Keryo-Pente variants.
@@ -606,55 +631,12 @@ BoardViewController *boardController;
             }
         }
     }
-    [self applyLegacyFilters];
     [dbService positionDidChangeWithGame:[DBGameCatalog gameIdForName:game]
                                    moves:line.moves
                                 occupied:occupied];
     if (!didAutoPresentResults && [self presentResultsSheet]) {
         didAutoPresentResults = YES;
     }
-}
-
-/// Same setup-view sources (and saved fallbacks) the legacy search used.
-- (void)applyLegacyFilters {
-    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-    NSInteger winner = 0;
-    NSString *winnerStr = setupView.winnerCell.detailTextLabel.text;
-    if ([winnerStr isEqualToString:NSLocalizedString(@"player 1", nil)]) {
-        winner = 1;
-    } else if ([winnerStr
-                   isEqualToString:NSLocalizedString(@"player 2", nil)]) {
-        winner = 2;
-    }
-    NSString *p1Rating = setupView.p1RatingCell.textField.text;
-    if (p1Rating == nil) {
-        p1Rating = [defaults objectForKey:@"DBP1Rating"];
-    }
-    NSString *p2Rating = setupView.p2RatingCell.textField.text;
-    if (p2Rating == nil) {
-        p2Rating = [defaults objectForKey:@"DBP2Rating"];
-    }
-    NSString *bothOrEither = setupView.eitherOrBothp1p2Cell.detailTextLabel.text;
-    if (!bothOrEither) {
-        bothOrEither = [defaults objectForKey:@"DBBothOrEither"];
-    }
-    BOOL eitherSeat =
-        bothOrEither &&
-        ![bothOrEither isEqualToString:NSLocalizedString(@"both", nil)];
-    NSDate *after = setupView.afterCell.textField.text.length > 0
-                        ? setupView.afterPicker.date
-                        : nil;
-    NSDate *before = setupView.beforeCell.textField.text.length > 0
-                         ? setupView.beforePicker.date
-                         : nil;
-    [dbService setLegacyFiltersWithP1Name:setupView.player1Cell.textField.text
-                                   p2Name:setupView.player2Cell.textField.text
-                                 p1Rating:p1Rating
-                                 p2Rating:p2Rating
-                               eitherSeat:eitherSeat
-                                   winner:winner
-                                    after:after
-                                   before:before];
 }
 
 - (UIImage *)heatButtonImage {
@@ -984,7 +966,7 @@ BoardViewController *boardController;
 
             finalMove = 19 * i + j;
             if (!game) {
-                game = setupView.gameCell.textField.text;
+                game = [DBGameCatalog nameForGame:dbService.filterGameId];
             }
             if (!game) {
                 game = @"Pente";
@@ -1111,7 +1093,7 @@ BoardViewController *boardController;
             [aiPlayer setGame:2];
         }
     } else {
-        [aiPlayer setGame:([setupView.gameCell.textField.text
+        [aiPlayer setGame:([[DBGameCatalog nameForGame:dbService.filterGameId]
                                containsString:@"Keryo-Pente"]
                                ? 2
                                : 1)];
@@ -1137,7 +1119,7 @@ BoardViewController *boardController;
 - (void)stopThinking {
     [board setLastMove:finalMove];
     if (game == nil) {
-        game = setupView.gameCell.textField.text;
+        game = [DBGameCatalog nameForGame:dbService.filterGameId];
     }
     [self syncLineGame];
     [line play:finalMove];
@@ -1160,7 +1142,7 @@ BoardViewController *boardController;
     [self resetBoard];
     int i = 0;
     if (game == nil) {
-        game = setupView.gameCell.textField.text;
+        game = [DBGameCatalog nameForGame:dbService.filterGameId];
     }
     [self refreshTitleView];
     for (NSNumber *move in movesList) {
@@ -1310,18 +1292,42 @@ BoardViewController *boardController;
     [board setNeedsDisplay];
 }
 
+/// Opens the filters sheet over whatever is up (the iPhone results sheet
+/// included). Compact width: .medium/.large sheet; regular: form sheet.
 - (void)showSetup {
-    game = nil;
-    messagePopover = [PentePopover
-        showContentView:setupView
-                  title:NSLocalizedString(@"search parameters", nil)
-                atPoint:CGPointMake(self.view.bounds.size.width - 20, 0)
-                 inView:self.view
-              onDismiss:[self setupPopoverOnDismiss]];
-    for (int i = 0; i < [setupView numberOfRowsInSection:0]; ++i) {
-        [setupView
-            cellForRowAtIndexPath:[NSIndexPath indexPathForRow:i inSection:0]];
+    __weak typeof(self) weakSelf = self;
+    UIViewController *filters =
+        [dbService makeFiltersViewControllerWithRegularWidth:[self usesInlineResults]
+                                                   onApplied:^(BOOL gameChanged) {
+                                                       [weakSelf filtersApplied:gameChanged];
+                                                   }];
+    if (filtersPresenter != nil) {
+        filtersPresenter(filters);
+        return;
     }
+    if (self.view.window == nil) {
+        return;
+    }
+    [[self alertPresenter] presentViewController:filters animated:YES completion:nil];
+}
+
+/// The service already saved and adopted the filters. A new game resets
+/// the line to the centre stone (legacy resetState) and recolours; then
+/// both requests refire at offset 0 and the chip row follows.
+- (void)filtersApplied:(BOOL)gameChanged {
+    if (gameChanged) {
+        game = [DBGameCatalog nameForGame:dbService.filterGameId];
+        [self resetState];
+        [self syncLineGame];
+        [self setBoardColor];
+        [self replayGame];
+    }
+    [self positionChanged];
+    [self refreshChipRow];
+}
+
+- (void)refreshChipRow {
+    [dbChipButton setTitle:dbService.filterChipSummary forState:UIControlStateNormal];
 }
 
 - (void)askAI:(UIButton *)sender {
@@ -1351,40 +1357,6 @@ BoardViewController *boardController;
     return ^{
         [weakSelf updateAIButtonVisibility];
     };
-}
-
-/// The search-parameters popover applies the setup when it closes.
-- (void (^)(void))setupPopoverOnDismiss {
-    __weak typeof(self) weakSelf = self;
-    return ^{
-        [weakSelf setupPopoverDidDismiss];
-    };
-}
-
-- (void)setupPopoverDidDismiss {
-    game = setupView.gameCell.textField.text;
-    if ([game containsString:@"Gomoku"] || [game containsString:@"Connect6"]) {
-        [whiteStoneCaptures setHidden:YES];
-        [whiteCapturesCountLabel setHidden:YES];
-        [blackStoneCaptures setHidden:YES];
-        [blackCapturesCountLabel setHidden:YES];
-    } else {
-        [whiteStoneCaptures setHidden:NO];
-        [whiteCapturesCountLabel setHidden:NO];
-        [blackStoneCaptures setHidden:NO];
-        [blackCapturesCountLabel setHidden:NO];
-    }
-    if (([movesList count] == 0 ||
-         ([movesList count] > 0 &&
-          [[movesList firstObject] intValue] != 180)) &&
-        !DBAllowsOffCenterFirstStone(game)) {
-        [self resetState];
-    }
-    [self updateAIButtonVisibility];
-    [self syncLineGame];
-    [self setBoardColor];
-    [self replayGame];
-    [self positionChanged];
 }
 
 - (NSString *)URLEncodedString_ch:(NSString *)input {

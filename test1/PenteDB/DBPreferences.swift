@@ -4,7 +4,7 @@ import Foundation
 @objc final class DBPreferences: NSObject {
     @objc static let shared = DBPreferences(defaults: .standard)
 
-    private let defaults: UserDefaults
+    let defaults: UserDefaults
     private static let heatKey = "DBHeatOnBoard"
     private static let shownKey = "DBMovesShown"
 

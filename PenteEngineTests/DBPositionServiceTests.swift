@@ -193,14 +193,68 @@ final class DBPositionServiceTests: XCTestCase {
         XCTAssertEqual(heats.last?.count, 1)
     }
 
-    func testSetLegacyFiltersReachesRequest() async {
-        service.setLegacyFilters(p1Name: "alice", p2Name: nil, p1Rating: nil, p2Rating: nil,
-                                 eitherSeat: false, winner: 0, after: nil, before: nil)
+    func testFilterStateReachesBothRequests() async {
+        var s = DBFilterState()
+        s.player1 = "alice"
+        s.scope = "mine"
+        service.filterState = s
         transport.replies[10] = .init(body: stats([]))
         service.positionDidChange(game: 1, moves: [10], occupied: [10])
         await settle()
-        let body = String(decoding: transport.requests.first?.httpBody ?? Data(), as: UTF8.self)
-        XCTAssertTrue(body.contains("\"player1Name\":\"alice\""))
+        XCTAssertEqual(transport.requests.count, 2)
+        for r in transport.requests {
+            let body = String(decoding: r.httpBody ?? Data(), as: UTF8.self)
+            XCTAssertTrue(body.contains("\"player1Name\":\"alice\""), body)
+            XCTAssertTrue(body.contains("\"scope\":\"mine\""), body)
+        }
+    }
+
+    private var store: DBFilterStore { DBFilterStore(defaults: UserDefaults(suiteName: suite)!) }
+
+    func testFilterStateLoadsFromStoreOfSameDefaults() {
+        var s = DBFilterState()
+        s.setGame(id: 4)
+        s.player2 = "bob"
+        store.save(s)
+        let client = DBClient(endpoint: DBEndpoint(useLocalhost: false, credentials: nil), transport: transport)
+        let fresh = DBPositionService(client: client,
+                                      preferences: DBPreferences(defaults: UserDefaults(suiteName: suite)!))
+        XCTAssertEqual(fresh.filterState, s)
+        XCTAssertEqual(fresh.filterGameId, 4)
+    }
+
+    func testAdoptInjectedGameSavesSupportedOnly() {
+        service.adoptInjectedGame("Speed Keryo-Pente")
+        XCTAssertEqual(service.filterGameId, 4)
+        XCTAssertEqual(store.load().gameId, 4)
+        service.adoptInjectedGame("Go")
+        service.adoptInjectedGame(nil)
+        XCTAssertEqual(service.filterGameId, 4, "unsupported names leave the filters alone")
+        XCTAssertEqual(store.load().gameId, 4)
+    }
+
+    func testApplyFiltersSavesAndReportsGameChange() {
+        var s = service.filterState
+        s.winner = 1
+        XCTAssertFalse(service.applyFilters(s))
+        XCTAssertEqual(store.load().winner, 1)
+        s.setGame(id: 5)
+        XCTAssertTrue(service.applyFilters(s))
+        XCTAssertEqual(service.filterGameId, 5)
+        XCTAssertEqual(service.filterChipSummary, s.chipSummary())
+    }
+
+    func testFiltersSheetApplyGoesThroughService() {
+        var changed: [Bool] = []
+        let vc = service.makeFiltersViewController(regularWidth: false) { changed.append($0) }
+        guard let sheet = vc as? DBFiltersViewController else { return XCTFail("\(vc)") }
+        sheet.loadViewIfNeeded()
+        XCTAssertEqual(sheet.draft, service.filterState)
+        sheet.gameChips.first { $0.tag == 13 }!.sendActions(for: .touchUpInside)
+        sheet.applyButton.sendActions(for: .touchUpInside)
+        XCTAssertEqual(changed, [true])
+        XCTAssertEqual(service.filterGameId, 13)
+        XCTAssertEqual(store.load().gameId, 13)
     }
 
     private func page(_ gids: [Int], total: Int) -> String {

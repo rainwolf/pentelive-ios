@@ -30,7 +30,6 @@
     PentePopover *messagePopover;
     BOOL activeGame;
     MMAI *aiPlayer;
-    DBSetupView *setupView;
     DBAISetupView *aiSetupView;
     PenteSpinnerOverlay *progressView;
     UIButton *aiButton;
@@ -66,7 +65,6 @@
 - (IBAction)boardTap:(UILongPressGestureRecognizer *)recognizer;
 
 @property(nonatomic, retain, readwrite) MMAI *aiPlayer;
-@property(nonatomic, retain, readwrite) DBSetupView *setupView;
 @property(nonatomic, retain, readwrite) DBAISetupView *aiSetupView;
 @property(strong, nonatomic) PenteSpinnerOverlay *progressView;
 @property(nonatomic, retain, readwrite) UIButton *aiButton;

@@ -556,4 +556,115 @@ final class DBDatabaseScreenTests: XCTestCase {
             XCTAssertEqual(sheet.detents.last?.identifier, .large)
         }
     }
+
+    // MARK: filters sheet + chip row (Task 21)
+
+    private var filterStore: DBFilterStore { DBFilterStore(defaults: UserDefaults(suiteName: suite)!) }
+
+    private func game(_ vc: UIViewController) -> String? {
+        return vc.value(forKey: "game") as? String
+    }
+
+    private func gamesOfRequests() -> [Int] {
+        return transport.requests.compactMap { r in
+            guard let b = r.httpBody,
+                  let o = try? JSONSerialization.jsonObject(with: b) as? [String: Any] else { return nil }
+            return o["game"] as? Int
+        }
+    }
+
+    func testNilGameUsesSavedFilterGame() {
+        var s = DBFilterState()
+        s.setGame(id: 3)
+        filterStore.save(s)
+        service = DBPositionService(client: DBClient(endpoint: DBEndpoint(useLocalhost: false, credentials: nil),
+                                                     transport: transport),
+                                    preferences: prefs)
+        let vc = makeVC(game: nil, moves: [180])
+        XCTAssertEqual(game(vc), "Keryo-Pente")
+        XCTAssertEqual(line(vc).game, 3)
+    }
+
+    func testInjectedGameIsAdoptedIntoFilters() {
+        let vc = makeVC(game: "Speed Pente", moves: [180, 181])
+        XCTAssertEqual(game(vc), "Speed Pente")
+        XCTAssertEqual(service.filterGameId, 2)
+        XCTAssertEqual(filterStore.load().gameId, 2)
+    }
+
+    func testInjectedUnsupportedGameKeepsNameAndFilters() {
+        let vc = makeVC(game: "Go", moves: [180, 181])
+        XCTAssertEqual(game(vc), "Go")
+        XCTAssertEqual(service.filterGameId, 1)
+    }
+
+    func testChipRowShowsSummaryInsideStrip() {
+        var s = DBFilterState()
+        s.player1 = "alice"
+        s.p1MinRating = 1700
+        service.filterState = s
+        let vc = makeVC(game: "Pente", moves: [180])
+        layout(vc, CGSize(width: 402, height: 734))
+        guard let chip = visibleView(vc, id: "dbFilterChips") as? UIButton else { return XCTFail("no chip row") }
+        XCTAssertEqual(chip.title(for: .normal), "Pente · alice 1700+")
+        let boardMaxY = board(vc, "board").frame.maxY
+        let stripMaxY = (vc.value(forKey: "stripMaxY") as? NSNumber)?.doubleValue ?? 0
+        XCTAssertGreaterThanOrEqual(chip.frame.minY, boardMaxY)
+        XCTAssertLessThanOrEqual(chip.frame.maxY, CGFloat(stripMaxY))
+    }
+
+    private func openFilters(_ vc: UIViewController) -> DBFiltersViewController? {
+        var presented: [UIViewController] = []
+        let presenter: @convention(block) (UIViewController) -> Void = { presented.append($0) }
+        vc.setValue(presenter, forKey: "filtersPresenter")
+        vc.perform(NSSelectorFromString("showSetup"))
+        XCTAssertEqual(presented.count, 1)
+        let sheet = presented.first as? DBFiltersViewController
+        sheet?.loadViewIfNeeded()
+        return sheet
+    }
+
+    func testApplyWithNewGameResetsLineRecoloursAndRefetches() async {
+        let vc = makeVC(game: "Pente", moves: [180, 181, 200])
+        layout(vc, CGSize(width: 402, height: 734))
+        guard let sheet = openFilters(vc) else { return XCTFail("no filters sheet") }
+        sheet.gameChips.first { $0.tag == 3 }!.sendActions(for: .touchUpInside)
+        sheet.applyButton.sendActions(for: .touchUpInside)
+        XCTAssertEqual(game(vc), "Keryo-Pente")
+        XCTAssertEqual(line(vc).game, 3)
+        XCTAssertEqual(line(vc).cells, [180])
+        XCTAssertEqual(mirror(vc), [180])
+        XCTAssertEqual(board(vc, "board").backgroundColor, DBPalette.boardColor(forGame: 3))
+        XCTAssertEqual(filterStore.load().gameId, 3)
+        let chip = visibleView(vc, id: "dbFilterChips") as? UIButton
+        XCTAssertEqual(chip?.title(for: .normal), "Keryo-Pente")
+        let sent = await waitUntil { self.gamesOfRequests().contains(3) }
+        XCTAssertTrue(sent)
+        XCTAssertEqual(sentMoves().last, [180])
+    }
+
+    func testApplySameGameKeepsLineAndRefetchesWithFilters() async {
+        let vc = makeVC(game: "Pente", moves: [180, 181, 200])
+        guard let sheet = openFilters(vc) else { return XCTFail("no filters sheet") }
+        sheet.winnerControl.selectedSegmentIndex = 1
+        sheet.winnerControl.sendActions(for: .valueChanged)
+        sheet.applyButton.sendActions(for: .touchUpInside)
+        XCTAssertEqual(line(vc).cells, [180, 181, 200])
+        let sent = await waitUntil {
+            self.transport.requests.contains { String(decoding: $0.httpBody ?? Data(), as: UTF8.self)
+                .contains("\"winner\":1") }
+        }
+        XCTAssertTrue(sent)
+        XCTAssertEqual(sentMoves().last, [180, 181, 200])
+    }
+
+    func testFiltersSheetOpensFromChipRow() {
+        let vc = makeVC(game: "Pente", moves: [180])
+        layout(vc, CGSize(width: 402, height: 734))
+        var presented: [UIViewController] = []
+        let presenter: @convention(block) (UIViewController) -> Void = { presented.append($0) }
+        vc.setValue(presenter, forKey: "filtersPresenter")
+        (visibleView(vc, id: "dbFilterChips") as? UIButton)?.sendActions(for: .touchUpInside)
+        XCTAssertTrue(presented.first is DBFiltersViewController)
+    }
 }

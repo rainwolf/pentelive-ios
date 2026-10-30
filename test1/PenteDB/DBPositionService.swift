@@ -18,8 +18,16 @@ import UIKit
     /// Position the games list was last requested for (page 2+ reuses it).
     private var gamesRequest: (game: Int, moves: [Int])?
 
-    @objc var scope: String = "archive"
-    var filters: DBFilters?
+    private let filterStore: DBFilterStore
+    /// Applied filters, loaded from the store (same defaults as `preferences`).
+    var filterState: DBFilterState
+    /// Wire filters and scope are derived per request, so the
+    /// `DBCapabilities.extendedFilters` gate is read at request time.
+    var filters: DBFilters? { filterState.toWire() }
+    @objc var scope: String { filterState.scope }
+    @objc var filterGameId: Int { filterState.gameId }
+    @objc var filterChipSummary: String { filterState.chipSummary() }
+    private lazy var autocomplete = DBPlayerAutocomplete(client: client)
     @objc var onHeat: (([NSNumber: UIColor]) -> Void)?
     @objc var onStatsState: ((DBLoadState) -> Void)?
     @objc var onGamesChanged: (() -> Void)?
@@ -36,6 +44,8 @@ import UIKit
     init(client: DBClient, preferences: DBPreferences = .shared) {
         self.client = client
         self.preferences = preferences
+        filterStore = DBFilterStore(defaults: preferences.defaults)
+        filterState = filterStore.load()
         super.init()
     }
 
@@ -51,11 +61,36 @@ import UIKit
         DBGameViewerViewController(gid: gid, client: client)
     }
 
-    @objc func setLegacyFilters(p1Name: String?, p2Name: String?, p1Rating: String?, p2Rating: String?,
-                                eitherSeat: Bool, winner: Int, after: Date?, before: Date?) {
-        filters = DBLegacyFilterAdapter.filters(p1Name: p1Name, p2Name: p2Name, p1Rating: p1Rating,
-                                                p2Rating: p2Rating, eitherSeat: eitherSeat,
-                                                winner: winner, after: after, before: before)
+    /// "To DB" from a live game: a supported game becomes the saved filter
+    /// game (legacy wrote `DBGame` in BoardViewController.toDB). Go, Renju
+    /// and nil leave the filters alone.
+    @objc func adoptInjectedGame(_ name: String?) {
+        let id = DBGameCatalog.gameId(forName: name)
+        guard DBGameCatalog.isSupported(id) else { return }
+        filterState.setGame(id: id)
+        filterStore.save(filterState)
+    }
+
+    /// Saves and adopts `state`. Returns true when the game id changed.
+    @discardableResult
+    func applyFilters(_ state: DBFilterState) -> Bool {
+        let changed = state.gameId != filterState.gameId
+        filterStore.save(state)
+        filterState = state
+        return changed
+    }
+
+    /// The filters sheet over the applied state. Apply saves through
+    /// `applyFilters`, then tells the host whether the game changed.
+    @objc func makeFiltersViewController(regularWidth: Bool,
+                                         onApplied: @escaping (Bool) -> Void) -> UIViewController {
+        let vc = DBFiltersViewController(applied: filterState, autocomplete: autocomplete)
+        vc.onApply = { [weak self] state in
+            guard let self = self else { return }
+            onApplied(self.applyFilters(state))
+        }
+        vc.configurePresentation(regularWidth: regularWidth)
+        return vc
     }
 
     @objc func positionDidChange(game: Int, moves: [NSNumber], occupied: [NSNumber]) {
