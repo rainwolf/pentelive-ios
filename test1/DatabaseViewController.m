@@ -44,7 +44,7 @@
     char coordinateLetters[19];
     BOOL aiThinking;
     LegacyPenteGame *penteGame;
-    BOOL didStartInitialLoad, didShowSubscriptionAlert, didShowLogInAlert;
+    BOOL didShowSubscriptionAlert, didShowLogInAlert;
     // Test seam: when set, receives the log-in alert instead of a window.
     void (^logInAlertPresenter)(UIAlertController *);
     UILabel *dbStatusLabel;
@@ -537,9 +537,11 @@ BoardViewController *boardController;
     // game is never nil here: viewDidLoad takes it from the injected game
     // or the saved filters.
     [self setBoardColor];
-    [self replayGame];
-    if (!didStartInitialLoad) {
-        didStartInitialLoad = YES;
+    // Returning from the viewer keeps the loaded results: only a position
+    // that never loaded (first appearance, failure, changed moves) refetches.
+    if ([dbService shouldRefreshOnAppearWithGame:[DBGameCatalog gameIdForName:game]
+                                           moves:line.moves]) {
+        [self replayGame];
         [self positionChanged];
     }
     // Returning from a pushed screen re-shows the sheet where it was.
@@ -615,7 +617,6 @@ BoardViewController *boardController;
 }
 
 - (void)positionChanged {
-    didStartInitialLoad = YES;
     [board setDbOptions:nil];
     [zoomedBoard setDbOptions:nil];
     [board setNeedsDisplay];

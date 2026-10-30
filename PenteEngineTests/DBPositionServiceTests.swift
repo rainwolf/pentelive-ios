@@ -341,4 +341,28 @@ final class DBPositionServiceTests: XCTestCase {
         XCTAssertEqual(gamesStates.last?.0, .unsupported)
         XCTAssertTrue(transport.requests.isEmpty)
     }
+
+    func testReappearAfterViewerDoesNotRefetch() async {
+        transport.replies[200] = .init(body: stats([(100, 50, 20)]))
+        XCTAssertTrue(service.shouldRefreshOnAppear(game: 1, moves: [180, 200]))
+        service.positionDidChange(game: 1, moves: [180, 200], occupied: [180, 200])
+        await settle()
+        XCTAssertEqual(states.last, .loaded)
+        XCTAssertFalse(service.shouldRefreshOnAppear(game: 1, moves: [180, 200]))
+        XCTAssertTrue(service.shouldRefreshOnAppear(game: 1, moves: [180]))
+        XCTAssertTrue(service.shouldRefreshOnAppear(game: 2, moves: [180, 200]))
+    }
+
+    func testReappearAfterFailureRefetches() async {
+        transport.replies[200] = .init(body: "{}", status: 500)
+        service.positionDidChange(game: 1, moves: [180, 200], occupied: [180, 200])
+        await settle()
+        XCTAssertEqual(states.last, .failed)
+        XCTAssertTrue(service.shouldRefreshOnAppear(game: 1, moves: [180, 200]))
+    }
+
+    func testReappearWhileLoadingRefetches() {
+        service.positionDidChange(game: 1, moves: [180, 200], occupied: [180, 200])
+        XCTAssertTrue(service.shouldRefreshOnAppear(game: 1, moves: [180, 200]))
+    }
 }

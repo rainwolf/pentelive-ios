@@ -6,6 +6,11 @@ private final class DBViewerTransport: Transport, @unchecked Sendable {
     private let lock = NSLock()
     private var _reply: (body: String, status: Int) = ("{}", 200)
     private var _paths: [String] = []
+    private var _delay: UInt64 = 0
+    var delay: UInt64 {
+        get { lock.lock(); defer { lock.unlock() }; return _delay }
+        set { lock.lock(); defer { lock.unlock() }; _delay = newValue }
+    }
 
     var reply: (body: String, status: Int) {
         get { lock.lock(); defer { lock.unlock() }; return _reply }
@@ -21,7 +26,9 @@ private final class DBViewerTransport: Transport, @unchecked Sendable {
         lock.lock()
         _paths.append(request.url?.path ?? "")
         let r = _reply
+        let d = _delay
         lock.unlock()
+        if d > 0 { try? await Task.sleep(nanoseconds: d) }
         let resp = HTTPURLResponse(url: request.url!, statusCode: r.status, httpVersion: nil, headerFields: nil)!
         return (Data(r.body.utf8), resp)
     }
@@ -133,5 +140,75 @@ final class DBGameViewerViewControllerTests: XCTestCase {
         let done = await waitUntil { vc.state == .subscriptionRequired }
         XCTAssertTrue(done)
         XCTAssertEqual(calls, 1)
+    }
+
+    // MARK: Task 23
+
+    func testBackChipReplacesDefaultBackButton() async {
+        let vc = await open((detail(moves: [180, 181, 200]), 200))
+        XCTAssertTrue(vc.navigationItem.hidesBackButton)
+        XCTAssertNotNil(vc.navigationItem.leftBarButtonItem)
+        XCTAssertEqual(vc.navigationItem.leftBarButtonItem?.title, "\u{2190} Position search")
+    }
+
+    func testHeaderShowsNamesScoreAndColumns() async {
+        let vc = await open((detail(moves: [180, 181, 200]), 200))
+        XCTAssertEqual(vc.headerLabels.p1Name.attributedText?.string.contains("alice"), true)
+        XCTAssertEqual(vc.headerLabels.p2Name.attributedText?.string.contains("bob"), true)
+        XCTAssertFalse(vc.headerLabels.score.text?.isEmpty ?? true)
+        XCTAssertFalse(vc.headerView.isHidden)
+    }
+
+    func testGridHasOneCellPerMoveAndStatesFollowCursor() async {
+        let vc = await open((detail(moves: [180, 181, 200]), 200))
+        XCTAssertEqual(vc.moveGrid.numberOfItems(inSection: 0), 3)
+        XCTAssertEqual(vc.gridCells.map(\.state), [.past, .past, .current])
+        vc.stepBack()
+        XCTAssertEqual(vc.gridCells.map(\.state), [.past, .current, .future])
+    }
+
+    func testGridCellColoursCurrentAndFuture() async {
+        let vc = await open((detail(moves: [180, 181, 200]), 200))
+        vc.stepBack()
+        vc.moveGrid.layoutIfNeeded()
+        let cur = vc.moveGrid.dataSource?.collectionView(vc.moveGrid, cellForItemAt: IndexPath(item: 1, section: 0)) as? DBMoveGridCell
+        let fut = vc.moveGrid.dataSource?.collectionView(vc.moveGrid, cellForItemAt: IndexPath(item: 2, section: 0)) as? DBMoveGridCell
+        XCTAssertEqual(cur?.label.textColor, UIColor(dbHex: DBMoveCell.currentHex))
+        XCTAssertEqual(fut?.label.textColor, UIColor(dbHex: DBMoveCell.futureHex))
+    }
+
+    func testTappingGridCellJumpsCursor() async {
+        let vc = await open((detail(moves: [180, 181, 200]), 200))
+        vc.moveGrid.delegate?.collectionView?(vc.moveGrid, didSelectItemAt: IndexPath(item: 0, section: 0))
+        XCTAssertEqual(vc.cursor?.index, 1)
+        XCTAssertEqual(vc.stone(at: 181), 0)
+        XCTAssertNotEqual(vc.stone(at: 180), 0)
+        vc.moveGrid.delegate?.collectionView?(vc.moveGrid, didSelectItemAt: IndexPath(item: 2, section: 0))
+        XCTAssertEqual(vc.cursor?.index, 3)
+    }
+
+    func testPoppedViewerIgnoresLateAuthFailure() async {
+        var calls = 0
+        transport.reply = ("{}", 401)
+        transport.delay = 200_000_000
+        let vc = DBGameViewerViewController(gid: Self.longGid, client: client)
+        vc.onUnauthorized = { _ in calls += 1 }
+        vc.loadViewIfNeeded()
+        vc.cancelLoadForPop()
+        try? await Task.sleep(nanoseconds: 500_000_000)
+        XCTAssertEqual(calls, 0)
+    }
+
+    func testViewerNotRetainedByInFlightRequest() async {
+        transport.reply = (detail(moves: [180]), 200)
+        transport.delay = 300_000_000
+        weak var weakVC: DBGameViewerViewController?
+        autoreleasepool {
+            let vc = DBGameViewerViewController(gid: Self.longGid, client: client)
+            vc.loadViewIfNeeded()
+            weakVC = vc
+        }
+        try? await Task.sleep(nanoseconds: 50_000_000)
+        XCTAssertNil(weakVC)
     }
 }

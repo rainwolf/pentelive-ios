@@ -1,8 +1,54 @@
 import UIKit
 
+/// One cell of the move grid: optional turn number above the coordinate.
+final class DBMoveGridCell: UICollectionViewCell {
+    static let reuseId = "DBMoveGridCell"
+    let numberLabel = UILabel()
+    let label = UILabel()
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        numberLabel.font = .systemFont(ofSize: 10)
+        numberLabel.textColor = DBPalette.secondaryText
+        label.font = .monospacedDigitSystemFont(ofSize: 14, weight: .regular)
+        let stack = UIStackView(arrangedSubviews: [numberLabel, label])
+        stack.axis = .vertical
+        stack.alignment = .center
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(stack)
+        contentView.layer.cornerRadius = 6
+        NSLayoutConstraint.activate([
+            stack.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+            stack.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+        ])
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) { fatalError("init(coder:) is not supported") }
+
+    func configure(_ cell: DBMoveCell) {
+        numberLabel.text = cell.number
+        label.text = cell.label
+        switch cell.state {
+        case .current:
+            label.textColor = UIColor(dbHex: DBMoveCell.currentHex)
+            label.font = .monospacedDigitSystemFont(ofSize: 14, weight: .bold)
+            contentView.backgroundColor = DBPalette.chipSelectedFill
+        case .future:
+            label.textColor = UIColor(dbHex: DBMoveCell.futureHex)
+            label.font = .monospacedDigitSystemFont(ofSize: 14, weight: .regular)
+            contentView.backgroundColor = .clear
+        case .past:
+            label.textColor = DBPalette.ink
+            label.font = .monospacedDigitSystemFont(ofSize: 14, weight: .regular)
+            contentView.backgroundColor = .clear
+        }
+    }
+}
+
 /// Minimal native viewer for one database game (`GET /games/{gid}`).
 /// Swipe left steps back, swipe right steps forward.
-@objc final class DBGameViewerViewController: UIViewController {
+@objc final class DBGameViewerViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate {
     enum ViewState: Equatable {
         case loading, loaded, blocked, unauthorized, subscriptionRequired, failed
     }
@@ -26,6 +72,17 @@ import UIKit
     let messageLabel = UILabel()
     let retryButton = UIButton(type: .system)
     let spinner = UIActivityIndicatorView(style: .medium)
+
+    /// Three columns: player 1 | score, captures, date | player 2.
+    struct HeaderLabels {
+        let p1Name = UILabel(), p1Rating = UILabel()
+        let score = UILabel(), captures = UILabel(), date = UILabel()
+        let p2Name = UILabel(), p2Rating = UILabel()
+    }
+    let headerLabels = HeaderLabels()
+    let headerView = UIView()
+    let moveGrid = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
+    private(set) var gridCells: [DBMoveCell] = []
 
     /// 19x19 buffer DBBoardView draws from; owned here, freed in deinit.
     private let board: UnsafeMutablePointer<AbstractBoard>
@@ -80,11 +137,13 @@ import UIKit
 
         spinner.hidesWhenStopped = true
 
+        configureChrome()
+
         let message = UIStackView(arrangedSubviews: [messageLabel, retryButton])
         message.axis = .vertical
         message.spacing = 8
         message.alignment = .center
-        for v in [boardView, moveLabel, message, spinner] as [UIView] {
+        for v in [headerView, boardView, moveLabel, moveGrid, message, spinner] as [UIView] {
             v.translatesAutoresizingMaskIntoConstraints = false
             view.addSubview(v)
         }
@@ -93,7 +152,10 @@ import UIKit
         let fullWidth = boardView.widthAnchor.constraint(equalTo: g.widthAnchor)
         fullWidth.priority = .defaultHigh
         NSLayoutConstraint.activate([
-            boardView.topAnchor.constraint(equalTo: g.topAnchor),
+            headerView.topAnchor.constraint(equalTo: g.topAnchor, constant: 8),
+            headerView.leadingAnchor.constraint(equalTo: g.leadingAnchor, constant: 12),
+            headerView.trailingAnchor.constraint(equalTo: g.trailingAnchor, constant: -12),
+            boardView.topAnchor.constraint(equalTo: headerView.bottomAnchor, constant: 8),
             boardView.centerXAnchor.constraint(equalTo: g.centerXAnchor),
             boardView.widthAnchor.constraint(lessThanOrEqualTo: g.widthAnchor),
             boardView.widthAnchor.constraint(lessThanOrEqualTo: g.heightAnchor, multiplier: 0.62),
@@ -101,6 +163,10 @@ import UIKit
             boardView.heightAnchor.constraint(equalTo: boardView.widthAnchor),
             moveLabel.topAnchor.constraint(equalTo: boardView.bottomAnchor, constant: 8),
             moveLabel.centerXAnchor.constraint(equalTo: g.centerXAnchor),
+            moveGrid.topAnchor.constraint(equalTo: moveLabel.bottomAnchor, constant: 8),
+            moveGrid.leadingAnchor.constraint(equalTo: g.leadingAnchor),
+            moveGrid.trailingAnchor.constraint(equalTo: g.trailingAnchor),
+            moveGrid.bottomAnchor.constraint(equalTo: g.bottomAnchor),
             message.centerYAnchor.constraint(equalTo: g.centerYAnchor),
             message.leadingAnchor.constraint(equalTo: g.leadingAnchor, constant: 24),
             message.trailingAnchor.constraint(equalTo: g.trailingAnchor, constant: -24),
@@ -128,9 +194,105 @@ import UIKit
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
+        if isMovingFromParent { cancelLoadForPop() }
         if #available(iOS 26.0, *) {
             navigationController?.interactiveContentPopGestureRecognizer?.isEnabled = true
         }
+    }
+
+    /// A popped viewer must not raise a late 401/403 alert from outside the window.
+    func cancelLoadForPop() {
+        loadTask?.cancel()
+        _ = gate.next(.game) // supersede: a late reply is stale
+    }
+
+    // MARK: chrome
+
+    private func configureChrome() {
+        navigationItem.hidesBackButton = true
+        let back = UIBarButtonItem(title: "\u{2190} " + NSLocalizedString("Position search", comment: ""),
+                                   style: .plain, target: self, action: #selector(backChipTapped))
+        back.tintColor = DBPalette.accent
+        back.accessibilityIdentifier = "dbViewerBackChip"
+        navigationItem.leftBarButtonItem = back
+
+        let h = headerLabels
+        for l in [h.p1Name, h.p1Rating, h.score, h.captures, h.date, h.p2Name, h.p2Rating] {
+            l.numberOfLines = 1
+            l.adjustsFontSizeToFitWidth = true
+            l.minimumScaleFactor = 0.7
+        }
+        h.p1Name.textAlignment = .left
+        h.p1Rating.textAlignment = .left
+        h.p2Name.textAlignment = .right
+        h.p2Rating.textAlignment = .right
+        for l in [h.score, h.captures, h.date] { l.textAlignment = .center }
+        h.score.font = .systemFont(ofSize: 17, weight: .semibold)
+        h.score.textColor = DBPalette.ink
+        h.date.font = .systemFont(ofSize: 12)
+        h.date.textColor = DBPalette.secondaryText2
+        func column(_ views: [UIView], _ align: UIStackView.Alignment) -> UIStackView {
+            let c = UIStackView(arrangedSubviews: views)
+            c.axis = .vertical
+            c.alignment = align
+            c.spacing = 2
+            return c
+        }
+        let row = UIStackView(arrangedSubviews: [
+            column([h.p1Name, h.p1Rating], .leading),
+            column([h.score, h.captures, h.date], .center),
+            column([h.p2Name, h.p2Rating], .trailing),
+        ])
+        row.axis = .horizontal
+        row.distribution = .fillEqually
+        row.alignment = .top
+        row.spacing = 8
+        row.translatesAutoresizingMaskIntoConstraints = false
+        headerView.addSubview(row)
+        NSLayoutConstraint.activate([
+            row.topAnchor.constraint(equalTo: headerView.topAnchor),
+            row.bottomAnchor.constraint(equalTo: headerView.bottomAnchor),
+            row.leadingAnchor.constraint(equalTo: headerView.leadingAnchor),
+            row.trailingAnchor.constraint(equalTo: headerView.trailingAnchor),
+        ])
+        headerView.isHidden = true
+
+        if let layout = moveGrid.collectionViewLayout as? UICollectionViewFlowLayout {
+            layout.itemSize = CGSize(width: 56, height: 44)
+            layout.minimumInteritemSpacing = 4
+            layout.minimumLineSpacing = 4
+            layout.sectionInset = UIEdgeInsets(top: 4, left: 12, bottom: 12, right: 12)
+        }
+        moveGrid.backgroundColor = .clear
+        moveGrid.dataSource = self
+        moveGrid.delegate = self
+        moveGrid.register(DBMoveGridCell.self, forCellWithReuseIdentifier: DBMoveGridCell.reuseId)
+        moveGrid.accessibilityIdentifier = "dbViewerMoveGrid"
+        moveGrid.isHidden = true
+    }
+
+    @objc private func backChipTapped() {
+        navigationController?.popViewController(animated: true)
+    }
+
+    // MARK: move grid
+
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        gridCells.count
+    }
+
+    func collectionView(_ collectionView: UICollectionView,
+                        cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: DBMoveGridCell.reuseId,
+                                                      for: indexPath)
+        if let c = cell as? DBMoveGridCell { c.configure(gridCells[indexPath.item]) }
+        return cell
+    }
+
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        guard cursor != nil else { return }
+        cursor?.jump(to: indexPath.item + 1)
+        redraw()
     }
 
     // MARK: loading
@@ -139,11 +301,13 @@ import UIKit
         loadTask?.cancel()
         let id = gate.next(.game)
         render(.loading)
+        let client = self.client
+        let gid = self.gid
+        // No strong self across the await: a viewer popped mid-request is freed.
         loadTask = Task { @MainActor [weak self] in
-            guard let self = self else { return }
             do {
-                let detail = try await self.client.game(gid: self.gid)
-                guard self.gate.isLatest(id, .game) else { return }
+                let detail = try await client.game(gid: gid)
+                guard let self = self, self.gate.isLatest(id, .game) else { return }
                 if detail.blocked {
                     self.render(.blocked)
                     return
@@ -152,7 +316,7 @@ import UIKit
             } catch is CancellationError {
                 return
             } catch {
-                guard self.gate.isLatest(id, .game) else { return }
+                guard let self = self, self.gate.isLatest(id, .game) else { return }
                 switch error as? DBError {
                 case .unauthorized?:
                     self.render(.unauthorized)
@@ -209,6 +373,8 @@ import UIKit
         retryButton.isHidden = newState != .failed
         boardView.isHidden = newState != .loaded
         moveLabel.isHidden = newState != .loaded
+        headerView.isHidden = newState != .loaded
+        moveGrid.isHidden = newState != .loaded
     }
 
     // MARK: stepping
@@ -230,6 +396,23 @@ import UIKit
         boardView.lastMove = c.index > 0 ? Int32(c.moves[c.index - 1]) : -1
         boardView.setNeedsDisplay()
         moveLabel.text = String(format: NSLocalizedString("Move %ld / %ld", comment: ""), c.index, c.moves.count)
+        if let header = detail?.header {
+            let h = DBViewerHeader.make(header: header, moves: c.moves, cursor: c, now: Date())
+            let l = headerLabels
+            l.p1Name.attributedText = h.p1Name
+            l.p1Rating.attributedText = h.p1Rating
+            l.score.text = h.score
+            l.captures.attributedText = h.captures
+            l.date.text = h.date
+            l.p2Name.attributedText = h.p2Name
+            l.p2Rating.attributedText = h.p2Rating
+        }
+        gridCells = DBMoveCell.grid(moves: c.moves, game: c.game, cursorIndex: c.index)
+        moveGrid.reloadData()
+        if c.index > 0, c.index <= gridCells.count {
+            moveGrid.scrollToItem(at: IndexPath(item: c.index - 1, section: 0),
+                                  at: .centeredVertically, animated: false)
+        }
     }
 
     /// Stone colour at `cell` after the current replay (0 = empty). For tests.

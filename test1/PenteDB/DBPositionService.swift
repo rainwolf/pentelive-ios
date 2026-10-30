@@ -37,6 +37,9 @@ import UIKit
     /// "Show more" page rather than the first page. Read it inside the callback.
     @objc private(set) var gamesStateIsLoadMore = false
     private(set) var lastStats: DBPositionStats?
+    /// Position whose stats request last completed successfully (cleared by
+    /// every new position). Lets the host skip a refetch on return from the viewer.
+    private var loadedPosition: (game: Int, moves: [Int])?
     private(set) var occupied: Set<Int> = []
     /// Game id of the current position (labels need its grid size).
     @objc private(set) var game: Int = 0
@@ -93,8 +96,15 @@ import UIKit
         return vc
     }
 
+    /// True unless stats for exactly this position already loaded successfully.
+    @objc func shouldRefreshOnAppear(game: Int, moves: [NSNumber]) -> Bool {
+        guard let loaded = loadedPosition else { return true }
+        return loaded.game != game || loaded.moves != moves.map { $0.intValue }
+    }
+
     @objc func positionDidChange(game: Int, moves: [NSNumber], occupied: [NSNumber]) {
         lastStats = nil
+        loadedPosition = nil
         self.game = game
         self.occupied = Set(occupied.map { $0.intValue })
         statsTask?.cancel()
@@ -124,6 +134,7 @@ import UIKit
                 let stats = try await self.client.positionStats(request)
                 guard self.gate.isLatest(id, .stats) else { return }
                 self.lastStats = stats
+                if !stats.blocked { self.loadedPosition = (request.game, request.moves) }
                 self.onHeat?(self.currentHeat)
                 if stats.blocked {
                     self.onStatsState?(.blocked)
