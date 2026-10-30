@@ -18,7 +18,14 @@ private final class DBScriptedTransport: Transport, @unchecked Sendable {
            let o = try? JSONSerialization.jsonObject(with: b) as? [String: Any],
            let m = o["moves"] as? [Int], let last = m.last { key = last }
         let r = replies[key] ?? Reply(body: "{}")
-        if r.delay > 0 { try await Task.sleep(nanoseconds: r.delay) }
+        if r.delay > 0 {
+            // Ignores Task cancellation, like the production URLSession transport:
+            // a superseded request still delivers its body, so only the
+            // service's stale-response gate keeps it from painting.
+            await withCheckedContinuation { (c: CheckedContinuation<Void, Never>) in
+                DispatchQueue.main.asyncAfter(deadline: .now() + .nanoseconds(Int(r.delay))) { c.resume() }
+            }
+        }
         let resp = HTTPURLResponse(url: request.url!, statusCode: r.status,
                                    httpVersion: nil, headerFields: nil)!
         return (Data(r.body.utf8), resp)
