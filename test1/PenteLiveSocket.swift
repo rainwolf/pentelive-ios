@@ -46,6 +46,14 @@ import UIKit
         connection.stateUpdateHandler = { [weak self] state in
             self?.connectionStateChanged(state)
         }
+        // Unit-test host: NWConnection bypasses the URL loading system, so the
+        // tripwire is asked here. Inert in production (never installed).
+        if TestNetworkTripwire.refuseSocket(host: server, port: port) {
+            queue.async { [weak self] in
+                self?.close(error: NSError(domain: TestNetworkTripwire.errorDomain, code: TestNetworkTripwire.errorCode))
+            }
+            return
+        }
         print("connecting: \(server):\(port)")
         connection.start(queue: queue)
     }
