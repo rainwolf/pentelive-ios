@@ -57,9 +57,24 @@ import Foundation
         return b != 5 && b != 13 && b != 31
     }
 
-    /// Boat-Pente maps to `.pente`, as in BoardVariantMapping.
+    /// Direct switch on the base id (no name-substring matching). Boat-Pente maps
+    /// to `.pente`, as in BoardVariantMapping. Unsupported ids fall back to `.pente`;
+    /// callers gate on `isSupported` first.
     static func variant(forGame id: Int) -> PenteVariant {
-        return BoardVariantMapping.variant(forGameType: name(forGame: id))
+        switch baseGame(id) {
+        case 1, 15: return .pente
+        case 3: return .keryoPente
+        case 5: return .gomoku
+        case 7: return .dPente
+        case 9: return .gpente
+        case 11: return .poofPente
+        case 13: return .connect6
+        case 17: return .dkPente
+        case 25: return .oPente
+        case 27: return .swap2Pente
+        case 29: return .swap2Keryo
+        default: return .pente
+        }
     }
 
     /// Speed-Swap2 is out of scope.

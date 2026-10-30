@@ -68,4 +68,21 @@ final class DBGameCatalogTests: XCTestCase {
         XCTAssertEqual(DBGameCatalog.variant(forGame: 3), .keryoPente)
         XCTAssertEqual(DBGameCatalog.variant(forGame: 13), .connect6)
     }
+
+    func testVariantEveryBaseGameIncludingDK() {
+        let expected: [Int: PenteVariant] = [
+            1: .pente, 3: .keryoPente, 5: .gomoku, 7: .dPente, 9: .gpente,
+            11: .poofPente, 13: .connect6, 15: .pente, 17: .dkPente,
+            25: .oPente, 27: .swap2Pente, 29: .swap2Keryo,
+        ]
+        XCTAssertEqual(Set(expected.keys), Set(DBGameCatalog.baseGames))
+        for (id, v) in expected {
+            XCTAssertEqual(DBGameCatalog.variant(forGame: id), v, "base \(id)")
+            XCTAssertEqual(DBGameCatalog.variant(forGame: id + 50), v, "tb \(id)")
+            if DBGameCatalog.supportsSpeed(base: id) {
+                XCTAssertEqual(DBGameCatalog.variant(forGame: id + 1), v, "speed \(id)")
+            }
+        }
+        XCTAssertEqual(DBGameCatalog.variant(forGame: 18), .dkPente)
+    }
 }
