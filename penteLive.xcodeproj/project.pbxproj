@@ -57,6 +57,7 @@
 		49EB299ADFD07A0177F01792 /* PenteBanner.m in Sources */ = {isa = PBXBuildFile; fileRef = AA6E9C65F1C971669AADF4B8 /* PenteBanner.m */; };
 		4B107A0AC64E386CA34E53FA /* GoGameTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5FF3D6A4D1F70E68CC42981 /* GoGameTests.swift */; };
 		4B11137F8EB9E713E604C1F0 /* StoreViewControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8B3FB83B0F64A0F4F64541E /* StoreViewControllerTests.swift */; };
+		4F54B88349ECBCC34B4849DF /* DBBoardReplayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51224AF90258019BB4C251FE /* DBBoardReplayTests.swift */; };
 		56A47E5790F26B1185D1288E /* KidAccountsScreenTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B13EAFBB305B195C1E1A0127 /* KidAccountsScreenTests.swift */; };
 		59341695CEED597E37579115 /* DBPositionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63CFA41315F985DC94CF0C2F /* DBPositionService.swift */; };
 		5AB18D031C159DDA0DE59551 /* StoreTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = F012F4E7BBA0F5D6EF3902A8 /* StoreTypes.swift */; };
@@ -272,6 +273,7 @@
 		6DF419D1BFAAECFD9C12D887 /* RuleSetTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ECBCB2C27E5249A019555B9 /* RuleSetTests.swift */; };
 		704D00F9E428E7746E4942F1 /* CorpusHelperTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8715B8F87E8325A61F04D700 /* CorpusHelperTests.swift */; };
 		70FAFB8857D33AA36493CB88 /* DashboardResultTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0FC944C7EBF9EE152F01111 /* DashboardResultTests.swift */; };
+		783780D09572E7D014326979 /* DBBoardReplay.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B350D9124BC53A303DF4EE /* DBBoardReplay.swift */; };
 		7870B7DFA7E08EB36CE1AB3A /* DBPlayerAutocompleteTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFA89B02E0B28838E3B99E61 /* DBPlayerAutocompleteTests.swift */; };
 		7A1C0E5B2F70000100A1B001 /* TestNetworkTripwire.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A1C0E5B2F70000100A1B002 /* TestNetworkTripwire.swift */; };
 		7A1C0E5B2F70000100A1B003 /* TestNetworkTripwireTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A1C0E5B2F70000100A1B004 /* TestNetworkTripwireTests.swift */; };
@@ -417,6 +419,7 @@
 		4AF8C41985F00001A440EF86 /* Pods-penteLive.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-penteLive.release.xcconfig"; path = "Pods/Target Support Files/Pods-penteLive/Pods-penteLive.release.xcconfig"; sourceTree = "<group>"; };
 		4D35AE418CE432E8FBEC6D33 /* MMAIShimTests.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = MMAIShimTests.m; sourceTree = "<group>"; };
 		50436E8B3C992E62FFFC15D7 /* BoardVariantMapping.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BoardVariantMapping.swift; sourceTree = "<group>"; };
+		51224AF90258019BB4C251FE /* DBBoardReplayTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DBBoardReplayTests.swift; sourceTree = "<group>"; };
 		5261D0FED6B8E6E0642B1623 /* LinkPolicy.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LinkPolicy.swift; sourceTree = "<group>"; };
 		5358C63FD6FAECC96B89B521 /* DBPalette.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DBPalette.swift; sourceTree = "<group>"; };
 		56695C43B8B3FC600459EC2F /* DashboardServiceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DashboardServiceTests.swift; sourceTree = "<group>"; };
@@ -778,6 +781,7 @@
 		F012F4E7BBA0F5D6EF3902A8 /* StoreTypes.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StoreTypes.swift; sourceTree = "<group>"; };
 		F0FC944C7EBF9EE152F01111 /* DashboardResultTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DashboardResultTests.swift; sourceTree = "<group>"; };
 		F11B55E9EFB59E2DF3518E4B /* StoreScreenshotTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StoreScreenshotTests.swift; sourceTree = "<group>"; };
+		F3B350D9124BC53A303DF4EE /* DBBoardReplay.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DBBoardReplay.swift; sourceTree = "<group>"; };
 		F7C6301B1FFA90AF3EFFC698 /* DBGameCatalog.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DBGameCatalog.swift; sourceTree = "<group>"; };
 		F7CA59B7AF7DEC7A0BC5268E /* StoreEntryPointsTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StoreEntryPointsTests.swift; sourceTree = "<group>"; };
 		FB0E96BC0C158A9179179CBD /* DashboardEndpoint.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DashboardEndpoint.swift; sourceTree = "<group>"; };
@@ -1216,6 +1220,7 @@
 				FDA296611079266B244FB89D /* DBPlayerAutocomplete.swift */,
 				CA254B7FE06D048020FE3B8F /* DBFiltersViewController.swift */,
 				277134F9159EE5F29056C938 /* DBViewerModels.swift */,
+				F3B350D9124BC53A303DF4EE /* DBBoardReplay.swift */,
 			);
 			name = PenteDB;
 			path = test1/PenteDB;
@@ -1334,6 +1339,7 @@
 				7F4FC62C1D5EDE1056909DCD /* DBFiltersViewControllerTests.swift */,
 				C41380FB28017A8D7C00E66A /* DBViewerModelsTests.swift */,
 				7E3DFAB528AA0DB41BB5E041 /* DBDarkModeTests.swift */,
+				51224AF90258019BB4C251FE /* DBBoardReplayTests.swift */,
 			);
 			path = PenteEngineTests;
 			sourceTree = SOURCE_ROOT;
@@ -1755,6 +1761,7 @@
 				6D564C4FE2E6185DE4823E4D /* DBFiltersViewControllerTests.swift in Sources */,
 				404BD4B0D90D54BE254CFAFD /* DBViewerModelsTests.swift in Sources */,
 				3073157652041657C69361F9 /* DBDarkModeTests.swift in Sources */,
+				4F54B88349ECBCC34B4849DF /* DBBoardReplayTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1877,6 +1884,7 @@
 				2E27DBFACEEC8484E6674E1F /* DBPlayerAutocomplete.swift in Sources */,
 				E95B7D2AAFBA231D5E210F88 /* DBFiltersViewController.swift in Sources */,
 				9AC1667B1087BDD1E17C2A88 /* DBViewerModels.swift in Sources */,
+				783780D09572E7D014326979 /* DBBoardReplay.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
