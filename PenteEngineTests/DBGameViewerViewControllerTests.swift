@@ -81,6 +81,48 @@ final class DBGameViewerViewControllerTests: XCTestCase {
         XCTAssertEqual(vc.boardView.backgroundColor, DBPalette.boardColor(forGame: 1))
     }
 
+    func testGoNineByNineGameReplaysCapturesAndPasses() async {
+        // B A9, W B9, B C9, W passes, B B8 captures W B9, W E5.
+        let vc = await open((detail(game: 21, moves: [0, 1, 2, 81, 10, 40]), 200))
+        XCTAssertEqual(vc.state, .loaded)
+        XCTAssertEqual(vc.cursor?.moves, [0, 1, 2, 81, 10, 40], "the pass is kept for parity")
+        XCTAssertEqual(vc.stone(at: 0), 2, "black first")
+        XCTAssertEqual(vc.stone(at: 1), 0, "captured")
+        XCTAssertEqual(vc.stone(at: 10), 2, "black again after the pass")
+        XCTAssertEqual(vc.stone(at: 40), 1)
+        XCTAssertEqual(vc.stone(at: 81), 0, "the pass is never a cell")
+        XCTAssertEqual(vc.boardView.gridSize, 9)
+        XCTAssertTrue(vc.boardView.go)
+        XCTAssertEqual(vc.boardView.backgroundColor, DBPalette.boardColor(forGame: 21))
+        XCTAssertEqual(vc.gridCells.map { $0.label }, ["A9", "B9", "C9", "PASS", "B8", "E5"])
+        XCTAssertEqual(vc.headerLabels.captures.attributedText?.string, "● × 1  ● × 0")
+        vc.stepBack()
+        vc.stepBack()
+        XCTAssertEqual(vc.stone(at: 1), 1, "before the capture")
+        XCTAssertEqual(vc.boardView.lastMove, 81, "a pass is the last move; DBBoardView draws nothing for it")
+    }
+
+    func testRenjuGameIsBlackFirstOnFifteen() async {
+        let vc = await open((detail(game: 32, moves: [112, 113, 224]), 200))
+        XCTAssertEqual(vc.stone(at: 112), 2)
+        XCTAssertEqual(vc.stone(at: 113), 1)
+        XCTAssertEqual(vc.stone(at: 224), 2, "P1 corner of 15x15")
+        XCTAssertEqual(vc.boardView.gridSize, 15)
+        XCTAssertFalse(vc.boardView.go)
+        XCTAssertEqual(vc.gridCells.map { $0.label }, ["H8", "J8", "P1"])
+        XCTAssertEqual(vc.headerLabels.captures.attributedText?.string ?? "", "")
+    }
+
+    func testPenteGameStillDrawsOnNineteen() async {
+        let vc = await open((detail(game: 1, moves: [180, 181, 200, 182, 183]), 200))
+        XCTAssertEqual(vc.stone(at: 180), 1, "white first")
+        XCTAssertEqual(vc.stone(at: 181), 0, "pair captured")
+        XCTAssertEqual(vc.stone(at: 182), 0)
+        XCTAssertEqual(vc.stone(at: 183), 1)
+        XCTAssertEqual(vc.boardView.gridSize, 19)
+        XCTAssertFalse(vc.boardView.go)
+    }
+
     func testSwipesStepBackAndForward() async {
         let vc = await open((detail(moves: [180, 181, 200]), 200))
         vc.stepBack()
