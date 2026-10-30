@@ -59,6 +59,9 @@ final class DBGameCatalogTests: XCTestCase {
         XCTAssertFalse(DBGameCatalog.hasCaptures(game: 5))
         XCTAssertFalse(DBGameCatalog.hasCaptures(game: 13))
         XCTAssertFalse(DBGameCatalog.hasCaptures(game: 31))
+        // Unsupported ids (Go, Renju, unknown names map to 0) never show captures.
+        XCTAssertFalse(DBGameCatalog.hasCaptures(game: 0))
+        XCTAssertFalse(DBGameCatalog.hasCaptures(game: 99))
         XCTAssertTrue(DBGameCatalog.hasCaptures(game: 1))
         XCTAssertTrue(DBGameCatalog.hasCaptures(game: 2))
     }

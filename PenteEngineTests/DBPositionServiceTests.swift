@@ -65,7 +65,7 @@ final class DBPositionServiceTests: XCTestCase {
         super.setUp()
         UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite)
         transport = DBScriptedTransport()
-        let client = DBClient(endpoint: DBEndpoint(useLocalhost: false, credentials: nil),
+        let client = DBClient(endpoint: DBEndpoint(useLocalhost: false),
                               transport: transport)
         let prefs = DBPreferences(defaults: UserDefaults(suiteName: suite)!)
         service = DBPositionService(client: client, preferences: prefs)
@@ -216,7 +216,7 @@ final class DBPositionServiceTests: XCTestCase {
         s.setGame(id: 4)
         s.player2 = "bob"
         store.save(s)
-        let client = DBClient(endpoint: DBEndpoint(useLocalhost: false, credentials: nil), transport: transport)
+        let client = DBClient(endpoint: DBEndpoint(useLocalhost: false), transport: transport)
         let fresh = DBPositionService(client: client,
                                       preferences: DBPreferences(defaults: UserDefaults(suiteName: suite)!))
         XCTAssertEqual(fresh.filterState, s)
@@ -364,5 +364,121 @@ final class DBPositionServiceTests: XCTestCase {
     func testReappearWhileLoadingRefetches() {
         service.positionDidChange(game: 1, moves: [180, 200], occupied: [180, 200])
         XCTAssertTrue(service.shouldRefreshOnAppear(game: 1, moves: [180, 200]))
+    }
+
+    // MARK: failed games list on return (M2)
+
+    private func gamesPage(gid: Int64 = 5) -> String {
+        "{\"total\":1,\"games\":[{\"gid\":\(gid),\"game\":1,\"winner\":1,\"moveCount\":3}],\"blocked\":false}"
+    }
+
+    private var searchCount: Int {
+        transport.requests.filter { $0.url?.path.hasSuffix("/games/search") == true }.count
+    }
+
+    func testRefetchFailedEndpointsRetriesFailedGamesOnly() async {
+        transport.replies[200] = .init(body: stats([(100, 50, 20)]))
+        transport.searchReplies[0] = .init(body: "{}", status: 500)
+        service.positionDidChange(game: 1, moves: [180, 200], occupied: [180, 200])
+        await settle()
+        XCTAssertEqual(states.last, .loaded)
+        XCTAssertEqual(gamesStates.last?.0, .failed)
+        XCTAssertFalse(service.shouldRefreshOnAppear(game: 1, moves: [180, 200]))
+        let total = transport.requests.count
+        transport.searchReplies[0] = .init(body: gamesPage())
+        service.refetchFailedGames()
+        await settle()
+        XCTAssertEqual(gamesStates.last?.0, .loaded)
+        XCTAssertEqual(service.pager.games.map(\.gid), [5])
+        XCTAssertEqual(transport.requests.count, total + 1, "games only")
+    }
+
+    func testRefetchFailedEndpointsRetriesBlockedGames() async {
+        transport.replies[200] = .init(body: stats([(100, 50, 20)]))
+        transport.searchReplies[0] = .init(body: "{\"total\":0,\"games\":[],\"blocked\":true}")
+        service.positionDidChange(game: 1, moves: [180, 200], occupied: [180, 200])
+        await settle()
+        XCTAssertEqual(gamesStates.last?.0, .blocked)
+        transport.searchReplies[0] = .init(body: gamesPage())
+        service.refetchFailedGames()
+        await settle()
+        XCTAssertEqual(gamesStates.last?.0, .loaded)
+    }
+
+    func testRefetchFailedEndpointsSkipsLoadedGames() async {
+        transport.replies[200] = .init(body: stats([(100, 50, 20)]))
+        transport.searchReplies[0] = .init(body: gamesPage())
+        service.positionDidChange(game: 1, moves: [180, 200], occupied: [180, 200])
+        await settle()
+        XCTAssertEqual(gamesStates.last?.0, .loaded)
+        let before = searchCount
+        service.refetchFailedGames()
+        await settle(0.2)
+        XCTAssertEqual(searchCount, before)
+    }
+
+    // MARK: invitedHistory (M4)
+
+    func testApplyFiltersRecordsSearchedNamesInInvitedHistory() {
+        let defaults = UserDefaults(suiteName: suite)!
+        defaults.set(["zed"], forKey: "invitedHistory")
+        var s = service.filterState
+        s.player1 = "Alice, Bob"
+        s.player2 = "car*l"
+        service.applyFilters(s)
+        XCTAssertEqual(defaults.array(forKey: "invitedHistory") as? [String], ["alice", "bob", "zed"])
+        s.player2 = "ALICE"
+        service.applyFilters(s)
+        XCTAssertEqual(defaults.array(forKey: "invitedHistory") as? [String], ["alice", "bob", "zed"])
+    }
+
+    func testApplyFiltersWithoutNamesLeavesInvitedHistoryAlone() {
+        let defaults = UserDefaults(suiteName: suite)!
+        var s = service.filterState
+        s.winner = 1
+        service.applyFilters(s)
+        XCTAssertNil(defaults.object(forKey: "invitedHistory"))
+    }
+
+    // MARK: /ping features gate the extended filters (F4)
+
+    private func lastStatsBody() -> String {
+        let r = transport.requests.last { $0.url?.path.hasSuffix("/position-stats") == true }
+        return String(decoding: r?.httpBody ?? Data(), as: UTF8.self)
+    }
+
+    func testPingFeaturesGateExtendedFiltersPerFeature() async {
+        var s = DBFilterState()
+        s.excludeTimeouts = true
+        s.liveOrTurnBased = "live"
+        service.applyFilters(s)
+        service.positionDidChange(game: 1, moves: [10], occupied: [10])
+        await settle(0.3)
+        XCTAssertTrue(lastStatsBody().contains("\"filters\":null"), lastStatsBody())
+        XCTAssertFalse(service.filterChipSummary.contains("no timeouts"))
+
+        transport.replies[-1] = .init(body: "{\"auth\":\"bob\",\"dbAccess\":true,\"features\":[\"excludeTimeouts\"]}")
+        var changes: [Bool] = []
+        service.onFeaturesChanged = { changes.append($0) }
+        service.refreshFeatures()
+        await settle(0.3)
+        XCTAssertEqual(changes, [true], "the wire filters changed")
+        XCTAssertTrue(transport.requests.contains { $0.url?.path.hasSuffix("/ping") == true })
+        service.positionDidChange(game: 1, moves: [11], occupied: [11])
+        await settle(0.3)
+        XCTAssertTrue(lastStatsBody().contains("\"excludeTimeouts\":true"), lastStatsBody())
+        XCTAssertFalse(lastStatsBody().contains("liveOrTurnBased"), lastStatsBody())
+        XCTAssertTrue(service.filterChipSummary.contains("no timeouts"))
+        XCTAssertFalse(service.filterChipSummary.contains("live only"))
+    }
+
+    func testPingFailureKeepsExtendedFiltersHidden() async {
+        transport.replies[-1] = .init(body: "{}", status: 500)
+        var changes: [Bool] = []
+        service.onFeaturesChanged = { changes.append($0) }
+        service.refreshFeatures()
+        await settle(0.3)
+        XCTAssertTrue(changes.isEmpty)
+        XCTAssertEqual(service.features, DBServerFeatures.none)
     }
 }

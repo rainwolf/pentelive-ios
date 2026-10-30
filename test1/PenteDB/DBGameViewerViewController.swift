@@ -46,7 +46,8 @@ final class DBMoveGridCell: UICollectionViewCell {
     }
 }
 
-/// Minimal native viewer for one database game (`GET /games/{gid}`).
+/// Minimal native viewer for one database game (`GET /games/{gid}`, or
+/// `GET /collection/{wgid}` for a personal "mine" row).
 /// Swipe left steps back, swipe right steps forward.
 @objc final class DBGameViewerViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate {
     enum ViewState: Equatable {
@@ -54,6 +55,8 @@ final class DBMoveGridCell: UICollectionViewCell {
     }
 
     @objc let gid: Int64
+    /// True for a personal row: `gid` is a wgid loaded from the collection.
+    @objc let isMine: Bool
     private let client: DBClient
     private let gate = DBRequestGate()
     private var loadTask: Task<Void, Never>?
@@ -88,8 +91,12 @@ final class DBMoveGridCell: UICollectionViewCell {
     private let board: UnsafeMutablePointer<AbstractBoard>
     private let game = LegacyPenteGame()
 
-    init(gid: Int64, client: DBClient) {
+    /// Test seam: stands in for `isMovingFromParent` (no navigation stack).
+    var movingFromParentOverride: Bool?
+
+    init(gid: Int64, client: DBClient, isMine: Bool = false) {
         self.gid = gid
+        self.isMine = isMine
         self.client = client
         board = UnsafeMutablePointer<AbstractBoard>.allocate(capacity: 19)
         board.initialize(repeating: (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), count: 19)
@@ -194,10 +201,17 @@ final class DBMoveGridCell: UICollectionViewCell {
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        if isMovingFromParent { cancelLoadForPop() }
         if #available(iOS 26.0, *) {
             navigationController?.interactiveContentPopGestureRecognizer?.isEnabled = true
         }
+    }
+
+    /// Only a pop that actually completed cancels the load: an interactive
+    /// pop that is cancelled never reaches viewDidDisappear, so its load
+    /// keeps running and the viewer still settles (no endless spinner).
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        if movingFromParentOverride ?? isMovingFromParent { cancelLoadForPop() }
     }
 
     /// A popped viewer must not raise a late 401/403 alert from outside the window.
@@ -303,10 +317,12 @@ final class DBMoveGridCell: UICollectionViewCell {
         render(.loading)
         let client = self.client
         let gid = self.gid
+        let mine = isMine
         // No strong self across the await: a viewer popped mid-request is freed.
         loadTask = Task { @MainActor [weak self] in
             do {
-                let detail = try await client.game(gid: gid)
+                let detail = mine ? try await client.collectionGame(wgid: gid)
+                    : try await client.game(gid: gid)
                 guard let self = self, self.gate.isLatest(id, .game) else { return }
                 if detail.blocked {
                     self.render(.blocked)

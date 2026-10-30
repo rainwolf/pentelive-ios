@@ -39,7 +39,7 @@ private struct DBDelayedTransport: Transport {
 }
 
 final class DBClientTests: XCTestCase {
-    private let prod = DBEndpoint(useLocalhost: false, credentials: nil)
+    private let prod = DBEndpoint(useLocalhost: false)
 
     private func client(_ t: Transport, endpoint: DBEndpoint? = nil) -> DBClient {
         DBClient(endpoint: endpoint ?? prod, transport: t)
@@ -92,31 +92,22 @@ final class DBClientTests: XCTestCase {
     }
 
     func testLocalhostBase() {
-        let e = DBEndpoint(useLocalhost: true, credentials: nil)
+        let e = DBEndpoint(useLocalhost: true)
         XCTAssertTrue(e.ping().url!.absoluteString.hasPrefix("https://localhost/api/db/"))
         XCTAssertTrue(e.positionStats(statsRequest()).url!.absoluteString.hasPrefix("https://localhost/api/db/"))
     }
 
-    func testCookieHeaderWhenCredentials() {
-        let e = DBEndpoint(useLocalhost: false, credentials: DBCredentials(username: "bob", password: "p@ss!"))
-        let r = e.positionStats(statsRequest())
-        XCTAssertEqual(r.value(forHTTPHeaderField: "Cookie"), "name2=bob; password2=p@ss!")
-        XCTAssertFalse(r.httpShouldHandleCookies)
-        XCTAssertNil(prod.ping().value(forHTTPHeaderField: "Cookie"))
+    func testNeverBuildsACookieHeader() {
+        // Auth rides on the shared HTTPCookieStorage session cookies only.
+        let r = prod.positionStats(statsRequest())
+        XCTAssertNil(r.value(forHTTPHeaderField: "Cookie"))
+        XCTAssertTrue(r.httpShouldHandleCookies)
     }
 
-    func testCookieValuesSentRawForAllCookieOctets() {
-        let pw = "!#$%&'()*+-./:<=>?@[]^_`{|}~Az09"
-        let e = DBEndpoint(useLocalhost: false, credentials: DBCredentials(username: "a.b_c", password: pw))
-        XCTAssertEqual(e.ping().value(forHTTPHeaderField: "Cookie"), "name2=a.b_c; password2=\(pw)")
-    }
-
-    func testNoCookieHeaderWhenCredentialsNotCookieSafe() {
-        for (user, pw) in [("bob", "p;w"), ("bob", "p w"), ("bob", "p\"q"), ("bob", "p,w"),
-                           ("bob", "p\\w"), ("bob", "p\u{7F}"), ("bob", "pé"), ("b;ob", "pw"), ("", "pw"), ("bob", "")] {
-            let e = DBEndpoint(useLocalhost: false, credentials: DBCredentials(username: user, password: pw))
-            XCTAssertNil(e.ping().value(forHTTPHeaderField: "Cookie"), "\(user)/\(pw)")
-        }
+    func testCollectionGamePath() {
+        let r = prod.collectionGame(wgid: 42)
+        XCTAssertEqual(r.url?.absoluteString, "https://www.pente.org/api/db/collection/42")
+        XCTAssertEqual(r.httpMethod, "GET")
     }
 
     // MARK: Error mapping

@@ -8,11 +8,25 @@ private final class DBScreenTransport: Transport, @unchecked Sendable {
     // superseded request and its replacement can hit it concurrently.
     private let lock = NSLock()
     private var _replies: [Int: (body: String, status: Int)] = [:]
+    private var _delays: [Int: UInt64] = [:]
+    private var _searchReply: (body: String, status: Int)?
     private var _requests: [URLRequest] = []
 
     var replies: [Int: (body: String, status: Int)] {
         get { lock.lock(); defer { lock.unlock() }; return _replies }
         set { lock.lock(); defer { lock.unlock() }; _replies = newValue }
+    }
+
+    /// Per-key reply delay (nanoseconds), so a request stays in flight.
+    var delays: [Int: UInt64] {
+        get { lock.lock(); defer { lock.unlock() }; return _delays }
+        set { lock.lock(); defer { lock.unlock() }; _delays = newValue }
+    }
+
+    /// When set, every /games/search gets this reply instead of `replies`.
+    var searchReply: (body: String, status: Int)? {
+        get { lock.lock(); defer { lock.unlock() }; return _searchReply }
+        set { lock.lock(); defer { lock.unlock() }; _searchReply = newValue }
     }
 
     /// Position-stats calls only; the games search fired alongside is
@@ -22,12 +36,20 @@ private final class DBScreenTransport: Transport, @unchecked Sendable {
         return _requests.filter { $0.url?.path.hasSuffix("/position-stats") == true }
     }
 
+    var searchRequests: [URLRequest] {
+        lock.lock(); defer { lock.unlock() }
+        return _requests.filter { $0.url?.path.hasSuffix("/games/search") == true }
+    }
+
     func data(for request: URLRequest) async throws -> (Data, URLResponse) {
         let key = DBScreenTransport.moves(of: request).last ?? -1
         lock.lock()
         _requests.append(request)
-        let r = _replies[key] ?? (body: "{}", status: 200)
+        var r = _replies[key] ?? (body: "{}", status: 200)
+        if request.url?.path.hasSuffix("/games/search") == true, let s = _searchReply { r = s }
+        let delay = _delays[key] ?? 0
         lock.unlock()
+        if delay > 0 { try? await Task.sleep(nanoseconds: delay) }
         let resp = HTTPURLResponse(url: request.url!, statusCode: r.status,
                                    httpVersion: nil, headerFields: nil)!
         return (Data(r.body.utf8), resp)
@@ -69,7 +91,7 @@ final class DBDatabaseScreenTests: XCTestCase {
         super.setUp()
         UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite)
         transport = DBScreenTransport()
-        let client = DBClient(endpoint: DBEndpoint(useLocalhost: false, credentials: nil),
+        let client = DBClient(endpoint: DBEndpoint(useLocalhost: false),
                               transport: transport)
         prefs = DBPreferences(defaults: UserDefaults(suiteName: suite)!)
         service = DBPositionService(client: client, preferences: prefs)
@@ -313,13 +335,216 @@ final class DBDatabaseScreenTests: XCTestCase {
         XCTAssertEqual(transport.requests.count, requestsBefore, "toggle must not refetch")
     }
 
-    func testToggleWhileInFlightPaintsNothing() {
+    func testToggleWhileInFlightPaintsNothing() async {
+        // The previous position's dots are loaded and painted first, so a
+        // toggle that repainted stale stats would show them.
+        transport.replies[200] = (stats([(10, 60), (11, 40)]), 200)
+        transport.replies[181] = (stats([(12, 60)]), 200)
+        transport.delays[181] = 400_000_000
         let vc = makeVC(game: "Pente", moves: [180, 181, 200])
+        vc.perform(NSSelectorFromString("positionChanged"))
+        let painted = await waitUntil { self.heatKeys(vc) == [NSNumber(value: 10), NSNumber(value: 11)] }
+        XCTAssertTrue(painted)
         back(vc)
-        // Reply not yet processed: currentHeat is empty, so nothing may paint.
+        // [180, 181] is in flight: currentHeat is empty, so nothing may paint.
         vc.perform(NSSelectorFromString("toggleHeat"))
         vc.perform(NSSelectorFromString("toggleHeat"))
         XCTAssertNil(dbOptions(vc))
+        // The delayed reply then paints its own dot only.
+        let fresh = await waitUntil { self.heatKeys(vc) == [NSNumber(value: 12)] }
+        XCTAssertTrue(fresh)
+    }
+
+    // MARK: response alerts (M7)
+
+    private func captureAlerts(_ vc: UIViewController, key: String) -> () -> [UIAlertController] {
+        final class Box { var alerts: [UIAlertController] = [] }
+        let box = Box()
+        let presenter: @convention(block) (UIAlertController) -> Void = { box.alerts.append($0) }
+        vc.setValue(presenter, forKey: key)
+        return { box.alerts }
+    }
+
+    func testUnauthorizedResponseRaisesOneLoginAlert() async {
+        transport.replies[181] = ("{\"error\":{\"code\":\"unauthorized\"}}", 401)
+        let vc = makeVC(game: "Pente", moves: [180, 181, 200])
+        let alerts = captureAlerts(vc, key: "logInAlertPresenter")
+        back(vc) // stats and games search both answer 401
+        let shown = await waitUntil { alerts().count == 1 }
+        XCTAssertTrue(shown)
+        await settle()
+        XCTAssertEqual(alerts().count, 1)
+        XCTAssertEqual(alerts().first?.title, "Please log in again")
+    }
+
+    func testSubscriptionRequiredResponseRaisesOneSubscriptionAlert() async {
+        transport.replies[181] = ("{\"error\":{\"code\":\"subscription_required\"}}", 403)
+        let vc = makeVC(game: "Pente", moves: [180, 181, 200])
+        let alerts = captureAlerts(vc, key: "subscriptionAlertPresenter")
+        back(vc)
+        let shown = await waitUntil { alerts().count == 1 }
+        XCTAssertTrue(shown)
+        await settle()
+        XCTAssertEqual(alerts().count, 1)
+        XCTAssertEqual(alerts().first?.title, "Level up your game")
+    }
+
+    // MARK: subscription bought on iPad (M1)
+
+    func testEntitlementChangeAfterSubscriptionRequiredRefetches() async {
+        transport.replies[181] = ("{\"error\":{\"code\":\"subscription_required\"}}", 403)
+        let center = NotificationCenter() // the games list observes the real one
+        let sb = UIStoryboard(name: "MainStoryboard", bundle: Bundle.main)
+        let vc = sb.instantiateViewController(withIdentifier: "databaseViewController")
+        vc.setValue(service, forKey: "dbService")
+        vc.setValue(NSMutableArray(array: [180, 181, 200].map { NSNumber(value: $0) }), forKey: "movesList")
+        vc.setValue("Pente", forKey: "game")
+        vc.setValue(center, forKey: "notificationCenter")
+        vc.loadViewIfNeeded()
+        let alerts = captureAlerts(vc, key: "subscriptionAlertPresenter")
+        back(vc)
+        let shown = await waitUntil { alerts().count == 1 }
+        XCTAssertTrue(shown)
+        transport.replies[181] = (stats([(10, 60)]), 200)
+        center.post(name: StoreService.entitlementsChangedNotification, object: nil)
+        let painted = await waitUntil { self.heatKeys(vc) == [NSNumber(value: 10)] }
+        XCTAssertTrue(painted)
+    }
+
+    func testEntitlementChangeWithoutSubscriptionErrorDoesNotRefetch() async {
+        transport.replies[181] = (stats([(10, 60)]), 200)
+        let center = NotificationCenter()
+        let sb = UIStoryboard(name: "MainStoryboard", bundle: Bundle.main)
+        let vc = sb.instantiateViewController(withIdentifier: "databaseViewController")
+        vc.setValue(service, forKey: "dbService")
+        vc.setValue(NSMutableArray(array: [180, 181, 200].map { NSNumber(value: $0) }), forKey: "movesList")
+        vc.setValue("Pente", forKey: "game")
+        vc.setValue(center, forKey: "notificationCenter")
+        vc.loadViewIfNeeded()
+        back(vc)
+        let painted = await waitUntil { self.heatKeys(vc) == [NSNumber(value: 10)] }
+        XCTAssertTrue(painted)
+        let before = transport.requests.count
+        center.post(name: StoreService.entitlementsChangedNotification, object: nil)
+        await settle()
+        XCTAssertEqual(transport.requests.count, before)
+    }
+
+    // MARK: failed games list on return (M2)
+
+    func testReappearRefetchesFailedGamesListOnly() async {
+        transport.replies[181] = (stats([(10, 60)]), 200)
+        transport.searchReply = ("{\"error\":{\"code\":\"oops\"}}", 500)
+        let vc = makeVC(game: "Pente", moves: [180, 181, 200])
+        back(vc)
+        let failed = await waitUntil { self.results(vc).gamesState == .failed }
+        XCTAssertTrue(failed)
+        let statsBefore = transport.requests.count
+        let searchBefore = transport.searchRequests.count
+        transport.searchReply = ("{\"total\":0,\"games\":[],\"blocked\":false}", 200)
+        vc.viewDidAppear(false)
+        let recovered = await waitUntil { self.results(vc).gamesState == .empty }
+        XCTAssertTrue(recovered)
+        XCTAssertEqual(transport.searchRequests.count, searchBefore + 1)
+        XCTAssertEqual(transport.requests.count, statsBefore, "loaded stats are kept")
+    }
+
+    // MARK: AI move vs a changed line (F1)
+
+    private func aiStart(_ vc: UIViewController) {
+        vc.perform(NSSelectorFromString("aiWillThink"))
+    }
+
+    private func aiFinish(_ vc: UIViewController, _ cell: Int) {
+        vc.perform(NSSelectorFromString("aiDidChooseMove:"), with: NSNumber(value: cell))
+    }
+
+    func testAIMovePlaysOnUnchangedLine() {
+        let vc = makeVC(game: "Pente", moves: [180, 181, 200])
+        aiStart(vc)
+        aiFinish(vc, 5)
+        XCTAssertEqual(mirror(vc), [180, 181, 200, 5])
+    }
+
+    func testAIMoveDroppedWhenLineChangedWhileThinking() {
+        let vc = makeVC(game: "Pente", moves: [180, 181, 200])
+        aiStart(vc)
+        back(vc)
+        aiFinish(vc, 5)
+        XCTAssertEqual(mirror(vc), [180, 181])
+        XCTAssertEqual(line(vc).cells, [180, 181])
+    }
+
+    func testAIMoveOnOccupiedCellDropped() {
+        let vc = makeVC(game: "Pente", moves: [180, 181, 200])
+        vc.perform(NSSelectorFromString("replayGame")) // viewDidAppear's replay
+        aiStart(vc)
+        aiFinish(vc, 200)
+        XCTAssertEqual(mirror(vc), [180, 181, 200])
+    }
+
+    func testResultsTapsIgnoredWhileAIThinks() {
+        let vc = makeVC(game: "Pente", moves: [180, 181, 200])
+        var pushed: [UIViewController] = []
+        let pusher: @convention(block) (UIViewController) -> Void = { pushed.append($0) }
+        vc.setValue(pusher, forKey: "gameViewerPusher")
+        aiStart(vc)
+        results(vc).onPlayMove?(10)
+        results(vc).onOpenGame?(77, false)
+        XCTAssertEqual(mirror(vc), [180, 181, 200])
+        XCTAssertTrue(pushed.isEmpty)
+        aiFinish(vc, 5)
+        XCTAssertEqual(mirror(vc), [180, 181, 200, 5])
+        results(vc).onPlayMove?(10)
+        XCTAssertEqual(mirror(vc), [180, 181, 200, 5, 10])
+    }
+
+    // MARK: injected Go/Renju (F2)
+
+    func testInjectedGoIsNotReplayedWithPenteRules() {
+        // Under Pente rules 183 would capture 181+182; 361 is a Go pass.
+        let vc = makeVC(game: "Go", moves: [180, 181, 300, 182, 183, 361])
+        vc.perform(NSSelectorFromString("replayGame"))
+        vc.perform(NSSelectorFromString("positionChanged"))
+        XCTAssertEqual(service.occupied, [])
+        vc.perform(NSSelectorFromString("setBoardColor"))
+        for key in ["whiteStoneCaptures", "blackStoneCaptures",
+                    "whiteCapturesCountLabel", "blackCapturesCountLabel"] {
+            XCTAssertTrue(board(vc, key).isHidden, key)
+        }
+        let texts = allLabels(vc.navigationItem.titleView ?? UIView()).map { $0.attributedText?.string ?? $0.text ?? "" }
+        XCTAssertTrue(texts.contains("Go"), "\(texts)")
+        XCTAssertFalse(texts.contains { $0.contains("●") }, "\(texts)")
+    }
+
+    // MARK: strip states on compact width (M3)
+
+    func testEmptyAndBlockedStatesShowInStrip() async {
+        transport.replies[181] = (stats([]), 200)
+        transport.replies[200] = ("{\"totalGames\":0,\"nextMoves\":[],\"blocked\":true}", 200)
+        let vc = makeVC(game: "Pente", moves: [180, 181, 200])
+        back(vc)
+        let empty = await waitUntil {
+            (self.visibleView(vc, id: "dbStatusLabel") as? UILabel)?.text == "No moves from this position"
+        }
+        XCTAssertTrue(empty)
+        forward(vc)
+        let blocked = await waitUntil {
+            (self.visibleView(vc, id: "dbStatusLabel") as? UILabel)?.text
+                == "Database unavailable during your rated game"
+        }
+        XCTAssertTrue(blocked)
+    }
+
+    // MARK: injected Go then Apply (M6)
+
+    func testApplyUnchangedFiltersAfterInjectedGoSwitchesToFilterGame() {
+        let vc = makeVC(game: "Go", moves: [180, 181])
+        guard let sheet = openFilters(vc) else { return XCTFail("no filters sheet") }
+        sheet.applyButton.sendActions(for: .touchUpInside)
+        XCTAssertEqual(game(vc), "Pente")
+        XCTAssertEqual(line(vc).game, 1)
+        XCTAssertEqual(mirror(vc), [180])
     }
 
     func testTitleViewShowsDatabaseOverSubtitle() {
@@ -537,9 +762,20 @@ final class DBDatabaseScreenTests: XCTestCase {
         var pushed: [UIViewController] = []
         let pusher: @convention(block) (UIViewController) -> Void = { pushed.append($0) }
         vc.setValue(pusher, forKey: "gameViewerPusher")
-        results(vc).onOpenGame?(50_000_000_000_123)
+        results(vc).onOpenGame?(50_000_000_000_123, false)
         XCTAssertEqual(pushed.count, 1)
         XCTAssertEqual((pushed.first as? DBGameViewerViewController)?.gid, 50_000_000_000_123)
+        XCTAssertEqual((pushed.first as? DBGameViewerViewController)?.isMine, false)
+    }
+
+    func testOpeningAMineRowPushesCollectionViewer() {
+        let vc = makeVC(game: "Pente", moves: [180])
+        var pushed: [UIViewController] = []
+        let pusher: @convention(block) (UIViewController) -> Void = { pushed.append($0) }
+        vc.setValue(pusher, forKey: "gameViewerPusher")
+        results(vc).onOpenGame?(42, true)
+        XCTAssertEqual((pushed.first as? DBGameViewerViewController)?.gid, 42)
+        XCTAssertEqual((pushed.first as? DBGameViewerViewController)?.isMine, true)
     }
 
     func testCompactSheetUsesBelowBoardDetentWithUndimmedSmallDetent() {
@@ -577,7 +813,7 @@ final class DBDatabaseScreenTests: XCTestCase {
         var s = DBFilterState()
         s.setGame(id: 3)
         filterStore.save(s)
-        service = DBPositionService(client: DBClient(endpoint: DBEndpoint(useLocalhost: false, credentials: nil),
+        service = DBPositionService(client: DBClient(endpoint: DBEndpoint(useLocalhost: false),
                                                      transport: transport),
                                     preferences: prefs)
         let vc = makeVC(game: nil, moves: [180])

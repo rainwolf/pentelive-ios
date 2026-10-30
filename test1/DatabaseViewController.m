@@ -36,6 +36,9 @@
 /// Created once in viewDidLoad and kept for the screen's lifetime, so its
 /// scroll offset survives dismissal and re-presentation.
 @property(nonatomic, strong) DBResultsViewController *resultsVC;
+/// Observed for StoreService.entitlementsChangedNotification. Defaults to
+/// the default center; tests set a private one before the view loads.
+@property(nonatomic, strong) NSNotificationCenter *notificationCenter;
 @end
 
 @implementation DatabaseViewController {
@@ -47,6 +50,12 @@
     BOOL didShowSubscriptionAlert, didShowLogInAlert;
     // Test seam: when set, receives the log-in alert instead of a window.
     void (^logInAlertPresenter)(UIAlertController *);
+    // Test seam: when set, receives the subscription alert instead of a window.
+    void (^subscriptionAlertPresenter)(UIAlertController *);
+    // Line the AI was asked about; its move is dropped if the line changed.
+    NSArray<NSNumber *> *aiLineToken;
+    // Last states reported for each endpoint (entitlement refetch reads them).
+    DBLoadState lastStatsState, lastGamesState;
     UILabel *dbStatusLabel;
     UIButton *dbRetryButton;
     UIBarButtonItem *heatButton;
@@ -88,8 +97,6 @@
 @synthesize aiSetupView;
 @synthesize line;
 @synthesize dbService;
-
-BoardViewController *boardController;
 
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -226,8 +233,8 @@ BoardViewController *boardController;
     self.resultsVC.onLoadMore = ^{
         [weakSelf.dbService loadMoreGames];
     };
-    self.resultsVC.onOpenGame = ^(int64_t gid) {
-        [weakSelf openGame:gid];
+    self.resultsVC.onOpenGame = ^(int64_t gid, BOOL mine) {
+        [weakSelf openGame:gid mine:mine];
     };
     dbService.onGamesChanged = ^{
         [weakSelf.resultsVC reloadGames];
@@ -235,6 +242,17 @@ BoardViewController *boardController;
     dbService.onGamesState = ^(DBLoadState state) {
         [weakSelf gamesStateChanged:state];
     };
+    dbService.onFeaturesChanged = ^(BOOL filtersChanged) {
+        [weakSelf featuresChanged:filtersChanged];
+    };
+    [dbService refreshFeatures];
+    if (self.notificationCenter == nil) {
+        self.notificationCenter = [NSNotificationCenter defaultCenter];
+    }
+    [self.notificationCenter addObserver:self
+                                selector:@selector(storeEntitlementsChanged:)
+                                    name:StoreService.entitlementsChangedNotification
+                                  object:nil];
 
     // The storyboard only has the left (back) swipe for this scene.
     UISwipeGestureRecognizer *forwardSwipe = [[UISwipeGestureRecognizer alloc]
@@ -248,6 +266,9 @@ BoardViewController *boardController;
     dbStatusLabel = [[UILabel alloc] initWithFrame:stripRect];
     dbStatusLabel.textAlignment = NSTextAlignmentCenter;
     dbStatusLabel.font = [UIFont systemFontOfSize:14];
+    // The blocked copy is long for the half-width strip.
+    dbStatusLabel.adjustsFontSizeToFitWidth = YES;
+    dbStatusLabel.minimumScaleFactor = 0.6;
     dbStatusLabel.textColor = [UIColor colorWithRed:0x4A / 255.0
                                               green:0x4F / 255.0
                                                blue:0x5A / 255.0
@@ -488,6 +509,10 @@ BoardViewController *boardController;
 
 /// A Moves row was tapped: play it like a tap on its heat dot.
 - (void)playDBMove:(NSInteger)cell {
+    // The AI's move is due on this line: Moves rows wait until it lands.
+    if (aiThinking) {
+        return;
+    }
     NSInteger grid = [DBGameCatalog gridSizeForGame:[DBGameCatalog gameIdForName:game]];
     if (grid > 19 || cell < 0 || cell >= grid * grid) {
         return;
@@ -543,6 +568,9 @@ BoardViewController *boardController;
                                            moves:line.moves]) {
         [self replayGame];
         [self positionChanged];
+    } else {
+        // Stats are kept; a games list that failed or was blocked retries.
+        [dbService refetchFailedGames];
     }
     // Returning from a pushed screen re-shows the sheet where it was.
     if (wasShowingResultsSheet) {
@@ -672,8 +700,16 @@ BoardViewController *boardController;
         stack.frame = CGRectMake(0, 0, 200, 36);
         self.navigationItem.titleView = stack;
     }
+    NSInteger gameId = [DBGameCatalog gameIdForName:game];
+    if (![DBGameCatalog isSupported:gameId]) {
+        // Go/Renju from a live game: the name only, never Pente captures.
+        dbSubtitleLabel.attributedText = [[NSAttributedString alloc]
+            initWithString:game ?: @""
+                attributes:@{NSFontAttributeName : [UIFont systemFontOfSize:12]}];
+        return;
+    }
     dbSubtitleLabel.attributedText = [DBSubtitleFormatter
-        attributedSubtitleWithGame:[DBGameCatalog gameIdForName:game]
+        attributedSubtitleWithGame:gameId
                              moves:movesList ?: @[]
                               font:[UIFont systemFontOfSize:12]];
 }
@@ -688,6 +724,7 @@ BoardViewController *boardController;
 }
 
 - (void)statsStateChanged:(DBLoadState)state {
+    lastStatsState = state;
     [self.resultsVC showState:state];
     if (state == DBLoadStateLoaded || state == DBLoadStateEmpty) {
         [self.resultsVC reload];
@@ -697,6 +734,15 @@ BoardViewController *boardController;
     switch (state) {
     case DBLoadStateUnsupported:
         dbStatusLabel.text = NSLocalizedString(@"Not supported yet", nil);
+        dbStatusLabel.hidden = NO;
+        break;
+    // Also in the strip, so compact width shows them with the sheet down.
+    case DBLoadStateBlocked:
+        dbStatusLabel.text = NSLocalizedString(@"Database unavailable during your rated game", nil);
+        dbStatusLabel.hidden = NO;
+        break;
+    case DBLoadStateEmpty:
+        dbStatusLabel.text = NSLocalizedString(@"No moves from this position", nil);
         dbStatusLabel.hidden = NO;
         break;
     case DBLoadStateFailed:
@@ -716,6 +762,9 @@ BoardViewController *boardController;
 /// Games search state: the results VC shows it; 401 and subscription raise
 /// the same once-per-screen alerts as position-stats.
 - (void)gamesStateChanged:(DBLoadState)state {
+    if (!dbService.gamesStateIsLoadMore) {
+        lastGamesState = state;
+    }
     [self.resultsVC showGamesState:state isLoadMore:dbService.gamesStateIsLoadMore];
     if (state == DBLoadStateSubscriptionRequired) {
         [self showSubscriptionRequired];
@@ -727,8 +776,12 @@ BoardViewController *boardController;
 /// A Games row was tapped. iPhone: the sheet goes away first and comes back
 /// (same retained VC, same tab and scroll offset) in viewDidAppear. iPad:
 /// the inline panel is a child view, so the viewer is just pushed.
-- (void)openGame:(int64_t)gid {
-    DBGameViewerViewController *viewer = [dbService makeGameViewerWithGid:gid];
+- (void)openGame:(int64_t)gid mine:(BOOL)mine {
+    // The AI's move is due on this line: no viewer push until it lands.
+    if (aiThinking) {
+        return;
+    }
+    DBGameViewerViewController *viewer = [dbService makeGameViewerWithGid:gid mine:mine];
     __weak typeof(self) weakSelf = self;
     viewer.onUnauthorized = ^(UIViewController *presenter) {
         [presenter presentViewController:[weakSelf logInAlert]
@@ -769,13 +822,38 @@ BoardViewController *boardController;
 /// Same copy as GamesTableViewController's openDatabase gate. Shown once per
 /// screen so every swipe does not raise it again.
 - (void)showSubscriptionRequired {
-    if (didShowSubscriptionAlert || self.view.window == nil) {
+    if (didShowSubscriptionAlert ||
+        (subscriptionAlertPresenter == nil && self.view.window == nil)) {
         return;
     }
     didShowSubscriptionAlert = YES;
-    [[self alertPresenter] presentViewController:[self subscriptionAlertOpeningStoreFrom:nil]
-                                        animated:YES
-                                      completion:nil];
+    UIAlertController *alert = [self subscriptionAlertOpeningStoreFrom:nil];
+    if (subscriptionAlertPresenter != nil) {
+        subscriptionAlertPresenter(alert);
+        return;
+    }
+    [[self alertPresenter] presentViewController:alert animated:YES completion:nil];
+}
+
+/// A purchase or restore reached the server. The iPad store is a form sheet
+/// whose dismissal never runs viewDidAppear, so refetch here whatever the
+/// missing subscription blocked (and let a later 403 alert again).
+- (void)storeEntitlementsChanged:(NSNotification *)notification {
+    if (lastStatsState != DBLoadStateSubscriptionRequired &&
+        lastGamesState != DBLoadStateSubscriptionRequired) {
+        return;
+    }
+    didShowSubscriptionAlert = NO;
+    [self positionChanged];
+}
+
+/// /ping answered with new features: the chip row follows, and a request
+/// whose wire filters changed is sent again.
+- (void)featuresChanged:(BOOL)filtersChanged {
+    [self refreshChipRow];
+    if (filtersChanged && self.isViewLoaded && lastStatsState != DBLoadStateIdle) {
+        [self positionChanged];
+    }
 }
 
 /// "subscription info" opens the store from `presenter` (the game viewer),
@@ -1035,14 +1113,6 @@ BoardViewController *boardController;
     }
 }
 
-- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
-    if ([segue.identifier isEqualToString:@"viewGameSegue"]) {
-        boardController =
-            (BoardViewController *)segue.destinationViewController;
-        return;
-    }
-}
-
 - (void)webView:(WKWebView *)webView
     didFinishNavigation:(WKNavigation *)navigation {
     playerStats.scrollView.contentOffset = CGPointMake(0, 0);
@@ -1099,6 +1169,7 @@ BoardViewController *boardController;
                                ? 2
                                : 1)];
     }
+    [self aiWillThink];
     [self.progressView startAnimating];
     [self.view addSubview:self.progressView];
     [NSThread detachNewThreadSelector:@selector(getNewAImove)
@@ -1118,16 +1189,36 @@ BoardViewController *boardController;
                         waitUntilDone:NO];
 }
 - (void)stopThinking {
-    [board setLastMove:finalMove];
+    [self aiDidChooseMove:@(finalMove)];
+}
+
+/// Records the line the AI is asked about. While it thinks, Moves-row plays
+/// and Games-row opens are ignored (the results sheet stays tappable).
+- (void)aiWillThink {
+    aiThinking = YES;
+    aiLineToken = [line.moves copy];
+}
+
+/// Plays the AI's move only onto the line it was asked about, and only on
+/// an empty cell; a line changed meanwhile (swipe) drops it.
+- (void)aiDidChooseMove:(NSNumber *)move {
+    aiThinking = NO;
+    [progressView stopAnimating];
+    [progressView removeFromSuperview];
+    NSArray<NSNumber *> *asked = aiLineToken;
+    aiLineToken = nil;
+    int cell = move.intValue;
+    if (asked == nil || ![asked isEqualToArray:line.moves] || cell < 0 ||
+        cell >= 361 || abstractBoard[cell / 19][cell % 19] != 0) {
+        return;
+    }
+    [board setLastMove:cell];
     if (game == nil) {
         game = [DBGameCatalog nameForGame:dbService.filterGameId];
     }
     [self syncLineGame];
-    [line play:finalMove];
+    [line play:cell];
     [self lineDidChange];
-
-    [progressView stopAnimating];
-    [progressView removeFromSuperview];
 }
 
 - (void)updateCaptures {
@@ -1146,8 +1237,14 @@ BoardViewController *boardController;
         game = [DBGameCatalog nameForGame:dbService.filterGameId];
     }
     [self refreshTitleView];
-    for (NSNumber *move in movesList) {
+    // Go/Renju (injected from a live game) are never replayed with these
+    // 19x19 Pente rules: the screen shows only the "Not supported" state.
+    BOOL supported = [DBGameCatalog isSupported:[DBGameCatalog gameIdForName:game]];
+    for (NSNumber *move in (supported ? movesList : @[])) {
         int rowCol = [move intValue];
+        if (rowCol < 0 || rowCol >= 361) {
+            continue; // pass sentinel or junk: never written into the board
+        }
         int color = (i % 2) + 1, opponentColor = (color == 2) ? 1 : 2;
         if ([game containsString:@"Connect6"]) {
             color = (((i % 4) == 0) || ((i % 4) == 3)) ? 1 : 2;
@@ -1187,8 +1284,11 @@ BoardViewController *boardController;
     [zoomedBoard setNeedsDisplay];
     [self updateCaptures];
     moveStatsString = [[NSMutableString alloc] init];
-    for (int i = 0; i < [movesList count]; ++i) {
+    for (int i = 0; supported && i < [movesList count]; ++i) {
         int rowCol = [[movesList objectAtIndex:i] intValue];
+        if (rowCol < 0 || rowCol >= 361) {
+            continue;
+        }
         if (i == 0) {
             [moveStatsString appendString:@"<b>1.</b> "];
         } else {
@@ -1316,7 +1416,9 @@ BoardViewController *boardController;
 /// the line to the centre stone (legacy resetState) and recolours; then
 /// both requests refire at offset 0 and the chip row follows.
 - (void)filtersApplied:(BOOL)gameChanged {
-    if (gameChanged) {
+    // An injected Go/Renju board is not the filter game either: Apply moves
+    // the board onto the filter game so it and the chip row agree.
+    if (gameChanged || [DBGameCatalog gameIdForName:game] != dbService.filterGameId) {
         game = [DBGameCatalog nameForGame:dbService.filterGameId];
         [self resetState];
         [self syncLineGame];
@@ -1358,26 +1460,6 @@ BoardViewController *boardController;
     return ^{
         [weakSelf updateAIButtonVisibility];
     };
-}
-
-- (NSString *)URLEncodedString_ch:(NSString *)input {
-    NSMutableString *output = [NSMutableString string];
-    const unsigned char *source = (const unsigned char *)[input UTF8String];
-    int sourceLen = (int)strlen((const char *)source);
-    for (int i = 0; i < sourceLen; ++i) {
-        const unsigned char thisChar = source[i];
-        if (thisChar == ' ') {
-            [output appendString:@"+"];
-        } else if (thisChar == '.' || thisChar == '-' || thisChar == '_' ||
-                   thisChar == '~' || (thisChar >= 'a' && thisChar <= 'z') ||
-                   (thisChar >= 'A' && thisChar <= 'Z') ||
-                   (thisChar >= '0' && thisChar <= '9')) {
-            [output appendFormat:@"%c", thisChar];
-        } else {
-            [output appendFormat:@"%%%02X", thisChar];
-        }
-    }
-    return output;
 }
 
 @end

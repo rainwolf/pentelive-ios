@@ -2,22 +2,17 @@ import Foundation
 
 // MARK: - Endpoint
 
-struct DBCredentials {
-    var username: String
-    var password: String
-}
-
 /// Builds `/api/db/*` requests. Pure: no I/O.
 struct DBEndpoint {
     static let prodBase = "https://www.pente.org/api/db"
     static let localBase = "https://localhost/api/db"
 
     let base: String
-    let credentials: DBCredentials?
 
-    init(useLocalhost: Bool, credentials: DBCredentials?) {
+    /// No credentials: auth is the session cookies the app's login stored in
+    /// the shared HTTPCookieStorage. The plaintext password never goes out.
+    init(useLocalhost: Bool) {
         base = useLocalhost ? DBEndpoint.localBase : DBEndpoint.prodBase
-        self.credentials = credentials
     }
 
     /// RFC 3986 unreserved characters only; everything else is percent-encoded.
@@ -29,16 +24,6 @@ struct DBEndpoint {
 
     static func encode(_ s: String) -> String {
         s.addingPercentEncoding(withAllowedCharacters: strict) ?? ""
-    }
-
-    /// The server reads cookie values raw (LoginCookieHandler.loadCookie never
-    /// URL-decodes), so credentials go out verbatim. A value is usable only when
-    /// non-empty and every character is an RFC 6265 cookie-octet: printable ASCII
-    /// except space, double quote, comma, semicolon and backslash.
-    static func isCookieSafe(_ s: String) -> Bool {
-        !s.isEmpty && s.unicodeScalars.allSatisfy { c in
-            c.value >= 0x21 && c.value <= 0x7E && !"\",;\\".unicodeScalars.contains(c)
-        }
     }
 
     func ping() -> URLRequest { get("/ping") }
@@ -53,6 +38,9 @@ struct DBEndpoint {
 
     func game(gid: Int64) -> URLRequest { get("/games/\(gid)") }
 
+    /// One of the caller's personal games (auth'd; same shape as `game`).
+    func collectionGame(wgid: Int64) -> URLRequest { get("/collection/\(wgid)") }
+
     func players(query: String) -> URLRequest {
         get("/players?q=\(DBEndpoint.encode(query))")
     }
@@ -60,13 +48,6 @@ struct DBEndpoint {
     private func make(_ path: String) -> URLRequest {
         var r = URLRequest(url: URL(string: base + path)!)
         r.setValue("application/json", forHTTPHeaderField: "Accept")
-        if let c = credentials {
-            r.httpShouldHandleCookies = false
-            // Unsafe credentials send no Cookie: a clean 401 beats injected attributes.
-            if DBEndpoint.isCookieSafe(c.username) && DBEndpoint.isCookieSafe(c.password) {
-                r.setValue("name2=\(c.username); password2=\(c.password)", forHTTPHeaderField: "Cookie")
-            }
-        }
         return r
     }
 
@@ -174,7 +155,16 @@ final class DBClient {
     /// A gid <= 0 is never a real game: throws `.decoding` without a request.
     func game(gid: Int64) async throws -> DBGameDetail {
         guard gid > 0 else { throw DBError.decoding }
-        let detail: DBGameDetail = try await send(endpoint.game(gid: gid))
+        return try checked(await send(endpoint.game(gid: gid)), gid: gid)
+    }
+
+    /// A personal ("mine") game by wgid; the header gid is the wgid.
+    func collectionGame(wgid: Int64) async throws -> DBGameDetail {
+        guard wgid > 0 else { throw DBError.decoding }
+        return try checked(await send(endpoint.collectionGame(wgid: wgid)), gid: wgid)
+    }
+
+    private func checked(_ detail: DBGameDetail, gid: Int64) throws -> DBGameDetail {
         if detail.blocked { return detail }
         guard let header = detail.header, header.hasRealGid, header.gid == gid else {
             throw DBError.decoding

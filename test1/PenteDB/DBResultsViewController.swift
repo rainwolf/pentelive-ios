@@ -165,8 +165,9 @@ final class DBGameRowCell: UITableViewCell {
     @objc var onRetry: (() -> Void)?
     /// "Show more" (or its retry after a failed page).
     @objc var onLoadMore: (() -> Void)?
-    /// A Games row was tapped (any gid length).
-    @objc var onOpenGame: ((Int64) -> Void)?
+    /// A Games row was tapped (any gid length). The flag is true for a
+    /// personal `source:"mine"` row, whose gid is a wgid.
+    @objc var onOpenGame: ((Int64, Bool) -> Void)?
 
     private(set) var rows: [DBMoveRow] = []
     private(set) var games: [DBGameHeader] = []
@@ -181,6 +182,9 @@ final class DBGameRowCell: UITableViewCell {
     let tableView = UITableView(frame: .zero, style: .plain)
     let gamesTableView = UITableView(frame: .zero, style: .plain)
     let gamesHeader = UIStackView()
+    /// What the games list actually is for the scope (react_pentedb's
+    /// `listHeaderLabel`); sits above the header row.
+    let scopeLabel = UILabel()
     let footerButton = UIButton(type: .system)
     let messageLabel = UILabel()
     let retryButton = UIButton(type: .system)
@@ -251,6 +255,10 @@ final class DBGameRowCell: UITableViewCell {
             l.textAlignment = a
             gamesHeader.addArrangedSubview(l)
         }
+        scopeLabel.font = .systemFont(ofSize: 12)
+        scopeLabel.textColor = DBPalette.secondaryText
+        scopeLabel.numberOfLines = 0
+        scopeLabel.accessibilityIdentifier = "dbGamesScopeLabel"
         gamesHeader.isLayoutMarginsRelativeArrangement = true
         gamesHeader.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16)
 
@@ -277,7 +285,7 @@ final class DBGameRowCell: UITableViewCell {
         message.axis = .vertical
         message.spacing = 8
         message.alignment = .center
-        for v in [header, tableView, gamesHeader, gamesTableView, message, spinner] as [UIView] {
+        for v in [header, tableView, scopeLabel, gamesHeader, gamesTableView, message, spinner] as [UIView] {
             v.translatesAutoresizingMaskIntoConstraints = false
             view.addSubview(v)
         }
@@ -290,7 +298,10 @@ final class DBGameRowCell: UITableViewCell {
             tableView.leadingAnchor.constraint(equalTo: g.leadingAnchor),
             tableView.trailingAnchor.constraint(equalTo: g.trailingAnchor),
             tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            gamesHeader.topAnchor.constraint(equalTo: header.bottomAnchor, constant: 8),
+            scopeLabel.topAnchor.constraint(equalTo: header.bottomAnchor, constant: 8),
+            scopeLabel.leadingAnchor.constraint(equalTo: g.leadingAnchor, constant: 16),
+            scopeLabel.trailingAnchor.constraint(equalTo: g.trailingAnchor, constant: -16),
+            gamesHeader.topAnchor.constraint(equalTo: scopeLabel.bottomAnchor, constant: 4),
             gamesHeader.leadingAnchor.constraint(equalTo: g.leadingAnchor),
             gamesHeader.trailingAnchor.constraint(equalTo: g.trailingAnchor),
             gamesHeader.heightAnchor.constraint(equalToConstant: 24),
@@ -374,6 +385,24 @@ final class DBGameRowCell: UITableViewCell {
         gamesHeader.arrangedSubviews.compactMap { ($0 as? UILabel)?.text }
     }
 
+    /// Pure: what the games list is for a scope. games/search ignores the
+    /// position and the filters for personal games, so the label must not
+    /// claim otherwise (react_pentedb ResultsList.js `listHeaderLabel`).
+    static func listHeaderLabel(scope: String, moveCount: Int) -> String {
+        let archive = moveCount > 0
+            ? String(format: NSLocalizedString("Games through this position (%ld moves)", comment: ""), moveCount)
+            : NSLocalizedString("All matching games", comment: "")
+        switch scope {
+        case "mine":
+            return NSLocalizedString("My games (position and filters not applied)", comment: "")
+        case "both":
+            return archive + NSLocalizedString(", plus all your games (personal games not position-filtered)",
+                                               comment: "")
+        default:
+            return archive
+        }
+    }
+
     // MARK: private
 
     private var showsGames: Bool { segmented.selectedSegmentIndex == 1 }
@@ -417,6 +446,9 @@ final class DBGameRowCell: UITableViewCell {
         tableView.isHidden = games || listHidden
         gamesTableView.isHidden = !games || listHidden
         gamesHeader.isHidden = !games || listHidden
+        scopeLabel.isHidden = !games || listHidden
+        scopeLabel.text = DBResultsViewController.listHeaderLabel(scope: service.scope,
+                                                                  moveCount: service.moveCount)
         showButton.isHidden = games
     }
 
@@ -502,7 +534,7 @@ final class DBGameRowCell: UITableViewCell {
         tableView.deselectRow(at: indexPath, animated: true)
         if tableView === gamesTableView {
             guard indexPath.row < games.count, games[indexPath.row].hasRealGid else { return }
-            onOpenGame?(games[indexPath.row].gid)
+            onOpenGame?(games[indexPath.row].gid, games[indexPath.row].isMine)
             return
         }
         guard indexPath.row < rows.count else { return }

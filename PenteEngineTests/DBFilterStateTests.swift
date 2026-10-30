@@ -2,16 +2,6 @@ import XCTest
 @testable import penteLive
 
 final class DBFilterStateTests: XCTestCase {
-    override func setUp() {
-        super.setUp()
-        DBCapabilities.extendedFilters = false
-    }
-
-    override func tearDown() {
-        DBCapabilities.extendedFilters = false
-        super.tearDown()
-    }
-
     private func freshDefaults() -> UserDefaults {
         let name = "DBFilterStateTests-\(UUID().uuidString)"
         let d = UserDefaults(suiteName: name)!
@@ -69,19 +59,21 @@ final class DBFilterStateTests: XCTestCase {
         XCTAssertTrue(s.speed)
     }
 
-    func testExtendedKeysHiddenByCapability() {
+    func testExtendedKeysGatedPerServerFeature() {
         var s = DBFilterState()
         s.excludeTimeouts = true
         s.liveOrTurnBased = "live"
         s.winner = 1
-        XCTAssertEqual(s.toWire()?.includesExtendedKeys, false)
-        DBCapabilities.extendedFilters = true
-        let w = s.toWire()
-        XCTAssertEqual(w?.includesExtendedKeys, true)
+        XCTAssertEqual(s.toWire()?.features, DBServerFeatures.none)
+        let timeouts = s.toWire(features: DBServerFeatures(features: ["excludeTimeouts"]))
+        XCTAssertEqual(timeouts?.features.excludeTimeouts, true)
+        XCTAssertEqual(timeouts?.features.liveOrTurnBased, false)
+        let both = DBServerFeatures(features: ["excludeTimeouts", "liveOrTurnBased", "badges"])
+        let w = s.toWire(features: both)
         XCTAssertEqual(w?.excludeTimeouts, true)
         XCTAssertEqual(w?.liveOrTurnBased, "live")
         s.liveOrTurnBased = "turnBased"
-        XCTAssertEqual(s.toWire()?.liveOrTurnBased, "turnBased")
+        XCTAssertEqual(s.toWire(features: both)?.liveOrTurnBased, "turnBased")
     }
 
     func testExtendedValuesIgnoredInChipAndDefaultWhenCapabilityOff() {
@@ -92,12 +84,16 @@ final class DBFilterStateTests: XCTestCase {
         XCTAssertNil(s.toWire())
         XCTAssertFalse(s.chipSummary().contains("no timeouts"))
         XCTAssertFalse(s.chipSummary().contains("live only"))
-        DBCapabilities.extendedFilters = true
-        XCTAssertFalse(s.isDefault)
-        XCTAssertTrue(s.chipSummary().contains("no timeouts"))
-        XCTAssertTrue(s.chipSummary().contains("live only"))
+        let timeouts = DBServerFeatures(features: ["excludeTimeouts"])
+        XCTAssertFalse(s.isDefault(features: timeouts))
+        XCTAssertTrue(s.chipSummary(features: timeouts).contains("no timeouts"))
+        XCTAssertFalse(s.chipSummary(features: timeouts).contains("live only"))
+        let live = DBServerFeatures(features: ["liveOrTurnBased"])
+        XCTAssertFalse(s.isDefault(features: live))
+        XCTAssertTrue(s.chipSummary(features: live).contains("live only"))
+        XCTAssertFalse(s.chipSummary(features: live).contains("no timeouts"))
         s.liveOrTurnBased = "turnBased"
-        XCTAssertTrue(s.chipSummary().contains("turn-based only"))
+        XCTAssertTrue(s.chipSummary(features: live).contains("turn-based only"))
     }
 
     func testDatesEncodeGregorianUnderBuddhistCalendar() {

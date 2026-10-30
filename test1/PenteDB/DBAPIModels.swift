@@ -2,9 +2,28 @@ import Foundation
 
 // MARK: - Filters
 
+/// Server capability flags from `/ping` `features` (spec §4.1). Each one
+/// gates its own filter control and wire key; missing means off.
+struct DBServerFeatures: Equatable {
+    var excludeTimeouts = false
+    var liveOrTurnBased = false
+
+    static let none = DBServerFeatures()
+
+    init(excludeTimeouts: Bool = false, liveOrTurnBased: Bool = false) {
+        self.excludeTimeouts = excludeTimeouts
+        self.liveOrTurnBased = liveOrTurnBased
+    }
+
+    init(features: [String]) {
+        excludeTimeouts = features.contains("excludeTimeouts")
+        liveOrTurnBased = features.contains("liveOrTurnBased")
+    }
+}
+
 /// Wire filters for /api/db. String keys are always encoded (null when unset),
 /// int and bool keys always present. `excludeTimeouts` / `liveOrTurnBased` are
-/// only written when the server advertises them (`includesExtendedKeys`).
+/// each written only when the server advertises that feature (`features`).
 struct DBFilters: Encodable, Equatable {
     var player1Name: String?
     var player2Name: String?
@@ -21,8 +40,8 @@ struct DBFilters: Encodable, Equatable {
     var player2RatingAbove: Int = 0
     var excludeTimeouts: Bool = false
     var liveOrTurnBased: String = "all"
-    /// Not encoded; true once /ping reports the extended filter keys.
-    var includesExtendedKeys: Bool = false
+    /// Not encoded; what /ping advertised when the request was built.
+    var features = DBServerFeatures.none
 
     private enum CodingKeys: String, CodingKey {
         case player1Name, player2Name, site, event, round, section, afterDate, beforeDate
@@ -32,11 +51,9 @@ struct DBFilters: Encodable, Equatable {
 
     var isDefault: Bool {
         var d = DBFilters()
-        d.includesExtendedKeys = includesExtendedKeys
-        if !includesExtendedKeys {
-            d.excludeTimeouts = excludeTimeouts
-            d.liveOrTurnBased = liveOrTurnBased
-        }
+        d.features = features
+        if !features.excludeTimeouts { d.excludeTimeouts = excludeTimeouts }
+        if !features.liveOrTurnBased { d.liveOrTurnBased = liveOrTurnBased }
         return self == d
     }
 
@@ -55,8 +72,10 @@ struct DBFilters: Encodable, Equatable {
         try c.encode(winner, forKey: .winner)
         try c.encode(player1RatingAbove, forKey: .player1RatingAbove)
         try c.encode(player2RatingAbove, forKey: .player2RatingAbove)
-        if includesExtendedKeys {
+        if features.excludeTimeouts {
             try c.encode(excludeTimeouts, forKey: .excludeTimeouts)
+        }
+        if features.liveOrTurnBased {
             try c.encode(liveOrTurnBased, forKey: .liveOrTurnBased)
         }
     }
@@ -170,6 +189,9 @@ struct DBPlayer: Decodable, Equatable {
 
 struct DBGameHeader: Decodable, Equatable {
     var gid: Int64
+    /// "archive" or "mine" (spec §3.7). For "mine", `gid` is a wgid that
+    /// loads from `GET /collection/{wgid}`. Missing means "archive".
+    var source: String
     var game: Int
     var player1: DBPlayer?
     var player2: DBPlayer?
@@ -185,13 +207,16 @@ struct DBGameHeader: Decodable, Equatable {
     /// it by id or let it pass a stale-response gid check.
     var hasRealGid: Bool { gid > 0 }
 
+    var isMine: Bool { source == "mine" }
+
     private enum CodingKeys: String, CodingKey {
-        case gid, game, player1, player2, winner, site, event, round, section, playDate, moveCount
+        case gid, source, game, player1, player2, winner, site, event, round, section, playDate, moveCount
     }
 
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         gid = try c.decodeIfPresent(Int64.self, forKey: .gid) ?? 0
+        source = try c.decodeIfPresent(String.self, forKey: .source) ?? "archive"
         game = try c.decodeIfPresent(Int.self, forKey: .game) ?? 0
         player1 = try c.decodeIfPresent(DBPlayer.self, forKey: .player1)
         player2 = try c.decodeIfPresent(DBPlayer.self, forKey: .player2)

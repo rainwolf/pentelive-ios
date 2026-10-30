@@ -44,7 +44,7 @@ final class DBGameViewerViewControllerTests: XCTestCase {
     override func setUp() {
         super.setUp()
         transport = DBViewerTransport()
-        client = DBClient(endpoint: DBEndpoint(useLocalhost: false, credentials: nil), transport: transport)
+        client = DBClient(endpoint: DBEndpoint(useLocalhost: false), transport: transport)
     }
 
     private func detail(gid: Int64 = longGid, game: Int = 1, moves: [Int]) -> String {
@@ -210,5 +210,58 @@ final class DBGameViewerViewControllerTests: XCTestCase {
         }
         try? await Task.sleep(nanoseconds: 50_000_000)
         XCTAssertNil(weakVC)
+    }
+
+    // MARK: personal games (F3)
+
+    func testMineRowLoadsFromCollection() async {
+        transport.reply = (detail(gid: 42, moves: [180, 181]), 200)
+        let vc = DBGameViewerViewController(gid: 42, client: client, isMine: true)
+        vc.loadViewIfNeeded()
+        let done = await waitUntil { vc.state != .loading }
+        XCTAssertTrue(done)
+        XCTAssertEqual(vc.state, .loaded)
+        XCTAssertEqual(transport.paths, ["/api/db/collection/42"])
+        XCTAssertNotEqual(vc.stone(at: 181), 0)
+    }
+
+    func testMineRowWithMismatchedHeaderIsAFailure() async {
+        transport.reply = (detail(gid: 43, moves: [180]), 200)
+        let vc = DBGameViewerViewController(gid: 42, client: client, isMine: true)
+        vc.loadViewIfNeeded()
+        let done = await waitUntil { vc.state != .loading }
+        XCTAssertTrue(done)
+        XCTAssertEqual(vc.state, .failed)
+    }
+
+    // MARK: interactive pop (M5)
+
+    func testCancelledInteractivePopKeepsLoading() async {
+        transport.reply = (detail(moves: [180]), 200)
+        transport.delay = 200_000_000
+        let vc = DBGameViewerViewController(gid: Self.longGid, client: client)
+        vc.loadViewIfNeeded()
+        vc.movingFromParentOverride = true
+        vc.viewWillDisappear(true) // the edge swipe starts a pop
+        vc.movingFromParentOverride = false
+        vc.viewWillAppear(true) // ... and is cancelled
+        vc.viewDidAppear(true)
+        let loaded = await waitUntil { vc.state == .loaded }
+        XCTAssertTrue(loaded, "state \(vc.state)")
+    }
+
+    func testCompletedPopCancelsLoad() async {
+        var calls = 0
+        transport.reply = ("{}", 401)
+        transport.delay = 200_000_000
+        let vc = DBGameViewerViewController(gid: Self.longGid, client: client)
+        vc.onUnauthorized = { _ in calls += 1 }
+        vc.loadViewIfNeeded()
+        vc.movingFromParentOverride = true
+        vc.viewWillDisappear(true)
+        vc.viewDidDisappear(true)
+        try? await Task.sleep(nanoseconds: 500_000_000)
+        XCTAssertEqual(calls, 0)
+        XCTAssertEqual(vc.state, .loading)
     }
 }

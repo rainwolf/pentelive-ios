@@ -38,21 +38,43 @@ final class DBAPIModelsTests: XCTestCase {
         XCTAssertFalse(s.contains("liveOrTurnBased"), s)
     }
 
-    func testExtendedKeysOnlyWhenEnabled() throws {
+    func testExtendedKeysOnlyWhenAdvertised() throws {
         var f = DBFilters()
-        f.includesExtendedKeys = true
-        let s = try json(f)
+        f.features = DBServerFeatures(features: ["excludeTimeouts"])
+        var s = try json(f)
         XCTAssertTrue(s.contains("\"excludeTimeouts\":false"), s)
+        XCTAssertFalse(s.contains("liveOrTurnBased"), s)
+        f.features = DBServerFeatures(features: ["liveOrTurnBased"])
+        s = try json(f)
+        XCTAssertFalse(s.contains("excludeTimeouts"), s)
         XCTAssertTrue(s.contains("\"liveOrTurnBased\":\"all\""), s)
-        XCTAssertFalse(s.contains("includesExtendedKeys"), s)
+        XCTAssertFalse(s.contains("features"), s)
     }
 
-    func testIsDefaultIgnoresExtendedWhenDisabled() {
+    func testIsDefaultIgnoresUnadvertisedExtended() {
         var f = DBFilters(excludeTimeouts: true)
         XCTAssertTrue(f.isDefault)
-        f.includesExtendedKeys = true
+        f.features = DBServerFeatures(features: ["liveOrTurnBased"])
+        XCTAssertTrue(f.isDefault)
+        f.features = DBServerFeatures(features: ["excludeTimeouts"])
         XCTAssertFalse(f.isDefault)
         XCTAssertFalse(DBFilters(player1Name: "a").isDefault)
+    }
+
+    func testServerFeaturesFromPing() {
+        XCTAssertEqual(DBServerFeatures(features: []), DBServerFeatures.none)
+        let f = DBServerFeatures(features: ["badges", "liveOrTurnBased"])
+        XCTAssertFalse(f.excludeTimeouts)
+        XCTAssertTrue(f.liveOrTurnBased)
+    }
+
+    func testHeaderSourceDefaultsToArchiveAndReadsMine() throws {
+        let a = try decode(DBGameHeader.self, "{\"gid\":1,\"game\":1}")
+        XCTAssertEqual(a.source, "archive")
+        XCTAssertFalse(a.isMine)
+        let m = try decode(DBGameHeader.self, "{\"gid\":7,\"source\":\"mine\",\"game\":1}")
+        XCTAssertEqual(m.source, "mine")
+        XCTAssertTrue(m.isMine)
     }
 
     func testGidIsInt64() throws {

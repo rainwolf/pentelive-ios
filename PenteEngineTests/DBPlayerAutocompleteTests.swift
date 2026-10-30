@@ -23,7 +23,7 @@ private final class DBPlayersTransport: Transport, @unchecked Sendable {
 @MainActor
 final class DBPlayerAutocompleteTests: XCTestCase {
     private func make(_ t: DBPlayersTransport, debounce: TimeInterval) -> DBPlayerAutocomplete {
-        let ep = DBEndpoint(useLocalhost: false, credentials: nil)
+        let ep = DBEndpoint(useLocalhost: false)
         return DBPlayerAutocomplete(client: DBClient(endpoint: ep, transport: t), debounce: debounce)
     }
 

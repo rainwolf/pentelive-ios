@@ -1,12 +1,5 @@
 import Foundation
 
-/// Runtime capability flags for the /api/db server. `extendedFilters` is
-/// flipped to true in a separate commit once the server accepts
-/// `excludeTimeouts` / `liveOrTurnBased`.
-enum DBCapabilities {
-    static var extendedFilters = false
-}
-
 /// User-editable filter state for the PenteDB screen (draft or applied).
 struct DBFilterState: Codable, Equatable {
     var baseGame: Int = 1
@@ -41,18 +34,19 @@ struct DBFilterState: Codable, Equatable {
         speed = DBGameCatalog.isSpeed(id)
     }
 
-    private var extendedActive: Bool { DBCapabilities.extendedFilters }
+    /// Default with no server features: hidden extended values never count.
+    var isDefault: Bool { isDefault(features: .none) }
 
-    var isDefault: Bool {
+    /// Extended values count only when `/ping` advertises their feature;
+    /// a migrated legacy value is kept while hidden but never sent.
+    func isDefault(features: DBServerFeatures) -> Bool {
         var d = DBFilterState()
         d.baseGame = baseGame
         d.speed = speed
         d.scope = scope
         if !hasPlayerFilter { d.eitherSeat = eitherSeat }
-        if !extendedActive {
-            d.excludeTimeouts = excludeTimeouts
-            d.liveOrTurnBased = liveOrTurnBased
-        }
+        if !features.excludeTimeouts { d.excludeTimeouts = excludeTimeouts }
+        if !features.liveOrTurnBased { d.liveOrTurnBased = liveOrTurnBased }
         return self == d
     }
 
@@ -75,7 +69,7 @@ struct DBFilterState: Codable, Equatable {
         return f.string(from: d)
     }
 
-    func toWire(timeZone: TimeZone = .current) -> DBFilters? {
+    func toWire(features: DBServerFeatures = .none, timeZone: TimeZone = .current) -> DBFilters? {
         var f = DBFilters()
         f.player1Name = Self.trimmed(player1)
         f.player2Name = Self.trimmed(player2)
@@ -84,19 +78,17 @@ struct DBFilterState: Codable, Equatable {
         f.winner = winner
         f.afterDate = after.map { Self.dateString($0, timeZone: timeZone) }
         f.beforeDate = before.map { Self.dateString($0, timeZone: timeZone) }
-        f.includesExtendedKeys = extendedActive
-        if extendedActive {
-            f.excludeTimeouts = excludeTimeouts
-            f.liveOrTurnBased = liveOrTurnBased
-        }
+        f.features = features
+        if features.excludeTimeouts { f.excludeTimeouts = excludeTimeouts }
+        if features.liveOrTurnBased { f.liveOrTurnBased = liveOrTurnBased }
         if eitherSeat && hasPlayerFilter {
             f.player1Seat = 0
             f.player2Seat = 0
         }
-        return isDefault ? nil : f
+        return isDefault(features: features) ? nil : f
     }
 
-    func chipSummary() -> String {
+    func chipSummary(features: DBServerFeatures = .none) -> String {
         var parts = [DBGameCatalog.name(forGame: gameId)]
         func player(_ name: String, _ rating: Int, _ label: String) {
             let n = Self.trimmed(name)
@@ -116,8 +108,8 @@ struct DBFilterState: Codable, Equatable {
         if let b = before { parts.append("before " + Self.dateString(b, timeZone: .current)) }
         if scope == "mine" { parts.append("Mine") }
         if scope == "both" { parts.append("Both") }
-        if extendedActive {
-            if excludeTimeouts { parts.append("no timeouts") }
+        if features.excludeTimeouts, excludeTimeouts { parts.append("no timeouts") }
+        if features.liveOrTurnBased {
             if liveOrTurnBased == Self.liveOrTBLive { parts.append("live only") }
             if liveOrTurnBased == Self.liveOrTBTurnBased { parts.append("turn-based only") }
         }

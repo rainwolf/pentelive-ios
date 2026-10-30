@@ -48,7 +48,7 @@ final class DBResultsViewControllerTests: XCTestCase {
         super.setUp()
         UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite)
         transport = DBResultsTransport()
-        let client = DBClient(endpoint: DBEndpoint(useLocalhost: false, credentials: nil),
+        let client = DBClient(endpoint: DBEndpoint(useLocalhost: false),
                               transport: transport)
         prefs = DBPreferences(defaults: UserDefaults(suiteName: suite)!)
         service = DBPositionService(client: client, preferences: prefs)
@@ -247,9 +247,45 @@ final class DBResultsViewControllerTests: XCTestCase {
         transport.gamesBody = games(total: 1, count: 1, firstGid: 50_000_000_000_123)
         let vc = await loadGames()
         var opened: [Int64] = []
-        vc.onOpenGame = { opened.append($0) }
+        var mine: [Bool] = []
+        vc.onOpenGame = { opened.append($0); mine.append($1) }
         vc.tableView(vc.gamesTableView, didSelectRowAt: IndexPath(row: 0, section: 0))
         XCTAssertEqual(opened, [50_000_000_000_123])
+        XCTAssertEqual(mine, [false])
+    }
+
+    func testSelectingMineRowOpensCollectionGame() async {
+        transport.gamesBody = "{\"total\":1,\"games\":[{\"gid\":42,\"source\":\"mine\",\"game\":1," +
+            "\"winner\":1,\"moveCount\":3}],\"blocked\":false}"
+        let vc = await loadGames()
+        var opened: [(Int64, Bool)] = []
+        vc.onOpenGame = { opened.append(($0, $1)) }
+        vc.tableView(vc.gamesTableView, didSelectRowAt: IndexPath(row: 0, section: 0))
+        XCTAssertEqual(opened.first?.0, 42)
+        XCTAssertEqual(opened.first?.1, true)
+    }
+
+    func testListHeaderLabelMatchesWeb() {
+        typealias R = DBResultsViewController
+        XCTAssertEqual(R.listHeaderLabel(scope: "archive", moveCount: 3), "Games through this position (3 moves)")
+        XCTAssertEqual(R.listHeaderLabel(scope: "archive", moveCount: 0), "All matching games")
+        XCTAssertEqual(R.listHeaderLabel(scope: "mine", moveCount: 3), "My games (position and filters not applied)")
+        XCTAssertEqual(R.listHeaderLabel(scope: "both", moveCount: 3),
+                       "Games through this position (3 moves), plus all your games (personal games not position-filtered)")
+    }
+
+    func testScopeLabelSitsAboveGamesHeader() async {
+        transport.gamesBody = games(total: 1, count: 1)
+        let vc = await loadGames()
+        XCTAssertFalse(vc.scopeLabel.isHidden)
+        XCTAssertEqual(vc.scopeLabel.text, "Games through this position (1 moves)")
+        vc.view.frame = CGRect(x: 0, y: 0, width: 400, height: 600)
+        vc.view.layoutIfNeeded()
+        XCTAssertGreaterThan(vc.scopeLabel.frame.height, 0)
+        XCTAssertLessThanOrEqual(vc.scopeLabel.frame.maxY, vc.gamesHeader.frame.minY)
+        vc.segmented.selectedSegmentIndex = 0
+        vc.segmented.sendActions(for: .valueChanged)
+        XCTAssertTrue(vc.scopeLabel.isHidden, "Games tab only")
     }
 
     func testStateMessages() {

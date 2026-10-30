@@ -21,24 +21,17 @@ private final class DBFiltersPlayersTransport: Transport, @unchecked Sendable {
 @MainActor
 final class DBFiltersViewControllerTests: XCTestCase {
     private var transport: DBFiltersPlayersTransport!
-    private var savedExtended = false
 
     override func setUp() {
         super.setUp()
-        savedExtended = DBCapabilities.extendedFilters
-        DBCapabilities.extendedFilters = false
         transport = DBFiltersPlayersTransport()
     }
 
-    override func tearDown() {
-        DBCapabilities.extendedFilters = savedExtended
-        super.tearDown()
-    }
-
-    private func make(_ applied: DBFilterState = DBFilterState()) -> DBFiltersViewController {
-        let ep = DBEndpoint(useLocalhost: false, credentials: nil)
+    private func make(_ applied: DBFilterState = DBFilterState(),
+                      features: DBServerFeatures = .none) -> DBFiltersViewController {
+        let ep = DBEndpoint(useLocalhost: false)
         let ac = DBPlayerAutocomplete(client: DBClient(endpoint: ep, transport: transport), debounce: 0)
-        let vc = DBFiltersViewController(applied: applied, autocomplete: ac)
+        let vc = DBFiltersViewController(applied: applied, autocomplete: ac, features: features)
         vc.loadViewIfNeeded()
         return vc
     }
@@ -79,14 +72,28 @@ final class DBFiltersViewControllerTests: XCTestCase {
                                        "after", "before", "source"])
     }
 
-    func testExtendedRowsHiddenWhileFlagOff() {
+    func testExtendedRowsHiddenUntilEachFeatureAdvertised() {
         let vc = make()
         XCTAssertTrue(vc.excludeTimeoutsRow.isHidden)
         XCTAssertTrue(vc.liveOrTurnBasedRow.isHidden)
-        DBCapabilities.extendedFilters = true
-        let vc2 = make()
-        XCTAssertFalse(vc2.excludeTimeoutsRow.isHidden)
-        XCTAssertFalse(vc2.liveOrTurnBasedRow.isHidden)
+        let timeouts = make(features: DBServerFeatures(features: ["excludeTimeouts"]))
+        XCTAssertFalse(timeouts.excludeTimeoutsRow.isHidden)
+        XCTAssertTrue(timeouts.liveOrTurnBasedRow.isHidden)
+        let live = make(features: DBServerFeatures(features: ["liveOrTurnBased"]))
+        XCTAssertTrue(live.excludeTimeoutsRow.isHidden)
+        XCTAssertFalse(live.liveOrTurnBasedRow.isHidden)
+    }
+
+    func testHiddenMigratedExtendedValuesSurviveApply() {
+        var legacy = DBFilterState()
+        legacy.excludeTimeouts = true
+        legacy.liveOrTurnBased = "live"
+        let vc = make(legacy)
+        var applied: DBFilterState?
+        vc.onApply = { applied = $0 }
+        vc.applyButton.sendActions(for: .touchUpInside)
+        XCTAssertEqual(applied?.excludeTimeouts, true)
+        XCTAssertEqual(applied?.liveOrTurnBased, "live")
     }
 
     func testRatingMenuOffersAnyAndPlusChoices() {

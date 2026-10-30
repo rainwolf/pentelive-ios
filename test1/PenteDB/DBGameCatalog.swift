@@ -51,8 +51,10 @@ import Foundation
 
     @objc static func gridSize(forGame id: Int) -> Int { return 19 }
 
-    /// False for Gomoku (5), Connect6 (13) and Renju (31).
+    /// False for Gomoku (5), Connect6 (13), Renju (31) and every unsupported
+    /// id (Go, Renju and unknown names map to 0).
     @objc static func hasCaptures(game id: Int) -> Bool {
+        guard isSupported(id) else { return false }
         let b = baseGame(id)
         return b != 5 && b != 13 && b != 31
     }

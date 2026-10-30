@@ -54,9 +54,13 @@ final class DBFiltersViewController: UIViewController, UITextFieldDelegate {
 
     private let formStack = UIStackView()
 
-    init(applied: DBFilterState, autocomplete: DBPlayerAutocomplete) {
+    /// What `/ping` advertised; gates the extended filter rows.
+    let features: DBServerFeatures
+
+    init(applied: DBFilterState, autocomplete: DBPlayerAutocomplete, features: DBServerFeatures = .none) {
         draft = applied
         self.autocomplete = autocomplete
+        self.features = features
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -234,8 +238,9 @@ final class DBFiltersViewController: UIViewController, UITextFieldDelegate {
         liveOrTurnBasedControl.addTarget(self, action: #selector(liveOrTurnBasedChanged), for: .valueChanged)
         liveOrTurnBasedRow = addRow("liveOrTurnBased", NSLocalizedString("Games", comment: ""),
                                     liveOrTurnBasedControl)
-        excludeTimeoutsRow.isHidden = !DBCapabilities.extendedFilters
-        liveOrTurnBasedRow.isHidden = !DBCapabilities.extendedFilters
+        // Each control waits for its own /ping feature (spec §7 Phase 4).
+        excludeTimeoutsRow.isHidden = !features.excludeTimeouts
+        liveOrTurnBasedRow.isHidden = !features.liveOrTurnBased
 
         // 7. Winner.
         winnerControl.addTarget(self, action: #selector(winnerChanged), for: .valueChanged)
