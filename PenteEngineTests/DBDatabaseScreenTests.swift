@@ -15,9 +15,11 @@ private final class DBScreenTransport: Transport, @unchecked Sendable {
         set { lock.lock(); defer { lock.unlock() }; _replies = newValue }
     }
 
+    /// Position-stats calls only; the games search fired alongside is
+    /// covered by DBPositionServiceTests.
     var requests: [URLRequest] {
         lock.lock(); defer { lock.unlock() }
-        return _requests
+        return _requests.filter { $0.url?.path.hasSuffix("/position-stats") == true }
     }
 
     func data(for request: URLRequest) async throws -> (Data, URLResponse) {

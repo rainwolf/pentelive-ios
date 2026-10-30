@@ -13,11 +13,21 @@ import UIKit
     @objc let preferences: DBPreferences
     private let gate = DBRequestGate()
     private var statsTask: Task<Void, Never>?
+    private var gamesTask: Task<Void, Never>?
+    private var gamesLoading = false
+    /// Position the games list was last requested for (page 2+ reuses it).
+    private var gamesRequest: (game: Int, moves: [Int])?
 
     @objc var scope: String = "archive"
     var filters: DBFilters?
     @objc var onHeat: (([NSNumber: UIColor]) -> Void)?
     @objc var onStatsState: ((DBLoadState) -> Void)?
+    @objc var onGamesChanged: (() -> Void)?
+    @objc var onGamesState: ((DBLoadState) -> Void)?
+    private(set) var pager = DBGamesPager()
+    /// True while the state last reported through `onGamesState` belongs to a
+    /// "Show more" page rather than the first page. Read it inside the callback.
+    @objc private(set) var gamesStateIsLoadMore = false
     private(set) var lastStats: DBPositionStats?
     private(set) var occupied: Set<Int> = []
     /// Game id of the current position (labels need its grid size).
@@ -48,13 +58,23 @@ import UIKit
         self.game = game
         self.occupied = Set(occupied.map { $0.intValue })
         statsTask?.cancel()
+        gamesTask?.cancel()
         onHeat?([:])
+        pager.reset()
+        gamesRequest = nil
+        gamesLoading = false
+        onGamesChanged?()
         guard DBGameCatalog.isSupported(game) else {
             _ = gate.next(.stats) // supersede anything in flight
+            _ = gate.next(.games)
             onStatsState?(.unsupported)
+            gamesStateIsLoadMore = false
+            onGamesState?(.unsupported)
             return
         }
         onStatsState?(.loading)
+        gamesRequest = (game, moves.map { $0.intValue })
+        fetchGames(offset: 0)
         let id = gate.next(.stats)
         let request = DBPositionStatsRequest(game: game, moves: moves.map { $0.intValue },
                                              scope: scope, filters: filters)
@@ -79,6 +99,49 @@ import UIKit
                 self.onStatsState?(DBPositionService.state(for: error))
             }
         }
+    }
+
+    private func fetchGames(offset: Int) {
+        guard let req = gamesRequest else { return }
+        gamesTask?.cancel()
+        let isLoadMore = offset > 0
+        let id = gate.next(.games)
+        gamesStateIsLoadMore = isLoadMore
+        gamesLoading = true
+        onGamesState?(.loading)
+        let request = DBGameSearchRequest(game: req.game, moves: req.moves, scope: scope, filters: filters,
+                                          offset: offset, limit: DBGamesPager.pageSize)
+        gamesTask = Task { @MainActor [weak self] in
+            guard let self = self else { return }
+            do {
+                let result = try await self.client.searchGames(request)
+                guard self.gate.isLatest(id, .games) else { return }
+                self.gamesLoading = false
+                self.gamesStateIsLoadMore = isLoadMore
+                if result.blocked {
+                    self.onGamesState?(.blocked)
+                    return
+                }
+                self.pager.apply(result, offset: offset)
+                self.onGamesChanged?()
+                self.onGamesState?(self.pager.total == 0 ? .empty : .loaded)
+            } catch is CancellationError {
+                return
+            } catch {
+                guard self.gate.isLatest(id, .games) else { return }
+                self.gamesLoading = false
+                // A failed page keeps the rows already loaded.
+                self.gamesStateIsLoadMore = isLoadMore
+                self.onGamesState?(DBPositionService.state(for: error))
+            }
+        }
+    }
+
+    /// Fetches the next page ("Show more"). No-op while a fetch is in
+    /// flight, when everything is loaded, or before any position is set.
+    @objc func loadMoreGames() {
+        guard gamesRequest != nil, pager.hasMore, !gamesLoading else { return }
+        fetchGames(offset: pager.nextOffset)
     }
 
     @objc func recomputeHeat() {
