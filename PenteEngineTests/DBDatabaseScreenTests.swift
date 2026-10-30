@@ -297,7 +297,7 @@ final class DBDatabaseScreenTests: XCTestCase {
         let painted = await waitUntil { self.heatKeys(vc) == [NSNumber(value: 10), NSNumber(value: 11)] }
         XCTAssertTrue(painted)
         let items = vc.navigationItem.rightBarButtonItems ?? []
-        XCTAssertEqual(items.count, 2, "setup + heat buttons")
+        XCTAssertTrue(items.contains { $0.accessibilityIdentifier == "dbHeatToggle" }, "heat button")
         let requestsBefore = transport.requests.count
 
         vc.perform(NSSelectorFromString("toggleHeat"))
@@ -350,5 +350,187 @@ final class DBDatabaseScreenTests: XCTestCase {
         vc.perform(sel)
         XCTAssertEqual(presented.count, 1)
         XCTAssertEqual(presented.first?.title, "Please log in again")
+    }
+
+    // MARK: results panel/sheet (Task 14)
+
+    private func results(_ vc: UIViewController) -> DBResultsViewController {
+        return vc.value(forKey: "resultsVC") as! DBResultsViewController
+    }
+
+    func testHostOwnsOneResultsVCAndForwardsLoadedRows() async {
+        transport.replies[181] = (stats([(10, 60), (11, 40)]), 200)
+        let vc = makeVC(game: "Pente", moves: [180, 181, 200])
+        let first = results(vc)
+        back(vc)
+        let shown = await waitUntil { self.results(vc).rows.count == 2 }
+        XCTAssertTrue(shown)
+        XCTAssertTrue(results(vc) === first, "one results VC for the screen's lifetime")
+        XCTAssertEqual(Set(results(vc).rows.map(\.cell)), [10, 11])
+    }
+
+    func testHostForwardsEmptyAndBlockedStates() async {
+        transport.replies[181] = (stats([]), 200)
+        transport.replies[200] = ("{\"totalGames\":0,\"nextMoves\":[],\"blocked\":true}", 200)
+        let vc = makeVC(game: "Pente", moves: [180, 181, 200])
+        back(vc)
+        let empty = await waitUntil { self.results(vc).messageLabel.text == "No moves from this position" }
+        XCTAssertTrue(empty)
+        forward(vc)
+        let blocked = await waitUntil {
+            self.results(vc).messageLabel.text == "Database unavailable during your rated game"
+        }
+        XCTAssertTrue(blocked)
+    }
+
+    func testResultsRowTapPlaysMoveOnHost() async {
+        transport.replies[181] = (stats([(10, 60), (11, 40)]), 200)
+        let vc = makeVC(game: "Pente", moves: [180, 181, 200])
+        back(vc)
+        let shown = await waitUntil { self.results(vc).rows.count == 2 }
+        XCTAssertTrue(shown)
+        results(vc).onPlayMove?(10)
+        XCTAssertEqual(mirror(vc), [180, 181, 10])
+        XCTAssertEqual(line(vc).redoCount, 0)
+    }
+
+    func testResultsRetryRefetches() async {
+        let vc = makeVC(game: "Pente", moves: [180, 181])
+        results(vc).onRetry?()
+        let sent = await waitUntil { self.transport.requests.count == 1 }
+        XCTAssertTrue(sent)
+        XCTAssertEqual(sentMoves(), [[180, 181]])
+    }
+
+    func testShowCountChangeRecomputesBoardHeatWithoutRefetch() async {
+        let many = (0 ..< 15).map { (100 + $0, Double(40 + $0)) }
+        transport.replies[181] = (stats(many), 200)
+        let vc = makeVC(game: "Pente", moves: [180, 181, 200])
+        back(vc)
+        let loaded = await waitUntil { (self.dbOptions(vc)?.count ?? 0) == 15 }
+        XCTAssertTrue(loaded)
+        results(vc).selectShowCount(10)
+        XCTAssertEqual(prefs.movesShown, 10)
+        XCTAssertEqual(dbOptions(vc)?.count, 10)
+        XCTAssertEqual(results(vc).rows.count, 10)
+        XCTAssertEqual(transport.requests.count, 1, "no refetch")
+    }
+
+    private func layout(_ vc: UIViewController, _ size: CGSize) {
+        vc.view.frame = CGRect(origin: .zero, size: size)
+        vc.view.setNeedsLayout()
+        vc.view.layoutIfNeeded()
+    }
+
+    func testTallScreenBoardIsCappedAndCentred() {
+        let vc = makeVC(game: "Pente", moves: [180])
+        layout(vc, CGSize(width: 1032, height: 1300))
+        let b = board(vc, "board").frame
+        let side = (1300 * 0.62).rounded(.down)
+        XCTAssertEqual(b.width, side, accuracy: 1)
+        XCTAssertEqual(b.height, b.width, accuracy: 0.5)
+        XCTAssertEqual(b.midX, 516, accuracy: 1)
+        XCTAssertEqual(board(vc, "zoomedBoard").bounds.width, 2 * b.width, accuracy: 1)
+        XCTAssertEqual(board(vc, "stone").bounds.width, 1.2 * b.width / 19, accuracy: 0.5)
+    }
+
+    func testMagnifierCentresInBoardCoordinatesWhenBoardIsCentred() {
+        let vc = makeVC(game: "Pente", moves: [180])
+        layout(vc, CGSize(width: 1032, height: 1300))
+        let b = board(vc, "board")
+        XCTAssertGreaterThan(b.frame.minX, 0, "board is centred with side margins")
+        tap(vc, cell: 0, state: .began)
+        let cs = b.bounds.width / 19
+        let mid = b.bounds.width / 2
+        let p = 0.5 * cs
+        let z = board(vc, "zoomedBoard").center
+        XCTAssertEqual(z.x, mid - (p - mid), accuracy: 0.5)
+        XCTAssertEqual(z.y, mid - (p - mid), accuracy: 0.5)
+    }
+
+    func testPhoneBoardStaysFullWidth() {
+        let vc = makeVC(game: "Pente", moves: [180])
+        layout(vc, CGSize(width: 402, height: 734))
+        let b = board(vc, "board").frame
+        XCTAssertEqual(b.width, 402, accuracy: 0.5)
+        XCTAssertEqual(b.minX, 0, accuracy: 0.5)
+    }
+
+    func testUnderBoardStripSitsBelowBoard() {
+        let vc = makeVC(game: "Pente", moves: [180])
+        layout(vc, CGSize(width: 1032, height: 1300))
+        let boardMaxY = board(vc, "board").frame.maxY
+        let stripMaxY = (vc.value(forKey: "stripMaxY") as? NSNumber)?.doubleValue ?? 0
+        for key in ["aiButton", "whiteCapturesCountLabel", "blackCapturesCountLabel",
+                    "whiteStoneCaptures", "blackStoneCaptures"] {
+            let f = board(vc, key).frame
+            XCTAssertGreaterThanOrEqual(f.minY, boardMaxY, key)
+            XCTAssertLessThanOrEqual(f.maxY, CGFloat(stripMaxY), key)
+        }
+        for id in ["dbStatusLabel", "dbRetryButton"] {
+            guard let v = findView(vc.view, id: id) else { return XCTFail(id) }
+            XCTAssertGreaterThanOrEqual(v.frame.minY, boardMaxY, id)
+            XCTAssertLessThanOrEqual(v.frame.maxY, CGFloat(stripMaxY), id)
+        }
+    }
+
+    private func findView(_ v: UIView, id: String) -> UIView? {
+        if v.accessibilityIdentifier == id { return v }
+        for s in v.subviews { if let f = findView(s, id: id) { return f } }
+        return nil
+    }
+
+    private func movesButton(_ vc: UIViewController) -> UIBarButtonItem? {
+        return vc.navigationItem.rightBarButtonItems?.first { $0.accessibilityIdentifier == "dbMovesButton" }
+    }
+
+    func testRegularWidthEmbedsResultsBelowStrip() throws {
+        guard #available(iOS 17.0, *) else { throw XCTSkip("traitOverrides needs iOS 17") }
+        let vc = makeVC(game: "Pente", moves: [180])
+        vc.traitOverrides.horizontalSizeClass = .regular
+        layout(vc, CGSize(width: 1032, height: 1300))
+        let r = results(vc)
+        XCTAssertTrue(r.parent === vc)
+        XCTAssertTrue(r.view.superview === vc.view)
+        let stripMaxY = (vc.value(forKey: "stripMaxY") as? NSNumber)?.doubleValue ?? 0
+        XCTAssertGreaterThanOrEqual(r.view.frame.minY, CGFloat(stripMaxY))
+        XCTAssertEqual(r.view.frame.maxY, 1300, accuracy: 0.5)
+        XCTAssertNil(movesButton(vc), "no Moves button on iPad")
+    }
+
+    func testCompactAutoPresentsOnceAndMovesButtonRePresents() async {
+        transport.replies[181] = (stats([(10, 60)]), 200)
+        let vc = makeVC(game: "Pente", moves: [180, 181, 200])
+        // No window: presentations are captured through the presenter seam.
+        var presented: [UIViewController] = []
+        let presenter: @convention(block) (UIViewController) -> Void = { presented.append($0) }
+        vc.setValue(presenter, forKey: "resultsSheetPresenter")
+        if #available(iOS 17.0, *) {
+            vc.traitOverrides.horizontalSizeClass = .compact // also on the iPad simulator
+        }
+        layout(vc, CGSize(width: 402, height: 734))
+        back(vc)
+        forward(vc)
+        XCTAssertEqual(presented.count, 1, "auto-presented once, after the first position change")
+        XCTAssertTrue(presented.first === results(vc))
+        guard let item = movesButton(vc) else { return XCTFail("no Moves button") }
+        _ = (item.target as? NSObject)?.perform(item.action)
+        XCTAssertEqual(presented.count, 2)
+        XCTAssertNil(results(vc).parent, "not embedded in compact width")
+    }
+
+    func testCompactSheetUsesBelowBoardDetentWithUndimmedSmallDetent() {
+        let vc = makeVC(game: "Pente", moves: [180])
+        layout(vc, CGSize(width: 402, height: 734))
+        vc.perform(NSSelectorFromString("configureResultsSheet"))
+        guard let sheet = results(vc).sheetPresentationController else { return XCTFail("no sheet") }
+        XCTAssertTrue(sheet.prefersGrabberVisible)
+        XCTAssertEqual(sheet.detents.count, 2)
+        if #available(iOS 16.0, *) {
+            let small = UISheetPresentationController.Detent.Identifier("belowBoard")
+            XCTAssertEqual(sheet.detents.first?.identifier, small)
+            XCTAssertEqual(sheet.largestUndimmedDetentIdentifier, small)
+            XCTAssertEqual(sheet.detents.last?.identifier, .large)
+        }
     }
 }

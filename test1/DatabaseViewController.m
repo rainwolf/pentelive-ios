@@ -40,6 +40,12 @@ static BOOL DBAllowsOffCenterFirstStone(NSString *gameType) {
            [gameType containsString:@"Swap2-"];
 }
 
+@interface DatabaseViewController ()
+/// Created once in viewDidLoad and kept for the screen's lifetime, so its
+/// scroll offset survives dismissal and re-presentation.
+@property(nonatomic, strong) DBResultsViewController *resultsVC;
+@end
+
 @implementation DatabaseViewController {
     int abstractBoard[19][19];
     int finalMove, whiteCaptures, blackCaptures, lastMove;
@@ -53,6 +59,14 @@ static BOOL DBAllowsOffCenterFirstStone(NSString *gameType) {
     UIButton *dbRetryButton;
     UIBarButtonItem *heatButton;
     UILabel *dbTitleLabel, *dbSubtitleLabel;
+    UIButton *dbSearchButton;
+    UIBarButtonItem *dbSetupButton, *movesButton;
+    // Bottom of the under-board strip (AI button, captures, status/retry,
+    // move notation), in view coordinates.
+    CGFloat stripMaxY;
+    BOOL didAutoPresentResults, wasShowingResultsSheet;
+    // Test seam: when set, receives the results sheet instead of a window.
+    void (^resultsSheetPresenter)(UIViewController *);
 }
 @synthesize aiPlayer;
 @synthesize board;
@@ -108,7 +122,7 @@ BoardViewController *boardController;
     coordinateLetters[17] = 'S';
     coordinateLetters[18] = 'T';
 
-    UIBarButtonItem *setupButton = [[UIBarButtonItem alloc]
+    dbSetupButton = [[UIBarButtonItem alloc]
         initWithImage:[UIImage imageNamed:@"settings.png"]
                 style:UIBarButtonItemStylePlain
                target:self
@@ -119,15 +133,18 @@ BoardViewController *boardController;
                target:self
                action:@selector(toggleHeat)];
     heatButton.accessibilityIdentifier = @"dbHeatToggle";
-    [self.navigationItem setRightBarButtonItems:@[ setupButton, heatButton ]];
+    movesButton = [[UIBarButtonItem alloc]
+        initWithTitle:NSLocalizedString(@"Moves", nil)
+                style:UIBarButtonItemStylePlain
+               target:self
+               action:@selector(showResultsSheet)];
+    movesButton.accessibilityIdentifier = @"dbMovesButton";
+    [self.navigationItem
+        setRightBarButtonItems:@[ dbSetupButton, heatButton, movesButton ]];
 
     [self setTitle:NSLocalizedString(@"Database & AI", nil)];
     [self setTitle:NSLocalizedString(@"Database", nil)];
 
-    [board setFrame:CGRectMake(0, 0, self.view.bounds.size.width,
-                               self.view.bounds.size.width)];
-    [zoomedBoard setFrame:CGRectMake(0, 0, 2 * self.view.bounds.size.width,
-                                     2 * self.view.bounds.size.width)];
     UIColor *initialColor = [DBPalette
         boardColorForGame:[DBGameCatalog
                               gameIdForName:
@@ -140,8 +157,6 @@ BoardViewController *boardController;
     [board setAbstractBoard:abstractBoard];
     [zoomedBoard setAbstractBoard:abstractBoard];
 
-    CGRect rect;
-
     UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
     button.backgroundColor = [UIColor clearColor];
     button.titleLabel.font = [UIFont boldSystemFontOfSize:20];
@@ -151,11 +166,7 @@ BoardViewController *boardController;
     [button addTarget:self
                   action:@selector(searchDB:)
         forControlEvents:UIControlEventTouchUpInside];
-    rect = button.frame;
-    rect.size = [button intrinsicContentSize];
-    rect.origin.y = board.frame.size.height + 2;
-    rect.origin.x = self.view.bounds.size.width / 2 - rect.size.width / 2;
-    button.frame = rect;
+    dbSearchButton = button;
     [self.view addSubview:button];
     aiButton = [UIButton buttonWithType:UIButtonTypeCustom];
     aiButton.backgroundColor = [UIColor clearColor];
@@ -168,41 +179,11 @@ BoardViewController *boardController;
     [aiButton addTarget:self
                   action:@selector(askAI:)
         forControlEvents:UIControlEventTouchUpInside];
-    rect = button.frame;
-    rect.size = [aiButton intrinsicContentSize];
-    rect.origin.x = self.view.bounds.size.width - rect.size.width - 15;
-    aiButton.frame = rect;
     [self.view addSubview:aiButton];
 
-    rect = whiteCapturesCountLabel.frame;
-    rect.origin.y = board.frame.size.height + 2;
-    whiteCapturesCountLabel.frame = rect;
-    rect = whiteStoneCaptures.frame;
-    rect.origin.y = board.frame.size.height + 2 + 2;
-    whiteStoneCaptures.frame = rect;
-    rect = blackCapturesCountLabel.frame;
-    rect.origin.y = whiteCapturesCountLabel.frame.size.height +
-                    whiteCapturesCountLabel.frame.origin.y + 1;
-    blackCapturesCountLabel.frame = rect;
-    rect = blackStoneCaptures.frame;
-    rect.origin.y = whiteCapturesCountLabel.frame.size.height +
-                    whiteCapturesCountLabel.frame.origin.y + 1 + 2;
-    blackStoneCaptures.frame = rect;
-
-    CGFloat bottomOffset = 0;
-
-    if ([[UIDevice currentDevice] userInterfaceIdiom] ==
-        UIUserInterfaceIdiomPhone) {
-        if ((int)[[UIScreen mainScreen] nativeBounds].size.height == 2436) {
-            bottomOffset = 34;
-        }
-    }
-
     playerStatsBaseString = @"";
-    playerStats = [[WKWebView alloc]
-        initWithFrame:CGRectMake(2, blackStoneCaptures.frame.origin.y + 3,
-                                 self.view.bounds.size.width - 4,
-                                 blackStoneCaptures.frame.origin.y - 3)];
+    // Keeps only the move notation; its frame is set in layoutBoardAndStrip.
+    playerStats = [[WKWebView alloc] initWithFrame:CGRectZero];
     [playerStats setAlpha:0.90];
     [playerStats setBackgroundColor:[UIColor colorWithRed:0.98f
                                                     green:0.98f
@@ -217,21 +198,6 @@ BoardViewController *boardController;
     //    [playerStats.scrollView setScrollEnabled:NO];
     [playerStats setNavigationDelegate:self];
     //    playerStats.contentInset = UIEdgeInsetsMake(-5.0,0.0,0,0.0);
-    CGFloat screenHeight = UIScreen.mainScreen.bounds.size.height;
-    UIWindowScene *windowScene =
-        self.navigationController.view.window.windowScene
-            ?: self.view.window.windowScene;
-    CGFloat newOriginY =
-        screenHeight -
-        self.navigationController.navigationBar.frame.size.height -
-        windowScene.statusBarManager.statusBarFrame.size.height;
-    playerStats.frame =
-        CGRectMake(2,
-                   blackStoneCaptures.frame.origin.y + 3 +
-                       blackStoneCaptures.frame.size.height,
-                   self.view.bounds.size.width - 4,
-                   newOriginY - blackStoneCaptures.frame.origin.y - 5 -
-                       blackStoneCaptures.frame.size.height - bottomOffset);
     [self.view addSubview:playerStats];
 
     setupView = [[DBSetupView alloc]
@@ -264,6 +230,16 @@ BoardViewController *boardController;
     dbService.onStatsState = ^(DBLoadState state) {
         [weakSelf statsStateChanged:state];
     };
+    self.resultsVC = [[DBResultsViewController alloc] initWithService:dbService];
+    self.resultsVC.onPlayMove = ^(NSInteger cell) {
+        [weakSelf playDBMove:cell];
+    };
+    self.resultsVC.onShowCountChanged = ^{
+        [weakSelf showCountChanged];
+    };
+    self.resultsVC.onRetry = ^{
+        [weakSelf positionChanged];
+    };
 
     // The storyboard only has the left (back) swipe for this scene.
     UISwipeGestureRecognizer *forwardSwipe = [[UISwipeGestureRecognizer alloc]
@@ -273,9 +249,7 @@ BoardViewController *boardController;
     [self.view addGestureRecognizer:forwardSwipe];
 
     // Under-board strip: "Not supported yet" label / "Couldn't load" retry.
-    CGRect stripRect =
-        CGRectMake(self.view.bounds.size.width / 4, CGRectGetMaxY(button.frame),
-                   self.view.bounds.size.width / 2, 22);
+    CGRect stripRect = CGRectZero; // laid out in layoutBoardAndStrip
     dbStatusLabel = [[UILabel alloc] initWithFrame:stripRect];
     dbStatusLabel.textAlignment = NSTextAlignmentCenter;
     dbStatusLabel.font = [UIFont systemFontOfSize:14];
@@ -306,6 +280,217 @@ BoardViewController *boardController;
     self.progressView = [[PenteSpinnerOverlay alloc]
         initWithFrame:CGRectMake(0, 0, self.view.frame.size.width,
                                  self.view.frame.size.height)];
+    [self layoutBoardAndStrip];
+}
+
+- (void)viewWillLayoutSubviews {
+    [super viewWillLayoutSubviews];
+    // Also runs on size-class changes (iPad multitasking); the app is
+    // portrait-only, so there is no rotation.
+    [self layoutBoardAndStrip];
+    [self updateResultsPresentation];
+}
+
+/// Board side = min(safe width, 62% of safe height), centred, so a tall
+/// iPad leaves room below it. The under-board strip follows directly.
+- (void)layoutBoardAndStrip {
+    CGRect safe = self.view.safeAreaLayoutGuide.layoutFrame;
+    if (CGRectIsEmpty(safe)) {
+        safe = self.view.bounds;
+    }
+    CGFloat side = floor(MIN(safe.size.width, safe.size.height * 0.62));
+    CGRect boardFrame =
+        CGRectMake(safe.origin.x + floor((safe.size.width - side) / 2),
+                   safe.origin.y, side, side);
+    if (!CGRectEqualToRect(board.frame, boardFrame)) {
+        board.frame = boardFrame;
+        [board setNeedsDisplay];
+    }
+    // zoomedBoard and the stones keep their centres (gestures move them).
+    CGSize zoomed = CGSizeMake(2 * side, 2 * side);
+    if (!CGSizeEqualToSize(zoomedBoard.bounds.size, zoomed)) {
+        zoomedBoard.bounds = (CGRect){CGPointZero, zoomed};
+        [zoomedBoard setNeedsDisplay];
+    }
+    CGFloat stoneSide = 1.2 * side / 19;
+    stone.bounds = CGRectMake(0, 0, stoneSide, stoneSide);
+    zoomedStone.bounds = CGRectMake(0, 0, 1.5 * 2 * stoneSide, 1.5 * 2 * stoneSide);
+
+    CGFloat left = CGRectGetMinX(boardFrame);
+    CGFloat y0 = CGRectGetMaxY(boardFrame) + 2;
+    CGRect r;
+    r.size = [dbSearchButton intrinsicContentSize];
+    r.origin = CGPointMake(CGRectGetMidX(boardFrame) - r.size.width / 2, y0);
+    dbSearchButton.frame = r;
+    r.size = [aiButton intrinsicContentSize];
+    r.origin = CGPointMake(CGRectGetMaxX(boardFrame) - r.size.width - 15, y0);
+    aiButton.frame = r;
+
+    r = whiteCapturesCountLabel.frame;
+    r.origin = CGPointMake(left + 24, y0);
+    whiteCapturesCountLabel.frame = r;
+    r = whiteStoneCaptures.frame;
+    r.origin = CGPointMake(left + 8, y0 + 2);
+    whiteStoneCaptures.frame = r;
+    r = blackCapturesCountLabel.frame;
+    r.origin = CGPointMake(left + 24, CGRectGetMaxY(whiteCapturesCountLabel.frame) + 1);
+    blackCapturesCountLabel.frame = r;
+    r = blackStoneCaptures.frame;
+    r.origin = CGPointMake(left + 8, CGRectGetMaxY(whiteCapturesCountLabel.frame) + 3);
+    blackStoneCaptures.frame = r;
+
+    CGRect stripRect = CGRectMake(CGRectGetMidX(boardFrame) - side / 4,
+                                  CGRectGetMaxY(dbSearchButton.frame), side / 2, 22);
+    dbStatusLabel.frame = stripRect;
+    dbRetryButton.frame = stripRect;
+
+    CGFloat notationY = MAX(MAX(CGRectGetMaxY(blackStoneCaptures.frame),
+                                CGRectGetMaxY(blackCapturesCountLabel.frame)),
+                            MAX(CGRectGetMaxY(stripRect), CGRectGetMaxY(aiButton.frame))) +
+                        3;
+    playerStats.frame = CGRectMake(left + 2, notationY, side - 4, 44);
+    stripMaxY = CGRectGetMaxY(playerStats.frame) + 4;
+}
+
+#pragma mark - Results panel / sheet
+
+- (BOOL)usesInlineResults {
+    return self.traitCollection.horizontalSizeClass ==
+           UIUserInterfaceSizeClassRegular;
+}
+
+/// Regular width (iPad): the results are an inline child panel below the
+/// strip and nothing is presented. Compact width: a sheet plus a Moves
+/// button that re-presents it.
+- (void)updateResultsPresentation {
+    DBResultsViewController *results = self.resultsVC;
+    if (results == nil) {
+        return;
+    }
+    BOOL isInline = [self usesInlineResults];
+    if (isInline) {
+        if (results.parentViewController != self) {
+            if (results.presentingViewController != nil) {
+                [results dismissViewControllerAnimated:NO completion:nil];
+            }
+            [self addChildViewController:results];
+            [self.view addSubview:results.view];
+            [results didMoveToParentViewController:self];
+        }
+        CGRect safe = self.view.safeAreaLayoutGuide.layoutFrame;
+        if (CGRectIsEmpty(safe)) {
+            safe = self.view.bounds;
+        }
+        CGRect panel = CGRectMake(safe.origin.x, stripMaxY, safe.size.width,
+                                  MAX(0, CGRectGetMaxY(safe) - stripMaxY));
+        if (!CGRectEqualToRect(results.view.frame, panel)) {
+            results.view.frame = panel;
+        }
+    } else if (results.parentViewController == self) {
+        [results willMoveToParentViewController:nil];
+        [results.view removeFromSuperview];
+        [results removeFromParentViewController];
+    }
+    NSArray *items = isInline ? @[ dbSetupButton, heatButton ]
+                              : @[ dbSetupButton, heatButton, movesButton ];
+    if (![self.navigationItem.rightBarButtonItems isEqualToArray:items]) {
+        [self.navigationItem setRightBarButtonItems:items];
+    }
+}
+
+- (CGFloat)stripMaxYInWindow {
+    return [self.view convertPoint:CGPointMake(0, stripMaxY) toView:nil].y;
+}
+
+/// Small detent sits below the under-board strip (iOS 16+) and stays
+/// undimmed, so the board, the strip and swipes keep working.
+- (void)configureResultsSheet {
+    DBResultsViewController *results = self.resultsVC;
+    results.modalPresentationStyle = UIModalPresentationPageSheet;
+    UISheetPresentationController *sheet = results.sheetPresentationController;
+    if (sheet == nil) {
+        return;
+    }
+    if (@available(iOS 16.0, *)) {
+        UISheetPresentationControllerDetentIdentifier smallId = @"belowBoard";
+        __weak typeof(self) weakSelf = self;
+        UISheetPresentationControllerDetent *small = [UISheetPresentationControllerDetent
+            customDetentWithIdentifier:smallId
+                              resolver:^CGFloat(
+                                  id<UISheetPresentationControllerDetentResolutionContext>
+                                      context) {
+                                  CGFloat max = context.maximumDetentValue;
+                                  CGFloat h = max - [weakSelf stripMaxYInWindow];
+                                  return MIN(max, MAX(200, h));
+                              }];
+        sheet.detents = @[ small, [UISheetPresentationControllerDetent largeDetent] ];
+        sheet.largestUndimmedDetentIdentifier = smallId;
+        sheet.selectedDetentIdentifier = smallId;
+    } else {
+        // Owner-accepted fallback (Decision 10): overlaps the board bottom.
+        sheet.detents = @[
+            [UISheetPresentationControllerDetent mediumDetent],
+            [UISheetPresentationControllerDetent largeDetent]
+        ];
+        sheet.largestUndimmedDetentIdentifier =
+            UISheetPresentationControllerDetentIdentifierMedium;
+        sheet.selectedDetentIdentifier =
+            UISheetPresentationControllerDetentIdentifierMedium;
+    }
+    sheet.prefersGrabberVisible = YES;
+    sheet.prefersScrollingExpandsWhenScrolledToEdge = NO;
+}
+
+/// Moves navbar button (compact width only).
+- (void)showResultsSheet {
+    [self presentResultsSheet];
+}
+
+- (BOOL)presentResultsSheet {
+    DBResultsViewController *results = self.resultsVC;
+    if (results == nil || [self usesInlineResults] || results.parentViewController != nil) {
+        return NO;
+    }
+    if (resultsSheetPresenter != nil) {
+        [self configureResultsSheet];
+        resultsSheetPresenter(results);
+        return YES;
+    }
+    if (self.view.window == nil || results.presentingViewController != nil ||
+        self.presentedViewController != nil) {
+        return NO;
+    }
+    [self configureResultsSheet];
+    [self presentViewController:results animated:YES completion:nil];
+    return YES;
+}
+
+/// A Moves row was tapped: play it like a tap on its heat dot.
+- (void)playDBMove:(NSInteger)cell {
+    NSInteger grid = [DBGameCatalog gridSizeForGame:[DBGameCatalog gameIdForName:game]];
+    if (grid > 19 || cell < 0 || cell >= grid * grid) {
+        return;
+    }
+    if (abstractBoard[cell / grid][cell % grid] != 0) {
+        return;
+    }
+    [board setLastMove:-1];
+    if (!game) {
+        game = setupView.gameCell.textField.text;
+    }
+    if (!game) {
+        game = @"Pente";
+    }
+    [self syncLineGame];
+    [line play:cell];
+    [self lineDidChange];
+}
+
+/// "Show N" changed: recolour the board from the cached stats (no refetch)
+/// and refresh the rows.
+- (void)showCountChanged {
+    [dbService recomputeHeat];
+    [self.resultsVC reload];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -320,12 +505,6 @@ BoardViewController *boardController;
     [zoomedBoard setHidden:YES];
     [zoomedStone setHidden:YES];
     [stone setHidden:YES];
-    [stone setBounds:CGRectMake(0, 0, 1.2 * self.board.bounds.size.width / 19,
-                                1.2 * self.board.bounds.size.width / 19)];
-    [zoomedStone
-        setBounds:CGRectMake(
-                      0, 0, 1.2 * 1.5 * 2 * self.board.bounds.size.width / 19,
-                      1.2 * 1.5 * 2 * self.board.bounds.size.width / 19)];
     finalMove = -1;
     [whiteStoneCaptures setStoneColor:WHITE];
     [blackStoneCaptures setStoneColor:BLACK];
@@ -350,6 +529,11 @@ BoardViewController *boardController;
             [self positionChanged];
         }
     }
+    // Returning from a pushed screen re-shows the sheet where it was.
+    if (wasShowingResultsSheet) {
+        wasShowingResultsSheet = NO;
+        [self presentResultsSheet];
+    }
     //    [whiteStoneCaptures setStoneColor: WHITE];
     //    [whiteStoneCaptures setNeedsDisplay];
     [super viewDidAppear:animated];
@@ -357,6 +541,12 @@ BoardViewController *boardController;
 
 - (void)viewWillDisappear:(BOOL)animated {
     [super viewWillDisappear:animated];
+    // A sheet would otherwise float over the pushed or popped-to screen.
+    if (self.resultsVC.presentingViewController != nil &&
+        self.resultsVC.parentViewController == nil) {
+        wasShowingResultsSheet = YES;
+        [self.resultsVC dismissViewControllerAnimated:NO completion:nil];
+    }
 
     if (@available(iOS 26.0, *)) {
         self.navigationController.interactiveContentPopGestureRecognizer
@@ -426,6 +616,9 @@ BoardViewController *boardController;
     [dbService positionDidChangeWithGame:[DBGameCatalog gameIdForName:game]
                                    moves:line.moves
                                 occupied:occupied];
+    if (!didAutoPresentResults && [self presentResultsSheet]) {
+        didAutoPresentResults = YES;
+    }
 }
 
 /// Same setup-view sources (and saved fallbacks) as the legacy searchDB:.
@@ -518,6 +711,10 @@ BoardViewController *boardController;
 }
 
 - (void)statsStateChanged:(DBLoadState)state {
+    [self.resultsVC showState:state];
+    if (state == DBLoadStateLoaded || state == DBLoadStateEmpty) {
+        [self.resultsVC reload];
+    }
     dbStatusLabel.hidden = YES;
     dbRetryButton.hidden = YES;
     switch (state) {
@@ -587,7 +784,7 @@ BoardViewController *boardController;
                                  handler:^(UIAlertAction *action) {
                                      if (weakSelf) {
                                          [StoreViewController
-                                             presentFrom:weakSelf];
+                                             presentFrom:[weakSelf alertPresenter]];
                                      }
                                  }]];
     [[self alertPresenter] presentViewController:alert
@@ -759,10 +956,13 @@ BoardViewController *boardController;
                 [zoomedBoard setHidden:NO];
             }
         }
-        // re-center the zoomed board.
+        // re-center the zoomed board. It is a subview of board, so use
+        // board's own coordinates (board is centred, not at the origin).
+        CGPoint boardMid = CGPointMake(CGRectGetMidX(board.bounds),
+                                       CGRectGetMidY(board.bounds));
         zoomedBoard.center =
-            CGPointMake(board.center.x - (currentPoint.x - board.center.x),
-                        board.center.y - (currentPoint.y - board.center.y));
+            CGPointMake(boardMid.x - (currentPoint.x - boardMid.x),
+                        boardMid.y - (currentPoint.y - boardMid.y));
         // re-center the stone, re-snap if needed.
         float cellSize = self.zoomedBoard.bounds.size.width / 19;
         if ((fabs(zoomedStone.center.x - 2 * currentPoint.x) >= cellSize / 2) ||

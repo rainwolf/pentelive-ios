@@ -20,6 +20,8 @@ import UIKit
     @objc var onStatsState: ((DBLoadState) -> Void)?
     private(set) var lastStats: DBPositionStats?
     private(set) var occupied: Set<Int> = []
+    /// Game id of the current position (labels need its grid size).
+    @objc private(set) var game: Int = 0
 
     init(client: DBClient, preferences: DBPreferences = .shared) {
         self.client = client
@@ -43,6 +45,7 @@ import UIKit
 
     @objc func positionDidChange(game: Int, moves: [NSNumber], occupied: [NSNumber]) {
         lastStats = nil
+        self.game = game
         self.occupied = Set(occupied.map { $0.intValue })
         statsTask?.cancel()
         onHeat?([:])
