@@ -27,6 +27,7 @@
 		1E86ED17B71DD1FA8D9AE77E /* DBLine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 857DE39F1FF5271B2077D773 /* DBLine.swift */; };
 		1E9781A497DB8BFC502570C2 /* DashboardMappingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23B6987E5A29895D65B9D900 /* DashboardMappingTests.swift */; };
 		1EEDE873B1B3CB703A9F2B4C /* StoreScreenModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 351CBE2A7B2AAF91BC6615EE /* StoreScreenModel.swift */; };
+		20846E37083D086648706D0E /* DBHeatScaleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B4C2335573E3379704F433A /* DBHeatScaleTests.swift */; };
 		21715C319AA4E90E18E94A90 /* DashboardEndpointTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0ECA09C532731E03061C1308 /* DashboardEndpointTests.swift */; };
 		23D406DC7B60ACE1F3879C92 /* BoardVariantMapping.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50436E8B3C992E62FFFC15D7 /* BoardVariantMapping.swift */; };
 		24F5B3C3A96EEDEA4D1078E8 /* ArenaMyRequestsModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FB2E1A032CEE396D7987441 /* ArenaMyRequestsModel.swift */; };
@@ -266,6 +267,7 @@
 		8168BCA9C713B0FC0D21EFB3 /* DBGameCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7C6301B1FFA90AF3EFFC698 /* DBGameCatalog.swift */; };
 		854DB91E5547FFA1AAC18610 /* StoreWiringTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44E7D16AB0E5519271369985 /* StoreWiringTests.swift */; };
 		88A50FE84F56B4E70121AFB2 /* KidMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 248A985A4E77B24C449CE493 /* KidMode.swift */; };
+		8B0435817CBBE45B2ECA9CCB /* DBHeatScale.swift in Sources */ = {isa = PBXBuildFile; fileRef = D11E9B7B4419B1E1C3690E21 /* DBHeatScale.swift */; };
 		8C3BAF99F80B9158925BCCF5 /* StoreScreenshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11B55E9EFB59E2DF3518E4B /* StoreScreenshotTests.swift */; };
 		8DC0EDBB4B2C756A9413992C /* DashboardWire.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1368306455C932D8D8B7E65 /* DashboardWire.swift */; };
 		91604807B916A7E73460E323 /* DashboardError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BEAC58A3C6C7DFFFD5DCCBD /* DashboardError.swift */; };
@@ -356,6 +358,7 @@
 		0F255476AD428B119B8ED44D /* StoreReplyTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StoreReplyTests.swift; sourceTree = "<group>"; };
 		1195B9EE689C773DA39F77AD /* PenteVariant.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PenteVariant.swift; sourceTree = "<group>"; };
 		1719B0CC190A38E646A3A9D8 /* dashboard_sample.json */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.json; path = dashboard_sample.json; sourceTree = "<group>"; };
+		1B4C2335573E3379704F433A /* DBHeatScaleTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DBHeatScaleTests.swift; sourceTree = "<group>"; };
 		1B7A0C0F2E4D4A9B8C6D0001 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = test1/LaunchScreen.storyboard; sourceTree = SOURCE_ROOT; };
 		209222A884B0D807DC3B8F72 /* DashboardRealPayloadTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DashboardRealPayloadTests.swift; sourceTree = "<group>"; };
 		21FF8A7123884B6A4B087C56 /* Ai.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = Ai.h; sourceTree = "<group>"; };
@@ -686,6 +689,7 @@
 		CA9129A89E021A92511C5467 /* DBAPIModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DBAPIModels.swift; sourceTree = "<group>"; };
 		CED4F565311526EC237865E4 /* ArenaJoinRequestListModelTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ArenaJoinRequestListModelTests.swift; sourceTree = "<group>"; };
 		D0D2331507464E3A0A3E4DEC /* RuleSet.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RuleSet.swift; sourceTree = "<group>"; };
+		D11E9B7B4419B1E1C3690E21 /* DBHeatScale.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DBHeatScale.swift; sourceTree = "<group>"; };
 		D4A11111111111111111A002 /* RenjuOfferSymmetry.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RenjuOfferSymmetry.swift; sourceTree = "<group>"; };
 		D4A11111111111111111B004 /* RenjuOfferSymmetryTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RenjuOfferSymmetryTests.swift; sourceTree = "<group>"; };
 		D4A11111111111111111C002 /* RenjuTracking.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RenjuTracking.swift; sourceTree = "<group>"; };
@@ -1139,6 +1143,7 @@
 				DC5151ADD885C9D439276F94 /* DBClient.swift */,
 				857DE39F1FF5271B2077D773 /* DBLine.swift */,
 				85B59742C2A0FE9F09A48F90 /* DBMoveRanking.swift */,
+				D11E9B7B4419B1E1C3690E21 /* DBHeatScale.swift */,
 			);
 			name = PenteDB;
 			path = test1/PenteDB;
@@ -1240,6 +1245,7 @@
 				3F97B127ABAEA163D1509053 /* DBClientTests.swift */,
 				7C48F0C418487816CB1F1738 /* DBLineTests.swift */,
 				2EC0640971312FEFEF7DCCB5 /* DBMoveRankingTests.swift */,
+				1B4C2335573E3379704F433A /* DBHeatScaleTests.swift */,
 			);
 			path = PenteEngineTests;
 			sourceTree = SOURCE_ROOT;
@@ -1644,6 +1650,7 @@
 				C26FDFDB32472BC9CA6CE4E5 /* DBClientTests.swift in Sources */,
 				3C2B85848FFE8908E8FCD9DC /* DBLineTests.swift in Sources */,
 				7B4DAA39C326B660D5FDC281 /* DBMoveRankingTests.swift in Sources */,
+				20846E37083D086648706D0E /* DBHeatScaleTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1751,6 +1758,7 @@
 				26BC2E6C4E06C896C31BD4F9 /* DBClient.swift in Sources */,
 				1E86ED17B71DD1FA8D9AE77E /* DBLine.swift in Sources */,
 				3A7BA0195284352283621B66 /* DBMoveRanking.swift in Sources */,
+				8B0435817CBBE45B2ECA9CCB /* DBHeatScale.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
