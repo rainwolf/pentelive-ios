@@ -203,13 +203,29 @@ final class DBResultsViewControllerTests: XCTestCase {
         }
     }
 
-    func testSortControlOffersWinPercentAndPopularAndDefaultsToWinPercent() {
+    func testSortControlOffersWinPercentAndPopularityAndDefaultsToWinPercent() {
         let vc = DBResultsViewController(service: service)
         vc.loadViewIfNeeded()
         XCTAssertEqual(vc.sortControl.numberOfSegments, 2)
         XCTAssertEqual(vc.sortControl.titleForSegment(at: 0), "Win %")
-        XCTAssertEqual(vc.sortControl.titleForSegment(at: 1), "Popular")
+        XCTAssertEqual(vc.sortControl.titleForSegment(at: 1), "Popularity")
         XCTAssertEqual(vc.sortControl.selectedSegmentIndex, 0)
+    }
+
+    func testInfoButtonExistsAndPresentsWinRateExplanation() {
+        let vc = DBResultsViewController(service: service)
+        vc.loadViewIfNeeded()
+        XCTAssertEqual(vc.infoButton.accessibilityLabel, "About win %")
+        XCTAssertNotNil(vc.infoButton.image(for: .normal))
+        var presented: UIViewController?
+        vc.presentInfo = { presented = $0 }
+        vc.infoButton.sendActions(for: .touchUpInside)
+        guard let p = presented else { return XCTFail("nothing presented") }
+        XCTAssertEqual(p.modalPresentationStyle, .popover)
+        p.loadViewIfNeeded()
+        let text = p.view.subviews.compactMap { ($0 as? UILabel)?.text }.joined()
+        XCTAssertTrue(text.contains("Popularity"), text)
+        XCTAssertTrue(text.contains("few games"), text)
     }
 
     func testSortControlReflectsSavedPreference() {

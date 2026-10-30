@@ -684,13 +684,14 @@
     [self applyHeat:dbService.currentHeat];
 }
 
-/// Two-line title: "Database" over the game name and capture counts.
+/// Two-line title: the current game's name over its capture counts.
 - (void)refreshTitleView {
+    NSString *gameName = game.length > 0 ? game : NSLocalizedString(@"Database", nil);
+    self.title = gameName;
     if (dbTitleLabel == nil) {
         dbTitleLabel = [[UILabel alloc] init];
         dbTitleLabel.font = [UIFont boldSystemFontOfSize:15];
         dbTitleLabel.textAlignment = NSTextAlignmentCenter;
-        dbTitleLabel.text = NSLocalizedString(@"Database", nil);
         dbSubtitleLabel = [[UILabel alloc] init];
         dbSubtitleLabel.textAlignment = NSTextAlignmentCenter;
         dbSubtitleLabel.adjustsFontSizeToFitWidth = YES;
@@ -699,21 +700,31 @@
             initWithArrangedSubviews:@[ dbTitleLabel, dbSubtitleLabel ]];
         stack.axis = UILayoutConstraintAxisVertical;
         stack.alignment = UIStackViewAlignmentCenter;
-        stack.frame = CGRectMake(0, 0, 200, 36);
         self.navigationItem.titleView = stack;
     }
+    dbTitleLabel.text = gameName;
     NSInteger gameId = [DBGameCatalog gameIdForName:game];
     if (![DBGameCatalog isSupported:gameId]) {
-        // Go/Renju from a live game: the name only, never Pente captures.
-        dbSubtitleLabel.attributedText = [[NSAttributedString alloc]
-            initWithString:game ?: @""
-                attributes:@{NSFontAttributeName : [UIFont systemFontOfSize:12]}];
-        return;
+        // Go/Renju from a live game: name only, never Pente captures.
+        dbSubtitleLabel.attributedText = nil;
+        dbSubtitleLabel.text = @"";
+    } else {
+        NSMutableAttributedString *sub = [[DBSubtitleFormatter
+            attributedSubtitleWithGame:gameId
+                                 moves:movesList ?: @[]
+                                  font:[UIFont systemFontOfSize:12]] mutableCopy];
+        // The formatter leads with the game name, which is now the title.
+        NSRange dot = [sub.string rangeOfString:@"\u25CF"];
+        if (dot.location != NSNotFound && dot.location > 0) {
+            [sub deleteCharactersInRange:NSMakeRange(0, dot.location)];
+        } else if (dot.location == NSNotFound) {
+            [sub deleteCharactersInRange:NSMakeRange(0, sub.length)];
+        }
+        dbSubtitleLabel.attributedText = sub;
     }
-    dbSubtitleLabel.attributedText = [DBSubtitleFormatter
-        attributedSubtitleWithGame:gameId
-                             moves:movesList ?: @[]
-                              font:[UIFont systemFontOfSize:12]];
+    UIView *tv = self.navigationItem.titleView;
+    CGSize fit = [tv systemLayoutSizeFittingSize:UILayoutFittingCompressedSize];
+    tv.frame = CGRectMake(0, 0, fit.width, fit.height);
 }
 
 - (void)applyHeat:(NSDictionary<NSNumber *, UIColor *> *)heat {

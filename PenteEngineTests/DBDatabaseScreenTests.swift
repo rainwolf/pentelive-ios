@@ -568,14 +568,27 @@ final class DBDatabaseScreenTests: XCTestCase {
         XCTAssertEqual(mirror(vc), [180])
     }
 
-    func testTitleViewShowsDatabaseOverSubtitle() {
+    func testTitleIsGameNameOverCaptureSubtitle() {
         let vc = makeVC(game: "Pente", moves: [180, 181, 200, 182, 183])
         vc.perform(NSSelectorFromString("replayGame"))
-        XCTAssertEqual(vc.title, "Database")
+        XCTAssertEqual(vc.title, "Pente")
         guard let tv = vc.navigationItem.titleView else { return XCTFail("no titleView") }
         let texts = allLabels(tv).map { $0.attributedText?.string ?? $0.text ?? "" }
-        XCTAssertTrue(texts.contains("Database"), "\(texts)")
-        XCTAssertTrue(texts.contains { $0.hasPrefix("Pente") }, "\(texts)")
+        XCTAssertEqual(texts.first, "Pente", "\(texts)")
+        XCTAssertFalse(texts.contains("Database"), "\(texts)")
+        XCTAssertTrue(texts.contains { $0.contains("●") }, "captures subtitle kept: \(texts)")
+        XCTAssertEqual(tv.frame.size, tv.systemLayoutSizeFitting(UIView.layoutFittingCompressedSize))
+    }
+
+    func testTitleFollowsGameChangeFromFilters() {
+        let vc = makeVC(game: "Go", moves: [180, 181])
+        vc.perform(NSSelectorFromString("replayGame"))
+        XCTAssertEqual(vc.title, "Go")
+        guard let sheet = openFilters(vc) else { return XCTFail("no filters sheet") }
+        sheet.applyButton.sendActions(for: .touchUpInside)
+        XCTAssertEqual(vc.title, "Pente")
+        let texts = allLabels(vc.navigationItem.titleView ?? UIView()).map { $0.text ?? "" }
+        XCTAssertEqual(texts.first, "Pente", "\(texts)")
     }
 
     func testTitleViewSubtitleHasNoCapturesForGomoku() {

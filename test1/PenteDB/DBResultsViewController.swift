@@ -178,7 +178,7 @@ final class DBGameRowCell: UITableViewCell {
     /// host flashes that cell on the board; nothing is played or searched.
     @objc var onSelectionChanged: ((Int) -> Void)?
     @objc var onShowCountChanged: (() -> Void)?
-    /// The Win % / Popular choice changed; the host recomputes heat and reloads.
+    /// The Win % / Popularity choice changed; the host recomputes heat and reloads.
     @objc var onSortChanged: (() -> Void)?
     /// Retry after a failure; the host refetches every failed endpoint.
     @objc var onRetry: (() -> Void)?
@@ -200,8 +200,12 @@ final class DBGameRowCell: UITableViewCell {
     let segmented = UISegmentedControl(items: [NSLocalizedString("Moves", comment: ""),
                                                NSLocalizedString("Games", comment: "")])
     let sortControl = UISegmentedControl(items: [NSLocalizedString("Win %", comment: ""),
-                                                 NSLocalizedString("Popular", comment: "")])
+                                                 NSLocalizedString("Popularity", comment: "")])
     let showButton = UIButton(type: .system)
+    /// "i" next to the sort control: why Win % rows are not strictly descending.
+    let infoButton = UIButton(type: .system)
+    /// Test seam: receives the explanation instead of presenting it.
+    var presentInfo: ((UIViewController) -> Void)?
     private let movesBar = UIStackView()
     let tableView = UITableView(frame: .zero, style: .plain)
     let gamesTableView = UITableView(frame: .zero, style: .plain)
@@ -240,6 +244,13 @@ final class DBGameRowCell: UITableViewCell {
         sortControl.selectedSegmentIndex = service.preferences.moveSort == .games ? 1 : 0
         sortControl.accessibilityIdentifier = "dbMoveSort"
         sortControl.addTarget(self, action: #selector(sortChanged), for: .valueChanged)
+
+        infoButton.setImage(UIImage(systemName: "info.circle"), for: .normal)
+        infoButton.tintColor = DBPalette.accent
+        infoButton.accessibilityLabel = NSLocalizedString("About win %", comment: "")
+        infoButton.accessibilityIdentifier = "dbSortInfoButton"
+        infoButton.addTarget(self, action: #selector(infoTapped), for: .touchUpInside)
+        infoButton.setContentHuggingPriority(.required, for: .horizontal)
 
         showButton.showsMenuAsPrimaryAction = true
         showButton.titleLabel?.font = .systemFont(ofSize: 14)
@@ -306,6 +317,7 @@ final class DBGameRowCell: UITableViewCell {
         spinner.hidesWhenStopped = true
 
         movesBar.addArrangedSubview(sortControl)
+        movesBar.addArrangedSubview(infoButton)
         movesBar.addArrangedSubview(showButton)
         movesBar.axis = .horizontal
         movesBar.spacing = 12
@@ -414,7 +426,7 @@ final class DBGameRowCell: UITableViewCell {
         onShowCountChanged?()
     }
 
-    /// Saves the Win % / Popular choice; the host recomputes heat and reloads.
+    /// Saves the Win % / Popularity choice; the host recomputes heat and reloads.
     func selectSort(_ sort: DBMoveSort) {
         service.preferences.moveSort = sort
         sortControl.selectedSegmentIndex = sort == .games ? 1 : 0
@@ -554,6 +566,32 @@ final class DBGameRowCell: UITableViewCell {
         showButton.setTitle(DBResultsViewController.showTitle(current), for: .normal)
     }
 
+    @objc private func infoTapped() {
+        let vc = UIViewController()
+        let label = UILabel()
+        label.numberOfLines = 0
+        label.font = .preferredFont(forTextStyle: .footnote)
+        label.textColor = .label
+        label.text = NSLocalizedString(
+            "Win % ranks moves by a confidence-adjusted win rate (Wilson lower bound), so a move with a high percentage from few games ranks below a slightly lower percentage from many games. That is why the percentages are not strictly descending.\n\nPopularity sorts by number of games.",
+            comment: "")
+        label.translatesAutoresizingMaskIntoConstraints = false
+        vc.view.addSubview(label)
+        let m = vc.view.layoutMarginsGuide
+        NSLayoutConstraint.activate([
+            label.topAnchor.constraint(equalTo: m.topAnchor),
+            label.bottomAnchor.constraint(equalTo: m.bottomAnchor),
+            label.leadingAnchor.constraint(equalTo: m.leadingAnchor),
+            label.trailingAnchor.constraint(equalTo: m.trailingAnchor),
+        ])
+        vc.preferredContentSize = CGSize(width: 300, height: 190)
+        vc.modalPresentationStyle = .popover
+        vc.popoverPresentationController?.sourceView = infoButton
+        vc.popoverPresentationController?.sourceRect = infoButton.bounds
+        vc.popoverPresentationController?.delegate = DBInfoPopoverDelegate.shared
+        if let seam = presentInfo { seam(vc) } else { present(vc, animated: true) }
+    }
+
     @objc private func sortChanged() {
         selectSort(sortControl.selectedSegmentIndex == 1 ? .games : .winRate)
     }
@@ -603,4 +641,10 @@ final class DBGameRowCell: UITableViewCell {
         tableView.reloadData()
         onSelectionChanged?(selectedCell ?? -1)
     }
+}
+
+/// Keeps the explanation a popover on iPhone too (no full-screen adaptation).
+final class DBInfoPopoverDelegate: NSObject, UIPopoverPresentationControllerDelegate {
+    static let shared = DBInfoPopoverDelegate()
+    func adaptivePresentationStyle(for controller: UIPresentationController) -> UIModalPresentationStyle { .none }
 }
