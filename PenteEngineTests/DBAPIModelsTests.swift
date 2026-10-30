@@ -109,4 +109,17 @@ final class DBAPIModelsTests: XCTestCase {
         let pl = try decode(DBPlayersResult.self, "{\"players\":[\"a\",\"b\"]}")
         XCTAssertEqual(pl.players, ["a", "b"])
     }
+
+    func testPingFeaturesDecoded() throws {
+        let p = try decode(DBPing.self,
+                           "{\"auth\":\"u\",\"dbAccess\":true,\"features\":[\"excludeTimeouts\",\"liveOrTurnBased\"]}")
+        XCTAssertEqual(p.features, ["excludeTimeouts", "liveOrTurnBased"])
+    }
+
+    func testPingMissingFeaturesIsEmpty() throws {
+        let p = try decode(DBPing.self, "{\"auth\":null}")
+        XCTAssertEqual(p.features, [])
+        XCTAssertNil(p.auth)
+        XCTAssertFalse(p.dbAccess)
+    }
 }

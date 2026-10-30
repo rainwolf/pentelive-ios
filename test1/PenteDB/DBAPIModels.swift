@@ -234,13 +234,17 @@ struct DBGameDetail: Decodable, Equatable {
 struct DBPing: Decodable, Equatable {
     var auth: String?
     var dbAccess: Bool
+    /// Server capability flags (spec §4.1), e.g. "excludeTimeouts",
+    /// "liveOrTurnBased". Missing means none. Gates filter controls at runtime.
+    var features: [String]
 
-    private enum CodingKeys: String, CodingKey { case auth, dbAccess }
+    private enum CodingKeys: String, CodingKey { case auth, dbAccess, features }
 
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         auth = try c.decodeIfPresent(String.self, forKey: .auth)
         dbAccess = try c.decodeIfPresent(Bool.self, forKey: .dbAccess) ?? false
+        features = try c.decodeIfPresent([String].self, forKey: .features) ?? []
     }
 }
 
