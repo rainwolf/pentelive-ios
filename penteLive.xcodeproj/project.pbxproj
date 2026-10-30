@@ -12,6 +12,7 @@
 		06B4B494FB3A1DBAF1123B09 /* PenteGameCorpusTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A43C60A3066249BC1D49D05D /* PenteGameCorpusTests.swift */; };
 		089C0B682228D01BB6B5F563 /* StoreScreenModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD7A8072E91AD17EAC167C81 /* StoreScreenModelTests.swift */; };
 		0D18EC2BFA5C62D2DD620AFA /* StoreServiceBuyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79438FDA5BFD561B15004165 /* StoreServiceBuyTests.swift */; };
+		0DE3CE73AC53D120E8F38629 /* DBCaptureReplayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCE7511E185730A52F6E89A5 /* DBCaptureReplayTests.swift */; };
 		0F517DEF255BDD9409111928 /* TableEngineRoutingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DAA75D2D52B843143873591 /* TableEngineRoutingTests.swift */; };
 		0FA6727C32177EC05DF0536D /* DBSetupViewKeyTests.m in Sources */ = {isa = PBXBuildFile; fileRef = A9C87EEF94CBCE7275D0A942 /* DBSetupViewKeyTests.m */; };
 		11624A088F5FA7A3BA8789DF /* Capture.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF08D052C94A67CE7B1A2ABE /* Capture.swift */; };
@@ -332,6 +333,7 @@
 		F625A7B91F3EEA9CAC77D213 /* LinkPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE8B1497162B9BA94B0C506B /* LinkPolicyTests.swift */; };
 		F64C17DEC67643AEBAE1EAA1 /* StoreAdaptersTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31CE4CF890E4A150BEFCC1C9 /* StoreAdaptersTests.swift */; };
 		F72B5133FA0A653E9E693B92 /* StoreKitIntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9958ABCE685CCCB2B61E5686 /* StoreKitIntegrationTests.swift */; };
+		F73FE601B3D4D549603C8DC6 /* DBCaptureReplay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28E7E5DCDE0669074410C4D2 /* DBCaptureReplay.swift */; };
 		FA5D13026A2FA2E0A2A27F38 /* PenteAlert.m in Sources */ = {isa = PBXBuildFile; fileRef = CA18254E693C7E19066ECB56 /* PenteAlert.m */; };
 		FC94E43192D837205DC1411F /* BoardVariantMappingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BB7D9EDC42A7C21CE614BEB /* BoardVariantMappingTests.swift */; };
 		FEAB7B3D998B39D5FEB924DD /* DBAPIModelsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40F3795CA283F67FCCDC464A /* DBAPIModelsTests.swift */; };
@@ -364,6 +366,7 @@
 		21FF8A7123884B6A4B087C56 /* Ai.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = Ai.h; sourceTree = "<group>"; };
 		23B6987E5A29895D65B9D900 /* DashboardMappingTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DashboardMappingTests.swift; sourceTree = "<group>"; };
 		248A985A4E77B24C449CE493 /* KidMode.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KidMode.swift; sourceTree = "<group>"; };
+		28E7E5DCDE0669074410C4D2 /* DBCaptureReplay.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DBCaptureReplay.swift; sourceTree = "<group>"; };
 		2EC0640971312FEFEF7DCCB5 /* DBMoveRankingTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DBMoveRankingTests.swift; sourceTree = "<group>"; };
 		31CE4CF890E4A150BEFCC1C9 /* StoreAdaptersTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StoreAdaptersTests.swift; sourceTree = "<group>"; };
 		34B3A2BBFEF8A532619254D1 /* Pods-penteLive.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-penteLive.debug.xcconfig"; path = "Pods/Target Support Files/Pods-penteLive/Pods-penteLive.debug.xcconfig"; sourceTree = "<group>"; };
@@ -687,6 +690,7 @@
 		C5740BC2A030E4520664D23D /* Ai.cpp */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.cpp.cpp; path = Ai.cpp; sourceTree = "<group>"; };
 		CA18254E693C7E19066ECB56 /* PenteAlert.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PenteAlert.m; sourceTree = "<group>"; };
 		CA9129A89E021A92511C5467 /* DBAPIModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DBAPIModels.swift; sourceTree = "<group>"; };
+		CCE7511E185730A52F6E89A5 /* DBCaptureReplayTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DBCaptureReplayTests.swift; sourceTree = "<group>"; };
 		CED4F565311526EC237865E4 /* ArenaJoinRequestListModelTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ArenaJoinRequestListModelTests.swift; sourceTree = "<group>"; };
 		D0D2331507464E3A0A3E4DEC /* RuleSet.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RuleSet.swift; sourceTree = "<group>"; };
 		D11E9B7B4419B1E1C3690E21 /* DBHeatScale.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DBHeatScale.swift; sourceTree = "<group>"; };
@@ -1144,6 +1148,7 @@
 				857DE39F1FF5271B2077D773 /* DBLine.swift */,
 				85B59742C2A0FE9F09A48F90 /* DBMoveRanking.swift */,
 				D11E9B7B4419B1E1C3690E21 /* DBHeatScale.swift */,
+				28E7E5DCDE0669074410C4D2 /* DBCaptureReplay.swift */,
 			);
 			name = PenteDB;
 			path = test1/PenteDB;
@@ -1246,6 +1251,7 @@
 				7C48F0C418487816CB1F1738 /* DBLineTests.swift */,
 				2EC0640971312FEFEF7DCCB5 /* DBMoveRankingTests.swift */,
 				1B4C2335573E3379704F433A /* DBHeatScaleTests.swift */,
+				CCE7511E185730A52F6E89A5 /* DBCaptureReplayTests.swift */,
 			);
 			path = PenteEngineTests;
 			sourceTree = SOURCE_ROOT;
@@ -1651,6 +1657,7 @@
 				3C2B85848FFE8908E8FCD9DC /* DBLineTests.swift in Sources */,
 				7B4DAA39C326B660D5FDC281 /* DBMoveRankingTests.swift in Sources */,
 				20846E37083D086648706D0E /* DBHeatScaleTests.swift in Sources */,
+				0DE3CE73AC53D120E8F38629 /* DBCaptureReplayTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1759,6 +1766,7 @@
 				1E86ED17B71DD1FA8D9AE77E /* DBLine.swift in Sources */,
 				3A7BA0195284352283621B66 /* DBMoveRanking.swift in Sources */,
 				8B0435817CBBE45B2ECA9CCB /* DBHeatScale.swift in Sources */,
+				F73FE601B3D4D549603C8DC6 /* DBCaptureReplay.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
