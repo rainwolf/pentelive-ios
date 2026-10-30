@@ -9,12 +9,14 @@
 #import "BoardView.h"
 #import "DBAISetupView.h"
 #import "DBBoardView.h"
-#import "DBSetupView.h"
 #import "PenteSpinnerOverlay.h"
 #import "PenteNavigationViewController.h"
 #import "PentePopover.h"
 #import <UIKit/UIKit.h>
+#import <WebKit/WebKit.h>
 @class MMAI;
+@class DBLine;
+@class DBPositionService;
 
 // #define IS_IPHONE_5 ( fabs( ( double )[ [ UIScreen mainScreen ] bounds
 // ].size.height - ( double )568 ) < DBL_EPSILON )
@@ -28,7 +30,6 @@
     PentePopover *messagePopover;
     BOOL activeGame;
     MMAI *aiPlayer;
-    DBSetupView *setupView;
     DBAISetupView *aiSetupView;
     PenteSpinnerOverlay *progressView;
     UIButton *aiButton;
@@ -51,6 +52,12 @@
 @property(nonatomic, retain) WKWebView *playerStats;
 @property(nonatomic, retain) PentePopover *messagePopover;
 - (IBAction)goBackOneMoveSwipe:(UISwipeGestureRecognizer *)sender;
+- (IBAction)goForwardOneMoveSwipe:(UISwipeGestureRecognizer *)sender;
+
+/// The line on the board (with redo); movesList mirrors line.moves.
+@property(nonatomic, strong) DBLine *line;
+/// Position-stats facade. Created in viewDidLoad unless already set.
+@property(nonatomic, strong) DBPositionService *dbService;
 
 @property(strong, nonatomic)
     IBOutlet UILongPressGestureRecognizer *boardTapRecognizer;
@@ -58,7 +65,6 @@
 - (IBAction)boardTap:(UILongPressGestureRecognizer *)recognizer;
 
 @property(nonatomic, retain, readwrite) MMAI *aiPlayer;
-@property(nonatomic, retain, readwrite) DBSetupView *setupView;
 @property(nonatomic, retain, readwrite) DBAISetupView *aiSetupView;
 @property(strong, nonatomic) PenteSpinnerOverlay *progressView;
 @property(nonatomic, retain, readwrite) UIButton *aiButton;

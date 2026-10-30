@@ -11,3 +11,4 @@
 #import "BoardViewController.h"
 #import "PenteGame.h"
 #import "PenteHTTPClient.h"
+#import "DBBoardView.h"
