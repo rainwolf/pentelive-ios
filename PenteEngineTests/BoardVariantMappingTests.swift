@@ -115,6 +115,19 @@ final class BackSwipePolicyTests: XCTestCase {
                                lastMove: last)
     }
 
+    func testStagedPredicateCountsOnlyRealCells() {
+        func staged(_ fm: Int, active: Bool = true, picking: Bool = false) -> Bool {
+            BackSwipePolicy.isPlacedStoneStaged(activeGame: active, finalMove: fm,
+                                                gridSize: 19, renjuPicking: picking)
+        }
+        XCTAssertTrue(staged(0))
+        XCTAssertTrue(staged(360))
+        XCTAssertFalse(staged(-1))
+        XCTAssertFalse(staged(361), "Go pass sentinel gridSize*gridSize is not a stone")
+        XCTAssertFalse(staged(5, active: false))
+        XCTAssertFalse(staged(5, picking: true))
+    }
+
     func testPlainStoneThenBackTwice() {
         XCTAssertEqual(act(stone: true, last: 5), .clearPlacedStone)
         XCTAssertEqual(act(stone: false, last: 5), .stepBack)

@@ -654,7 +654,10 @@ BOOL goMarkStones = NO, goEvaluateDeadStones = NO, go = NO, isGoGame = NO;
                         ([self.renjuPhase isEqualToString:@"OFFERS"] ||
                          [self.renjuPhase isEqualToString:@"SELECTION"] ||
                          self.renjuMove4BranchB);
-    BOOL placedStoneStaged = activeGame && finalMove != -1 && !renjuPicking;
+    BOOL placedStoneStaged = [BackSwipePolicy isPlacedStoneStagedActiveGame:activeGame
+                                                                  finalMove:finalMove
+                                                                   gridSize:gridSize
+                                                               renjuPicking:renjuPicking];
     BackSwipeAction backAction = [BackSwipePolicy
         actionForConnect6Pending:(connect6Move1 != -1)
                    dPenteOpening:dPenteOpening
@@ -749,6 +752,15 @@ BOOL goMarkStones = NO, goEvaluateDeadStones = NO, go = NO, isGoGame = NO;
         [zoomedStone setHidden:YES];
         [horizontalLine setHidden:YES];
         [verticalLine setHidden:YES];
+        // Staging applied captures/poofs (and Go placement) to abstractBoard;
+        // replay the current position to undo them (lastMove is unchanged).
+        whiteCaptures = 0;
+        blackCaptures = 0;
+        [captures removeAllObjects];
+        [self replayGame:lastMove];
+        [board setAbstractBoard:abstractBoard];
+        [zoomedBoard setAbstractBoard:abstractBoard];
+        [self updateCaptures];
         if (!isGoGame) {
             [submitButton setEnabled:NO];
             [submitButton setTitle:NSLocalizedString(@"submit", nil)

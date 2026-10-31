@@ -107,6 +107,14 @@ import UIKit
         return lastMove > 1 ? .stepBack : .none
     }
 
+    /// True when a real board cell is staged (not -1, not the Go pass sentinel
+    /// gridSize*gridSize) in an active game outside Renju OFFERS/SELECTION picking.
+    @objc(isPlacedStoneStagedActiveGame:finalMove:gridSize:renjuPicking:)
+    static func isPlacedStoneStaged(activeGame: Bool, finalMove: Int, gridSize: Int,
+                                    renjuPicking: Bool) -> Bool {
+        activeGame && !renjuPicking && finalMove >= 0 && finalMove < gridSize * gridSize
+    }
+
     /// Connect6 steps one full turn (2 moves; positions 1, 3, 5, ...), else 1.
     /// Never goes below the floor of 1.
     @objc(stepBackTargetForGameType:lastMove:)
