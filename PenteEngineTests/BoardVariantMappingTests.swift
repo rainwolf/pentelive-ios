@@ -106,3 +106,50 @@ extension BoardVariantMappingTests {
         XCTAssertTrue(BoardVariantMapping.hidesCaptureLabels(for: .renju, opening: true))
     }
 }
+
+final class BackSwipePolicyTests: XCTestCase {
+    private func act(c6: Bool = false, d: Bool = false, s2: Bool = false,
+                     stone: Bool = false, last: Int = 5) -> BackSwipeAction {
+        BackSwipePolicy.action(connect6Pending: c6, dPenteOpening: d,
+                               swap2Opening: s2, placedStoneStaged: stone,
+                               lastMove: last)
+    }
+
+    func testPlainStoneThenBackTwice() {
+        XCTAssertEqual(act(stone: true, last: 5), .clearPlacedStone)
+        XCTAssertEqual(act(stone: false, last: 5), .stepBack)
+        XCTAssertEqual(BackSwipePolicy.stepBackTarget(gameType: "Pente", lastMove: 5), 4)
+    }
+
+    func testConnect6PendingOneOrTwoStonesThenBackStepsTwo() {
+        XCTAssertEqual(act(c6: true, stone: true, last: 7), .clearConnect6Pending)
+        XCTAssertEqual(act(c6: true, last: 7), .clearConnect6Pending)
+        XCTAssertEqual(act(last: 7), .stepBack)
+        XCTAssertEqual(BackSwipePolicy.stepBackTarget(gameType: "Connect6", lastMove: 7), 5)
+        XCTAssertEqual(BackSwipePolicy.stepBackTarget(gameType: "Connect6", lastMove: 5), 3)
+        XCTAssertEqual(BackSwipePolicy.stepBackTarget(gameType: "Connect6", lastMove: 3), 1)
+    }
+
+    func testConnect6NeverBelowFloorAndStopsAtOne() {
+        XCTAssertEqual(BackSwipePolicy.stepBackTarget(gameType: "Connect6", lastMove: 2), 1)
+        XCTAssertEqual(act(last: 1), .none)
+        XCTAssertEqual(act(stone: true, last: 1), .clearPlacedStone)
+    }
+
+    func testGoStoneClearsThenSteps() {
+        XCTAssertEqual(act(stone: true, last: 10), .clearPlacedStone)
+        XCTAssertEqual(BackSwipePolicy.stepBackTarget(gameType: "Go", lastMove: 10), 9)
+    }
+
+    func testOpeningsUnchanged() {
+        XCTAssertEqual(act(d: true, stone: true), .clearDPentePick)
+        XCTAssertEqual(act(d: true), .clearDPentePick)
+        XCTAssertEqual(act(s2: true, stone: true), .clearSwap2Pick)
+        XCTAssertEqual(act(s2: true), .clearSwap2Pick)
+    }
+
+    func testNoStagedStoneUnchanged() {
+        XCTAssertEqual(act(last: 2), .stepBack)
+        XCTAssertEqual(act(last: 1), .none)
+    }
+}

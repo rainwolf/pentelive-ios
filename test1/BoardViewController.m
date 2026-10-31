@@ -648,6 +648,19 @@ BOOL goMarkStones = NO, goEvaluateDeadStones = NO, go = NO, isGoGame = NO;
     [board setBlackTerritory:nil];
     [board setWhiteTerritory:nil];
     //    NSLog(@"SwipeLeft %i", lastMove);
+    // Capture a staged plain stone BEFORE finalMove is reset. Renju
+    // OFFERS/SELECTION taps also set finalMove but keep their own behaviour.
+    BOOL renjuPicking = self.renjuPhase != nil &&
+                        ([self.renjuPhase isEqualToString:@"OFFERS"] ||
+                         [self.renjuPhase isEqualToString:@"SELECTION"] ||
+                         self.renjuMove4BranchB);
+    BOOL placedStoneStaged = activeGame && finalMove != -1 && !renjuPicking;
+    BackSwipeAction backAction = [BackSwipePolicy
+        actionForConnect6Pending:(connect6Move1 != -1)
+                   dPenteOpening:dPenteOpening
+                    swap2Opening:swap2Opening
+               placedStoneStaged:placedStoneStaged
+                        lastMove:lastMove];
     finalMove = -1;
     if (!submitButton.imageView.image && activeGame) {
         [submitButton setEnabled:NO];
@@ -656,7 +669,7 @@ BOOL goMarkStones = NO, goEvaluateDeadStones = NO, go = NO, isGoGame = NO;
         [submitButton setAlpha:0.5];
     }
     [stone setHidden:YES];
-    if (connect6Move1 != -1) {
+    if (backAction == BackSwipeActionClearConnect6Pending) {
         connect6Move1 = -1;
         connect6Move2 = -1;
         [self replayGame:lastMove];
@@ -664,7 +677,7 @@ BOOL goMarkStones = NO, goEvaluateDeadStones = NO, go = NO, isGoGame = NO;
         [zoomedBoard setAbstractBoard:abstractBoard];
         [board setNeedsDisplay];
         [zoomedBoard setNeedsDisplay];
-    } else if (dPenteOpening) {
+    } else if (backAction == BackSwipeActionClearDPentePick) {
         dPenteMove4 = -1;
         if (dPenteMove3 != -1) {
             abstractBoard[dPenteMove3 / gridSize][dPenteMove3 % gridSize] = 0;
@@ -705,7 +718,7 @@ BOOL goMarkStones = NO, goEvaluateDeadStones = NO, go = NO, isGoGame = NO;
             [board setNeedsDisplay];
             [zoomedBoard setNeedsDisplay];
         }
-    } else if (swap2Opening) {
+    } else if (backAction == BackSwipeActionClearSwap2Pick) {
         swap2Move3 = -1;
         if (swap2Move2 != -1) {
             abstractBoard[swap2Move2 / gridSize][swap2Move2 % gridSize] = 0;
@@ -730,14 +743,31 @@ BOOL goMarkStones = NO, goEvaluateDeadStones = NO, go = NO, isGoGame = NO;
             [board setNeedsDisplay];
             [zoomedBoard setNeedsDisplay];
         }
-    } else if (lastMove > 1) {
+    } else if (backAction == BackSwipeActionClearPlacedStone) {
+        // A plain stone was staged: drop it and stay on the current position.
+        // The NEXT swipe steps back as usual.
+        [zoomedStone setHidden:YES];
+        [horizontalLine setHidden:YES];
+        [verticalLine setHidden:YES];
+        if (!isGoGame) {
+            [submitButton setEnabled:NO];
+            [submitButton setTitle:NSLocalizedString(@"submit", nil)
+                          forState:UIControlStateDisabled];
+            [submitButton setAlpha:0.5];
+        } else {
+            [submitButton setEnabled:YES];
+            [submitButton setTitle:NSLocalizedString(@"PASS", nil)
+                          forState:UIControlStateNormal];
+        }
+        [board setNeedsDisplay];
+        [zoomedBoard setNeedsDisplay];
+    } else if (backAction == BackSwipeActionStepBack) {
         whiteCaptures = 0;
         blackCaptures = 0;
         [stone setHidden:YES];
-        --lastMove;
-        if ([[self.game gameType] isEqualToString:@"Connect6"]) {
-            --lastMove;
-        }
+        lastMove = (int)[BackSwipePolicy
+            stepBackTargetForGameType:[self.game gameType]
+                             lastMove:lastMove];
         [self replayGame:lastMove];
         [board setNeedsDisplay];
         if (!activeGame) {

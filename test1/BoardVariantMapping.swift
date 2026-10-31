@@ -82,3 +82,36 @@ import UIKit
         }
     }
 }
+
+/// What a back swipe does on the live board, decided from staged-move state.
+/// Pure so it can be unit tested; BoardViewController `goBackOneMoveSwipe:` acts on it.
+@objc enum BackSwipeAction: Int {
+    case clearConnect6Pending   // drop staged Connect6 stones, stay on position
+    case clearDPentePick        // undo staged dPente opening pick, stay
+    case clearSwap2Pick         // undo staged swap2 opening pick, stay
+    case clearPlacedStone       // drop a plain staged stone, stay on position
+    case stepBack               // move back by `BackSwipePolicy.stepBackTarget`
+    case none                   // nothing to do (already at the floor)
+}
+
+@objc final class BackSwipePolicy: NSObject {
+    /// `placedStoneStaged` must be captured BEFORE finalMove is reset, and be false
+    /// for Renju OFFERS/SELECTION taps (they keep their own behaviour).
+    @objc(actionForConnect6Pending:dPenteOpening:swap2Opening:placedStoneStaged:lastMove:)
+    static func action(connect6Pending: Bool, dPenteOpening: Bool, swap2Opening: Bool,
+                       placedStoneStaged: Bool, lastMove: Int) -> BackSwipeAction {
+        if connect6Pending { return .clearConnect6Pending }
+        if dPenteOpening { return .clearDPentePick }
+        if swap2Opening { return .clearSwap2Pick }
+        if placedStoneStaged { return .clearPlacedStone }
+        return lastMove > 1 ? .stepBack : .none
+    }
+
+    /// Connect6 steps one full turn (2 moves; positions 1, 3, 5, ...), else 1.
+    /// Never goes below the floor of 1.
+    @objc(stepBackTargetForGameType:lastMove:)
+    static func stepBackTarget(gameType: String, lastMove: Int) -> Int {
+        let step = gameType == "Connect6" ? 2 : 1
+        return max(1, lastMove - step)
+    }
+}
