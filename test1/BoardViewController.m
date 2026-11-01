@@ -633,6 +633,18 @@ BOOL goMarkStones = NO, goEvaluateDeadStones = NO, go = NO, isGoGame = NO;
             ++lastMove;
         }
         [self replayGame:lastMove];
+        if (self.renjuPhase != nil && activeGame &&
+            lastMove == (int)[movesList count]) {
+            // Back at the latest position: restore the phase overlay.
+            if ([self.renjuPhase isEqualToString:@"SELECTION"] &&
+                self.renjuSelectedPoints.count == 0) {
+                [self applyRenjuSelectionMask];
+                [self renderRenjuCandidates:(self.renjuOffers ?: @[])];
+            } else if ([self.renjuPhase isEqualToString:@"OFFERS"] ||
+                       self.renjuMove4BranchB) {
+                [self renderRenjuCandidates:self.renjuPickedOffers];
+            }
+        }
         [board setNeedsDisplay];
         if (!activeGame) {
             [zoomedBoard setAbstractBoard:abstractBoard];
@@ -648,6 +660,33 @@ BOOL goMarkStones = NO, goEvaluateDeadStones = NO, go = NO, isGoGame = NO;
     [board setBlackTerritory:nil];
     [board setWhiteTerritory:nil];
     //    NSLog(@"SwipeLeft %i", lastMove);
+    // Capture a staged plain stone BEFORE finalMove is reset. Renju
+    // OFFERS/SELECTION taps also set finalMove but keep their own behaviour.
+    BOOL renjuPicking = self.renjuPhase != nil &&
+                        ([self.renjuPhase isEqualToString:@"OFFERS"] ||
+                         [self.renjuPhase isEqualToString:@"SELECTION"] ||
+                         self.renjuMove4BranchB);
+    BOOL placedStoneStaged = [BackSwipePolicy isPlacedStoneStagedActiveGame:activeGame
+                                                                  finalMove:finalMove
+                                                                   gridSize:gridSize
+                                                               renjuPicking:renjuPicking];
+    // Renju picks are consumed one per back press before any step back.
+    NSInteger renjuSelectionPicks =
+        [self.renjuPhase isEqualToString:@"SELECTION"]
+            ? (NSInteger)self.renjuSelectedPoints.count
+            : 0;
+    NSInteger renjuOfferPicks =
+        ([self.renjuPhase isEqualToString:@"OFFERS"] || self.renjuMove4BranchB)
+            ? (NSInteger)self.renjuPickedOffers.count
+            : 0;
+    BackSwipeAction backAction = [BackSwipePolicy
+        actionForConnect6Pending:(connect6Move1 != -1)
+                   dPenteOpening:dPenteOpening
+                    swap2Opening:swap2Opening
+               placedStoneStaged:placedStoneStaged
+             renjuSelectionPicks:renjuSelectionPicks
+                 renjuOfferPicks:renjuOfferPicks
+                        lastMove:lastMove];
     finalMove = -1;
     if (!submitButton.imageView.image && activeGame) {
         [submitButton setEnabled:NO];
@@ -656,7 +695,7 @@ BOOL goMarkStones = NO, goEvaluateDeadStones = NO, go = NO, isGoGame = NO;
         [submitButton setAlpha:0.5];
     }
     [stone setHidden:YES];
-    if (connect6Move1 != -1) {
+    if (backAction == BackSwipeActionClearConnect6Pending) {
         connect6Move1 = -1;
         connect6Move2 = -1;
         [self replayGame:lastMove];
@@ -664,7 +703,7 @@ BOOL goMarkStones = NO, goEvaluateDeadStones = NO, go = NO, isGoGame = NO;
         [zoomedBoard setAbstractBoard:abstractBoard];
         [board setNeedsDisplay];
         [zoomedBoard setNeedsDisplay];
-    } else if (dPenteOpening) {
+    } else if (backAction == BackSwipeActionClearDPentePick) {
         dPenteMove4 = -1;
         if (dPenteMove3 != -1) {
             abstractBoard[dPenteMove3 / gridSize][dPenteMove3 % gridSize] = 0;
@@ -705,7 +744,7 @@ BOOL goMarkStones = NO, goEvaluateDeadStones = NO, go = NO, isGoGame = NO;
             [board setNeedsDisplay];
             [zoomedBoard setNeedsDisplay];
         }
-    } else if (swap2Opening) {
+    } else if (backAction == BackSwipeActionClearSwap2Pick) {
         swap2Move3 = -1;
         if (swap2Move2 != -1) {
             abstractBoard[swap2Move2 / gridSize][swap2Move2 % gridSize] = 0;
@@ -730,15 +769,81 @@ BOOL goMarkStones = NO, goEvaluateDeadStones = NO, go = NO, isGoGame = NO;
             [board setNeedsDisplay];
             [zoomedBoard setNeedsDisplay];
         }
-    } else if (lastMove > 1) {
+    } else if (backAction == BackSwipeActionClearPlacedStone) {
+        // A plain stone was staged: drop it and stay on the current position.
+        // The NEXT swipe steps back as usual.
+        [zoomedStone setHidden:YES];
+        [horizontalLine setHidden:YES];
+        [verticalLine setHidden:YES];
+        // Staging applied captures/poofs (and Go placement) to abstractBoard;
+        // replay the current position to undo them (lastMove is unchanged).
+        whiteCaptures = 0;
+        blackCaptures = 0;
+        [captures removeAllObjects];
+        [self replayGame:lastMove];
+        [board setAbstractBoard:abstractBoard];
+        [zoomedBoard setAbstractBoard:abstractBoard];
+        [self updateCaptures];
+        if (!isGoGame) {
+            [submitButton setEnabled:NO];
+            [submitButton setTitle:NSLocalizedString(@"submit", nil)
+                          forState:UIControlStateDisabled];
+            [submitButton setAlpha:0.5];
+        } else {
+            [submitButton setEnabled:YES];
+            [submitButton setTitle:NSLocalizedString(@"PASS", nil)
+                          forState:UIControlStateNormal];
+        }
+        [board setNeedsDisplay];
+        [zoomedBoard setNeedsDisplay];
+    } else if (backAction == BackSwipeActionClearRenjuSelectionPick) {
+        // Drop the last SELECTION stone (white 6th, else black 5th), stay put.
+        // Those stones live in abstractBoard: replay the position, then
+        // re-apply what remains the way the selection tap does.
+        [self.renjuSelectedPoints removeLastObject];
+        [zoomedStone setHidden:YES];
+        [horizontalLine setHidden:YES];
+        [verticalLine setHidden:YES];
+        whiteCaptures = 0;
+        blackCaptures = 0;
+        [captures removeAllObjects];
+        [self replayGame:lastMove];
+        [submitButton setHidden:NO];
+        [submitButton setEnabled:NO];
+        [submitButton setAlpha:0.5];
+        if (self.renjuSelectedPoints.count == 1) {
+            int m5 = [self.renjuSelectedPoints[0] intValue];
+            abstractBoard[m5 / gridSize][m5 % gridSize] = 2; // black 5th
+            [submitButton setTitle:[NSString stringWithFormat:NSLocalizedString(@"submit: %c%d-", nil),
+                                                              coordinateLetters[m5 % gridSize],
+                                                              gridSize - (m5 / gridSize)]
+                          forState:UIControlStateDisabled];
+        } else {
+            [self applyRenjuSelectionMask];
+            [self renderRenjuCandidates:(self.renjuOffers ?: @[])];
+            [submitButton setTitle:NSLocalizedString(@"submit", nil)
+                          forState:UIControlStateDisabled];
+        }
+        [board setAbstractBoard:abstractBoard];
+        [zoomedBoard setAbstractBoard:abstractBoard];
+        [self updateCaptures];
+        [board setNeedsDisplay];
+        [zoomedBoard setNeedsDisplay];
+    } else if (backAction == BackSwipeActionClearRenjuOfferPick) {
+        [self.renjuPickedOffers removeLastObject];
+        [self renderRenjuCandidates:self.renjuPickedOffers];
+        [self showRenjuOfferCounter];
+    } else if (backAction == BackSwipeActionStepBack) {
         whiteCaptures = 0;
         blackCaptures = 0;
         [stone setHidden:YES];
-        --lastMove;
-        if ([[self.game gameType] isEqualToString:@"Connect6"]) {
-            --lastMove;
-        }
+        lastMove = (int)[BackSwipePolicy
+            stepBackTargetForGameType:[self.game gameType]
+                             lastMove:lastMove];
         [self replayGame:lastMove];
+        if (self.renjuPhase != nil && lastMove < (int)[movesList count]) {
+            [self renderRenjuCandidates:@[]]; // no candidate overlay on past positions
+        }
         [board setNeedsDisplay];
         if (!activeGame) {
             [zoomedBoard setAbstractBoard:abstractBoard];

@@ -82,3 +82,51 @@ import UIKit
         }
     }
 }
+
+/// What a back swipe does on the live board, decided from staged-move state.
+/// Pure so it can be unit tested; BoardViewController `goBackOneMoveSwipe:` acts on it.
+@objc enum BackSwipeAction: Int {
+    case clearConnect6Pending   // drop staged Connect6 stones, stay on position
+    case clearDPentePick        // undo staged dPente opening pick, stay
+    case clearSwap2Pick         // undo staged swap2 opening pick, stay
+    case clearPlacedStone       // drop a plain staged stone, stay on position
+    case clearRenjuSelectionPick // remove last Renju SELECTION 5th/6th stone, stay
+    case clearRenjuOfferPick    // remove last Renju OFFERS pick, stay
+    case stepBack               // move back by `BackSwipePolicy.stepBackTarget`
+    case none                   // nothing to do (already at the floor)
+}
+
+@objc final class BackSwipePolicy: NSObject {
+    /// `placedStoneStaged` must be captured BEFORE finalMove is reset, and be false
+    /// for Renju OFFERS/SELECTION taps (they keep their own behaviour).
+    /// Renju picks (selection stones / offers) are consumed one per back press, selection first,
+    /// before any step back.
+    @objc(actionForConnect6Pending:dPenteOpening:swap2Opening:placedStoneStaged:renjuSelectionPicks:renjuOfferPicks:lastMove:)
+    static func action(connect6Pending: Bool, dPenteOpening: Bool, swap2Opening: Bool,
+                       placedStoneStaged: Bool, renjuSelectionPicks: Int = 0,
+                       renjuOfferPicks: Int = 0, lastMove: Int) -> BackSwipeAction {
+        if connect6Pending { return .clearConnect6Pending }
+        if dPenteOpening { return .clearDPentePick }
+        if swap2Opening { return .clearSwap2Pick }
+        if placedStoneStaged { return .clearPlacedStone }
+        if renjuSelectionPicks > 0 { return .clearRenjuSelectionPick }
+        if renjuOfferPicks > 0 { return .clearRenjuOfferPick }
+        return lastMove > 1 ? .stepBack : .none
+    }
+
+    /// True when a real board cell is staged (not -1, not the Go pass sentinel
+    /// gridSize*gridSize) in an active game outside Renju OFFERS/SELECTION picking.
+    @objc(isPlacedStoneStagedActiveGame:finalMove:gridSize:renjuPicking:)
+    static func isPlacedStoneStaged(activeGame: Bool, finalMove: Int, gridSize: Int,
+                                    renjuPicking: Bool) -> Bool {
+        activeGame && !renjuPicking && finalMove >= 0 && finalMove < gridSize * gridSize
+    }
+
+    /// Connect6 steps one full turn (2 moves; positions 1, 3, 5, ...), else 1.
+    /// Never goes below the floor of 1.
+    @objc(stepBackTargetForGameType:lastMove:)
+    static func stepBackTarget(gameType: String, lastMove: Int) -> Int {
+        let step = gameType == "Connect6" ? 2 : 1
+        return max(1, lastMove - step)
+    }
+}
