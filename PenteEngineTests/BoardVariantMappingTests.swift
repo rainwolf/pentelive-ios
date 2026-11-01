@@ -109,10 +109,25 @@ extension BoardVariantMappingTests {
 
 final class BackSwipePolicyTests: XCTestCase {
     private func act(c6: Bool = false, d: Bool = false, s2: Bool = false,
-                     stone: Bool = false, last: Int = 5) -> BackSwipeAction {
+                     stone: Bool = false, sel: Int = 0, offers: Int = 0,
+                     last: Int = 5) -> BackSwipeAction {
         BackSwipePolicy.action(connect6Pending: c6, dPenteOpening: d,
                                swap2Opening: s2, placedStoneStaged: stone,
+                               renjuSelectionPicks: sel, renjuOfferPicks: offers,
                                lastMove: last)
+    }
+
+    func testRenjuSelectionPicksConsumedOneAtATimeBeforeStepBack() {
+        XCTAssertEqual(act(sel: 2, last: 4), .clearRenjuSelectionPick)
+        XCTAssertEqual(act(sel: 1, last: 4), .clearRenjuSelectionPick)
+        XCTAssertEqual(act(sel: 0, last: 4), .stepBack)
+    }
+
+    func testRenjuOfferPicksConsumedBeforeStepBack() {
+        XCTAssertEqual(act(offers: 10, last: 4), .clearRenjuOfferPick)
+        XCTAssertEqual(act(offers: 1, last: 4), .clearRenjuOfferPick)
+        XCTAssertEqual(act(offers: 0, last: 4), .stepBack)
+        XCTAssertEqual(act(offers: 0, last: 1), .none)
     }
 
     func testStagedPredicateCountsOnlyRealCells() {

@@ -633,6 +633,18 @@ BOOL goMarkStones = NO, goEvaluateDeadStones = NO, go = NO, isGoGame = NO;
             ++lastMove;
         }
         [self replayGame:lastMove];
+        if (self.renjuPhase != nil && activeGame &&
+            lastMove == (int)[movesList count]) {
+            // Back at the latest position: restore the phase overlay.
+            if ([self.renjuPhase isEqualToString:@"SELECTION"] &&
+                self.renjuSelectedPoints.count == 0) {
+                [self applyRenjuSelectionMask];
+                [self renderRenjuCandidates:(self.renjuOffers ?: @[])];
+            } else if ([self.renjuPhase isEqualToString:@"OFFERS"] ||
+                       self.renjuMove4BranchB) {
+                [self renderRenjuCandidates:self.renjuPickedOffers];
+            }
+        }
         [board setNeedsDisplay];
         if (!activeGame) {
             [zoomedBoard setAbstractBoard:abstractBoard];
@@ -658,11 +670,22 @@ BOOL goMarkStones = NO, goEvaluateDeadStones = NO, go = NO, isGoGame = NO;
                                                                   finalMove:finalMove
                                                                    gridSize:gridSize
                                                                renjuPicking:renjuPicking];
+    // Renju picks are consumed one per back press before any step back.
+    NSInteger renjuSelectionPicks =
+        [self.renjuPhase isEqualToString:@"SELECTION"]
+            ? (NSInteger)self.renjuSelectedPoints.count
+            : 0;
+    NSInteger renjuOfferPicks =
+        ([self.renjuPhase isEqualToString:@"OFFERS"] || self.renjuMove4BranchB)
+            ? (NSInteger)self.renjuPickedOffers.count
+            : 0;
     BackSwipeAction backAction = [BackSwipePolicy
         actionForConnect6Pending:(connect6Move1 != -1)
                    dPenteOpening:dPenteOpening
                     swap2Opening:swap2Opening
                placedStoneStaged:placedStoneStaged
+             renjuSelectionPicks:renjuSelectionPicks
+                 renjuOfferPicks:renjuOfferPicks
                         lastMove:lastMove];
     finalMove = -1;
     if (!submitButton.imageView.image && activeGame) {
@@ -773,6 +796,43 @@ BOOL goMarkStones = NO, goEvaluateDeadStones = NO, go = NO, isGoGame = NO;
         }
         [board setNeedsDisplay];
         [zoomedBoard setNeedsDisplay];
+    } else if (backAction == BackSwipeActionClearRenjuSelectionPick) {
+        // Drop the last SELECTION stone (white 6th, else black 5th), stay put.
+        // Those stones live in abstractBoard: replay the position, then
+        // re-apply what remains the way the selection tap does.
+        [self.renjuSelectedPoints removeLastObject];
+        [zoomedStone setHidden:YES];
+        [horizontalLine setHidden:YES];
+        [verticalLine setHidden:YES];
+        whiteCaptures = 0;
+        blackCaptures = 0;
+        [captures removeAllObjects];
+        [self replayGame:lastMove];
+        [submitButton setHidden:NO];
+        [submitButton setEnabled:NO];
+        [submitButton setAlpha:0.5];
+        if (self.renjuSelectedPoints.count == 1) {
+            int m5 = [self.renjuSelectedPoints[0] intValue];
+            abstractBoard[m5 / gridSize][m5 % gridSize] = 2; // black 5th
+            [submitButton setTitle:[NSString stringWithFormat:NSLocalizedString(@"submit: %c%d-", nil),
+                                                              coordinateLetters[m5 % gridSize],
+                                                              gridSize - (m5 / gridSize)]
+                          forState:UIControlStateDisabled];
+        } else {
+            [self applyRenjuSelectionMask];
+            [self renderRenjuCandidates:(self.renjuOffers ?: @[])];
+            [submitButton setTitle:NSLocalizedString(@"submit", nil)
+                          forState:UIControlStateDisabled];
+        }
+        [board setAbstractBoard:abstractBoard];
+        [zoomedBoard setAbstractBoard:abstractBoard];
+        [self updateCaptures];
+        [board setNeedsDisplay];
+        [zoomedBoard setNeedsDisplay];
+    } else if (backAction == BackSwipeActionClearRenjuOfferPick) {
+        [self.renjuPickedOffers removeLastObject];
+        [self renderRenjuCandidates:self.renjuPickedOffers];
+        [self showRenjuOfferCounter];
     } else if (backAction == BackSwipeActionStepBack) {
         whiteCaptures = 0;
         blackCaptures = 0;
@@ -781,6 +841,9 @@ BOOL goMarkStones = NO, goEvaluateDeadStones = NO, go = NO, isGoGame = NO;
             stepBackTargetForGameType:[self.game gameType]
                              lastMove:lastMove];
         [self replayGame:lastMove];
+        if (self.renjuPhase != nil && lastMove < (int)[movesList count]) {
+            [self renderRenjuCandidates:@[]]; // no candidate overlay on past positions
+        }
         [board setNeedsDisplay];
         if (!activeGame) {
             [zoomedBoard setAbstractBoard:abstractBoard];

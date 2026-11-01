@@ -90,6 +90,8 @@ import UIKit
     case clearDPentePick        // undo staged dPente opening pick, stay
     case clearSwap2Pick         // undo staged swap2 opening pick, stay
     case clearPlacedStone       // drop a plain staged stone, stay on position
+    case clearRenjuSelectionPick // remove last Renju SELECTION 5th/6th stone, stay
+    case clearRenjuOfferPick    // remove last Renju OFFERS pick, stay
     case stepBack               // move back by `BackSwipePolicy.stepBackTarget`
     case none                   // nothing to do (already at the floor)
 }
@@ -97,13 +99,18 @@ import UIKit
 @objc final class BackSwipePolicy: NSObject {
     /// `placedStoneStaged` must be captured BEFORE finalMove is reset, and be false
     /// for Renju OFFERS/SELECTION taps (they keep their own behaviour).
-    @objc(actionForConnect6Pending:dPenteOpening:swap2Opening:placedStoneStaged:lastMove:)
+    /// Renju picks (selection stones / offers) are consumed one per back press, selection first,
+    /// before any step back.
+    @objc(actionForConnect6Pending:dPenteOpening:swap2Opening:placedStoneStaged:renjuSelectionPicks:renjuOfferPicks:lastMove:)
     static func action(connect6Pending: Bool, dPenteOpening: Bool, swap2Opening: Bool,
-                       placedStoneStaged: Bool, lastMove: Int) -> BackSwipeAction {
+                       placedStoneStaged: Bool, renjuSelectionPicks: Int = 0,
+                       renjuOfferPicks: Int = 0, lastMove: Int) -> BackSwipeAction {
         if connect6Pending { return .clearConnect6Pending }
         if dPenteOpening { return .clearDPentePick }
         if swap2Opening { return .clearSwap2Pick }
         if placedStoneStaged { return .clearPlacedStone }
+        if renjuSelectionPicks > 0 { return .clearRenjuSelectionPick }
+        if renjuOfferPicks > 0 { return .clearRenjuOfferPick }
         return lastMove > 1 ? .stepBack : .none
     }
 
