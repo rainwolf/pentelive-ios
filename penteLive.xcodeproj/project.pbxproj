@@ -309,10 +309,10 @@
 		AD57EACF0103643EA5EFB3E8 /* DBPaletteTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB1F2B0447F3ED19EEEC9D5B /* DBPaletteTests.swift */; };
 		ADC22B02BC637F2C14B47487 /* dashboard_real_index.json in Resources */ = {isa = PBXBuildFile; fileRef = 46FF0A3E9AAF2484A5A01D4F /* dashboard_real_index.json */; };
 		AE4E208038FC49982C6BAEB8 /* ArenaJoinRequestListModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CED4F565311526EC237865E4 /* ArenaJoinRequestListModelTests.swift */; };
-		B10C4ED00000000000000001 /* BlockedPlayers.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10C4ED00000000000000011 /* BlockedPlayers.swift */; };
-		B10C4ED00000000000000002 /* BlockedPlayersService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10C4ED00000000000000012 /* BlockedPlayersService.swift */; };
+		B10C4ED00000000000000001 /* BlockedPlayers/BlockedPlayers.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10C4ED00000000000000011 /* BlockedPlayers/BlockedPlayers.swift */; };
+		B10C4ED00000000000000002 /* BlockedPlayers/BlockedPlayersService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10C4ED00000000000000012 /* BlockedPlayers/BlockedPlayersService.swift */; };
 		B10C4ED00000000000000003 /* BlockedPlayersTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10C4ED00000000000000013 /* BlockedPlayersTests.swift */; };
-		B10C4ED00000000000000004 /* BlockedPlayersViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10C4ED00000000000000014 /* BlockedPlayersViewController.swift */; };
+		B10C4ED00000000000000004 /* BlockedPlayers/BlockedPlayersViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10C4ED00000000000000014 /* BlockedPlayers/BlockedPlayersViewController.swift */; };
 		B33454C6DEE9A2B69643F10C /* ArenaMyRequestsModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB29EC885CE63665B0B3C374 /* ArenaMyRequestsModelTests.swift */; };
 		B659BCC34D88241FB2124999 /* StoreInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CD896F5287C139D124DF4D5 /* StoreInfo.swift */; };
 		B6EE9848640054AF5B211D47 /* CPoint.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E0487D93E252253264372A56 /* CPoint.cpp */; };
@@ -721,10 +721,10 @@
 		AF08F02CC6ACC370781E5AA6 /* GoGame.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GoGame.swift; sourceTree = "<group>"; };
 		B0668BE0DE41E8CA04828427 /* DashboardService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DashboardService.swift; sourceTree = "<group>"; };
 		B0758367CE7D7589537B3F09 /* DBPreferences.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DBPreferences.swift; sourceTree = "<group>"; };
-		B10C4ED00000000000000011 /* BlockedPlayers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockedPlayers/BlockedPlayers.swift; sourceTree = "<group>"; };
-		B10C4ED00000000000000012 /* BlockedPlayersService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockedPlayers/BlockedPlayersService.swift; sourceTree = "<group>"; };
+		B10C4ED00000000000000011 /* BlockedPlayers/BlockedPlayers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockedPlayers/BlockedPlayers.swift; sourceTree = "<group>"; };
+		B10C4ED00000000000000012 /* BlockedPlayers/BlockedPlayersService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockedPlayers/BlockedPlayersService.swift; sourceTree = "<group>"; };
 		B10C4ED00000000000000013 /* BlockedPlayersTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockedPlayersTests.swift; sourceTree = "<group>"; };
-		B10C4ED00000000000000014 /* BlockedPlayersViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockedPlayers/BlockedPlayersViewController.swift; sourceTree = "<group>"; };
+		B10C4ED00000000000000014 /* BlockedPlayers/BlockedPlayersViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockedPlayers/BlockedPlayersViewController.swift; sourceTree = "<group>"; };
 		B13EAFBB305B195C1E1A0127 /* KidAccountsScreenTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KidAccountsScreenTests.swift; sourceTree = "<group>"; };
 		B5FF3D6A4D1F70E68CC42981 /* GoGameTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GoGameTests.swift; sourceTree = "<group>"; };
 		B6233A1BAAA0F3BA2732C043 /* DBGamesPager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DBGamesPager.swift; sourceTree = "<group>"; };
@@ -762,7 +762,7 @@
 		D4A11111111111111111L004 /* RenjuPassTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RenjuPassTests.swift; sourceTree = "<group>"; };
 		D6E40F513E93FEDEA4E7F4BE /* CPoint.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = CPoint.h; sourceTree = "<group>"; };
 		D812D9E08169B4990E2D9FF4 /* MessageAuthorLabel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MessageAuthorLabel.swift; sourceTree = "<group>"; };
-		D8C659756B4CDB24A820A4F4 /* Products.storekit */ = {isa = PBXFileReference; includeInIndex = 1; path = Products.storekit; sourceTree = "<group>"; };
+		D8C659756B4CDB24A820A4F4 /* Products.storekit */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; path = Products.storekit; sourceTree = "<group>"; };
 		DAA2C3922D9D3F3936D97D9D /* DBGameCatalogTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DBGameCatalogTests.swift; sourceTree = "<group>"; };
 		DB29EC885CE63665B0B3C374 /* ArenaMyRequestsModelTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ArenaMyRequestsModelTests.swift; sourceTree = "<group>"; };
 		DC5151ADD885C9D439276F94 /* DBClient.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DBClient.swift; sourceTree = "<group>"; };
@@ -1000,9 +1000,9 @@
 				351CBE2A7B2AAF91BC6615EE /* StoreScreenModel.swift */,
 				739D6DA0ACE5AEC5DB36CE4F /* StoreService.swift */,
 				EF6E9CF83C944F2B4E0C5C8E /* StoreAdapters.swift */,
-				B10C4ED00000000000000011 /* BlockedPlayers.swift */,
-				B10C4ED00000000000000012 /* BlockedPlayersService.swift */,
-				B10C4ED00000000000000014 /* BlockedPlayersViewController.swift */,
+				B10C4ED00000000000000011 /* BlockedPlayers/BlockedPlayers.swift */,
+				B10C4ED00000000000000012 /* BlockedPlayers/BlockedPlayersService.swift */,
+				B10C4ED00000000000000014 /* BlockedPlayers/BlockedPlayersViewController.swift */,
 				44E014A1F49AF27985876A8C /* StoreViewController.swift */,
 				E36732198C6FD461BF86E5D2 /* KidAccounts.swift */,
 				248A985A4E77B24C449CE493 /* KidMode.swift */,
@@ -1856,9 +1856,9 @@
 				1EEDE873B1B3CB703A9F2B4C /* StoreScreenModel.swift in Sources */,
 				CC02EAFCD39E557347A3C2FD /* StoreService.swift in Sources */,
 				317101D2F2CE93FC478F38D5 /* StoreAdapters.swift in Sources */,
-				B10C4ED00000000000000001 /* BlockedPlayers.swift in Sources */,
-				B10C4ED00000000000000002 /* BlockedPlayersService.swift in Sources */,
-				B10C4ED00000000000000004 /* BlockedPlayersViewController.swift in Sources */,
+				B10C4ED00000000000000001 /* BlockedPlayers/BlockedPlayers.swift in Sources */,
+				B10C4ED00000000000000002 /* BlockedPlayers/BlockedPlayersService.swift in Sources */,
+				B10C4ED00000000000000004 /* BlockedPlayers/BlockedPlayersViewController.swift in Sources */,
 				7BB8B7B4FAA8A10594D9A4F0 /* StoreViewController.swift in Sources */,
 				D931AC63085CF366177863AC /* KidAccounts.swift in Sources */,
 				88A50FE84F56B4E70121AFB2 /* KidMode.swift in Sources */,
