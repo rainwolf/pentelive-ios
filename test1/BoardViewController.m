@@ -38,6 +38,12 @@
 // SELECTION: the chosen pair [black move5, white move6]. Declared here (not the
 // .h) so the new TB-select state stays local to the implementation.
 @property (nonatomic, strong) NSMutableArray<NSNumber *> *renjuSelectedPoints;
+// Drives the unread-message blink frame by frame (see -refreshMessageBarItem).
+@property (nonatomic, strong) NSTimer *messageBlinkTimer;
+// YES from notifyNewMessage until the message is opened; lets the blink stop
+// while the board is off screen and resume when it returns.
+@property (nonatomic, assign) BOOL messageUnread;
+@property (nonatomic, assign) BOOL messageTraitRegistered;
 @end
 
 @implementation BoardViewController
@@ -134,19 +140,34 @@ BOOL goMarkStones = NO, goEvaluateDeadStones = NO, go = NO, isGoGame = NO;
     // Do any additional setup after loading the view, typically from a nib.
     cancelMsg = @"";
     hideString = @"";
-    messageButtonImageView = [[UIImageView alloc]
-        initWithImage:[UIImage imageNamed:@"messageBubble0.png"]];
+    // The stock idle bubble is 50% gray, barely visible on a Liquid Glass
+    // button; draw it in the label colour like the other bar icons. Baked in
+    // (not a template) so the blue "unread" frame keeps its colour.
+    UIImage *idleBubble = [self idleMessageBubbleImage];
+    messageButtonImageView = [[UIImageView alloc] initWithImage:idleBubble];
     NSArray *images = [NSArray
-        arrayWithObjects:[UIImage imageNamed:@"messageBubble0.png"],
+        arrayWithObjects:idleBubble,
                          [UIImage imageNamed:@"messageBubble1.png"], nil];
     messageButtonImageView.animationImages = images;
     [messageButton addSubview:self.messageButtonImageView];
 
     messageButton.layer.cornerRadius = 5;
     messageButton.layer.masksToBounds = YES;
-    [messageButtonImageView
-        setCenter:CGPointMake(messageButton.bounds.size.width / 2,
-                              messageButton.bounds.size.height / 2)];
+    // The bar sizes a custom view by its intrinsic size; this title-less
+    // system button would collapse to 8pt wide and clip the 25pt icon.
+    messageButton.translatesAutoresizingMaskIntoConstraints = NO;
+    messageButtonImageView.translatesAutoresizingMaskIntoConstraints = NO;
+    messageButtonImageView.userInteractionEnabled = NO;
+    [NSLayoutConstraint activateConstraints:@[
+        [messageButton.widthAnchor constraintEqualToConstant:40],
+        [messageButton.heightAnchor constraintEqualToConstant:30],
+        [messageButtonImageView.centerXAnchor
+            constraintEqualToAnchor:messageButton.centerXAnchor],
+        [messageButtonImageView.centerYAnchor
+            constraintEqualToAnchor:messageButton.centerYAnchor],
+        [messageButtonImageView.widthAnchor constraintEqualToConstant:25],
+        [messageButtonImageView.heightAnchor constraintEqualToConstant:25],
+    ]];
     [messageButton addTarget:self
                       action:@selector(messageTap:)
             forControlEvents:UIControlEventTouchUpInside];
@@ -389,9 +410,120 @@ BOOL goMarkStones = NO, goEvaluateDeadStones = NO, go = NO, isGoGame = NO;
 
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
+    // The icon is laid out by now; make sure the bar shows that state.
+    [self refreshMessageBarItem];
+    if (self.messageUnread && self.messageBlinkTimer == nil) {
+        [self startMessageBlink];
+    }
+    if (@available(iOS 17.0, *)) {
+        if (!self.messageTraitRegistered) {
+            self.messageTraitRegistered = YES;
+            [self registerForTraitChanges:@[ UITraitUserInterfaceStyle.class ]
+                               withAction:@selector(messageIconTraitsChanged)];
+        }
+    }
+}
+
+// Idle bubble drawn in the current label colour (resolved at call time).
+- (UIImage *)idleMessageBubbleImage {
+    return [[UIImage imageNamed:@"messageBubble0.png"]
+        imageWithTintColor:[UIColor labelColor]
+             renderingMode:UIImageRenderingModeAlwaysOriginal];
+}
+
+// Light/dark switch: the baked idle bubble holds the old colour, so rebuild
+// it, then re-attach the bar item so the bar redraws.
+- (void)messageIconTraitsChanged {
+    UIImage *idle = [self idleMessageBubbleImage];
+    messageButtonImageView.animationImages =
+        @[ idle, [UIImage imageNamed:@"messageBubble1.png"] ];
+    if (self.messageBlinkTimer == nil) {
+        messageButtonImageView.image = idle;
+    }
+    [self refreshMessageBarItem];
+}
+
+// iOS 15-16 fallback; iOS 17+ uses registerForTraitChanges (viewDidAppear).
+- (void)traitCollectionDidChange:(UITraitCollection *)previous {
+    [super traitCollectionDidChange:previous];
+    if (@available(iOS 17.0, *)) {
+        return;
+    }
+    if (previous.userInterfaceStyle !=
+        self.traitCollection.userInterfaceStyle) {
+        [self messageIconTraitsChanged];
+    }
+}
+
+// On iOS 26+ the Liquid Glass navigation bar does not redraw a bar item's
+// custom view when its contents change (image swaps, UIImageView animations,
+// layout); it only picks them up when the item is configured. Re-attach the
+// button so the bar renders its current state.
+- (void)refreshMessageBarItem {
+    // messageButton is a weak outlet and the bar item is its only owner;
+    // hold it strongly across the nil assignment.
+    UIButton *button = messageButton;
+    if (!button) return;
+    for (UIBarButtonItem *item in self.navigationItem.rightBarButtonItems) {
+        if (item.customView == button) {
+            item.customView = nil;
+            item.customView = button;
+            return;
+        }
+    }
+}
+
+- (void)startMessageBlink {
+    [self stopMessageBlink];
+    self.messageUnread = YES;
+    __weak typeof(self) weakSelf = self;
+    __block NSUInteger frame = 0;
+    self.messageBlinkTimer = [NSTimer
+        scheduledTimerWithTimeInterval:0.6
+                               repeats:YES
+                                 block:^(NSTimer *timer) {
+                                   __strong typeof(weakSelf) strongSelf =
+                                       weakSelf;
+                                   if (strongSelf == nil) {
+                                       [timer invalidate];
+                                       return;
+                                   }
+                                   // Re-attaching mid-touch can cancel a tap.
+                                   if (strongSelf.messageButton.isTracking ||
+                                       strongSelf.messageButton.isHighlighted) {
+                                       return;
+                                   }
+                                   NSArray *frames = strongSelf
+                                       .messageButtonImageView.animationImages;
+                                   frame = (frame + 1) % frames.count;
+                                   strongSelf.messageButtonImageView.image =
+                                       frames[frame];
+                                   [strongSelf refreshMessageBarItem];
+                                 }];
+}
+
+// Message read / cleared: stop blinking and forget the unread state.
+- (void)stopMessageBlink {
+    self.messageUnread = NO;
+    [self suspendMessageBlinkKeepingUnread];
+}
+
+// Stops the timer and shows the idle frame but keeps messageUnread, so
+// viewDidAppear can resume the blink.
+- (void)suspendMessageBlinkKeepingUnread {
+    BOOL wasBlinking = self.messageBlinkTimer != nil;
+    [self.messageBlinkTimer invalidate];
+    self.messageBlinkTimer = nil;
+    messageButtonImageView.image =
+        messageButtonImageView.animationImages.firstObject;
+    if (wasBlinking) {
+        [self refreshMessageBarItem];
+    }
 }
 
 - (void)viewWillDisappear:(BOOL)animated {
+    // GamesTableViewController retains this VC; don't keep a timer running.
+    [self suspendMessageBlinkKeepingUnread];
     //    [bannerView removeFromSuperview];
     PenteNavigationViewController *navController =
         (PenteNavigationViewController *)self.navigationController;
@@ -3591,7 +3723,7 @@ BOOL goMarkStones = NO, goEvaluateDeadStones = NO, go = NO, isGoGame = NO;
     }
 
     isLastMove = (untilMove == [movesList count]);
-    [messageButtonImageView stopAnimating];
+    [self stopMessageBlink];
     NSString *key = [NSString stringWithFormat:@"%i", untilMove];
     if ([messagesHistory objectForKey:key]) {
         [self notifyNewMessage];
@@ -4123,8 +4255,7 @@ BOOL goMarkStones = NO, goEvaluateDeadStones = NO, go = NO, isGoGame = NO;
 }
 
 - (void)notifyNewMessage {
-    [messageButtonImageView setAnimationDuration:1.2];
-    [messageButtonImageView startAnimating];
+    [self startMessageBlink];
 }
 
 - (void)toggleBoardLock:(id)sender {
@@ -4145,7 +4276,6 @@ BOOL goMarkStones = NO, goEvaluateDeadStones = NO, go = NO, isGoGame = NO;
 }
 
 - (void)messageTap:(id)sender {
-    [messageButtonImageView stopAnimating];
     [receivedMessageView flashScrollIndicators];
 
     messagePopover = nil;
@@ -4163,6 +4293,8 @@ BOOL goMarkStones = NO, goEvaluateDeadStones = NO, go = NO, isGoGame = NO;
     CGPoint showPoint = [self.view convertPoint:messageButton.center
                                        fromView:messageButton];
     showPoint.y = showPoint.y + messageButton.bounds.size.height / 2;
+    // After the anchor is read: stopping re-attaches the button to the bar.
+    [self stopMessageBlink];
     if (isLastMove) {
         if (activeGame) {
             if (![receivedMessage isEqualToString:@""]) {
